@@ -1,0 +1,43 @@
+FISHPACK 4.1
+------------
+Efficient FORTRAN Subprograms for the Solution of Separable Elliptic 
+Partial Differential Equations
+
+12/06/2011
+
+Authors:  John  Adams, Paul Swarztrauber and Roland Sweet
+
+CAVEAT
+------
+FISHPACK 4.1 is written in Fortran 77 but it does not fully comply with the 
+Fortran 77 standard. It breaks the standard by calling routines with one type 
+of argument and later uses the argument as another type.  There may be other
+violations as well. Users whose applications require strict adherence to the 
+standard should not use FISHPACK 4.1.
+
+Documentation
+-------------
+Documentation for this software package is provided in file FISHPACK4.1.html
+and companion image file FISH.gif.  We intend the document for display on your 
+browser.
+
+Recent bugfixes
+---------------
+None. This library is regarded as legacy, and no problems other than standards
+violations have been reported for several years.
+
+Compiling the Library and Test Programs
+---------------------------------------
+Our Makefile requires gmake and a Fortran 90 compiler to make the library and test 
+executables.  It is configured to build a static library on several popular unix 
+and unix-like operating systems; a Fortran compiler is required on the system where 
+you are executing the Makefile.
+
+Examine file make.inc to see if your OS and compiler are represented.  If they 
+are not, you should modify file make.inc and the Makefile in each directory 
+(main, src and test) so that they are represented.
+
+The source code is primarily Fortran 77 syntax for single precision floating-point 
+arithmetic.  If you desire double precision, you should modify Makefile and make.inc 
+with compiler options for promoting real to double precision.  Your compiler's user 
+guide will have information on the required compiler options.
