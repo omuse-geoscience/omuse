@@ -181,7 +181,6 @@ function evolve_model(tend) result(ret)
    counter = counter + 1
  
   enddo
-  !   write(*,*) t_curr
   ret=0
 end function
 
@@ -196,7 +195,6 @@ function set_time(tnow) result (ret)
   integer :: ret
   real(8) :: tnow
   t_curr=tnow
- ! write(*,*) t_curr
   ret=0
 end function
 
@@ -211,7 +209,6 @@ function set_begin_time(t) result (ret)
   integer :: ret
   real(8) :: t
   begin_time=t
- ! write(*,*) t_curr
   ret=0
 end function
 
@@ -226,7 +223,6 @@ function set_wind_sigma(t) result (ret)
   integer :: ret
   real(8) :: t
   wind_sigma=t
- ! write(*,*) t_curr
   ret=0
 end function
 
@@ -258,9 +254,6 @@ function get_psi2_state(i,j,k,psi2,n) result(ret)
     psi2(ii)=psi_2(k(ii),i(ii),j(ii))
   enddo
   ret=0
-  
-  !  write(*,*)'get ', psi_2(1,3,3)
-  ret=0
 end function
 
 function set_psi1_state(i,j,k,psi1,n) result(ret)
@@ -283,8 +276,6 @@ function set_psi2_state(i,j,k,psi2,n) result(ret)
   do ii=1,n
     psi_2(k(ii),i(ii),j(ii))=psi2(ii)
   enddo
-  
-  !write(*,*)'set',  psi_2(1,3,3) 
   ret=0
 end function
 
