@@ -3,6 +3,12 @@ from amuse.community.interface.common import CommonCode, CommonCodeInterface
 
 from amuse.units import units
 
+import subprocess 
+
+stacksize=subprocess.check_output('mpirun sh -c "ulimit -s"', shell=True)
+if int(stacksize) < 65536:
+  print "remember to increase the stacksize for qgmodel!"
+
 class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
         .. [#] Viebahn, J. and Dijkstra, H., International Journal of Bifurcation and Chaos, Vol. 24, No. 2 (2014) 1430007
@@ -28,6 +34,9 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function.addParameter('time', dtype='d', direction=function.IN, unit=units.s)
         function.result_type = 'i'
         return function
+
+    def synchronize_model(self):
+        pass
 
     @legacy_function    
     def get_time():
@@ -452,7 +461,29 @@ class QGmodel(CommonCode):
         object.add_setter('grid', 'set_psi2_state', names=('psi_prev',))
         object.add_getter('grid', 'get_position_of_index', names=('x','y'))
 
+    def define_state(self, object): 
+        CommonCode.define_state(self, object)   
+        object.add_transition('INITIALIZED','EDIT','commit_parameters')
+        object.add_transition('EDIT', 'RUN', 'initialize_grid')
+        object.add_transition('RUN', 'EVOLVED', 'evolve_model', False)
+        object.add_transition('EVOLVED','RUN', 'synchronize_model')
+        object.add_transition('RUN','EDIT', 'synchronize_model')
+        object.add_method('RUN', 'get_psi1_state')
+        object.add_method('RUN', 'get_psi2_state')
+        object.add_method('EDIT', 'get_psi1_state')
+        object.add_method('EDIT', 'get_psi2_state')
+        object.add_method('EDIT', 'set_psi1_state')
+        object.add_method('EDIT', 'set_psi2_state')
+        object.add_method('EDIT', 'get_index_range_inclusive')
 
+        object.add_method('INITIALIZED', 'set_Lx')
+        object.add_method('INITIALIZED', 'set_Ly')
+        object.add_method('INITIALIZED', 'set_dx')
+        object.add_method('INITIALIZED', 'set_dy')
+        object.add_method('INITIALIZED', 'set_Nm')
+        
+        
+        
     def define_properties(self, object):
         object.add_property('get_time', public_name = "model_time")
     
