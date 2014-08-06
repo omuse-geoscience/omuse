@@ -138,6 +138,7 @@ function evolve_model(tend) result(ret)
    
    t_curr = t_curr + dt
 
+   chi_prev = chii
   ! update viscosity
    vis_bot_prev  = vis_bot_curr
    call vis_bot(Nm,Nx,Ny,free_slip,psi_1,vis_bot_curr)
@@ -154,7 +155,6 @@ function evolve_model(tend) result(ret)
    psi_1 = psi_1 + 0.1d0*(inter-2.d0*psi_1+psi_2)
    psi_2 = inter
   !!!
-   chi_prev = chii
    counter = counter + 1
   ! max_psi(counter+save_num*savecounter+1) = maxval(psi_2)
   
@@ -163,7 +163,8 @@ function evolve_model(tend) result(ret)
    t_curr = t_curr + dt
    
    cnt1 =cnt1 + dt
-  
+
+   chi_prev = chii
    vis_bot_prev  = vis_bot_curr
    call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_curr)
    vis_lat_prev  = vis_lat_curr
@@ -177,7 +178,6 @@ function evolve_model(tend) result(ret)
    psi_2 = psi_2 + 0.1d0*(inter-2.d0*psi_2+psi_1)
    psi_1 = inter
   !!!
-   chi_prev = chii
    counter = counter + 1
  
   enddo
@@ -359,14 +359,14 @@ end function
 function get_dt(x) result (ret)
   integer :: ret
   real(8) :: x
-  x=dt
+  x=2*dt
   ret=0
 end function
 
 function set_dt(x) result (ret)
   integer :: ret
   real(8) :: x
-  dt=x
+  dt=x/2
   ret=0
 end function
 
@@ -638,9 +638,9 @@ do i=1,Nx
 
 
 ! jan's:
-!  tau(i,j) = cos(2.*pi*((j-1.)/(Ny-1.)-0.5))+2.*sin(pi*((j-1.)/(Ny-1.)-0.5))
+  tau(i,j) = cos(2.*pi*((j-1.)/(Ny-1.)-0.5))+2.*sin(pi*((j-1.)/(Ny-1.)-0.5))
 ! dijkstra:
-   tau(i,j)= - ( wind_sigma*cos(pi*(j-1.)/(Ny-1.))+(1-wind_sigma)*cos(2.*pi*((j-1.)/(Ny-1.))) )
+!   tau(i,j)= - ( wind_sigma*cos(pi*(j-1.)/(Ny-1.))+(1-wind_sigma)*cos(2.*pi*((j-1.)/(Ny-1.))) )
 
 !  tau(i,j) = -1./(2.*pi)*cos(2.*pi*(j-1.)/(Ny-1.))
 !  tau(i,j) = -cos(pi*(j-1.)/(Ny-1.))
