@@ -2,10 +2,16 @@ import os
 import sys
 import numpy
 
+from amuse.units import units
 
 from amuse.test.amusetest import TestWithMPI
 
 from interface import QGmodelInterface,QGmodel
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("code").setLevel(logging.DEBUG)
+
 
 class TestQGmodelInterface(TestWithMPI):
     
@@ -86,5 +92,29 @@ class TestQGmodel(TestWithMPI):
     
     def test0(self):
         instance=QGmodel()
+        self.assertEquals(instance.get_name_of_current_state(), 'UNINITIALIZED')
         instance.initialize_code()
+        self.assertEquals(instance.get_name_of_current_state(), 'INITIALIZED')
+        instance.commit_parameters()
+        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
+        instance.evolve_model(1 | units.hour)
+        self.assertEquals(instance.get_name_of_current_state(), 'EVOLVED')        
+        psi=instance.grid.psi
+        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
         instance.stop()
+
+    def test1(self):
+        instance=QGmodel()
+        instance.evolve_model(1 | units.hour)
+        self.assertEquals(instance.get_name_of_current_state(), 'EVOLVED')        
+        psi=instance.grid.psi
+        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
+        instance.stop()
+
+    def test2(self):
+        instance=QGmodel(redirection="none")
+        instance.grid[0,0,0].psi       
+        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
+        instance.initialize_grid()
+        self.assertEquals(instance.get_name_of_current_state(), 'RUN')
+        
