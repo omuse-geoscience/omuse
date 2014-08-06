@@ -25,7 +25,7 @@ class TestQGmodelInterface(TestWithMPI):
         instance.initialize_code()
         
         for key,val in [("Lx",4000000.),("Ly",4000000.),
-         ("dx",10000.),("dy",10000.), ("dt",1800.),("H",4000.),
+         ("dx",10000.),("dy",10000.), ("dt",3600.),("H",4000.),
          ("rho",1000.), ("beta0",1.8616e-11),("tau",0.05),
          ("R_H",0),("A_H",100), ("lambda0",0.),("lambda1",2.e-5),
          ("Nm",1),("free_slip",1),("begin_time",0.),("wind_sigma",1.),
@@ -81,10 +81,9 @@ class TestQGmodelInterface(TestWithMPI):
         
         instance.commit_parameters()
 
-        instance.evolve_model(1800.)
+        instance.evolve_model(3600.)
         time,err=instance.get_time()
-        self.assertEqual(time,3600.) # 2x1800!
-         
+        self.assertEqual(time,3600.) 
         instance.stop()
 
 
@@ -117,4 +116,12 @@ class TestQGmodel(TestWithMPI):
         self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
         instance.initialize_grid()
         self.assertEquals(instance.get_name_of_current_state(), 'RUN')
+        
+    def test3(self):
+        instance=QGmodel(redirection="none")
+        dt=0.123 | units.hour
+        instance.parameters.dt=dt
+        instance.evolve_model(2*dt)
+        self.assertEqual(instance.model_time,2*dt)
+        
         

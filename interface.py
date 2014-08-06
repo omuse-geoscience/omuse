@@ -537,7 +537,7 @@ class QGmodel(CommonCode):
             "set_dt",
             "dt", 
             "timestep of the evolve", 
-            default_value = 1800.0 | units.s
+            default_value = 3600.0 | units.s
         ) 
         object.add_method_parameter(
             "get_A_H", 
