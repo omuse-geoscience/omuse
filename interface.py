@@ -7,7 +7,7 @@ import subprocess
 
 stacksize=subprocess.check_output('mpirun sh -c "ulimit -s"', shell=True)
 if int(stacksize) < 65536:
-  print "remember to increase the stacksize for qgmodel!"
+  raise Exception("remember to increase the stacksize for qgmodel!")
 
 class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
