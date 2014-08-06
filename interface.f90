@@ -104,39 +104,65 @@ end function
 function initialize_grid() result(ret)
   integer :: ret
 
-! at this point the grid is filled
-! this is somewhat reminiscent of the situation at a restart, except
-! that AMUSE will (probably) be aware and be able to set only 1 state
-! fill psi_2 if not filled?
+! naive initialization of psi_2
   psi_2=psi_1
-! In addition: the original main had the following two lines after a restart:
-  call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_curr)
-  call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_curr)
+  chi_prev=0.
+! note in principle the only way to restart consistently is by writing and
+! reading psi_2 and chi_prev! 
+! note chi_prev does not actually do anything atm
+! psi_2 may be initialized by a warm up step...
 
+! initialize vis_*_prev from pis_2
+  call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_prev)
+  call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_prev)
+
+! initialize vis_*_curr from pis_1
+  call vis_bot(Nm,Nx,Ny,free_slip,psi_1,vis_bot_curr)
+  call vis_lat(Nm,Nx,Ny,free_slip,psi_1,vis_lat_curr)
+
+! chi is already calculated here so it becomes available for other codes
+  call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
+       &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
+       &    psi_1,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
+       &    chii)
+  counter=counter+1
   ret=0
 end function
 
 function evolve_model(tend) result(ret)
   integer :: ret
-  integer :: counter, save_num
-  real(8) :: tend, cnt1
-
-! counter (and save/_num where used at some point (but not now)
-  counter  = 0
-  save_num = 0
-  cnt1 = 0.d0 
-
-!  if (t_curr.gt.0.d0) then
-!    call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_curr)
-!    call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_curr)
-!  endif
+  integer :: save_num
+  real(8) :: tend
   
   do while ( t_curr < tend)
-!  do while (cnt1 < tend)
-   
-   cnt1 = cnt1 + dt
-   
+      
    t_curr = t_curr + dt
+       
+  !Robert-Asselin filter
+   inter = psi_2 + 2.d0*dt*chii
+   psi_1 = psi_1 + 0.1d0*(inter-2.d0*psi_1+psi_2)
+   psi_2 = inter
+  !!!
+  ! do exactly the same thing again with opposite psi arrays
+  ! (specials: leap-frog time stepping, and using previous viscosity)
+   t_curr = t_curr + dt
+   
+   chi_prev = chii
+   vis_bot_prev  = vis_bot_curr
+   call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_curr)
+   vis_lat_prev  = vis_lat_curr
+   call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_curr)
+   call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
+       &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
+       &    psi_2,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
+       &    chii)
+   counter = counter + 1
+
+  !Robert-Asselin filter
+   inter = psi_1 + 2.d0*dt*chii
+   psi_2 = psi_2 + 0.1d0*(inter-2.d0*psi_2+psi_1)
+   psi_1 = inter
+  !!!
 
    chi_prev = chii
   ! update viscosity
@@ -149,38 +175,15 @@ function evolve_model(tend) result(ret)
        &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
        &    psi_1,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
        &    chii)
-       
-  !Robert-Asselin filter
-   inter = psi_2 + 2.d0*dt*chii
-   psi_1 = psi_1 + 0.1d0*(inter-2.d0*psi_1+psi_2)
-   psi_2 = inter
-  !!!
-   counter = counter + 1
-  ! max_psi(counter+save_num*savecounter+1) = maxval(psi_2)
-  
-  ! do exactly the same thing again with opposite psi arrays
-  ! (specials: leap-frog time stepping, and using previous viscosity)
-   t_curr = t_curr + dt
-   
-   cnt1 =cnt1 + dt
-
-   chi_prev = chii
-   vis_bot_prev  = vis_bot_curr
-   call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_curr)
-   vis_lat_prev  = vis_lat_curr
-   call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_curr)
-   call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
-       &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
-       &    psi_2,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
-       &    chii)
-  !Robert-Asselin filter
-   inter = psi_1 + 2.d0*dt*chii
-   psi_2 = psi_2 + 0.1d0*(inter-2.d0*psi_2+psi_1)
-   psi_1 = inter
-  !!!
    counter = counter + 1
  
   enddo
+  ret=0
+end function
+
+function get_counter(c) result (ret)
+  integer :: ret,c
+  c=counter
   ret=0
 end function
 
@@ -226,11 +229,19 @@ function set_wind_sigma(t) result (ret)
   ret=0
 end function
 
-
-
-
 function cleanup_code() result(ret)
   integer :: ret
+  ret=0
+end function
+
+function get_dpsi_dt(i,j,k,dpsi,n) result(ret)
+  integer :: ret,n
+  integer :: ii,i(n),j(n),k(n)
+  real(8) :: dpsi(n)
+  
+  do ii=1,n
+    dpsi(ii)=chii(k(ii),i(ii),j(ii))
+  enddo
   ret=0
 end function
 

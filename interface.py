@@ -39,6 +39,13 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         pass
 
     @legacy_function    
+    def get_counter():
+        function = LegacyFunctionSpecification()  
+        function.addParameter('counter', dtype='i', direction=function.OUT)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
     def get_time():
         function = LegacyFunctionSpecification()  
         function.addParameter('tnow', dtype='d', direction=function.OUT, unit=units.s)
@@ -77,6 +84,18 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
     def get_wind_sigma():
         function = LegacyFunctionSpecification()  
         function.addParameter('wind_sigma', dtype='d', direction=function.OUT)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
+    def get_dpsi_dt():
+        function = LegacyFunctionSpecification()  
+        function.must_handle_array = True
+        for x in ['i','j','k']:
+            function.addParameter(x, dtype='i', direction=function.IN)
+        for x in ['dpsi_dt']:
+            function.addParameter(x, dtype='d', direction=function.OUT, unit=units.m**2/units.s**2)
+        function.addParameter('number_of_points', 'i', function.LENGTH)
         function.result_type = 'i'
         return function
 
@@ -455,6 +474,7 @@ class QGmodel(CommonCode):
     def define_particle_sets(self, object):
         object.define_grid('grid')
         object.set_grid_range('grid', 'get_index_range_inclusive')    
+        object.add_getter('grid', 'get_dpsi_dt', names=('dpsi_dt',))
         object.add_getter('grid', 'get_psi1_state', names=('psi',))
         object.add_setter('grid', 'set_psi1_state', names=('psi',))
         object.add_getter('grid', 'get_psi2_state', names=('psi_prev',))
@@ -470,10 +490,12 @@ class QGmodel(CommonCode):
         object.add_transition('RUN','EDIT', 'synchronize_model')
         object.add_method('RUN', 'get_psi1_state')
         object.add_method('RUN', 'get_psi2_state')
+        object.add_method('RUN', 'get_dpsi_dt')
         object.add_method('EDIT', 'get_psi1_state')
         object.add_method('EDIT', 'get_psi2_state')
         object.add_method('EDIT', 'set_psi1_state')
         object.add_method('EDIT', 'set_psi2_state')
+        object.add_method('RUN', 'get_index_range_inclusive')
         object.add_method('EDIT', 'get_index_range_inclusive')
 
         object.add_method('INITIALIZED', 'set_Lx')

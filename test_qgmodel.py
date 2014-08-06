@@ -99,7 +99,7 @@ class TestQGmodel(TestWithMPI):
         instance.evolve_model(1 | units.hour)
         self.assertEquals(instance.get_name_of_current_state(), 'EVOLVED')        
         psi=instance.grid.psi
-        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
+        self.assertEquals(instance.get_name_of_current_state(), 'RUN')
         instance.stop()
 
     def test1(self):
@@ -107,7 +107,7 @@ class TestQGmodel(TestWithMPI):
         instance.evolve_model(1 | units.hour)
         self.assertEquals(instance.get_name_of_current_state(), 'EVOLVED')        
         psi=instance.grid.psi
-        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
+        self.assertEquals(instance.get_name_of_current_state(), 'RUN')
         instance.stop()
 
     def test2(self):
@@ -116,6 +116,7 @@ class TestQGmodel(TestWithMPI):
         self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
         instance.initialize_grid()
         self.assertEquals(instance.get_name_of_current_state(), 'RUN')
+        instance.stop()
         
     def test3(self):
         instance=QGmodel(redirection="none")
@@ -123,5 +124,33 @@ class TestQGmodel(TestWithMPI):
         instance.parameters.dt=dt
         instance.evolve_model(2*dt)
         self.assertEqual(instance.model_time,2*dt)
+        instance.stop()
+
+    def test4(self):
+        instance=QGmodel(redirection="none")
+        instance.grid[0,0,0].dpsi_dt       
+        self.assertEquals(instance.get_name_of_current_state(), 'RUN')
+        instance.stop()
+
         
+    def test5(self):
+        instance=QGmodel(redirection="none")
+        dt=instance.parameters.dt
+        instance.evolve_model(dt)
+
+        dpsi_dt1=instance.grid.dpsi_dt
+        psi1=instance.grid.psi
+        instance.evolve_model(2*dt)
+
+        psi2=instance.grid.psi
+        dpsi_dt2=instance.grid.dpsi_dt
+        
+        dpsi_estimate=((psi2-psi1)/dt).mean()
+        dpsi=0.5*(dpsi_dt1+dpsi_dt2).mean()
+        self.assertTrue( abs(dpsi-dpsi_estimate)/dpsi < 0.1)
+        
+        instance.stop()
+        
+        
+
         
