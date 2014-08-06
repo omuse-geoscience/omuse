@@ -14,8 +14,8 @@ endif
 
 ifeq ($(findstring ifort, $(notdir $(FORTRAN))), ifort)
 # ifort flags
-LDFLAGS  += -lm -mkl -I./src/include
-FCFLAGS += -mkl -I./src/include
+LDFLAGS  += -O2 -lm -mkl -I./src/include
+FCFLAGS += -O2 -mkl -I./src/include
 endif
 
 
