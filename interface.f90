@@ -5,7 +5,7 @@ module qgmodel
               & Nx,Ny,Nt,Nm !,restart,restart_num
   real(8)    :: tau,A_H,R_H,H,rho,beta0,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
               & dx,dy,dt,T,t_curr,err_tol,relax_coef
-  real(8)    :: begin_time, wind_sigma
+  real(8)    :: begin_time, wind_sigma, ra_alpha
   real(8), allocatable,dimension (:,:)   :: max_psi
   real(8), allocatable,dimension (:,:,:) :: psi_1,psi_2,inter,chii,chi_prev, &
                                           & vis_bot_prev,vis_bot_curr, &
@@ -38,13 +38,15 @@ subroutine default_numerical_parameters()
   max_it         = 20000
   relax_coef     = 1.7d0
   free_slip      = 1
+  
+  ra_alpha       = 0.1d0
 !  restart        = 0  ! not used for amuse
 !  restart_num    = 360 ! not used                
 end subroutine  
 
 subroutine default_physical_parameters()
   begin_time = 0.0
-  wind_sigma = 1.0
+  wind_sigma = -99.0
   
   tau        = 0.05d0
   A_H        = 100.d0
@@ -140,7 +142,7 @@ function evolve_model(tend) result(ret)
        
   !Robert-Asselin filter
    inter = psi_2 + 2.d0*dt*chii
-   psi_1 = psi_1 + 0.1d0*(inter-2.d0*psi_1+psi_2)
+   psi_1 = psi_1 + ra_alpha*(inter-2.d0*psi_1+psi_2)
    psi_2 = inter
   !!!
   ! do exactly the same thing again with opposite psi arrays
@@ -160,7 +162,7 @@ function evolve_model(tend) result(ret)
 
   !Robert-Asselin filter
    inter = psi_1 + 2.d0*dt*chii
-   psi_2 = psi_2 + 0.1d0*(inter-2.d0*psi_2+psi_1)
+   psi_2 = psi_2 + ra_alpha*(inter-2.d0*psi_2+psi_1)
    psi_1 = inter
   !!!
 
@@ -228,6 +230,21 @@ function set_wind_sigma(t) result (ret)
   wind_sigma=t
   ret=0
 end function
+
+function get_ra_alpha(t) result (ret)
+  integer :: ret
+  real(8) :: t
+  t=ra_alpha
+  ret=0
+end function
+
+function set_ra_alpha(t) result (ret)
+  integer :: ret
+  real(8) :: t
+  ra_alpha=t
+  ret=0
+end function
+
 
 function cleanup_code() result(ret)
   integer :: ret
@@ -648,10 +665,13 @@ do i=1,Nx
  do j=1,Ny
 
 
+  if(wind_sigma<-1.) then
 ! jan's:
   tau(i,j) = cos(2.*pi*((j-1.)/(Ny-1.)-0.5))+2.*sin(pi*((j-1.)/(Ny-1.)-0.5))
+  else
 ! dijkstra:
-!   tau(i,j)= - ( wind_sigma*cos(pi*(j-1.)/(Ny-1.))+(1-wind_sigma)*cos(2.*pi*((j-1.)/(Ny-1.))) )
+  tau(i,j)= - ( wind_sigma*cos(pi*(j-1.)/(Ny-1.))+(1-wind_sigma)*cos(2.*pi*((j-1.)/(Ny-1.))) )
+  endif
 
 !  tau(i,j) = -1./(2.*pi)*cos(2.*pi*(j-1.)/(Ny-1.))
 !  tau(i,j) = -cos(pi*(j-1.)/(Ny-1.))

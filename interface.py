@@ -88,6 +88,21 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         return function
 
     @legacy_function    
+    def set_ra_alpha():
+        function = LegacyFunctionSpecification()  
+        function.addParameter('ra_alpha', dtype='d', direction=function.IN)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
+    def get_ra_alpha():
+        function = LegacyFunctionSpecification()  
+        function.addParameter('ra_alpha', dtype='d', direction=function.OUT)
+        function.result_type = 'i'
+        return function
+
+
+    @legacy_function    
     def get_dpsi_dt():
         function = LegacyFunctionSpecification()  
         function.must_handle_array = True
@@ -529,8 +544,16 @@ class QGmodel(CommonCode):
             "get_wind_sigma", 
             "set_wind_sigma",
             "wind_sigma", 
-            "wind mix parameter (0-1)", 
-            default_value = 1.0
+            "wind mix parameter (-1 - 1, <-1: jans wind)", 
+            default_value = -99.0
+        )
+
+        object.add_method_parameter(
+            "get_ra_alpha", 
+            "set_ra_alpha",
+            "robert_asselin_alpha", 
+            "robert_asselin filter parameter (0.01-0.1)", 
+            default_value = 0.1
         )
 
         object.add_method_parameter(

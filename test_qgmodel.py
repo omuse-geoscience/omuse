@@ -28,8 +28,8 @@ class TestQGmodelInterface(TestWithMPI):
          ("dx",10000.),("dy",10000.), ("dt",3600.),("H",4000.),
          ("rho",1000.), ("beta0",1.8616e-11),("tau",0.05),
          ("R_H",0),("A_H",100), ("lambda0",0.),("lambda1",2.e-5),
-         ("Nm",1),("free_slip",1),("begin_time",0.),("wind_sigma",1.),
-         ("e111",0),("phi1z0",1.4142135623731)]:
+         ("Nm",1),("free_slip",1),("begin_time",0.),("wind_sigma",-99.),
+         ("e111",0),("phi1z0",1.4142135623731),("ra_alpha",0.1)]:
             result,err=getattr(instance, 'get_'+key)()
             self.assertEquals( result, val)
             newvalue=type(val)(123.)
