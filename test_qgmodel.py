@@ -28,7 +28,7 @@ class TestQGmodelInterface(TestWithMPI):
          ("dx",10000.),("dy",10000.), ("dt",3600.),("H",4000.),
          ("rho",1000.), ("beta0",1.8616e-11),("tau",0.05),
          ("R_H",0),("A_H",100), ("lambda0",0.),("lambda1",2.e-5),
-         ("Nm",1),("free_slip",1),("begin_time",0.),("wind_sigma",-99.),
+         ("Nm",1),("begin_time",0.),("wind_sigma",-99.),
          ("e111",0),("phi1z0",1.4142135623731),("ra_alpha",0.1)]:
             result,err=getattr(instance, 'get_'+key)()
             self.assertEquals( result, val)
@@ -38,6 +38,28 @@ class TestQGmodelInterface(TestWithMPI):
             self.assertEquals( result,newvalue)
 
         instance.stop()
+
+    def test1b(self):
+        instance=QGmodelInterface()
+        instance.initialize_code()
+        
+        lowx,highx,lowy,highy,err= instance.get_boundary_conditions()
+        for x in [lowx,highx,lowy,highy]:
+          self.assertEqual(x,"free_slip")
+
+        instance.set_boundary_conditions("no_slip","interface","interface","no_slip")
+        lowx,highx,lowy,highy,err= instance.get_boundary_conditions()
+        self.assertEqual(lowx,"no_slip")
+        self.assertEqual(highy,"no_slip")
+        self.assertEqual(lowy,"interface")
+        self.assertEqual(highx,"interface")
+
+        # check for failure
+        err=instance.set_boundary_conditions("no_slip","interface","interface","wrong")
+        self.assertEqual(err,8)
+
+        instance.stop()
+
 
     def test2(self):
         instance=QGmodelInterface()

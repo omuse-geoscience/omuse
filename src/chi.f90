@@ -1,10 +1,11 @@
 subroutine chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
              & Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
-             & psi,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev, &
+             & psi,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev, &
              & chi_prev,chii)
 
 implicit none
-integer, intent(in) :: Nx,Ny,Nm,max_it,free_slip
+integer, intent(in) :: boundary(4)
+integer, intent(in) :: Nx,Ny,Nm,max_it
 real(8), intent(in) :: tau,A_H,R_H,H,rho,beta0,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
                      & dx,err_tol,relax_coef
 real(8), dimension(Nm,Nx,Ny), intent(in)  :: psi,chi_prev,vis_bot_curr,vis_bot_prev,vis_lat_prev
@@ -37,29 +38,45 @@ rhs = -beta0*0.5*d*beta_term(1,:,:) &
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! BOUNDARY VALUES -- necessary for the POISSON SOLVER !!!
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if( free_slip == 1) then
- rhs(1,:)   = 0.d0
- rhs(Nx,:)  = 0.d0
- rhs(:,1)   = 0.d0
- rhs(:,Ny)  = 0.d0
-else if( free_slip == 0) then
- rhs(1,1)   = 0.d0
- rhs(Nx,1)  = 0.d0
- rhs(1,Ny)  = 0.d0
- rhs(Nx,Ny) = 0.d0
- do j=2,Ny-1
-  rhs(1,j)  = 2.d0*chi_prev(1,1+1,j)
- end do
- do j=2,Ny-1
-  rhs(Nx,j) = 2.d0*chi_prev(1,Nx-1,j)
- end do
- do i=2,Nx-1
-  rhs(i,1)  = 2.d0*chi_prev(1,i,1+1)
- end do
- do i=2,Nx-1
-  rhs(i,Ny) = 2.d0*chi_prev(1,i,Ny-1)
- end do
-end if
+if( boundary(1) == 1) then
+  rhs(1,:)   = 0.d0
+else if( boundary(1) == 0) then
+  rhs(1,1)   = 0.d0
+  rhs(1,Ny)   = 0.d0
+  rhs(1,2:Ny-1)  = 2.d0*chi_prev(1,2,2:Ny-1)
+else if(boundary(1) == 2) then
+!tbd
+endif
+
+if( boundary(2) == 1) then
+  rhs(Nx,:)  = 0.d0
+else if( boundary(2) == 0) then
+  rhs(Nx,1)  = 0.d0
+  rhs(Nx,Ny) = 0.d0
+  rhs(Nx,2:Ny-1) = 2.d0*chi_prev(1,Nx-1,2:Ny-1)
+else if(boundary(2) == 2) then
+! tbd
+endif
+
+if( boundary(3) == 1) then
+  rhs(:,1)   = 0.d0
+else if( boundary(3) == 0) then
+  rhs(1,1)   = 0.d0
+  rhs(Nx,1)  = 0.d0
+  rhs(2:Nx-1,1)  = 2.d0*chi_prev(1,2:Nx-1,2)
+else if(boundary(3) == 2) then
+! tbd
+endif
+
+if( boundary(4) == 1) then
+  rhs(:,Ny)  = 0.d0
+else if( boundary(4) == 0) then
+  rhs(1,Ny)  = 0.d0
+  rhs(Nx,Ny) = 0.d0
+  rhs(2:Nx-1,Ny) = 2.d0*chi_prev(1,2:Nx-1,Ny-1)
+else if(boundary(4) == 2) then
+! tbd
+endif
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !      solve the poisson equation
@@ -91,29 +108,45 @@ rhs = -beta0*0.5*d*beta_term(1,:,:) &
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! BOUNDARY VALUES -- necessary for the POISSON SOLVER !!!
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if( free_slip == 1) then
- rhs(1,:)   = 0.d0
- rhs(Nx,:)  = 0.d0
- rhs(:,1)   = 0.d0
- rhs(:,Ny)  = 0.d0
-else if( free_slip == 0) then
- rhs(1,1)   = 0.d0
- rhs(Nx,1)  = 0.d0
- rhs(1,Ny)  = 0.d0
- rhs(Nx,Ny) = 0.d0
- do j=2,Ny-1
-  rhs(1,j)  = 2.d0*chi_prev(1,1+1,j)
- end do
- do j=2,Ny-1
-  rhs(Nx,j) = 2.d0*chi_prev(1,Nx-1,j)
- end do
- do i=2,Nx-1
-  rhs(i,1)  = 2.d0*chi_prev(1,i,1+1)
- end do
- do i=2,Nx-1
-  rhs(i,Ny) = 2.d0*chi_prev(1,i,Ny-1)
- end do
-end if
+if( boundary(1) == 1) then
+  rhs(1,:)   = 0.d0
+else if( boundary(1) == 0) then
+  rhs(1,1)   = 0.d0
+  rhs(1,Ny)   = 0.d0
+  rhs(1,2:Ny-1)  = 2.d0*chi_prev(1,2,2:Ny-1)
+else if(boundary(1) == 2) then
+!tbd
+endif
+
+if( boundary(2) == 1) then
+  rhs(Nx,:)  = 0.d0
+else if( boundary(2) == 0) then
+  rhs(Nx,1)  = 0.d0
+  rhs(Nx,Ny) = 0.d0
+  rhs(Nx,2:Ny-1) = 2.d0*chi_prev(1,Nx-1,2:Ny-1)
+else if(boundary(2) == 2) then
+! tbd
+endif
+
+if( boundary(3) == 1) then
+  rhs(:,1)   = 0.d0
+else if( boundary(3) == 0) then
+  rhs(1,1)   = 0.d0
+  rhs(Nx,1)  = 0.d0
+  rhs(2:Nx-1,1)  = 2.d0*chi_prev(1,2:Nx-1,2)
+else if(boundary(3) == 2) then
+! tbd
+endif
+
+if( boundary(4) == 1) then
+  rhs(:,Ny)  = 0.d0
+else if( boundary(4) == 0) then
+  rhs(1,Ny)  = 0.d0
+  rhs(Nx,Ny) = 0.d0
+  rhs(2:Nx-1,Ny) = 2.d0*chi_prev(1,2:Nx-1,Ny-1)
+else if(boundary(4) == 2) then
+! tbd
+endif
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !      solve the helmholtz equation
@@ -139,29 +172,45 @@ rhs = -beta0*0.5*d*beta_term(2,:,:) &
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! BOUNDARY VALUES -- necessary for the POISSON SOLVER !!!
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if( free_slip == 1) then
- rhs(1,:)   = 0.d0
- rhs(Nx,:)  = 0.d0
- rhs(:,1)   = 0.d0
- rhs(:,Ny)  = 0.d0
-else if( free_slip == 0) then
- rhs(1,1)   = 0.d0
- rhs(Nx,1)  = 0.d0
- rhs(1,Ny)  = 0.d0
- rhs(Nx,Ny) = 0.d0
- do j=2,Ny-1
-  rhs(1,j)  = 2.d0*chi_prev(2,1+1,j)
- end do
- do j=2,Ny-1
-  rhs(Nx,j) = 2.d0*chi_prev(2,Nx-1,j)
- end do
- do i=2,Nx-1
-  rhs(i,1)  = 2.d0*chi_prev(2,i,1+1)
- end do
- do i=2,Nx-1
-  rhs(i,Ny) = 2.d0*chi_prev(2,i,Ny-1)
- end do
-end if
+if( boundary(1) == 1) then
+  rhs(1,:)   = 0.d0
+else if( boundary(1) == 0) then
+  rhs(1,1)   = 0.d0
+  rhs(1,Ny)   = 0.d0
+  rhs(1,2:Ny-1)  = 2.d0*chi_prev(2,2,2:Ny-1)
+else if(boundary(1) == 2) then
+!tbd
+endif
+
+if( boundary(2) == 1) then
+  rhs(Nx,:)  = 0.d0
+else if( boundary(2) == 0) then
+  rhs(Nx,1)  = 0.d0
+  rhs(Nx,Ny) = 0.d0
+  rhs(Nx,2:Ny-1) = 2.d0*chi_prev(2,Nx-1,2:Ny-1)
+else if(boundary(2) == 2) then
+! tbd
+endif
+
+if( boundary(3) == 1) then
+  rhs(:,1)   = 0.d0
+else if( boundary(3) == 0) then
+  rhs(1,1)   = 0.d0
+  rhs(Nx,1)  = 0.d0
+  rhs(2:Nx-1,1)  = 2.d0*chi_prev(2,2:Nx-1,2)
+else if(boundary(3) == 2) then
+! tbd
+endif
+
+if( boundary(4) == 1) then
+  rhs(:,Ny)  = 0.d0
+else if( boundary(4) == 0) then
+  rhs(1,Ny)  = 0.d0
+  rhs(Nx,Ny) = 0.d0
+  rhs(2:Nx-1,Ny) = 2.d0*chi_prev(2,2:Nx-1,Ny-1)
+else if(boundary(4) == 2) then
+! tbd
+endif
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !      solve the helmholtz equation

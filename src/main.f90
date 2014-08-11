@@ -11,6 +11,8 @@ real(8), allocatable,dimension (:,:,:) :: psi_1,psi_2,inter,chii,chi_prev, &
                                         & vis_lat_prev,vis_lat_curr
 character(len=25) :: filename
 
+integer :: boundary(4)
+
 call mkl_set_dynamic(0)
 call mkl_set_num_threads( 16 )
  
@@ -59,6 +61,7 @@ open(25,file='parameter_numerical.dat',status='old',action='read')
  read(25,*) max_it
  read(25,*) relax_coef
  read(25,*) free_slip
+ boundary(1:4)=free_slip
  read(25,*) restart
  read(25,*) restart_num
 close(25)
@@ -134,8 +137,8 @@ if( restart==1 ) then
     end do
    close(25)
   end if
- call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_curr)
- call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_curr)
+ call vis_bot(Nm,Nx,Ny,boundary,psi_2,vis_bot_curr)
+ call vis_lat(Nm,Nx,Ny,boundary,psi_2,vis_lat_curr)
 end if
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !     START TIME LOOP
@@ -150,14 +153,14 @@ do while ( t_curr < T )
 
 ! update viscosity
  vis_bot_prev  = vis_bot_curr
- call vis_bot(Nm,Nx,Ny,free_slip,psi_1,vis_bot_curr)
+ call vis_bot(Nm,Nx,Ny,boundary,psi_1,vis_bot_curr)
  vis_lat_prev  = vis_lat_curr
- call vis_lat(Nm,Nx,Ny,free_slip,psi_1,vis_lat_curr)
+ call vis_lat(Nm,Nx,Ny,boundary,psi_1,vis_lat_curr)
 
 !find chi, and take a step
  call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
      &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
-     &    psi_1,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
+     &    psi_1,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
      &    chii)
 !Robert-Asselin filter
  inter = psi_2 + 2.d0*dt*chii
@@ -173,12 +176,12 @@ do while ( t_curr < T )
  t_curr = t_curr + dt
 
  vis_bot_prev  = vis_bot_curr
- call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_curr)
+ call vis_bot(Nm,Nx,Ny,boundary,psi_2,vis_bot_curr)
  vis_lat_prev  = vis_lat_curr
- call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_curr)
+ call vis_lat(Nm,Nx,Ny,boundary,psi_2,vis_lat_curr)
  call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
      &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
-     &    psi_2,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
+     &    psi_2,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
      &    chii)
 !Robert-Asselin filter
  inter = psi_1 + 2.d0*dt*chii
