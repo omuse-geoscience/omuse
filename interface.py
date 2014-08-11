@@ -700,6 +700,6 @@ class QGmodel(CommonCode):
             "get_Nm", 
             "set_Nm",
             "Nm", 
-            "Number of depth levels", 
+            "Number of depth levels ( base functions)", 
             default_value = 1 
         ) 
