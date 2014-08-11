@@ -5,10 +5,6 @@ from amuse.units import units
 
 import subprocess 
 
-stacksize=subprocess.check_output('mpirun sh -c "ulimit -s"', shell=True)
-if int(stacksize) < 65536:
-  raise Exception("remember to increase the stacksize for qgmodel!")
-
 class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
         .. [#] Viebahn, J. and Dijkstra, H., International Journal of Bifurcation and Chaos, Vol. 24, No. 2 (2014) 1430007
@@ -21,6 +17,12 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
     def __init__(self, **keyword_arguments):
         CodeInterface.__init__(self, name_of_the_worker="qgmodel_worker", **keyword_arguments)
         LiteratureReferencesMixIn.__init__(self)
+
+        stacksize=subprocess.check_output('mpirun sh -c "ulimit -s"', shell=True)
+        if int(stacksize) < 65536:
+          raise Exception("remember to increase the stacksize for qgmodel!")
+
+
 
     @legacy_function
     def initialize_grid():
@@ -435,19 +437,6 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         return function
 
     @legacy_function    
-    def get_free_slip():
-        function = LegacyFunctionSpecification()  
-        function.addParameter('free_slip', dtype='i', direction=function.OUT)
-        function.result_type = 'i'
-        return function
-    @legacy_function    
-    def set_free_slip():
-        function = LegacyFunctionSpecification()  
-        function.addParameter('free_slip', dtype='i', direction=function.IN)
-        function.result_type = 'i'
-        return function
-
-    @legacy_function    
     def get_Nx():
         function = LegacyFunctionSpecification()  
         function.addParameter('Nx', dtype='i', direction=function.OUT)
@@ -480,6 +469,72 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         
     def get_index_range_inclusive(self):
         return 1,self.get_Nx()['Nx'],1,self.get_Ny()['Ny'],1,self.get_Nm()['Nm']
+
+# new boundary stuff
+
+    @legacy_function    
+    def set_boundary_conditions():
+        function = LegacyFunctionSpecification()  
+        for x in ["xbound1","xbound2","ybound1","ybound2"]:
+            function.addParameter(x, dtype='string', direction=function.IN)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
+    def get_boundary_conditions():
+        function = LegacyFunctionSpecification()  
+        for x in ["xbound1","xbound2","ybound1","ybound2"]:
+            function.addParameter(x, dtype='string', direction=function.OUT)
+        function.result_type = 'i'
+        return function
+
+    def get_boundary_index_range_inclusive():
+        return -1,self.get_Nx()['Nx']+2,-1,self.get_Ny()['Ny']+2,1,self.get_Nm()['Nm']
+
+    @legacy_function
+    def set_boundary_state():
+        function = LegacyFunctionSpecification()
+        function.must_handle_array = True
+        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
+        for x in ['i','j','k']:
+            function.addParameter(x, dtype='i', direction=function.IN)
+        function.addParameter("psi", dtype='d', direction=function.IN, unit=units.m**2/units.s)
+        function.addParameter("dpsi_dt", dtype='d', direction=function.IN, unit=units.m**2/units.s**2)
+        function.addParameter('number_of_points', 'i', function.LENGTH)
+        function.result_type = 'i'
+        return function
+        
+    @legacy_function
+    def get_boundary_state():
+        function = LegacyFunctionSpecification()
+        function.must_handle_array = True
+        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
+        for x in ['i','j','k']:
+            function.addParameter(x, dtype='i', direction=function.IN)
+        function.addParameter("psi", dtype='d', direction=function.OUT, unit=units.m**2/units.s)
+        function.addParameter("dpsi_dt", dtype='d', direction=function.OUT, unit=units.m**2/units.s**2)
+        function.addParameter('number_of_points', 'i', function.LENGTH)
+        function.result_type = 'i'
+        return function
+        
+    @legacy_function    
+    def get_boundary_position_of_index():
+        """
+        Retrieves the x and y position of the center of
+        the cell with coordinates i, j, k 
+        """
+        function = LegacyFunctionSpecification()  
+        function.must_handle_array = True
+        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
+        for x in ['i','j','k']:
+            function.addParameter(x, dtype='i', direction=function.IN)
+        for x in ['x','y']:
+            function.addParameter(x, dtype='d', direction=function.OUT, unit=units.m)
+        function.addParameter('number_of_points', 'i', function.LENGTH)           
+        function.result_type = 'i'
+        return function
+
+
 
 class QGmodel(CommonCode):
 
@@ -689,13 +744,6 @@ class QGmodel(CommonCode):
             "relaxation coefficient", # (meaning?)
             default_value = 1.7
         )    
-        object.add_boolean_parameter(
-            "get_free_slip", 
-            "set_free_slip",
-            "free_slip", 
-            "whether to use free_slip boundary conditions, True=free slip, False =no slip", 
-            default_value = True
-        ) 
         object.add_method_parameter(
             "get_Nm", 
             "set_Nm",
@@ -703,3 +751,72 @@ class QGmodel(CommonCode):
             "Number of depth levels ( base functions)", 
             default_value = 1 
         ) 
+
+        object.add_caching_parameter(
+            "set_boundary", 
+            "xbound1",
+            "xbound1", 
+            "boundary conditions on first (west) X boundary", 
+            "free_slip",
+        )
+        
+        object.add_caching_parameter(
+            "set_boundary", 
+            "xbound2",
+            "xbound2", 
+            "boundary conditions on second (east) X boundary",
+            "free_slip",
+        )
+        
+        object.add_caching_parameter(
+            "set_boundary", 
+            "ybound1",
+            "ybound1", 
+            "boundary conditions on first (north) Y boundary", 
+            "free_slip",
+        )
+        
+        
+        object.add_caching_parameter(
+            "set_boundary", 
+            "ybound2",
+            "ybound2", 
+            "boundary conditions on second (south) Y boundary",
+            "free_slip",
+        )
+                
+        object.add_vector_parameter(
+            "x_boundary_conditions",
+            "boundary conditions for the zonal (x) directorion",
+            ("xbound1", "xbound2")
+        )
+                
+        object.add_vector_parameter(
+            "y_boundary_conditions",
+            "boundary conditions for the meridional (y) directorion",
+            ("ybound1", "ybound2")
+        )
+        
+    def specify_boundary_grid(self, definition, index_of_boundary, index_of_grid = 1):
+        definition.set_grid_range('get_boundary_index_range_inclusive')
+        
+        definition.add_getter('get_boundary_position_of_index', names=('x','y'))
+        
+        definition.add_getter('get_boundary_state', names=('psi', 'dpsi_dt'))
+        definition.add_setter('set_boundary_state', names=('psi', 'dpsi_dt'))
+       
+        definition.define_extra_keywords({'index_of_boundary': index_of_boundary})
+    
+    BOUNDARY_NAME_TO_INDEX = {
+        'xbound1': 1,
+        'xbound2': 2,
+        'ybound1': 3,
+        'ybound2': 4,
+    }
+    def get_boundary_grid(self, name):
+        if not name in self.BOUNDARY_NAME_TO_INDEX:
+            raise Exception("boundary name is not known {0}".format(name))
+        index_of_boundary = self.BOUNDARY_NAME_TO_INDEX[name]
+        
+        return self._create_new_grid(self.specify_boundary_grid, index_of_boundary = index_of_boundary, index_of_grid = 1)
+

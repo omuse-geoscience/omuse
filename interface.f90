@@ -1,7 +1,7 @@
 module qgmodel
 
   implicit none
-  integer    :: i,counter,savecounter,save_num,max_it,free_slip, &
+  integer    :: i,counter,savecounter,save_num,max_it, &
               & Nx,Ny,Nt,Nm !,restart,restart_num
   real(8)    :: tau,A_H,R_H,H,rho,beta0,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
               & dx,dy,dt,T,t_curr,err_tol,relax_coef
@@ -10,7 +10,9 @@ module qgmodel
   real(8), allocatable,dimension (:,:,:) :: psi_1,psi_2,inter,chii,chi_prev, &
                                           & vis_bot_prev,vis_bot_curr, &
                                           & vis_lat_prev,vis_lat_curr
+  
   character(len=25) :: filename
+  integer :: boundary(4)
 
 contains
 
@@ -37,7 +39,7 @@ subroutine default_numerical_parameters()
   err_tol        = 1.0d-6
   max_it         = 20000
   relax_coef     = 1.7d0
-  free_slip      = 1
+  boundary(1:4)  = 1   ! 1=free_slip, 0=no_slip, 2=interface
   
   ra_alpha       = 0.1d0
 !  restart        = 0  ! not used for amuse
@@ -115,17 +117,17 @@ function initialize_grid() result(ret)
 ! psi_2 may be initialized by a warm up step...
 
 ! initialize vis_*_prev from pis_2
-  call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_prev)
-  call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_prev)
+  call vis_bot(Nm,Nx,Ny,boundary,psi_2,vis_bot_prev)
+  call vis_lat(Nm,Nx,Ny,boundary,psi_2,vis_lat_prev)
 
 ! initialize vis_*_curr from pis_1
-  call vis_bot(Nm,Nx,Ny,free_slip,psi_1,vis_bot_curr)
-  call vis_lat(Nm,Nx,Ny,free_slip,psi_1,vis_lat_curr)
+  call vis_bot(Nm,Nx,Ny,boundary,psi_1,vis_bot_curr)
+  call vis_lat(Nm,Nx,Ny,boundary,psi_1,vis_lat_curr)
 
 ! chi is already calculated here so it becomes available for other codes
   call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
        &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
-       &    psi_1,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
+       &    psi_1,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
        &    chii)
   counter=counter+1
   ret=0
@@ -151,12 +153,12 @@ function evolve_model(tend) result(ret)
    
    chi_prev = chii
    vis_bot_prev  = vis_bot_curr
-   call vis_bot(Nm,Nx,Ny,free_slip,psi_2,vis_bot_curr)
+   call vis_bot(Nm,Nx,Ny,boundary,psi_2,vis_bot_curr)
    vis_lat_prev  = vis_lat_curr
-   call vis_lat(Nm,Nx,Ny,free_slip,psi_2,vis_lat_curr)
+   call vis_lat(Nm,Nx,Ny,boundary,psi_2,vis_lat_curr)
    call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
        &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
-       &    psi_2,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
+       &    psi_2,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
        &    chii)
    counter = counter + 1
 
@@ -169,13 +171,13 @@ function evolve_model(tend) result(ret)
    chi_prev = chii
   ! update viscosity
    vis_bot_prev  = vis_bot_curr
-   call vis_bot(Nm,Nx,Ny,free_slip,psi_1,vis_bot_curr)
+   call vis_bot(Nm,Nx,Ny,boundary,psi_1,vis_bot_curr)
    vis_lat_prev  = vis_lat_curr
-   call vis_lat(Nm,Nx,Ny,free_slip,psi_1,vis_lat_curr)
+   call vis_lat(Nm,Nx,Ny,boundary,psi_1,vis_lat_curr)
   !find chi, and take a step
    call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
        &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
-       &    psi_1,free_slip,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
+       &    psi_1,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
        &    chii)
    counter = counter + 1
  
@@ -245,6 +247,73 @@ function set_ra_alpha(t) result (ret)
   ret=0
 end function
 
+function set_boundary_conditions(lowx,highx,lowy,highy) result(ret)
+  integer :: ret
+  character(len=10) :: lowx,highx,lowy,highy
+
+  ret=0
+  if(lowx=="no_slip") then
+    boundary(1)=0
+  elseif (lowx=="free_slip") then
+    boundary(1)=1
+  elseif (lowx=="interface") then
+    boundary(1)=2
+  else
+    ret=ret+1
+  endif
+  
+  if(highx=="no_slip") then
+    boundary(2)=0
+  elseif (highx=="free_slip") then
+    boundary(2)=1
+  elseif (highx=="interface") then
+    boundary(2)=2
+  else
+    ret=ret+2
+  endif
+  
+  if(lowy=="no_slip") then
+    boundary(3)=0
+  elseif (lowy=="free_slip") then
+    boundary(3)=1
+  elseif (lowy=="interface") then
+    boundary(3)=2
+  else
+    ret=ret+4
+  endif
+  
+  if(highy=="no_slip") then
+    boundary(4)=0
+  elseif (highy=="free_slip") then
+    boundary(4)=1
+  elseif (highy=="interface") then
+    boundary(4)=2
+  else
+    ret=ret+8
+  endif  
+  
+end function
+
+function get_boundary_conditions(lowx,highx,lowy,highy) result(ret)
+  integer :: ret
+  character(len=10) :: lowx,highx,lowy,highy
+
+  if(boundary(1)==0) lowx="no_slip"
+  if(boundary(1)==1) lowx="free_slip"
+  if(boundary(1)==2) lowx="interface"
+  if(boundary(2)==0) highx="no_slip"
+  if(boundary(2)==1) highx="free_slip"
+  if(boundary(2)==2) highx="interface"
+  if(boundary(3)==0) lowy="no_slip"
+  if(boundary(3)==1) lowy="free_slip"
+  if(boundary(3)==2) lowy="interface"
+  if(boundary(4)==0) highy="no_slip"
+  if(boundary(4)==1) highy="free_slip"
+  if(boundary(4)==2) highy="interface"
+  
+  ret=0
+end function
+
 
 function cleanup_code() result(ret)
   integer :: ret
@@ -307,6 +376,22 @@ function set_psi2_state(i,j,k,psi2,n) result(ret)
   ret=0
 end function
 
+function get_boundary_state(index_of_boundary,i,j,k,psi,dpsi,n) result(ret)
+  integer :: ret,n
+  integer :: ii,i(n),j(n),k(n),index_of_boundary
+  real(8) :: psi(n),dpsi(n)
+
+  ret=-1
+end function
+
+function set_boundary_state(index_of_boundary,i,j,k,psi,dpsi,n) result(ret)
+  integer :: ret,n
+  integer :: ii,i(n),j(n),k(n),index_of_boundary
+  real(8) :: psi(n),dpsi(n)
+
+  ret=-1
+end function
+
 function get_position_of_index(i,j,k,x,y,n) result(ret)
   integer :: ret,n
   integer :: ii,i(n),j(n),k(n)
@@ -319,6 +404,17 @@ function get_position_of_index(i,j,k,x,y,n) result(ret)
   ret=0
 end function
 
+function get_boundary_position_of_index(index_of_boundary,i,j,k,x,y,n) result(ret)
+  integer :: ret,n
+  integer :: ii,i(n),j(n),k(n),index_of_boundary
+  real(8) :: x(n),y(n)
+  
+  do ii=1,n
+    x(ii)=(i(ii)-1)*dx
+    y(ii)=(j(ii)-1)*dy
+  enddo
+  ret=0
+end function
 
 
 function recommit_parameters() result(ret)
@@ -604,18 +700,6 @@ function set_relax_coef(x) result (ret)
   ret=0
 end function
 
-function get_free_slip(x) result (ret)
-  integer :: ret,x
-  x=free_slip
-  ret=0
-end function
-
-function set_free_slip(x) result (ret)
-  integer :: ret,x
-  free_slip=x
-  ret=0
-end function
-
 function get_Nx(x) result (ret)
   integer :: ret
   integer :: x
@@ -646,6 +730,9 @@ function get_Nt(x) result (ret)
   ret=0
 end function
 end module
+
+
+
 
 ! move wind to here in order to...
 subroutine wind(Nm,Nx,Ny,windy)
