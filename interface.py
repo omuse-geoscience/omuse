@@ -177,6 +177,18 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         return function
 
     @legacy_function    
+    def get_index_of_position():
+        function = LegacyFunctionSpecification()  
+        function.must_handle_array = True
+        for x in ['x','y']:
+            function.addParameter(x, dtype='d', direction=function.IN, unit=units.m)
+        for x in ['i','j']:
+            function.addParameter(x, dtype='i', direction=function.OUT)
+        function.addParameter('number_of_points', 'i', function.LENGTH)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
     def get_Lx():
         function = LegacyFunctionSpecification()  
         function.addParameter('Lx', dtype='d', direction=function.OUT, unit=units.m)
@@ -466,12 +478,33 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function.addParameter('Nm', dtype='i', direction=function.IN)
         function.result_type = 'i'
         return function
-        
-    def get_index_range_inclusive(self):
-        return 1,self.get_Nx()['Nx'],1,self.get_Ny()['Ny'],1,self.get_Nm()['Nm']
+
+    @legacy_function
+    def get_boundary_index_range_inclusive():
+        function = LegacyFunctionSpecification()
+        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
+        function.addParameter('minx', dtype='i', direction=function.OUT)
+        function.addParameter('maxx', dtype='i', direction=function.OUT)
+        function.addParameter('miny', dtype='i', direction=function.OUT)
+        function.addParameter('maxy', dtype='i', direction=function.OUT)
+        function.addParameter('minz', dtype='i', direction=function.OUT)
+        function.addParameter('maxz', dtype='i', direction=function.OUT)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function
+    def get_index_range_inclusive():
+        function = LegacyFunctionSpecification()
+        function.addParameter('minx', dtype='i', direction=function.OUT)
+        function.addParameter('maxx', dtype='i', direction=function.OUT)
+        function.addParameter('miny', dtype='i', direction=function.OUT)
+        function.addParameter('maxy', dtype='i', direction=function.OUT)
+        function.addParameter('minz', dtype='i', direction=function.OUT)
+        function.addParameter('maxz', dtype='i', direction=function.OUT)
+        function.result_type = 'i'
+        return function
 
 # new boundary stuff
-
     @legacy_function    
     def set_boundary_conditions():
         function = LegacyFunctionSpecification()  
@@ -488,18 +521,15 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function.result_type = 'i'
         return function
 
-    def get_boundary_index_range_inclusive():
-        return -1,self.get_Nx()['Nx']+2,-1,self.get_Ny()['Ny']+2,1,self.get_Nm()['Nm']
-
     @legacy_function
     def set_boundary_state():
         function = LegacyFunctionSpecification()
         function.must_handle_array = True
-        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
         for x in ['i','j','k']:
             function.addParameter(x, dtype='i', direction=function.IN)
         function.addParameter("psi", dtype='d', direction=function.IN, unit=units.m**2/units.s)
         function.addParameter("dpsi_dt", dtype='d', direction=function.IN, unit=units.m**2/units.s**2)
+        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
         function.addParameter('number_of_points', 'i', function.LENGTH)
         function.result_type = 'i'
         return function
@@ -508,9 +538,9 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
     def get_boundary_state():
         function = LegacyFunctionSpecification()
         function.must_handle_array = True
-        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
         for x in ['i','j','k']:
             function.addParameter(x, dtype='i', direction=function.IN)
+        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
         function.addParameter("psi", dtype='d', direction=function.OUT, unit=units.m**2/units.s)
         function.addParameter("dpsi_dt", dtype='d', direction=function.OUT, unit=units.m**2/units.s**2)
         function.addParameter('number_of_points', 'i', function.LENGTH)
@@ -525,9 +555,9 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         """
         function = LegacyFunctionSpecification()  
         function.must_handle_array = True
-        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
         for x in ['i','j','k']:
             function.addParameter(x, dtype='i', direction=function.IN)
+        function.addParameter('index_of_boundary', dtype='i', direction=function.IN)
         for x in ['x','y']:
             function.addParameter(x, dtype='d', direction=function.OUT, unit=units.m)
         function.addParameter('number_of_points', 'i', function.LENGTH)           
@@ -551,6 +581,21 @@ class QGmodel(CommonCode):
         object.add_setter('grid', 'set_psi2_state', names=('psi_prev',))
         object.add_getter('grid', 'get_position_of_index', names=('x','y'))
 
+        self._boundaries={}
+        for i,side in enumerate(["east","west","south","north"]):
+          name="boundary_"+side
+          object.define_grid(name)
+          object.set_grid_range(name, 'get_boundary_index_range_inclusive')    
+          object.add_getter(name, 'get_boundary_state', names=('psi','dpsi_dt'))
+          object.add_setter(name, 'set_boundary_state', names=('psi','dpsi_dt'))
+          object.add_getter(name, 'get_boundary_position_of_index', names=('x','y'))
+          object.define_extra_keywords(name, {'index_of_boundary': i+1})
+          self._boundaries[i+1]="self."+name
+          self._boundaries[side]="self."+name
+
+    def boundaries(self,x):
+        return eval(self._boundaries[x])
+
     def define_state(self, object): 
         CommonCode.define_state(self, object)   
         object.add_transition('INITIALIZED','EDIT','commit_parameters')
@@ -558,15 +603,22 @@ class QGmodel(CommonCode):
         object.add_transition('RUN', 'EVOLVED', 'evolve_model', False)
         object.add_transition('EVOLVED','RUN', 'synchronize_model')
         object.add_transition('RUN','EDIT', 'synchronize_model')
-        object.add_method('RUN', 'get_psi1_state')
-        object.add_method('RUN', 'get_psi2_state')
         object.add_method('RUN', 'get_dpsi_dt')
-        object.add_method('EDIT', 'get_psi1_state')
-        object.add_method('EDIT', 'get_psi2_state')
         object.add_method('EDIT', 'set_psi1_state')
         object.add_method('EDIT', 'set_psi2_state')
-        object.add_method('RUN', 'get_index_range_inclusive')
-        object.add_method('EDIT', 'get_index_range_inclusive')
+        for state in ["RUN","EDIT"]:
+          object.add_method(state, 'get_index_range_inclusive')
+          object.add_method(state, 'get_boundary_index_range_inclusive')
+          object.add_method(state, 'get_psi1_state')
+          object.add_method(state, 'get_psi2_state')
+          object.add_method(state, 'get_boundary_state')
+          object.add_method(state, 'get_Nx')
+          object.add_method(state, 'get_Ny')
+          object.add_method(state, 'get_Nm')
+          object.add_method(state, 'set_boundary_state')
+        for state in ["EDIT","RUN"]:
+          object.add_method(state,"before_get_parameter")          
+
 
         object.add_method('INITIALIZED', 'set_Lx')
         object.add_method('INITIALIZED', 'set_Ly')
@@ -632,6 +684,22 @@ class QGmodel(CommonCode):
             "dy is the mesh size (y)", 
             default_value = 1.e4 | units.m
         )
+
+        object.add_method_parameter(
+            "get_Nx", 
+            None,
+            "Nx", 
+            "Nx is the number of mesh points in the x (east-west) direction", 
+            default_value = 401
+        )
+        object.add_method_parameter(
+            "get_Ny", 
+            None,
+            "Ny", 
+            "Nx is the number of mesh points in the y (north-south) direction", 
+            default_value = 401
+        )                
+        
         object.add_method_parameter(
             "get_dt", 
             "set_dt",
@@ -796,7 +864,7 @@ class QGmodel(CommonCode):
             "boundary conditions for the meridional (y) directorion",
             ("ybound1", "ybound2")
         )
-        
+"""        
     def specify_boundary_grid(self, definition, index_of_boundary, index_of_grid = 1):
         definition.set_grid_range('get_boundary_index_range_inclusive')
         
@@ -819,4 +887,4 @@ class QGmodel(CommonCode):
         index_of_boundary = self.BOUNDARY_NAME_TO_INDEX[name]
         
         return self._create_new_grid(self.specify_boundary_grid, index_of_boundary = index_of_boundary, index_of_grid = 1)
-
+"""
