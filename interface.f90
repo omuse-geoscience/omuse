@@ -11,6 +11,15 @@ module qgmodel
                                           & vis_bot_prev,vis_bot_curr, &
                                           & vis_lat_prev,vis_lat_curr
   
+  
+  type boundary_grid
+    real(8), allocatable,dimension (:,:,:) :: psi
+    real(8), allocatable,dimension (:,:,:) :: chi
+  end type
+  
+  integer,parameter :: nbc=2
+  type(boundary_grid) :: boundaries(4)
+  
   character(len=25) :: filename
   integer :: boundary(4)
 
@@ -19,7 +28,7 @@ contains
 function initialize_code() result(ret)
   integer :: ret
   ret=0
-
+  
   call mkl_set_dynamic(0)
   call mkl_set_num_threads( 4 )
 
@@ -64,6 +73,7 @@ subroutine default_physical_parameters()
 end subroutine
 
 subroutine initialize_arrays() 
+  integer :: i
 ! properly should have some check whether allocations succeeded and return 
 ! the non-zero ret value
 
@@ -88,7 +98,54 @@ subroutine initialize_arrays()
   allocate (max_psi(Nm,Nt))
   max_psi(:,:) = 0.d0
 
+! specialty: indexing of boundary and normal grid the same!
+  allocate(boundaries(1)%psi(Nm,0:nbc-1,0:Ny+nbc-1), &
+           boundaries(1)%chi(Nm,0:nbc-1,0:Ny+nbc-1) )
+  allocate(boundaries(2)%psi(Nm,Nx:Nx+nbc-1,0:Ny+nbc-1), &
+           boundaries(2)%chi(Nm,Nx:Nx+nbc-1,0:Ny+nbc-1) )
+  allocate(boundaries(3)%psi(Nm,0:Nx+nbc-1,0:nbc-1), &
+           boundaries(3)%chi(Nm,0:Nx+nbc-1,0:nbc-1) )
+  allocate(boundaries(4)%psi(Nm,0:Nx+nbc-1,Ny:Ny+nbc-1), &
+           boundaries(4)%chi(Nm,0:Nx+nbc-1,Ny:Ny+nbc-1) )
+  do i=1,4
+    boundaries(i)%psi=0.
+    boundaries(i)%chi=0.
+  enddo  
+
+  
 end subroutine
+
+function get_index_range_inclusive(i1,i2,j1,j2,k1,k2) result(ret)
+  integer :: ret, i1,i2, j1,j2,k1,k2
+
+  if(Nx==0.OR.Ny==0.OR.Nm==0) then
+    ret=1
+    return
+  endif
+  i1=1
+  i2=Nx
+  j1=1
+  j2=Ny
+  k1=1
+  k2=Nm
+  ret=0
+end function
+
+function get_boundary_index_range_inclusive(index_of_boundary,i1,i2,j1,j2,k1,k2) result(ret)
+  integer :: index_of_boundary,ret, i1,i2, j1,j2,k1,k2
+
+  if(Nx==0.OR.Ny==0.OR.Nm==0) then
+    ret=1
+    return
+  endif
+  i1=lbound(boundaries(index_of_boundary)%psi,2)
+  i2=ubound(boundaries(index_of_boundary)%psi,2)
+  j1=lbound(boundaries(index_of_boundary)%psi,3)
+  j2=ubound(boundaries(index_of_boundary)%psi,3)
+  k1=lbound(boundaries(index_of_boundary)%psi,1)
+  k2=ubound(boundaries(index_of_boundary)%psi,1)
+  ret=0
+end function
 
 function commit_parameters() result(ret)
   integer :: ret
@@ -376,20 +433,44 @@ function set_psi2_state(i,j,k,psi2,n) result(ret)
   ret=0
 end function
 
-function get_boundary_state(index_of_boundary,i,j,k,psi,dpsi,n) result(ret)
+function get_boundary_state(i,j,k,index_of_boundary,psi,dpsi,n) result(ret)
   integer :: ret,n
-  integer :: ii,i(n),j(n),k(n),index_of_boundary
+  integer :: ii,i(n),j(n),k(n),index_of_boundary(n)
   real(8) :: psi(n),dpsi(n)
 
-  ret=-1
+  ret=n
+  do ii=1,n
+    if(.NOT.(index_of_boundary(ii).GE.1.AND.index_of_boundary(ii).LE.4)) cycle
+    if(k(ii).LT.lbound(boundaries(index_of_boundary(ii))%psi,1).OR. &
+       k(ii).GT.ubound(boundaries(index_of_boundary(ii))%psi,1)) cycle
+    if(i(ii).LT.lbound(boundaries(index_of_boundary(ii))%psi,2).OR. &
+       i(ii).GT.ubound(boundaries(index_of_boundary(ii))%psi,2)) cycle
+    if(j(ii).LT.lbound(boundaries(index_of_boundary(ii))%psi,3).OR. &
+       j(ii).GT.ubound(boundaries(index_of_boundary(ii))%psi,3)) cycle
+    psi(ii)=boundaries(index_of_boundary(ii))%psi(k(ii),i(ii),j(ii))
+    dpsi(ii)=boundaries(index_of_boundary(ii))%chi(k(ii),i(ii),j(ii))
+    ret=ret-1
+  enddo
 end function
 
-function set_boundary_state(index_of_boundary,i,j,k,psi,dpsi,n) result(ret)
+function set_boundary_state(i,j,k,psi,dpsi,index_of_boundary,n) result(ret)
   integer :: ret,n
-  integer :: ii,i(n),j(n),k(n),index_of_boundary
+  integer :: ii,i(n),j(n),k(n),index_of_boundary(n)
   real(8) :: psi(n),dpsi(n)
 
-  ret=-1
+  ret=n
+  do ii=1,n
+    if(.NOT.(index_of_boundary(ii).GE.1.AND.index_of_boundary(ii).LE.4)) cycle
+    if(k(ii).LT.lbound(boundaries(index_of_boundary(ii))%psi,1).OR. &
+       k(ii).GT.ubound(boundaries(index_of_boundary(ii))%psi,1)) cycle
+    if(i(ii).LT.lbound(boundaries(index_of_boundary(ii))%psi,2).OR. &
+       i(ii).GT.ubound(boundaries(index_of_boundary(ii))%psi,2)) cycle
+    if(j(ii).LT.lbound(boundaries(index_of_boundary(ii))%psi,3).OR. &
+       j(ii).GT.ubound(boundaries(index_of_boundary(ii))%psi,3)) cycle
+    boundaries(index_of_boundary(ii))%psi(k(ii),i(ii),j(ii))=psi(ii)
+    boundaries(index_of_boundary(ii))%chi(k(ii),i(ii),j(ii))=dpsi(ii)
+    ret=ret-1
+  enddo
 end function
 
 function get_position_of_index(i,j,k,x,y,n) result(ret)
@@ -404,11 +485,23 @@ function get_position_of_index(i,j,k,x,y,n) result(ret)
   ret=0
 end function
 
-function get_boundary_position_of_index(index_of_boundary,i,j,k,x,y,n) result(ret)
+function get_index_of_position(x,y,i,j,n) result(ret)
   integer :: ret,n
-  integer :: ii,i(n),j(n),k(n),index_of_boundary
+  integer :: ii,i(n),j(n)
   real(8) :: x(n),y(n)
   
+  do ii=1,n
+    i(ii)=floor(x(ii)/dx)+1
+    j(ii)=floor(y(ii)/dy)+1
+  enddo
+  ret=0
+end function
+
+function get_boundary_position_of_index(i,j,k,index_of_boundary,x,y,n) result(ret)
+  integer :: ret,n
+  integer :: ii,i(n),j(n),k(n),index_of_boundary(n)
+  real(8) :: x(n),y(n)
+! its the same as for the normal grid!  
   do ii=1,n
     x(ii)=(i(ii)-1)*dx
     y(ii)=(j(ii)-1)*dy

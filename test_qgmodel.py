@@ -108,6 +108,24 @@ class TestQGmodelInterface(TestWithMPI):
         self.assertEqual(time,3600.) 
         instance.stop()
 
+    def test5(self):
+        instance=QGmodelInterface()
+        instance.initialize_code()
+        instance.commit_parameters()
+        Nx,err=instance.get_Nx()
+        Ny,err=instance.get_Ny()
+        Nm,err=instance.get_Nm()
+        
+        minx,maxx,miny,maxy,minz,maxz,err=instance.get_index_range_inclusive()
+        self.assertEqual(minx,1)
+        self.assertEqual(miny,1)
+        self.assertEqual(minz,1)
+        self.assertEqual(maxx,Nx)
+        self.assertEqual(maxy,Ny)
+        self.assertEqual(maxz,Nm)
+        
+        instance.stop()
+
 
 class TestQGmodel(TestWithMPI):
     
@@ -173,6 +191,138 @@ class TestQGmodel(TestWithMPI):
         
         instance.stop()
         
-        
+    def test6(self):
+        instance=QGmodel()
+        Nx=instance.get_Nx()
+        Ny=instance.get_Ny()
+        Nm=instance.get_Nm()
 
+        self.assertEqual(401,Nx)
         
+        minx,maxx,miny,maxy,minz,maxz=instance.get_index_range_inclusive()
+        self.assertEqual(minx,1)
+        self.assertEqual(miny,1)
+        self.assertEqual(minz,1)
+        self.assertEqual(maxx,Nx)
+        self.assertEqual(maxy,Ny)
+        self.assertEqual(maxz,Nm)
+        
+        instance.stop()
+        
+    def test7(self):
+        instance=QGmodel()
+        Nx=instance.get_Nx()
+        Ny=instance.get_Ny()
+        Nm=instance.get_Nm()
+        self.assertEqual(401,Nx)
+        
+        minx,maxx,miny,maxy,minz,maxz=instance.get_boundary_index_range_inclusive(1)
+        self.assertEqual(minx,0)
+        self.assertEqual(miny,0)
+        self.assertEqual(minz,1)
+        self.assertEqual(maxx,1)
+        self.assertEqual(maxy,Ny+1)
+        self.assertEqual(maxz,Nm)
+
+        minx,maxx,miny,maxy,minz,maxz=instance.get_boundary_index_range_inclusive(2)
+        self.assertEqual(minx,Nx)
+        self.assertEqual(miny,0)
+        self.assertEqual(minz,1)
+        self.assertEqual(maxx,Nx+1)
+        self.assertEqual(maxy,Ny+1)
+        self.assertEqual(maxz,Nm)
+
+        minx,maxx,miny,maxy,minz,maxz=instance.get_boundary_index_range_inclusive(3)
+        self.assertEqual(minx,0)
+        self.assertEqual(miny,0)
+        self.assertEqual(minz,1)
+        self.assertEqual(maxx,Nx+1)
+        self.assertEqual(maxy,1)
+        self.assertEqual(maxz,Nm)        
+
+        minx,maxx,miny,maxy,minz,maxz=instance.get_boundary_index_range_inclusive(4)
+        self.assertEqual(minx,0)
+        self.assertEqual(miny,Ny)
+        self.assertEqual(minz,1)
+        self.assertEqual(maxx,Nx+1)
+        self.assertEqual(maxy,Ny+1)
+        self.assertEqual(maxz,Nm)        
+        
+        instance.stop()
+
+    def test8(self):
+        instance=QGmodel()
+        instance.parameters.Ly=instance.parameters.Lx/2
+        Nx=instance.get_Nx()
+        Ny=instance.get_Ny()
+        Nm=instance.get_Nm()
+        s=instance.boundaries(1).shape
+        self.assertEqual(s,(2,Ny+2,1))
+        s=instance.boundaries(2).shape
+        self.assertEqual(s,(2,Ny+2,1))
+        s=instance.boundaries(3).shape
+        self.assertEqual(s,(Nx+2,2,1))
+        s=instance.boundaries(4).shape
+        self.assertEqual(s,(Nx+2,2,1))
+
+        instance.stop()        
+        
+    def test9(self):
+        instance=QGmodel()
+        org=instance.grid
+        copy=org.copy()
+        instance.stop()        
+
+    def test10(self):
+        instance=QGmodel()
+        org=instance.boundaries(1)
+        self.assertEquals( org.psi.number,0.)
+        self.assertEquals( org.dpsi_dt.number,0.)
+        shape=org.shape
+        copy=org.copy()
+        instance.stop()
+
+    def test11(self):
+        instance=QGmodel(redirection="none")
+        instance.parameters.Ly=instance.parameters.Ly/8
+        instance.parameters.Lx=instance.parameters.Lx/8
+  
+        for i in [1,2,3,4]:
+          org=instance.boundaries(i)          
+          shape=org.shape
+          copy=org.copy()
+          channel=copy.new_channel_to(org)
+          copy.psi=numpy.random.random(shape) | units.m**2/units.s
+          copy.dpsi_dt=numpy.random.random(shape) | units.m**2/units.s**2
+  
+          channel.copy_attributes(["psi","dpsi_dt"])
+          self.assertEquals(copy.psi, instance.boundaries(i).psi)
+          self.assertEquals(copy.dpsi_dt, instance.boundaries(i).dpsi_dt)
+        
+      
+        instance.stop()
+
+    def test12(self):
+        instance=QGmodel()
+        instance.parameters.Ly=instance.parameters.Ly/16
+        instance.parameters.Lx=instance.parameters.Lx/16
+
+        Nx=instance.parameters.Nx
+        Ny=instance.parameters.Ny
+
+        ix=numpy.arange(Nx)+1
+        iy=numpy.arange(Ny)+1
+        onesx=numpy.ones(Nx)
+        onesy=numpy.ones(Ny)
+
+        i1= numpy.outer(ix,onesx).flatten()
+        j1= numpy.outer(onesy,iy).flatten()
+
+        x=instance.grid.x.flatten()
+        y=instance.grid.y.flatten()
+        i,j=instance.get_index_of_position(x,y)
+
+        self.assertEquals(i-i1,0.)
+        self.assertEquals(j-j1,0.)
+
+        instance.stop()        
