@@ -43,10 +43,15 @@ q=(lambda*lambda)
 ! BOUNDARY CONDITIONS
 !******************************************************************************
 BCtype = 'DDDD'
-bd_ax(:) = 0.0D0
-bd_bx(:) = 0.0D0
-bd_ay(:) = 0.0D0
-bd_by(:) = 0.0D0
+!bd_ax(:) = 0.0D0
+!bd_bx(:) = 0.0D0
+!bd_ay(:) = 0.0D0
+!bd_by(:) = 0.0D0
+
+bd_ax(:) = chii(1,:)
+bd_bx(:) = chii(Nnx,:)
+bd_ay(:) = chii(:,1)
+bd_by(:) = chii(:,Nny)
 ! NOTE:
 !print *, ' The SOLUTION depends NOT on boundary values of the rhs for Dirichlet !!!!!!!!!!!!!!'
 !f(1,:) = 1.d10

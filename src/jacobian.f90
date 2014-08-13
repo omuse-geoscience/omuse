@@ -34,6 +34,11 @@ end do
 ! for BOTH free-slip and no-slip boundary conditions!!!!!!!!!!!!!!!!
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+! we ignore the interface boundaries here for the moment
+! (vis and psi know about the boundaries ofcourse)
+! since the boundary values of the jacobian are of no consequence atm
+! otherwise we would need to add vis on the boundary as boundary condition!!
+
 end
 
 
