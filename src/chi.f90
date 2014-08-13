@@ -1,15 +1,22 @@
 subroutine chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
              & Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
              & psi,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev, &
-             & chi_prev,chii)
+             & chi_prev,chii, boundaries)
 
 implicit none
+
+type boundary_grid
+  real(8), allocatable,dimension (:,:,:) :: psi
+  real(8), allocatable,dimension (:,:,:) :: chi
+end type
+
 integer, intent(in) :: boundary(4)
 integer, intent(in) :: Nx,Ny,Nm,max_it
 real(8), intent(in) :: tau,A_H,R_H,H,rho,beta0,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
                      & dx,err_tol,relax_coef
 real(8), dimension(Nm,Nx,Ny), intent(in)  :: psi,chi_prev,vis_bot_curr,vis_bot_prev,vis_lat_prev
 real(8), dimension(Nm,Nx,Ny), intent(out) :: chii
+type(boundary_grid) :: boundaries(4)
 
 integer :: m,i,j
 real(8) :: d
@@ -38,6 +45,11 @@ rhs = -beta0*0.5*d*beta_term(1,:,:) &
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! BOUNDARY VALUES -- necessary for the POISSON SOLVER !!!
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+chii(1,1,:)=0
+chii(1,Nx,:)=0
+chii(1,:,1)=0
+chii(1,:,Ny)=0
+
 if( boundary(1) == 1) then
   rhs(1,:)   = 0.d0
 else if( boundary(1) == 0) then
@@ -45,7 +57,8 @@ else if( boundary(1) == 0) then
   rhs(1,Ny)   = 0.d0
   rhs(1,2:Ny-1)  = 2.d0*chi_prev(1,2,2:Ny-1)
 else if(boundary(1) == 2) then
-!tbd
+!tbd: fix beta_term and wind_term and jac_term and possibly vis terms (atm not necessary)
+  chii(1,1,1:Nx)=boundaries(1)%chi(1,1,1:Nx)
 endif
 
 if( boundary(2) == 1) then
@@ -56,6 +69,7 @@ else if( boundary(2) == 0) then
   rhs(Nx,2:Ny-1) = 2.d0*chi_prev(1,Nx-1,2:Ny-1)
 else if(boundary(2) == 2) then
 ! tbd
+  chii(1,Nx,1:Ny)=boundaries(2)%chi(1,Nx,1:Ny)
 endif
 
 if( boundary(3) == 1) then
@@ -66,6 +80,7 @@ else if( boundary(3) == 0) then
   rhs(2:Nx-1,1)  = 2.d0*chi_prev(1,2:Nx-1,2)
 else if(boundary(3) == 2) then
 ! tbd
+  chii(1,1:Nx,1)=boundaries(3)%chi(1,1:Nx,1)
 endif
 
 if( boundary(4) == 1) then
@@ -76,6 +91,7 @@ else if( boundary(4) == 0) then
   rhs(2:Nx-1,Ny) = 2.d0*chi_prev(1,2:Nx-1,Ny-1)
 else if(boundary(4) == 2) then
 ! tbd
+  chii(1,1:Nx,Ny)=boundaries(4)%chi(1,1:Nx,Ny)
 endif
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -108,6 +124,11 @@ rhs = -beta0*0.5*d*beta_term(1,:,:) &
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! BOUNDARY VALUES -- necessary for the POISSON SOLVER !!!
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+chii(1,1,:)=0
+chii(1,Nx,:)=0
+chii(1,:,1)=0
+chii(1,:,Ny)=0
+
 if( boundary(1) == 1) then
   rhs(1,:)   = 0.d0
 else if( boundary(1) == 0) then
@@ -116,6 +137,7 @@ else if( boundary(1) == 0) then
   rhs(1,2:Ny-1)  = 2.d0*chi_prev(1,2,2:Ny-1)
 else if(boundary(1) == 2) then
 !tbd
+  chii(1,1,1:Nx)=boundaries(1)%chi(1,1,1:Nx)
 endif
 
 if( boundary(2) == 1) then
@@ -126,6 +148,7 @@ else if( boundary(2) == 0) then
   rhs(Nx,2:Ny-1) = 2.d0*chi_prev(1,Nx-1,2:Ny-1)
 else if(boundary(2) == 2) then
 ! tbd
+  chii(1,Nx,1:Ny)=boundaries(2)%chi(1,Nx,1:Ny)
 endif
 
 if( boundary(3) == 1) then
@@ -136,6 +159,7 @@ else if( boundary(3) == 0) then
   rhs(2:Nx-1,1)  = 2.d0*chi_prev(1,2:Nx-1,2)
 else if(boundary(3) == 2) then
 ! tbd
+  chii(1,1:Nx,1)=boundaries(3)%chi(1,1:Nx,1)
 endif
 
 if( boundary(4) == 1) then
@@ -146,6 +170,7 @@ else if( boundary(4) == 0) then
   rhs(2:Nx-1,Ny) = 2.d0*chi_prev(1,2:Nx-1,Ny-1)
 else if(boundary(4) == 2) then
 ! tbd
+  chii(1,1:Nx,Ny)=boundaries(4)%chi(1,1:Nx,Ny)
 endif
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -172,6 +197,11 @@ rhs = -beta0*0.5*d*beta_term(2,:,:) &
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! BOUNDARY VALUES -- necessary for the POISSON SOLVER !!!
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+chii(2,1,:)=0
+chii(2,Nx,:)=0
+chii(2,:,1)=0
+chii(2,:,Ny)=0
+
 if( boundary(1) == 1) then
   rhs(1,:)   = 0.d0
 else if( boundary(1) == 0) then
@@ -180,6 +210,7 @@ else if( boundary(1) == 0) then
   rhs(1,2:Ny-1)  = 2.d0*chi_prev(2,2,2:Ny-1)
 else if(boundary(1) == 2) then
 !tbd
+  chii(2,1,1:Nx)=boundaries(1)%chi(2,1,1:Nx)
 endif
 
 if( boundary(2) == 1) then
@@ -190,6 +221,7 @@ else if( boundary(2) == 0) then
   rhs(Nx,2:Ny-1) = 2.d0*chi_prev(2,Nx-1,2:Ny-1)
 else if(boundary(2) == 2) then
 ! tbd
+  chii(2,Nx,1:Ny)=boundaries(2)%chi(2,Nx,1:Ny)
 endif
 
 if( boundary(3) == 1) then
@@ -200,6 +232,7 @@ else if( boundary(3) == 0) then
   rhs(2:Nx-1,1)  = 2.d0*chi_prev(2,2:Nx-1,2)
 else if(boundary(3) == 2) then
 ! tbd
+  chii(2,1:Nx,1)=boundaries(3)%chi(2,1:Nx,1)
 endif
 
 if( boundary(4) == 1) then
@@ -210,6 +243,7 @@ else if( boundary(4) == 0) then
   rhs(2:Nx-1,Ny) = 2.d0*chi_prev(2,2:Nx-1,Ny-1)
 else if(boundary(4) == 2) then
 ! tbd
+  chii(2,1:Nx,Ny)=boundaries(4)%chi(2,1:Nx,Ny)
 endif
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
