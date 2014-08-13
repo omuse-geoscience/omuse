@@ -113,7 +113,7 @@ else if(boundary(4) == 2) then
     if(boundary(1)==2) then
       i=1
       vis_bott(m,i,j) = psi(m,i+1,j)+boundaries(1)%psi(m,i-1,j) &
-                     &+boundaries(3)%psi(m,i,j+1)+psi(m,i,j-1)-4.d0*psi(m,i,j)
+                     &+boundaries(4)%psi(m,i,j+1)+psi(m,i,j-1)-4.d0*psi(m,i,j)
     endif
   enddo
 endif

@@ -620,6 +620,7 @@ class QGmodel(CommonCode):
           object.add_method(state,"before_get_parameter")          
 
 
+        object.add_method('INITIALIZED', 'set_boundary_conditions')
         object.add_method('INITIALIZED', 'set_Lx')
         object.add_method('INITIALIZED', 'set_Ly')
         object.add_method('INITIALIZED', 'set_dx')
@@ -630,6 +631,10 @@ class QGmodel(CommonCode):
         
     def define_properties(self, object):
         object.add_property('get_time', public_name = "model_time")
+
+    def commit_parameters(self):
+        self.parameters.send_cached_parameters_to_code()
+        self.overridden().commit_parameters()
     
     def define_parameters(self, object):
         object.add_method_parameter(
@@ -821,7 +826,7 @@ class QGmodel(CommonCode):
         ) 
 
         object.add_caching_parameter(
-            "set_boundary", 
+            "set_boundary_conditions", 
             "xbound1",
             "xbound1", 
             "boundary conditions on first (west) X boundary", 
@@ -829,7 +834,7 @@ class QGmodel(CommonCode):
         )
         
         object.add_caching_parameter(
-            "set_boundary", 
+            "set_boundary_conditions", 
             "xbound2",
             "xbound2", 
             "boundary conditions on second (east) X boundary",
@@ -837,7 +842,7 @@ class QGmodel(CommonCode):
         )
         
         object.add_caching_parameter(
-            "set_boundary", 
+            "set_boundary_conditions", 
             "ybound1",
             "ybound1", 
             "boundary conditions on first (north) Y boundary", 
@@ -846,7 +851,7 @@ class QGmodel(CommonCode):
         
         
         object.add_caching_parameter(
-            "set_boundary", 
+            "set_boundary_conditions", 
             "ybound2",
             "ybound2", 
             "boundary conditions on second (south) Y boundary",
