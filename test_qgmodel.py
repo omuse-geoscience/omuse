@@ -326,3 +326,21 @@ class TestQGmodel(TestWithMPI):
         self.assertEquals(j-j1,0.)
 
         instance.stop()        
+
+    def test13(self):
+        instance=QGmodel()
+        instance.parameters.xbound1="interface"
+        instance.commit_parameters()
+        b1,b2,b3,b4=instance.get_boundary_conditions()
+        self.assertEqual(b1,"interface")
+        instance.stop()    
+
+    def test14(self):
+        instance=QGmodel()
+        instance.parameters.ybound1="interface"
+        instance.commit_parameters()
+        b1,b2,b3,b4=instance.get_boundary_conditions()
+        self.assertEqual(b3,"interface")
+        instance.stop()    
+        
+        
