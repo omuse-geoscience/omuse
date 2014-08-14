@@ -342,5 +342,23 @@ class TestQGmodel(TestWithMPI):
         b1,b2,b3,b4=instance.get_boundary_conditions()
         self.assertEqual(b3,"interface")
         instance.stop()    
+
+    def test15(self):
+        instance=QGmodel(redirection="none")
+        dx=instance.parameters.dx
+        Lx=instance.parameters.Lx
+        instance.grid[1:-1,1:-1,0].psi=1.| units.m**2/units.s
+        psi,dpsi=instance.get_psi_state_at_point(dx/2,Lx/2.,Lx/2.)
+        self.assertEqual(psi,1. | units.m**2/units.s)
+        psi,dpsi=instance.get_psi_state_at_point(dx,Lx/2.,Lx/2.)
+        self.assertEqual(psi,1. | units.m**2/units.s)
+        psi,dpsi=instance.get_psi_state_at_point(2*dx,Lx/2.,Lx/2.)
+        self.assertEqual(psi,1. | units.m**2/units.s)
+        psi,dpsi=instance.get_psi_state_at_point(dx,dx/2.,Lx/2.)
+        self.assertEqual(psi,0.5 | units.m**2/units.s)
+        psi,dpsi=instance.get_psi_state_at_point(dx,dx/2.,dx/2.)
+        self.assertEqual(psi,0.25 | units.m**2/units.s)
         
+                
+        instance.stop()
         

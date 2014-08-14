@@ -490,8 +490,8 @@ function get_index_of_position(x,y,i,j,n) result(ret)
   real(8) :: x(n),y(n)
   
   do ii=1,n
-    i(ii)=floor(x(ii)/dx)+1
-    j(ii)=floor(y(ii)/dy)+1
+    i(ii)=floor(x(ii)/dx+0.5)+1
+    j(ii)=floor(y(ii)/dy+0.5)+1
   enddo
   ret=0
 end function
@@ -508,6 +508,62 @@ function get_boundary_position_of_index(i,j,k,index_of_boundary,x,y,n) result(re
   ret=0
 end function
 
+function area_averaging_grid_sample(d,x,y,k,psi,dpsi) result(ret)
+  integer i,j,ret,k
+  integer imin,imax,jmin,jmax,ii,jj
+  real(8) :: d,x,y,psi,dpsi,cell_volume,overlap
+  real(8) :: xc1,xc2,yc1,yc2
+  real(8) :: xg1,xg2,yg1,yg2
+  cell_volume=d*d
+  
+  xc1=x-d/2
+  xc2=x+d/2
+  yc1=y-d/2
+  yc2=y+d/2
+  imin=floor(xc1/dx+0.5)+1
+  imax=floor(xc2/dx+0.5)+1
+  jmin=floor(yc1/dy+0.5)+1
+  jmax=floor(yc2/dy+0.5)+1
+  psi=0
+  dpsi=0  
+  do i=imin,imax
+    do j=jmin,jmax
+      xg1=(i-1)*dx-dx/2
+      xg2=i*dx-dx/2
+      yg1=(j-1)*dy-dy/2
+      yg2=j*dy-dy/2
+      overlap=max(0.,min(xc2,xg2)-max(xc1,xg1))*max(0.,min(yc2,yg2)-max(yc1,yg1))
+      ii=min(max(i,1),Nx)
+      jj=min(max(j,1),Ny)
+!      print*,"overlap",overlap,ii,jj,psi_1(k,ii,jj)
+      psi=psi+overlap*psi_1(k,ii,jj)
+      dpsi=dpsi+overlap*chii(k,ii,jj)
+    enddo
+  enddo
+  psi=psi/cell_volume
+  dpsi=dpsi/cell_volume
+  
+  ret=0
+end function
+
+function get_psi_state_at_point(d,x,y,k,psi,dpsi,n) result(ret)
+  integer :: ret,n,i
+  integer :: k(n)
+  real(8) :: d(n),x(n),y(n),psi(n),dpsi(n),p,dp
+
+  if(Nx==0.OR.Ny==0.OR.Nm==0) then
+    ret=-1
+    return
+  endif
+  
+  ret=0
+  do i=1,n
+    ret=ret+area_averaging_grid_sample(d(i),x(i),y(i),k(i),p,dp)
+    psi(i)=p
+    dpsi(i)=dp
+  enddo
+  
+end function
 
 function recommit_parameters() result(ret)
   integer :: ret
