@@ -163,7 +163,7 @@ function commit_parameters() result(ret)
 end function
 
 function initialize_grid() result(ret)
-  integer :: ret
+  integer :: ret,i
 
 ! naive initialization of psi_2
   psi_2=psi_1
@@ -172,6 +172,14 @@ function initialize_grid() result(ret)
 ! reading psi_2 and chi_prev! 
 ! note chi_prev does not actually do anything atm
 ! psi_2 may be initialized by a warm up step...
+
+! actually maybe not a good idea (depends on timestepping)
+!  do i=1,Nm
+!    if(boundary(1)==2) psi_1(1,1,1:Ny)=boundaries(1)%psi(1,1,1:Ny)
+!    if(boundary(2)==2) psi_1(1,Nx,1:Ny)=boundaries(2)%psi(1,Nx,1:Ny)
+!    if(boundary(3)==2) psi_1(1,1:Nx,1)=boundaries(3)%psi(1,1:Nx,1)
+!    if(boundary(4)==2) psi_1(1,1:Nx,Ny)=boundaries(4)%psi(1,1:Nx,Ny)
+!  enddo
 
 ! initialize vis_*_prev from pis_2
   call vis_bot(Nm,Nx,Ny,boundary,psi_2,vis_bot_prev,boundaries)

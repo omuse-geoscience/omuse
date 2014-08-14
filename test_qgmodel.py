@@ -362,3 +362,16 @@ class TestQGmodel(TestWithMPI):
                 
         instance.stop()
         
+    def test16(self):
+        instance=QGmodel()
+        dx=instance.parameters.dx
+        instance.evolve_model(1| units.hour)
+
+        x=instance.grid[:,10,0].x
+        y=instance.grid[:,10,0].y
+
+        dpsi1=instance.grid[:,10,0].dpsi_dt
+        psi2,dpsi2=instance.get_psi_state_at_point(0.*x+dx,x,y)
+        self.assertAlmostEquals(dpsi1,dpsi2)
+
+        instance.stop()    
