@@ -564,7 +564,22 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function.result_type = 'i'
         return function
 
-
+    @legacy_function    
+    def get_psi_state_at_point():
+        """
+        Retrieves the psi and dpsi_dt for grid k at point x,y
+        """
+        function = LegacyFunctionSpecification()  
+        function.must_handle_array = True
+        function.addParameter("cell_size", dtype='d', direction=function.IN, unit=units.m)
+        function.addParameter("x", dtype='d', direction=function.IN, unit=units.m)
+        function.addParameter("y", dtype='d', direction=function.IN, unit=units.m)
+        function.addParameter("k", dtype='i', direction=function.IN,default=1)
+        function.addParameter("psi", dtype='d', direction=function.OUT, unit=units.m**2/units.s)
+        function.addParameter("dpsi_dt", dtype='d', direction=function.OUT, unit=units.m**2/units.s**2)
+        function.addParameter('number_of_points', 'i', function.LENGTH)           
+        function.result_type = 'i'
+        return function
 
 class QGmodel(CommonCode):
 
@@ -616,9 +631,9 @@ class QGmodel(CommonCode):
           object.add_method(state, 'get_Ny')
           object.add_method(state, 'get_Nm')
           object.add_method(state, 'set_boundary_state')
+          object.add_method(state, 'get_psi_state_at_point')
         for state in ["EDIT","RUN"]:
           object.add_method(state,"before_get_parameter")          
-
 
         object.add_method('INITIALIZED', 'set_boundary_conditions')
         object.add_method('INITIALIZED', 'set_Lx')
