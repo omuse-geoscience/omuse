@@ -508,7 +508,7 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
     @legacy_function    
     def set_boundary_conditions():
         function = LegacyFunctionSpecification()  
-        for x in ["xbound1","xbound2","ybound1","ybound2"]:
+        for x in ["boundary_west","boundary_east","boundary_south","boundary_north"]:
             function.addParameter(x, dtype='string', direction=function.IN)
         function.result_type = 'i'
         return function
@@ -516,7 +516,7 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
     @legacy_function    
     def get_boundary_conditions():
         function = LegacyFunctionSpecification()  
-        for x in ["xbound1","xbound2","ybound1","ybound2"]:
+        for x in ["boundary_west","boundary_east","boundary_south","boundary_north"]:
             function.addParameter(x, dtype='string', direction=function.OUT)
         function.result_type = 'i'
         return function
@@ -585,6 +585,26 @@ class QGmodel(CommonCode):
 
     def __init__(self, **options):
         CommonCode.__init__(self,  QGmodelInterface(**options), **options)
+        self._offset=[0,0] | units.m
+    
+    def get_xoffset(self):
+        return self._offset[0]
+    def get_yoffset(self):
+        return self._offset[1]
+    def set_xoffset(self,x):
+        self._offset[0]=x
+    def set_yoffset(self,y):
+        self._offset[1]=y
+    def get_index_of_position(self,x,y):
+        return self.overridden().get_index_of_position(x-self._offset[0],y-self._offset[1])
+    def get_position_of_index(self,i,j,k):
+        x,y=self.overridden().get_position_of_index(i,j,k)
+        return x+self._offset[0],y+self._offset[1]
+    def get_psi_state_at_point(self,x,y,k=None):
+        return self.overridden().get_psi_state_at_point(x-self._offset[0],y-self._offset[1],k)
+    def get_boundary_position_of_index(self,i,j,k,index_of_boundary=None):
+        x,y=self.overridden().get_boundary_position_of_index(i,j,k,index_of_boundary)
+        return x+self._offset[0],y+self._offset[1]
     
     def define_particle_sets(self, object):
         object.define_grid('grid')
@@ -607,6 +627,12 @@ class QGmodel(CommonCode):
           object.define_extra_keywords(name, {'index_of_boundary': i+1})
           self._boundaries[i+1]="self."+name
           self._boundaries[side]="self."+name
+
+    def update_boundaries(self):
+        if self.parameters.boundary_west=="interface": self.west_boundary_updater(self.boundary_west)
+        if self.parameters.boundary_east=="interface": self.east_boundary_updater(self.boundary_east)
+        if self.parameters.boundary_south=="interface": self.south_boundary_updater(self.boundary_south)
+        if self.parameters.boundary_north=="interface": self.north_boundary_updater(self.boundary_north)
 
     def boundaries(self,x):
         return eval(self._boundaries[x])
@@ -652,6 +678,22 @@ class QGmodel(CommonCode):
         self.overridden().commit_parameters()
     
     def define_parameters(self, object):
+        object.add_method_parameter(
+            "get_xoffset", 
+            "set_xoffset",
+            "xoffset", 
+            "offset of the grid in x direction", 
+            default_value = 0. | units.m
+        )
+
+        object.add_method_parameter(
+            "get_yoffset", 
+            "set_yoffset",
+            "yoffset", 
+            "offset of the grid in y direction", 
+            default_value = 0. | units.m
+        )
+
         object.add_method_parameter(
             "get_Lx", 
             "set_Lx",
@@ -842,69 +884,45 @@ class QGmodel(CommonCode):
 
         object.add_caching_parameter(
             "set_boundary_conditions", 
-            "xbound1",
-            "xbound1", 
+            "boundary_west",
+            "boundary_west", 
             "boundary conditions on first (west) X boundary", 
             "free_slip",
         )
         
         object.add_caching_parameter(
             "set_boundary_conditions", 
-            "xbound2",
-            "xbound2", 
+            "boundary_east",
+            "boundary_east", 
             "boundary conditions on second (east) X boundary",
             "free_slip",
         )
         
         object.add_caching_parameter(
             "set_boundary_conditions", 
-            "ybound1",
-            "ybound1", 
-            "boundary conditions on first (north) Y boundary", 
+            "boundary_south",
+            "boundary_south", 
+            "boundary conditions on first (south) Y boundary", 
             "free_slip",
         )
         
         
         object.add_caching_parameter(
             "set_boundary_conditions", 
-            "ybound2",
-            "ybound2", 
-            "boundary conditions on second (south) Y boundary",
+            "boundary_north",
+            "boundary_north", 
+            "boundary conditions on second (north) Y boundary",
             "free_slip",
         )
                 
         object.add_vector_parameter(
             "x_boundary_conditions",
             "boundary conditions for the zonal (x) directorion",
-            ("xbound1", "xbound2")
+            ("boundary_west", "boundary_east")
         )
                 
         object.add_vector_parameter(
             "y_boundary_conditions",
             "boundary conditions for the meridional (y) directorion",
-            ("ybound1", "ybound2")
+            ("boundary_south", "boundary_north")
         )
-"""        
-    def specify_boundary_grid(self, definition, index_of_boundary, index_of_grid = 1):
-        definition.set_grid_range('get_boundary_index_range_inclusive')
-        
-        definition.add_getter('get_boundary_position_of_index', names=('x','y'))
-        
-        definition.add_getter('get_boundary_state', names=('psi', 'dpsi_dt'))
-        definition.add_setter('set_boundary_state', names=('psi', 'dpsi_dt'))
-       
-        definition.define_extra_keywords({'index_of_boundary': index_of_boundary})
-    
-    BOUNDARY_NAME_TO_INDEX = {
-        'xbound1': 1,
-        'xbound2': 2,
-        'ybound1': 3,
-        'ybound2': 4,
-    }
-    def get_boundary_grid(self, name):
-        if not name in self.BOUNDARY_NAME_TO_INDEX:
-            raise Exception("boundary name is not known {0}".format(name))
-        index_of_boundary = self.BOUNDARY_NAME_TO_INDEX[name]
-        
-        return self._create_new_grid(self.specify_boundary_grid, index_of_boundary = index_of_boundary, index_of_grid = 1)
-"""

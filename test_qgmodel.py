@@ -329,7 +329,7 @@ class TestQGmodel(TestWithMPI):
 
     def test13(self):
         instance=QGmodel()
-        instance.parameters.xbound1="interface"
+        instance.parameters.boundary_west="interface"
         instance.commit_parameters()
         b1,b2,b3,b4=instance.get_boundary_conditions()
         self.assertEqual(b1,"interface")
@@ -337,7 +337,7 @@ class TestQGmodel(TestWithMPI):
 
     def test14(self):
         instance=QGmodel()
-        instance.parameters.ybound1="interface"
+        instance.parameters.boundary_south="interface"
         instance.commit_parameters()
         b1,b2,b3,b4=instance.get_boundary_conditions()
         self.assertEqual(b3,"interface")
@@ -375,3 +375,23 @@ class TestQGmodel(TestWithMPI):
         self.assertAlmostEquals(dpsi1,dpsi2)
 
         instance.stop()    
+
+    def test17(self):
+        instance=QGmodel()
+        self.assertEqual(instance.parameters.xoffset, 0.| units.m)
+        self.assertEqual(instance.parameters.yoffset, 0.| units.m)
+        instance.parameters.yoffset=123456.| units.m
+        instance.parameters.xoffset=543216.| units.m
+        self.assertEqual(instance.parameters.yoffset, 123456.| units.m)
+        self.assertEqual(instance.parameters.xoffset, 543216.| units.m)
+
+        x=instance.grid[0,0,0].x
+        y=instance.grid[0,0,0].y
+        self.assertEqual(y, 123456.| units.m)
+        self.assertEqual(x, 543216.| units.m)
+        i,j=instance.get_index_of_position(x,y)
+        self.assertEqual(i,1)        
+        self.assertEqual(j,1)        
+        
+
+        instance.stop()
