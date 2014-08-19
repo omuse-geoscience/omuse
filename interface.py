@@ -602,7 +602,7 @@ class QGmodel(CommonCode):
         return x+self._offset[0],y+self._offset[1]
     def get_psi_state_at_point(self,x,y,k=None):
         return self.overridden().get_psi_state_at_point(x-self._offset[0],y-self._offset[1],k)
-    def get_boundary_position_of_index(self,i,j,k,index_of_boundary=None):
+    def get_boundary_position_of_index(self,i,j,k,index_of_boundary):
         x,y=self.overridden().get_boundary_position_of_index(i,j,k,index_of_boundary)
         return x+self._offset[0],y+self._offset[1]
     
