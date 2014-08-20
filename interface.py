@@ -1,9 +1,14 @@
+import numpy
 from amuse.community import *
 from amuse.community.interface.common import CommonCode, CommonCodeInterface
 
 from amuse.units import units
 
 import subprocess 
+
+def jans_wind_model(wind_field,Ly,tau):
+  wind_field.tau_x=tau*(numpy.cos(2*numpy.pi*(wind_field.y/Ly-0.5)) + 
+              2*numpy.sin(numpy.pi*(wind_field.y/Ly-0.5)))
 
 class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
@@ -141,7 +146,31 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function.addParameter('number_of_points', 'i', function.LENGTH)
         function.result_type = 'i'
         return function
-    
+
+    @legacy_function    
+    def get_wind_field():
+        function = LegacyFunctionSpecification()  
+        function.must_handle_array = True
+        for x in ['i','j']:
+            function.addParameter(x, dtype='i', direction=function.IN)
+        for x in ['tau_x']:
+            function.addParameter(x, dtype='d', direction=function.OUT, unit=units.Pa)
+        function.addParameter('number_of_points', 'i', function.LENGTH)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
+    def set_wind_field():
+        function = LegacyFunctionSpecification()  
+        function.must_handle_array = True
+        for x in ['i','j']:
+            function.addParameter(x, dtype='i', direction=function.IN)
+        for x in ['tau_x']:
+            function.addParameter(x, dtype='d', direction=function.IN, unit=units.Pa)
+        function.addParameter('number_of_points', 'i', function.LENGTH)
+        function.result_type = 'i'
+        return function
+
     @legacy_function    
     def get_psi2_state():
         function = LegacyFunctionSpecification()  
@@ -171,6 +200,18 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function = LegacyFunctionSpecification()  
         function.must_handle_array = True
         for x in ['i','j','k']:
+            function.addParameter(x, dtype='i', direction=function.IN)
+        for x in ['x','y']:
+            function.addParameter(x, dtype='d', direction=function.OUT, unit=units.m)
+        function.addParameter('number_of_points', 'i', function.LENGTH)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
+    def get_wind_field_position_of_index():
+        function = LegacyFunctionSpecification()  
+        function.must_handle_array = True
+        for x in ['i','j']:
             function.addParameter(x, dtype='i', direction=function.IN)
         for x in ['x','y']:
             function.addParameter(x, dtype='d', direction=function.OUT, unit=units.m)
@@ -480,6 +521,19 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function.addParameter('Nm', dtype='i', direction=function.IN)
         function.result_type = 'i'
         return function
+    @legacy_function    
+    def get_interface_wind():
+        function = LegacyFunctionSpecification()  
+        function.addParameter('interface_wind', dtype='i', direction=function.OUT)
+        function.result_type = 'i'
+        return function
+    @legacy_function    
+    def set_interface_wind():
+        function = LegacyFunctionSpecification()  
+        function.addParameter('interface_wind', dtype='i', direction=function.IN)
+        function.result_type = 'i'
+        return function
+
 
     @legacy_function
     def get_boundary_index_range_inclusive():
@@ -503,6 +557,16 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function.addParameter('maxy', dtype='i', direction=function.OUT)
         function.addParameter('minz', dtype='i', direction=function.OUT)
         function.addParameter('maxz', dtype='i', direction=function.OUT)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function
+    def get_wind_field_index_range_inclusive():
+        function = LegacyFunctionSpecification()
+        function.addParameter('minx', dtype='i', direction=function.OUT)
+        function.addParameter('maxx', dtype='i', direction=function.OUT)
+        function.addParameter('miny', dtype='i', direction=function.OUT)
+        function.addParameter('maxy', dtype='i', direction=function.OUT)
         function.result_type = 'i'
         return function
 
@@ -602,6 +666,9 @@ class QGmodel(CommonCode):
     def get_position_of_index(self,i,j,k):
         x,y=self.overridden().get_position_of_index(i,j,k)
         return x+self._offset[0],y+self._offset[1]
+    def get_wind_field_position_of_index(self,i,j):
+        x,y=self.overridden().get_wind_field_position_of_index(i,j)
+        return x+self._offset[0],y+self._offset[1]
     def get_psi_state_at_point(self,d,x,y,k=None):
         if k is None:
           return self.overridden().get_psi_state_at_point(d,x-self._offset[0],y-self._offset[1])
@@ -620,6 +687,12 @@ class QGmodel(CommonCode):
         object.add_getter('grid', 'get_psi2_state', names=('psi_prev',))
         object.add_setter('grid', 'set_psi2_state', names=('psi_prev',))
         object.add_getter('grid', 'get_position_of_index', names=('x','y'))
+
+        object.define_grid('wind_field',axes_names = ['x','y'])
+        object.set_grid_range('wind_field', 'get_wind_field_index_range_inclusive')    
+        object.add_getter('wind_field', 'get_wind_field', names=('tau_x',))
+        object.add_setter('wind_field', 'set_wind_field', names=('tau_x',))
+        object.add_getter('wind_field', 'get_wind_field_position_of_index', names=('x','y'))
 
         self._boundaries={}
         for i,side in enumerate(["west","east","south","north"]):
@@ -690,11 +763,14 @@ class QGmodel(CommonCode):
  
         object.add_method('RUN', 'get_dpsi_dt')
         object.add_method("RUN", 'get_psi_state_at_point')
+        object.add_method("RUN", 'get_wind_field')
 
         object.add_method('EDIT', 'set_psi1_state')
         object.add_method('EDIT', 'set_psi2_state')
+        object.add_method('EDIT', 'set_wind_field')
         for state in ["RUN","EDIT"]:
           object.add_method(state, 'get_index_range_inclusive')
+          object.add_method(state, 'get_wind_field_index_range_inclusive')
           object.add_method(state, 'get_boundary_index_range_inclusive')
           object.add_method(state, 'get_psi1_state')
           object.add_method(state, 'get_psi2_state')
@@ -760,6 +836,14 @@ class QGmodel(CommonCode):
             "robert_asselin_alpha", 
             "robert_asselin filter parameter (0.01-0.1)", 
             default_value = 0.1
+        )
+
+        object.add_boolean_parameter(
+            "get_interface_wind", 
+            "set_interface_wind",
+            "interface_wind", 
+            "set wind field thorugh interface (True) or let QGmodel generate wind (False)", 
+            default_value = False
         )
 
         object.add_method_parameter(
@@ -963,3 +1047,112 @@ class QGmodel(CommonCode):
             "boundary conditions for the meridional (y) directorion",
             ("boundary_south", "boundary_north")
         )
+
+
+class QGmodelWithRefinements(QGmodel):
+    def __init__(self,*args,**kwargs):
+      self.refinements=[]
+      QGmodel.__init__(self,*args,**kwargs)
+      
+    def interpolate_grid(self,grid):
+      copy=grid.empty_copy()    
+      x=grid.x.flatten()
+      y=grid.y.flatten()
+      dx=max(self.grid.cellsize()[0],grid.cellsize()[0])
+      psi,dpsi_dt=self.get_psi_state_at_point(dx+0.*x,x,y)
+      copy.psi=psi.reshape(copy.shape)
+      copy.dpsi_dt=dpsi_dt.reshape(copy.shape)    
+      channel=copy.new_channel_to(grid)
+      channel.copy_attributes(["psi","dpsi_dt"])
+  
+    def add_refinement(self,sys,offset=[0.,0.] | units.m):
+      self.refinements.append(sys)
+      sys.parameters.xoffset=offset[0]
+      sys.parameters.yoffset=offset[1]
+      
+      minpos=sys.grid.get_minimum_position()
+      maxpos=sys.grid.get_maximum_position()
+      
+      parent_minpos=self.grid.get_minimum_position()
+      parent_maxpos=self.grid.get_maximum_position()
+      dx,dy=self.grid.cellsize()
+      
+      if minpos[0]<parent_minpos[0]+dx/2:
+        print "linking west boundary"
+        sys.parameters.boundary_west=self.parameters.boundary_west
+        sys.west_boundary_updater=self.west_boundary_updater
+      else:
+        print "west boundary interpolated"
+        sys.parameters.boundary_west="interface"
+        sys.west_boundary_updater=self.interpolate_grid
+        
+      if maxpos[0]>parent_maxpos[0]-dx/2:
+        print "linking east boundary"
+        sys.parameters.boundary_east=self.parameters.boundary_east
+        sys.east_boundary_updater=self.east_boundary_updater
+      else:
+        print "east boundary interpolated"
+        sys.parameters.boundary_east="interface"
+        sys.east_boundary_updater=self.interpolate_grid
+  
+      if minpos[1]<parent_minpos[1]+dy/2:
+        print "linking south boundary"
+        sys.parameters.boundary_south=self.parameters.boundary_south
+        sys.south_boundary_updater=self.south_boundary_updater
+      else:
+        print "south boundary interpolated"
+        sys.parameters.boundary_south="interface"
+        sys.south_boundary_updater=self.interpolate_grid
+        
+      if maxpos[1]>parent_maxpos[1]-dy/2:
+        print "linking north boundary"
+        sys.parameters.boundary_north=self.parameters.boundary_north
+        sys.north_boundary_updater=self.north_boundary_updater
+      else:
+        print "north boundary interpolated"
+        sys.parameters.boundary_north="interface"
+        sys.north_boundary_updater=self.interpolate_grid
+      if not hasattr(sys,"get_psi_dpsidt"):
+        sys.get_psi_dpsidt=sys.get_psi_state_at_point
+  
+    def evolve_model(self,tend,dt=None):
+      if dt is None:
+        dt=2*self.parameters.dt
+      tnow=self.model_time
+      while tnow<tend-dt/2:
+        self.overridden().evolve_model(tnow+dt/2)
+        for sys in self.refinements:
+          print "update boundaries...",
+          sys.update_boundaries()
+          print "done"
+          sys.evolve_model(tnow+dt)
+        self.overridden().evolve_model(tnow+dt)
+#        self.update_refined_regions()
+        tnow=self.model_time
+  
+    def get_psi_dpsidt(self,dx,x,y,k=None):
+      minx=x-dx/2
+      maxx=x+dx/2
+      miny=y-dx/2
+      maxy=y+dx/2
+      done=numpy.zeros(minx.shape,dtype=bool)
+      psi=numpy.zeros(minx.shape) | units.m**2/units.s
+      dpsi=numpy.zeros(minx.shape) | units.m**2/units.s**2
+      for sys in self.refinements+[self]:
+        gridminx,gridminy=sys.grid.get_minimum_position()
+        gridmaxx,gridmaxy=sys.grid.get_maximum_position()
+        select=- ( (gridminx>minx)+(gridmaxx<maxx)+(gridminy>miny)+(gridmaxy<maxy)+done )
+        if select.sum() and sys is not self: 
+          p,d=sys.get_psi_dpsidt(dx[select],x[select],y[select])
+          psi[select]=p
+          dpsi[select]=d
+        done=done+select
+      if select.sum():
+        p,d=self.get_psi_state_at_point(dx[select],x[select],y[select])
+        psi[select]=p
+        dpsi[select]=d
+      print "points done:", done.sum()
+      print "points skipped:", (1-done).sum()
+      return psi,dpsi
+  
+  

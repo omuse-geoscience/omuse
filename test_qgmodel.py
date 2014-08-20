@@ -29,7 +29,8 @@ class TestQGmodelInterface(TestWithMPI):
          ("rho",1000.), ("beta0",1.8616e-11),("tau",0.05),
          ("R_H",0),("A_H",100), ("lambda0",0.),("lambda1",2.e-5),
          ("Nm",1),("begin_time",0.),("wind_sigma",-99.),
-         ("e111",0),("phi1z0",1.4142135623731),("ra_alpha",0.1)]:
+         ("e111",0),("phi1z0",1.4142135623731),("ra_alpha",0.1),
+         ("interface_wind",0)]:
             result,err=getattr(instance, 'get_'+key)()
             self.assertEquals( result, val)
             newvalue=type(val)(123.)
@@ -429,4 +430,23 @@ class TestQGmodel(TestWithMPI):
         self.assertEquals(instance.get_name_of_current_state(), 'INITIALIZED')
         instance.stop()
         
+    def test21(self):
+        instance=QGmodel()
+        self.assertFalse(instance.parameters.interface_wind)
+        instance.parameters.interface_wind=True
+        self.assertTrue(instance.parameters.interface_wind)
+        instance.stop()
+
+    def test22(self):
+        instance=QGmodel(redirection="none")
+        wind_field=instance.wind_field.copy()
+        self.assertEquals(instance.get_name_of_current_state(), 'RUN')
+        self.assertEqual(wind_field.shape, (401,401))
+        pi = 3.14159265358979
+        #expected=cos(2.*pi*((j-1.)/(Ny-1.)-0.5))+2.*sin(pi*((j-1.)/(Ny-1.)-0.5))
+        Ly=instance.parameters.Ly
+        tau=instance.parameters.tau
+        expected=tau*(numpy.cos(2*pi*(wind_field.y/Ly-0.5)) + 
+                      2.*numpy.sin(pi*(wind_field.y/Ly-0.5)))
+        self.assertAlmostEquals(wind_field.tau_x,expected,7)
         

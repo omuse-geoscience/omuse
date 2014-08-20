@@ -10,8 +10,8 @@ module qgmodel
   real(8), allocatable,dimension (:,:,:) :: psi_1,psi_2,inter,chii,chi_prev, &
                                           & vis_bot_prev,vis_bot_curr, &
                                           & vis_lat_prev,vis_lat_curr
-  
-  
+  real(8), allocatable,dimension(:,:) :: tau_x
+  integer :: interface_wind
   type boundary_grid
     real(8), allocatable,dimension (:,:,:) :: psi
     real(8), allocatable,dimension (:,:,:) :: chi
@@ -51,6 +51,7 @@ subroutine default_numerical_parameters()
   boundary(1:4)  = 1   ! 1=free_slip, 0=no_slip, 2=interface
   
   ra_alpha       = 0.1d0
+  interface_wind = 0  ! 0=use wind routine, 1= use interface wind
 !  restart        = 0  ! not used for amuse
 !  restart_num    = 360 ! not used                
 end subroutine  
@@ -111,7 +112,7 @@ subroutine initialize_arrays()
     boundaries(i)%psi=0.
     boundaries(i)%chi=0.
   enddo  
-
+  allocate(tau_x(Nx,Ny))
   
 end subroutine
 
@@ -128,6 +129,20 @@ function get_index_range_inclusive(i1,i2,j1,j2,k1,k2) result(ret)
   j2=Ny
   k1=1
   k2=Nm
+  ret=0
+end function
+
+function get_wind_field_index_range_inclusive(i1,i2,j1,j2) result(ret)
+  integer :: ret, i1,i2, j1,j2
+
+  if(Nx==0.OR.Ny==0.OR.Nm==0) then
+    ret=1
+    return
+  endif
+  i1=1
+  i2=Nx
+  j1=1
+  j2=Ny
   ret=0
 end function
 
@@ -401,6 +416,7 @@ function cleanup_code() result(ret)
              boundaries(3)%chi )
     deallocate(boundaries(4)%psi, &
              boundaries(4)%chi)
+    deallocate(tau_x)
   endif
   ret=0
 end function
@@ -434,6 +450,28 @@ function get_psi2_state(i,j,k,psi2,n) result(ret)
   
  do ii=1,n
     psi2(ii)=psi_2(k(ii),i(ii),j(ii))
+  enddo
+  ret=0
+end function
+
+function get_wind_field(i,j,t,n) result(ret)
+  integer :: ret,n
+  integer :: ii,i(n),j(n)
+  real(8) :: t(n)
+  
+  do ii=1,n
+    t(ii)=tau_x(i(ii),j(ii))
+  enddo
+  ret=0
+end function
+
+function set_wind_field(i,j,t,n) result(ret)
+  integer :: ret,n
+  integer :: ii,i(n),j(n)
+  real(8) :: t(n)
+  
+  do ii=1,n
+    tau_x(i(ii),j(ii))=t(ii)
   enddo
   ret=0
 end function
@@ -512,6 +550,19 @@ function get_position_of_index(i,j,k,x,y,n) result(ret)
   enddo
   ret=0
 end function
+
+function get_wind_field_position_of_index(i,j,x,y,n) result(ret)
+  integer :: ret,n
+  integer :: ii,i(n),j(n)
+  real(8) :: x(n),y(n)
+  
+  do ii=1,n
+    x(ii)=(i(ii)-1)*dx
+    y(ii)=(j(ii)-1)*dy
+  enddo
+  ret=0
+end function
+
 
 function get_index_of_position(x,y,i,j,n) result(ret)
   integer :: ret,n
@@ -906,6 +957,20 @@ function get_Nt(x) result (ret)
   x=Nt
   ret=0
 end function
+
+function set_interface_wind(x) result (ret)
+  integer :: ret,x
+  interface_wind=x
+  ret=0
+end function
+function get_interface_wind(x) result (ret)
+  integer :: ret
+  integer :: x
+  x=interface_wind
+  ret=0
+end function
+
+
 end module
 
 
@@ -913,51 +978,51 @@ end module
 
 ! move wind to here in order to...
 subroutine wind(Nm,Nx,Ny,windy)
- use qgmodel, only: wind_sigma
+ use qgmodel, only: wind_sigma, interface_wind,tau_x,tau
 implicit none
 integer, intent(in) :: Nx,Ny,Nm
 real(8), dimension(Nm,Nx,Ny), intent(out) :: windy
 
 integer :: i,j,m
 real(8) :: pi = 3.14159265358979d0
-real(8), dimension(Nx,Ny) :: tau
+!real(8), dimension(Nx,Ny) :: tau
 
-tau(:,:)     = 0.d0
 windy(:,:,:) = 0.d0
 
-do i=1,Nx
- do j=1,Ny
+if(.not.allocated(tau_x)) stop "tau_x not allocated"
 
 
-  if(wind_sigma<-1.) then
-! jan's:
-  tau(i,j) = cos(2.*pi*((j-1.)/(Ny-1.)-0.5))+2.*sin(pi*((j-1.)/(Ny-1.)-0.5))
-  else
-! dijkstra:
-  tau(i,j)= - ( wind_sigma*cos(pi*(j-1.)/(Ny-1.))+(1-wind_sigma)*cos(2.*pi*((j-1.)/(Ny-1.))) )
-  endif
-
-!  tau(i,j) = -1./(2.*pi)*cos(2.*pi*(j-1.)/(Ny-1.))
-!  tau(i,j) = -cos(pi*(j-1.)/(Ny-1.))
-!  tau(i,j) = -cos(pi*(j-1.5)/(ny-2.))                                             ! what they had in the code
-!  tau(i,j) = -1./pi*cos(pi*(j-1.)/(Ny-1.))                                         ! what I used
-!  tau(i,j) = -1./pi*cos(pi*(j-1.)/(ny-1.))*sin(pi*(i-1.)/(ny-1.))                 ! Veronis (1966) ????
-
- end do
-end do
+if(interface_wind.EQ.0) then
+  tau_x(:,:)     = 0.d0
+  do i=1,Nx
+    do j=1,Ny
+      if(wind_sigma<-1.) then
+  ! jan's:
+    tau_x(i,j) = cos(2.*pi*((j-1.)/(Ny-1.)-0.5))+2.*sin(pi*((j-1.)/(Ny-1.)-0.5))
+      else
+  ! dijkstra:
+    tau_x(i,j)= - ( wind_sigma*cos(pi*(j-1.)/(Ny-1.))+(1-wind_sigma)*cos(2.*pi*((j-1.)/(Ny-1.))) )
+      endif
+    end do
+  end do
+endif
 
 do m=1,Nm
- do i=2,Nx-1
-  do j=2,Ny-1
-
-  windy(m,i,j) = -tau(i,j+1)+tau(i,j-1)                                            ! include the whole curl, i.e., also x-derivative for generality ?????
-
+  do i=2,Nx-1
+    do j=2,Ny-1
+    windy(m,i,j) = -tau_x(i,j+1)+tau_x(i,j-1)    ! include the whole curl, i.e., also x-derivative for generality ?????
+    end do
   end do
- end do
 end do
 
-!      write(*,*) tau
-!      write(*,*) windy
+! fix wind field normalization
+if(interface_wind.EQ.0) then
+  tau_x=tau*tau_x
+else
+  if(tau.NE.0) windy=windy/tau
+endif
+
+! boundary wind values not needed atm
 
 end
 
