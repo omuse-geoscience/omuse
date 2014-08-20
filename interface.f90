@@ -381,6 +381,27 @@ end function
 
 function cleanup_code() result(ret)
   integer :: ret
+  if(allocated(psi_1)) then
+    deallocate (psi_1)
+    deallocate (psi_2)
+    deallocate (inter)
+    deallocate (chii)
+    deallocate (chi_prev)
+    deallocate (vis_bot_prev)
+    deallocate (vis_bot_curr)
+    deallocate (vis_lat_prev)
+    deallocate (vis_lat_curr)
+    deallocate (max_psi)
+  
+    deallocate(boundaries(1)%psi, &
+             boundaries(1)%chi)
+    deallocate(boundaries(2)%psi, &
+             boundaries(2)%chi )
+    deallocate(boundaries(3)%psi, &
+             boundaries(3)%chi )
+    deallocate(boundaries(4)%psi, &
+             boundaries(4)%chi)
+  endif
   ret=0
 end function
 
