@@ -175,6 +175,7 @@ class TestQGmodel(TestWithMPI):
         
     def test5(self):
         instance=QGmodel(redirection="none")
+        instance.before_get_parameter()
         dt=instance.parameters.dt
         instance.evolve_model(dt)
 
@@ -251,8 +252,9 @@ class TestQGmodel(TestWithMPI):
         instance.stop()
 
     def test8(self):
-        instance=QGmodel()
-        instance.parameters.Ly=instance.parameters.Lx/2
+        instance=QGmodel(redirection="none")
+        Lx2=instance.parameters.Lx/2
+        instance.parameters.Ly=Lx2
         Nx=instance.get_Nx()
         Ny=instance.get_Ny()
         Nm=instance.get_Nm()
@@ -264,7 +266,6 @@ class TestQGmodel(TestWithMPI):
         self.assertEqual(s,(Nx+2,2,1))
         s=instance.boundaries(4).shape
         self.assertEqual(s,(Nx+2,2,1))
-
         instance.stop()        
         
     def test9(self):
@@ -392,6 +393,40 @@ class TestQGmodel(TestWithMPI):
         i,j=instance.get_index_of_position(x,y)
         self.assertEqual(i,1)        
         self.assertEqual(j,1)        
-        
-
         instance.stop()
+
+    def test18(self):
+        instance=QGmodel()
+        dx=instance.parameters.dx
+        dy=instance.parameters.dy
+        dx1,dy1=instance.grid.cellsize()
+        self.assertEqual(dx,dx1)
+        self.assertEqual(dy,dy1)
+        instance.stop()
+
+    def test19(self):
+        instance=QGmodel()
+        cellsize=instance.grid.cellsize()
+        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
+        instance.parameters.boundary_west="interface"
+        self.assertEquals(instance.get_name_of_current_state(), 'CHANGE_PARAMETERS_EDIT')
+        instance.recommit_parameters()        
+        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
+        instance.stop()
+        
+    def test20(self):
+        instance=QGmodel()
+        cellsize=instance.grid.cellsize()
+        self.assertEquals(instance.get_name_of_current_state(), 'EDIT')
+        a=instance.parameters.robert_asselin_alpha
+        instance.parameters.robert_asselin_alpha=12345.
+        self.assertEquals(instance.get_name_of_current_state(), 'CHANGE_PARAMETERS_EDIT')        
+        self.assertEqual(   instance.parameters.robert_asselin_alpha,12345.)
+        instance.cleanup_code()
+        self.assertEquals(instance.get_name_of_current_state(), 'END')
+        instance.initialize_code()
+        self.assertEqual(   instance.parameters.robert_asselin_alpha,a)
+        self.assertEquals(instance.get_name_of_current_state(), 'INITIALIZED')
+        instance.stop()
+        
+        
