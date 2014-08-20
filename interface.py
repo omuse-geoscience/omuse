@@ -19,10 +19,12 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         LiteratureReferencesMixIn.__init__(self)
 
         stacksize=subprocess.check_output('mpirun sh -c "ulimit -s"', shell=True)
-        if int(stacksize) < 65536:
+        if int(stacksize) < 2**17:
           raise Exception("remember to increase the stacksize for qgmodel!")
 
 
+##    def recommit_parameters(self):
+#        pass
 
     @legacy_function
     def initialize_grid():
@@ -600,14 +602,17 @@ class QGmodel(CommonCode):
     def get_position_of_index(self,i,j,k):
         x,y=self.overridden().get_position_of_index(i,j,k)
         return x+self._offset[0],y+self._offset[1]
-    def get_psi_state_at_point(self,x,y,k=None):
-        return self.overridden().get_psi_state_at_point(x-self._offset[0],y-self._offset[1],k)
+    def get_psi_state_at_point(self,d,x,y,k=None):
+        if k is None:
+          return self.overridden().get_psi_state_at_point(d,x-self._offset[0],y-self._offset[1])
+        else:
+          return self.overridden().get_psi_state_at_point(d,x-self._offset[0],y-self._offset[1],k)
     def get_boundary_position_of_index(self,i,j,k,index_of_boundary):
         x,y=self.overridden().get_boundary_position_of_index(i,j,k,index_of_boundary)
         return x+self._offset[0],y+self._offset[1]
     
     def define_particle_sets(self, object):
-        object.define_grid('grid')
+        object.define_grid('grid',axes_names = ['x','y'])
         object.set_grid_range('grid', 'get_index_range_inclusive')    
         object.add_getter('grid', 'get_dpsi_dt', names=('dpsi_dt',))
         object.add_getter('grid', 'get_psi1_state', names=('psi',))
@@ -617,9 +622,9 @@ class QGmodel(CommonCode):
         object.add_getter('grid', 'get_position_of_index', names=('x','y'))
 
         self._boundaries={}
-        for i,side in enumerate(["east","west","south","north"]):
+        for i,side in enumerate(["west","east","south","north"]):
           name="boundary_"+side
-          object.define_grid(name)
+          object.define_grid(name,axes_names = ['x','y'])
           object.set_grid_range(name, 'get_boundary_index_range_inclusive')    
           object.add_getter(name, 'get_boundary_state', names=('psi','dpsi_dt'))
           object.add_setter(name, 'set_boundary_state', names=('psi','dpsi_dt'))
@@ -628,6 +633,15 @@ class QGmodel(CommonCode):
           self._boundaries[i+1]="self."+name
           self._boundaries[side]="self."+name
 
+    def west_boundary_updater(self):
+        raise Exception("define update function for interface boundaries")
+    def east_boundary_updater(self):
+        raise Exception("define update function for interface boundaries")
+    def south_boundary_updater(self):
+        raise Exception("define update function for interface boundaries")
+    def north_boundary_updater(self):
+        raise Exception("define update function for interface boundaries")
+        
     def update_boundaries(self):
         if self.parameters.boundary_west=="interface": self.west_boundary_updater(self.boundary_west)
         if self.parameters.boundary_east=="interface": self.east_boundary_updater(self.boundary_east)
@@ -638,13 +652,45 @@ class QGmodel(CommonCode):
         return eval(self._boundaries[x])
 
     def define_state(self, object): 
-        CommonCode.define_state(self, object)   
+        object.set_initial_state('UNINITIALIZED')
+        object.add_transition('!UNINITIALIZED!INITIALIZED!STOPPED', 'END', 'cleanup_code')
+        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+        object.add_transition('END', 'INITIALIZED', 'initialize_code',False)        
+        object.add_transition('END', 'STOPPED', 'stop', False)
+        object.add_method('STOPPED', 'stop')        
+        
+# may only be set before Initialization
+        object.add_method('INITIALIZED', 'set_Lx')
+        object.add_method('INITIALIZED', 'set_Ly')
+        object.add_method('INITIALIZED', 'set_dx')
+        object.add_method('INITIALIZED', 'set_dy')
+        object.add_method('INITIALIZED', 'set_Nm')
+
+# Nx and Ny need commit_parameter, all need initialize_code
+        object.add_method('!UNINITIALIZED', 'before_get_parameter')
+        object.add_method('!UNINITIALIZED!INITIALIZED', "get_Nx")
+        object.add_method('!UNINITIALIZED!INITIALIZED', "get_Ny")
+
         object.add_transition('INITIALIZED','EDIT','commit_parameters')
         object.add_transition('EDIT', 'RUN', 'initialize_grid')
         object.add_transition('RUN', 'EVOLVED', 'evolve_model', False)
         object.add_transition('EVOLVED','RUN', 'synchronize_model')
+        object.add_transition('EVOLVED','EDIT', 'synchronize_model')
         object.add_transition('RUN','EDIT', 'synchronize_model')
+        object.add_transition('INITIALIZED','INITIALIZED','before_set_parameter', False)
+        object.add_transition('RUN','CHANGE_PARAMETERS_RUN','before_set_parameter')
+        object.add_transition('EDIT','CHANGE_PARAMETERS_EDIT','before_set_parameter', False)
+        object.add_transition('CHANGE_PARAMETERS_RUN','RUN','recommit_parameters')
+        object.add_transition('CHANGE_PARAMETERS_EDIT','EDIT','recommit_parameters')
+        
+        
+        object.add_method('INITIALIZED', 'before_set_parameters')
+        object.add_method('CHANGE_PARAMETERS_RUN', 'before_set_parameter')
+        object.add_method('CHANGE_PARAMETERS_EDIT', 'before_set_parameter')
+ 
         object.add_method('RUN', 'get_dpsi_dt')
+        object.add_method("RUN", 'get_psi_state_at_point')
+
         object.add_method('EDIT', 'set_psi1_state')
         object.add_method('EDIT', 'set_psi2_state')
         for state in ["RUN","EDIT"]:
@@ -653,22 +699,8 @@ class QGmodel(CommonCode):
           object.add_method(state, 'get_psi1_state')
           object.add_method(state, 'get_psi2_state')
           object.add_method(state, 'get_boundary_state')
-          object.add_method(state, 'get_Nx')
-          object.add_method(state, 'get_Ny')
-          object.add_method(state, 'get_Nm')
           object.add_method(state, 'set_boundary_state')
-          object.add_method(state, 'get_psi_state_at_point')
-        for state in ["EDIT","RUN"]:
-          object.add_method(state,"before_get_parameter")          
 
-        object.add_method('INITIALIZED', 'set_boundary_conditions')
-        object.add_method('INITIALIZED', 'set_Lx')
-        object.add_method('INITIALIZED', 'set_Ly')
-        object.add_method('INITIALIZED', 'set_dx')
-        object.add_method('INITIALIZED', 'set_dy')
-        object.add_method('INITIALIZED', 'set_Nm')
-        
-        
         
     def define_properties(self, object):
         object.add_property('get_time', public_name = "model_time")
@@ -676,6 +708,11 @@ class QGmodel(CommonCode):
     def commit_parameters(self):
         self.parameters.send_cached_parameters_to_code()
         self.overridden().commit_parameters()
+
+    def recommit_parameters(self):
+        self.parameters.send_cached_parameters_to_code()
+        self.overridden().recommit_parameters()
+
     
     def define_parameters(self, object):
         object.add_method_parameter(
