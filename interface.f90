@@ -196,10 +196,10 @@ function initialize_grid() result(ret)
 !    if(boundary(4)==2) psi_1(1,1:Nx,Ny)=boundaries(4)%psi(1,1:Nx,Ny)
 !  enddo
 
-! initialize vis_*_prev from pis_2
+! initialize vis_*_prev from psi_2
   call vis_bot(Nm,Nx,Ny,boundary,psi_2,vis_bot_prev,boundaries)
   call vis_lat(Nm,Nx,Ny,boundary,psi_2,vis_lat_prev,boundaries)
-! initialize vis_*_curr from pis_1
+! initialize vis_*_curr from psi_1
   call vis_bot(Nm,Nx,Ny,boundary,psi_1,vis_bot_curr,boundaries)
   call vis_lat(Nm,Nx,Ny,boundary,psi_1,vis_lat_curr,boundaries)
 
@@ -208,6 +208,8 @@ function initialize_grid() result(ret)
        &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
        &    psi_1,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
        &    chii,boundaries)
+  psi_2=psi_1-dt*chii ! initialization of psi_2 !
+
   counter=counter+1
   ret=0
 end function

@@ -1127,7 +1127,9 @@ class QGmodelWithRefinements(QGmodel):
           print "done"
           sys.evolve_model(tnow+dt)
         self.overridden().evolve_model(tnow+dt)
-#        self.update_refined_regions()
+        print "update refined regions...",
+        self.update_refined_regions()
+        print "done"
         tnow=self.model_time
   
     def get_psi_dpsidt(self,dx,x,y,k=None):
@@ -1142,17 +1144,40 @@ class QGmodelWithRefinements(QGmodel):
         gridminx,gridminy=sys.grid.get_minimum_position()
         gridmaxx,gridmaxy=sys.grid.get_maximum_position()
         select=- ( (gridminx>minx)+(gridmaxx<maxx)+(gridminy>miny)+(gridmaxy<maxy)+done )
-        if select.sum() and sys is not self: 
+        if numpy.any(select) and sys is not self: 
           p,d=sys.get_psi_dpsidt(dx[select],x[select],y[select])
           psi[select]=p
           dpsi[select]=d
         done=done+select
-      if select.sum():
+      if numpy.any(select):
         p,d=self.get_psi_state_at_point(dx[select],x[select],y[select])
         psi[select]=p
         dpsi[select]=d
-      print "points done:", done.sum()
-      print "points skipped:", (1-done).sum()
+#      print "points done:", done.sum()
+#      print "points skipped:", (1-done).sum()
       return psi,dpsi
   
-  
+    def update_refined_regions(self):
+      dx=0*self.grid.x+self.grid.cellsize()[0]
+      x=self.grid.x
+      y=self.grid.y
+
+      minx=x-dx/2
+      maxx=x+dx/2
+      miny=y-dx/2
+      maxy=y+dx/2
+      psi=numpy.zeros(minx.shape) | units.m**2/units.s
+      done=numpy.zeros(minx.shape,dtype=bool)
+      for sys in self.refinements:
+        gridminx,gridminy=sys.grid.get_minimum_position()
+        gridmaxx,gridmaxy=sys.grid.get_maximum_position()
+        select=-( (gridminx>minx)+(gridmaxx<maxx)+(gridminy>miny)+(gridmaxy<maxy)+done)
+        if numpy.any(select): 
+          p,d=sys.get_psi_state_at_point(dx[select],x[select],y[select])
+          psi[select]=p
+#          print self.grid[100,100,0].psi,psi[100,100,0],sys.grid.psi[100,100,0]
+#          print sys.get_psi_state_at_point(dx[0:2,0,0],self.grid[99:101,10,0].x,self.grid[99:101,10,0].y)
+        done=done+select
+      if numpy.any(done):
+        self.grid[done].psi=psi[done]
+#      print self.grid[100,100,0].psi,psi[100,100,0],sys.grid.psi[100,100,0]
