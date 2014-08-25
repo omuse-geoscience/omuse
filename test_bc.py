@@ -299,7 +299,7 @@ def refinement_east(dt=3600. | units.s):
   q2.parameters.dt=dt/2    
   q2.parameters.Lx/=2
 
-  q1.add_refinement(q2,offset=[0,0]| units.m)
+  q1.add_refinement(q2,position=[0,0]| units.m)
 
   return q1  
 
@@ -317,7 +317,7 @@ def refinement_north(dt=3600. | units.s):
   q2.parameters.interface_wind=True
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
-  q1.add_refinement(q2,offset=[0,0]| units.m)
+  q1.add_refinement(q2,position=[0,0]| units.m)
 
   return q1
 
@@ -334,7 +334,7 @@ def refinement_south(dt=3600. | units.s):
   q2.parameters.Ly/=2
   q2.parameters.interface_wind=True
 
-  q1.add_refinement(q2,offset=[0| units.m, q2.parameters.Ly])
+  q1.add_refinement(q2,position=[0| units.m, q2.parameters.Ly])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
@@ -353,7 +353,7 @@ def refinement_south_west(dt=3600. | units.s):
   q2.parameters.Ly/=2
   q2.parameters.interface_wind=True
 
-  q1.add_refinement(q2,offset=[q2.parameters.Lx, q2.parameters.Ly])
+  q1.add_refinement(q2,position=[q2.parameters.Lx, q2.parameters.Ly])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
@@ -372,7 +372,7 @@ def refinement_north_east_south(dt=3600. | units.s):
   q2.parameters.Ly/=2
   q2.parameters.interface_wind=True
 
-  q1.add_refinement(q2,offset=[q2.parameters.Lx, q2.parameters.Ly/2])
+  q1.add_refinement(q2,position=[q2.parameters.Lx, q2.parameters.Ly/2])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
@@ -391,7 +391,7 @@ def refinement_central(dt=3600. | units.s):
   q2.parameters.Ly/=2
   q2.parameters.interface_wind=True
 
-  q1.add_refinement(q2,offset=[q2.parameters.Lx/2, q2.parameters.Ly/2])
+  q1.add_refinement(q2,position=[q2.parameters.Lx/2, q2.parameters.Ly/2])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
@@ -419,8 +419,8 @@ def nested_refinement(dt=3600. | units.s):
   q3.parameters.interface_wind=True
   jans_wind_model(q3.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
-  q1.add_refinement(q2,offset=[0,0]| units.m)
-  q2.add_refinement(q3,offset=[0,0]| units.m)
+  q1.add_refinement(q2,position=[0,0]| units.m)
+  q2.add_refinement(q3,position=[0,0]| units.m)
 
   return q1
   
