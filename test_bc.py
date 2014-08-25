@@ -254,7 +254,7 @@ def semi_domain_test_multires(tend=1. | units.hour,dt=3600. | units.s):
 
   raw_input()
 
-def test_evolve_w_plot(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
+def test_evolve_w_plot(sysfac,tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
   sys=sysfac()
   
   if dtplot is None:
@@ -273,13 +273,13 @@ def test_evolve_w_plot(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
   x=grid.x.flatten()
   y=grid.y.flatten()
   
-  while q1.model_time<tend-dtplot/2:
+  while sys.model_time<tend-dtplot/2:
     i=i+1
-    q1.evolve_model(q1.model_time+dtplot,dt=dt)
+    sys.evolve_model(sys.model_time+dtplot,dt=dt)
     
-    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
+    psi,dpsi=sys.get_psi_dpsidt(dx+0.*x,x,y)
     psi=psi.reshape(grid.shape)
-#    psi=q1.grid[:,:,0].psi
+#    psi=sys.grid[:,:,0].psi
 
     f.clf()
     f1=pyplot.subplot(111)
