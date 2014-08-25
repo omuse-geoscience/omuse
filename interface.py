@@ -651,32 +651,32 @@ class QGmodel(CommonCode):
 
     def __init__(self, **options):
         CommonCode.__init__(self,  QGmodelInterface(**options), **options)
-        self._offset=[0,0] | units.m
+        self._position=[0,0] | units.m
     
-    def get_xoffset(self):
-        return self._offset[0]
-    def get_yoffset(self):
-        return self._offset[1]
-    def set_xoffset(self,x):
-        self._offset[0]=x
-    def set_yoffset(self,y):
-        self._offset[1]=y
+    def get_position_x(self):
+        return self._position[0]
+    def get_position_y(self):
+        return self._position[1]
+    def set_position_x(self,x):
+        self._position[0]=x
+    def set_position_y(self,y):
+        self._position[1]=y
     def get_index_of_position(self,x,y):
-        return self.overridden().get_index_of_position(x-self._offset[0],y-self._offset[1])
+        return self.overridden().get_index_of_position(x-self._position[0],y-self._position[1])
     def get_position_of_index(self,i,j,k):
         x,y=self.overridden().get_position_of_index(i,j,k)
-        return x+self._offset[0],y+self._offset[1]
+        return x+self._position[0],y+self._position[1]
     def get_wind_field_position_of_index(self,i,j):
         x,y=self.overridden().get_wind_field_position_of_index(i,j)
-        return x+self._offset[0],y+self._offset[1]
+        return x+self._position[0],y+self._position[1]
     def get_psi_state_at_point(self,d,x,y,k=None):
         if k is None:
-          return self.overridden().get_psi_state_at_point(d,x-self._offset[0],y-self._offset[1])
+          return self.overridden().get_psi_state_at_point(d,x-self._position[0],y-self._position[1])
         else:
-          return self.overridden().get_psi_state_at_point(d,x-self._offset[0],y-self._offset[1],k)
+          return self.overridden().get_psi_state_at_point(d,x-self._position[0],y-self._position[1],k)
     def get_boundary_position_of_index(self,i,j,k,index_of_boundary):
         x,y=self.overridden().get_boundary_position_of_index(i,j,k,index_of_boundary)
-        return x+self._offset[0],y+self._offset[1]
+        return x+self._position[0],y+self._position[1]
     
     def define_particle_sets(self, object):
         object.define_grid('grid',axes_names = ['x','y'])
@@ -792,18 +792,18 @@ class QGmodel(CommonCode):
     
     def define_parameters(self, object):
         object.add_method_parameter(
-            "get_xoffset", 
-            "set_xoffset",
-            "xoffset", 
-            "offset of the grid in x direction", 
+            "get_position_x", 
+            "set_position_x",
+            "position_x", 
+            "position of the grid in x direction", 
             default_value = 0. | units.m
         )
 
         object.add_method_parameter(
-            "get_yoffset", 
-            "set_yoffset",
-            "yoffset", 
-            "offset of the grid in y direction", 
+            "get_position_y", 
+            "set_position_y",
+            "position_y", 
+            "position of the grid in y direction", 
             default_value = 0. | units.m
         )
 
@@ -1065,10 +1065,10 @@ class QGmodelWithRefinements(QGmodel):
       channel=copy.new_channel_to(grid)
       channel.copy_attributes(["psi","dpsi_dt"])
   
-    def add_refinement(self,sys,offset=[0.,0.] | units.m):
+    def add_refinement(self,sys,position=[0.,0.] | units.m):
       self.refinements.append(sys)
-      sys.parameters.xoffset=offset[0]
-      sys.parameters.yoffset=offset[1]
+      sys.parameters.position_x=position[0]
+      sys.parameters.position_y=position[1]
       
       minpos=sys.grid.get_minimum_position()
       maxpos=sys.grid.get_maximum_position()

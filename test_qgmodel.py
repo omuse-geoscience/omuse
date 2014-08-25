@@ -380,12 +380,12 @@ class TestQGmodel(TestWithMPI):
 
     def test17(self):
         instance=QGmodel()
-        self.assertEqual(instance.parameters.xoffset, 0.| units.m)
-        self.assertEqual(instance.parameters.yoffset, 0.| units.m)
-        instance.parameters.yoffset=123456.| units.m
-        instance.parameters.xoffset=543216.| units.m
-        self.assertEqual(instance.parameters.yoffset, 123456.| units.m)
-        self.assertEqual(instance.parameters.xoffset, 543216.| units.m)
+        self.assertEqual(instance.parameters.position_x, 0.| units.m)
+        self.assertEqual(instance.parameters.position_y, 0.| units.m)
+        instance.parameters.position_y=123456.| units.m
+        instance.parameters.position_x=543216.| units.m
+        self.assertEqual(instance.parameters.position_y, 123456.| units.m)
+        self.assertEqual(instance.parameters.position_x, 543216.| units.m)
 
         x=instance.grid[0,0,0].x
         y=instance.grid[0,0,0].y
