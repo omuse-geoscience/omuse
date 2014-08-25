@@ -254,9 +254,42 @@ def semi_domain_test_multires(tend=1. | units.hour,dt=3600. | units.s):
 
   raw_input()
 
-def test_refinement_east(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
+def test_evolve_w_plot(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
+  sys=sysfac()
+  
   if dtplot is None:
     dtplot=dt
+
+  pyplot.ion()
+  f=pyplot.figure(figsize=(10,10))
+  pyplot.show()
+  
+  i=0
+  
+  Lx=sys.parameters.Lx
+  grid=Grid.create((400,400), (Lx,Lx))
+  dx,dy=grid.cellsize()
+  Lx=Lx.value_in(1000*units.km)  
+  x=grid.x.flatten()
+  y=grid.y.flatten()
+  
+  while q1.model_time<tend-dtplot/2:
+    i=i+1
+    q1.evolve_model(q1.model_time+dtplot,dt=dt)
+    
+    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
+    psi=psi.reshape(grid.shape)
+#    psi=q1.grid[:,:,0].psi
+
+    f.clf()
+    f1=pyplot.subplot(111)
+    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,extent=[0,Lx,0,Lx],origin="lower")
+    f1.set_xlabel("x (x1000 km)")
+        
+    pyplot.draw()
+  raw_input()
+
+def refinement_east(dt=3600. | units.s):
   q1=QGmodelWithRefinements(redirection="none")
   q1.parameters.dt=dt/2    
   q1.parameters.dx*=8
@@ -267,39 +300,10 @@ def test_refinement_east(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
   q2.parameters.Lx/=2
 
   q1.add_refinement(q2,offset=[0,0]| units.m)
-  
-  pyplot.ion()
-  f=pyplot.figure(figsize=(10,10))
-  pyplot.show()
-  
-  i=0
-  
-  Lx=q1.parameters.Lx
-  grid=Grid.create((400,400), (Lx,Lx))
-  dx,dy=grid.cellsize()
-  Lx=q1.parameters.Lx.value_in(1000*units.km)  
-  Nx,Ny,Nm=q1.grid.shape
-  
-  while q1.model_time<tend-dtplot/2:
-    i=i+1
-    q1.evolve_model(q1.model_time+dtplot,dt=dt)
-    
-    x=grid.x.flatten()
-    y=grid.y.flatten()
-    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
-    psi=psi.reshape(grid.shape)
 
-    f.clf()
-    f1=pyplot.subplot(111)
-    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,extent=[0,Lx,0,Lx],origin="lower")
-    f1.set_xlabel("x (x1000 km)")
-        
-    pyplot.draw()
-  raw_input()
+  return q1  
 
-def test_refinement_north(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
-  if dtplot is None:
-    dtplot=dt
+def refinement_north(dt=3600. | units.s):
   q1=QGmodelWithRefinements(redirection="none")
   q1.parameters.dt=dt/2    
   q1.parameters.dx*=8
@@ -313,41 +317,11 @@ def test_refinement_north(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
   q2.parameters.interface_wind=True
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
-
   q1.add_refinement(q2,offset=[0,0]| units.m)
-  
-  pyplot.ion()
-  f=pyplot.figure(figsize=(10,10))
-  pyplot.show()
-  
-  i=0
-  
-  Lx=q1.parameters.Lx
-  grid=Grid.create((400,400), (Lx,Lx))
-  dx,dy=grid.cellsize()
-  Lx=q1.parameters.Lx.value_in(1000*units.km)  
-  Nx,Ny,Nm=q1.grid.shape
-  
-  while q1.model_time<tend-dtplot/2:
-    i=i+1
-    q1.evolve_model(q1.model_time+dtplot,dt=dt)
-    
-    x=grid.x.flatten()
-    y=grid.y.flatten()
-    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
-    psi=psi.reshape(grid.shape)
 
-    f.clf()
-    f1=pyplot.subplot(111)
-    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,extent=[0,Lx,0,Lx],origin="lower")
-    f1.set_xlabel("x (x1000 km)")
-        
-    pyplot.draw()
-  raw_input()
+  return q1
 
-def test_refinement_south(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
-  if dtplot is None:
-    dtplot=dt
+def refinement_south(dt=3600. | units.s):
   q1=QGmodelWithRefinements(redirection="none")
   q1.parameters.dt=dt/2    
   q1.parameters.dx*=8
@@ -363,39 +337,9 @@ def test_refinement_south(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
   q1.add_refinement(q2,offset=[0| units.m, q2.parameters.Ly])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
-  
-  pyplot.ion()
-  f=pyplot.figure(figsize=(10,10))
-  pyplot.show()
-  
-  i=0
-  
-  Lx=q1.parameters.Lx
-  grid=Grid.create((400,400), (Lx,Lx))
-  dx,dy=grid.cellsize()
-  Lx=q1.parameters.Lx.value_in(1000*units.km)  
-  Nx,Ny,Nm=q1.grid.shape
-  
-  while q1.model_time<tend-dtplot/2:
-    i=i+1
-    q1.evolve_model(q1.model_time+dtplot,dt=dt)
-    
-    x=grid.x.flatten()
-    y=grid.y.flatten()
-    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
-    psi=psi.reshape(grid.shape)
+  return q1
 
-    f.clf()
-    f1=pyplot.subplot(111)
-    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,extent=[0,Lx,0,Lx],origin="lower")
-    f1.set_xlabel("x (x1000 km)")
-        
-    pyplot.draw()
-  raw_input()
-
-def test_refinement_south_west(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
-  if dtplot is None:
-    dtplot=dt
+def refinement_south_west(dt=3600. | units.s):
   q1=QGmodelWithRefinements(redirection="none")
   q1.parameters.dt=dt/2    
   q1.parameters.dx*=8
@@ -412,40 +356,9 @@ def test_refinement_south_west(tend=1. | units.hour,dt=3600. | units.s,dtplot=No
   q1.add_refinement(q2,offset=[q2.parameters.Lx, q2.parameters.Ly])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
-  
-  pyplot.ion()
-  f=pyplot.figure(figsize=(10,10))
-  pyplot.show()
-  
-  i=0
-  
-  Lx=q1.parameters.Lx
-  grid=Grid.create((400,400), (Lx,Lx))
-  dx,dy=grid.cellsize()
-  Lx=q1.parameters.Lx.value_in(1000*units.km)  
-  Nx,Ny,Nm=q1.grid.shape
-  
-  while q1.model_time<tend-dtplot/2:
-    i=i+1
-    q1.evolve_model(q1.model_time+dtplot,dt=dt)
-    
-    x=grid.x.flatten()
-    y=grid.y.flatten()
-    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
-    psi=psi.reshape(grid.shape)
+  return q1
 
-    f.clf()
-    f1=pyplot.subplot(111)
-    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,extent=[0,Lx,0,Lx],origin="lower")
-    f1.set_xlabel("x (x1000 km)")
-        
-    pyplot.draw()
-  raw_input()
-
-
-def test_refinement_north_east_south(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
-  if dtplot is None:
-    dtplot=dt
+def refinement_north_east_south(dt=3600. | units.s):
   q1=QGmodelWithRefinements(redirection="none")
   q1.parameters.dt=dt/2    
   q1.parameters.dx*=8
@@ -462,40 +375,9 @@ def test_refinement_north_east_south(tend=1. | units.hour,dt=3600. | units.s,dtp
   q1.add_refinement(q2,offset=[q2.parameters.Lx, q2.parameters.Ly/2])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
-  
-  pyplot.ion()
-  f=pyplot.figure(figsize=(10,10))
-  pyplot.show()
-  
-  i=0
-  
-  Lx=q1.parameters.Lx
-  grid=Grid.create((400,400), (Lx,Lx))
-  dx,dy=grid.cellsize()
-  Lx=q1.parameters.Lx.value_in(1000*units.km)  
-  Nx,Ny,Nm=q1.grid.shape
-  
-  while q1.model_time<tend-dtplot/2:
-    i=i+1
-    q1.evolve_model(q1.model_time+dtplot,dt=dt)
-    
-    x=grid.x.flatten()
-    y=grid.y.flatten()
-    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
-    psi=psi.reshape(grid.shape)
+  return q1
 
-    f.clf()
-    f1=pyplot.subplot(111)
-    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,extent=[0,Lx,0,Lx],origin="lower")
-    f1.set_xlabel("x (x1000 km)")
-        
-    pyplot.draw()
-  raw_input()
-
-
-def test_refinement_central(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
-  if dtplot is None:
-    dtplot=dt
+def refinement_central(dt=3600. | units.s):
   q1=QGmodelWithRefinements(redirection="none")
   q1.parameters.dt=dt/2    
   q1.parameters.dx*=8
@@ -512,41 +394,9 @@ def test_refinement_central(tend=1. | units.hour,dt=3600. | units.s,dtplot=None)
   q1.add_refinement(q2,offset=[q2.parameters.Lx/2, q2.parameters.Ly/2])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
-  
-  pyplot.ion()
-  f=pyplot.figure(figsize=(10,10))
-  pyplot.show()
-  
-  i=0
-  
-  Lx=q1.parameters.Lx
-  grid=Grid.create((400,400), (Lx,Lx))
-  dx,dy=grid.cellsize()
-  Lx=q1.parameters.Lx.value_in(1000*units.km)  
-  Nx,Ny,Nm=q1.grid.shape
-  
-  while q1.model_time<tend-dtplot/2:
-    i=i+1
-    q1.evolve_model(q1.model_time+dtplot,dt=dt)
-    
-    x=grid.x.flatten()
-    y=grid.y.flatten()
-    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
-    psi=psi.reshape(grid.shape)
+  return q1
 
-    f.clf()
-    f1=pyplot.subplot(111)
-    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,extent=[0,Lx,0,Lx],origin="lower")
-    f1.set_xlabel("x (x1000 km)")
-        
-    pyplot.draw()
-  raw_input()
-
-
-
-def test_2_refinements(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
-  if dtplot is None:
-    dtplot=dt
+def nested_refinement(dt=3600. | units.s):
   q1=QGmodelWithRefinements(redirection="none")
   q1.parameters.dt=dt/2    
   q1.parameters.dx*=8
@@ -572,41 +422,12 @@ def test_2_refinements(tend=1. | units.hour,dt=3600. | units.s,dtplot=None):
   q1.add_refinement(q2,offset=[0,0]| units.m)
   q2.add_refinement(q3,offset=[0,0]| units.m)
 
+  return q1
   
-  pyplot.ion()
-  f=pyplot.figure(figsize=(10,10))
-  pyplot.show()
-  
-  i=0
-  
-  Lx=q1.parameters.Lx
-  grid=Grid.create((400,400), (Lx,Lx))
-  dx,dy=grid.cellsize()
-  Lx=q1.parameters.Lx.value_in(1000*units.km)  
-  Nx,Ny,Nm=q1.grid.shape
-  
-  while q1.model_time<tend-dtplot/2:
-    i=i+1
-    q1.evolve_model(q1.model_time+dtplot,dt=dt)
-    
-    x=grid.x.flatten()
-    y=grid.y.flatten()
-    psi,dpsi=q1.get_psi_dpsidt(dx+0.*x,x,y)
-    psi=psi.reshape(grid.shape)
-
-    f.clf()
-    f1=pyplot.subplot(111)
-    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,extent=[0,Lx,0,Lx],origin="lower")
-    f1.set_xlabel("x (x1000 km)")
-        
-    pyplot.draw()
-  raw_input()
-
-
 if __name__=="__main__":
   dt=1800 | units.s
-#  test_refinement_east(tend=100*dt,dt=dt,dtplot=4*dt)
-#  test_refinement_north(tend=100*dt,dt=dt,dtplot=4*dt)
-#  test_refinement_south(tend=100*dt,dt=dt,dtplot=4*dt)
-  test_refinement_central(tend=200*dt,dt=dt,dtplot=4*dt)
-#  test_2_refinements(tend=200*dt,dt=dt,dtplot=4*dt)
+  
+  def sysfac():
+    return refinement_east(dt)
+  
+  test_evolve_w_plot(sysfac,tend=100*dt,dt=dt,dtplot=4*dt)
