@@ -287,7 +287,7 @@ def test_evolve_w_plot(sysfac,tend=1. | units.hour,dt=3600. | units.s,dtplot=Non
     f1.set_xlabel("x (x1000 km)")
         
     pyplot.draw()
-    raw_input()
+  raw_input()
 
 def refinement_east(dt=3600. | units.s): # east refers to direction of the boundary
   q1=QGmodelWithRefinements(redirection="none")
@@ -444,10 +444,10 @@ def dual_refinement(dt=3600. | units.s):
   Lx=q1.parameters.Lx
   dx=q1.parameters.dx
   
-  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly/4,Lx=Lx/4,dx=dx/8,dy=dx/8),
-                       position=[Lx/8, 3*Ly/8])
-  q3=q1.add_refinement(parameters=dict(dt=dt/4,Ly=Ly/4,Lx=Lx/4,dx=dx/8,dy=dx/8),
-                       position=[5*Lx/8, 3*Ly/8])
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=2*Ly/3,Lx=Lx/8,dx=dx/8,dy=dx/8),
+                       position=[Lx/8, Ly/4])
+  q3=q1.add_refinement(parameters=dict(dt=dt/4,Ly=Ly/8,Lx=2*Lx/3,dx=dx/8,dy=dx/8),
+                       position=[Lx/4, Ly/8])
 
   jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
@@ -466,17 +466,9 @@ def refinement_rectangle(dt=3600. | units.s):
   Lx=q1.parameters.Lx
   dx=q1.parameters.dx
 
-  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly,Lx=Lx/2,dx=dx/8,dy=dx/8),
-                       position=[Lx/2, 0.*Ly])
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly/2,Lx=Lx/4,dx=dx/8,dy=dx/8),
+                       position=[Lx/4, Ly/4])
 
-  print q1.grid.shape
-  print q2.grid.shape
-  print q2.boundaries(1).shape,q2.boundaries(1).get_maximum_position()
-  print q2.boundaries(2).shape,q2.boundaries(2).get_maximum_position()
-  print q2.boundaries(3).shape,q2.boundaries(3).get_maximum_position()
-  print q2.boundaries(4).shape,q2.boundaries(4).get_maximum_position()
-
-#  raise
   jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
@@ -487,6 +479,6 @@ if __name__=="__main__":
   dt=1800 | units.s
   
   def sysfac():
-    return refinement_west(dt)
+    return dual_refinement(dt)
   
   test_evolve_w_plot(sysfac,tend=100*dt,dt=dt,dtplot=4*dt)
