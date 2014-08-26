@@ -741,8 +741,8 @@ class QGmodel(CommonCode):
 
 # Nx and Ny need commit_parameter, all need initialize_code
         object.add_method('!UNINITIALIZED', 'before_get_parameter')
-        object.add_method('!UNINITIALIZED!INITIALIZED', "get_Nx")
-        object.add_method('!UNINITIALIZED!INITIALIZED', "get_Ny")
+#        object.add_method('!UNINITIALIZED', "get_Nx")
+#        object.add_method('!UNINITIALIZED', "get_Ny")
 
         object.add_transition('INITIALIZED','EDIT','commit_parameters')
         object.add_transition('EDIT', 'RUN', 'initialize_grid')
@@ -757,7 +757,7 @@ class QGmodel(CommonCode):
         object.add_transition('CHANGE_PARAMETERS_EDIT','EDIT','recommit_parameters')
         
         
-        object.add_method('INITIALIZED', 'before_set_parameters')
+        object.add_method('INITIALIZED', 'before_set_parameter')
         object.add_method('CHANGE_PARAMETERS_RUN', 'before_set_parameter')
         object.add_method('CHANGE_PARAMETERS_EDIT', 'before_set_parameter')
  
@@ -1065,10 +1065,19 @@ class QGmodelWithRefinements(QGmodel):
       channel=copy.new_channel_to(grid)
       channel.copy_attributes(["psi","dpsi_dt"])
   
-    def add_refinement(self,sys,position=[0.,0.] | units.m):
-      self.refinements.append(sys)
+    def add_refinement(self,sys=None,position=[0.,0.] | units.m,offset=None,parameters=dict()):
+      if sys is None:
+        sys=self.__class__(redirection="none")
+        sys.parameters.reset_from_memento(self.parameters)
+      for param,val in parameters.items():
+        setattr(sys.parameters, param, val)
+      if offset is not None:
+        position=[self.parameters.position_x+offset[0],
+                  self.parameters.position_y+offset[1] ]
       sys.parameters.position_x=position[0]
       sys.parameters.position_y=position[1]
+
+      self.refinements.append(sys)
       
       minpos=sys.grid.get_minimum_position()
       maxpos=sys.grid.get_maximum_position()
@@ -1115,6 +1124,8 @@ class QGmodelWithRefinements(QGmodel):
       if not hasattr(sys,"get_psi_dpsidt"):
         sys.get_psi_dpsidt=sys.get_psi_state_at_point
   
+      return sys
+  
     def evolve_model(self,tend,dt=None):
       if dt is None:
         dt=2*self.parameters.dt
@@ -1127,9 +1138,10 @@ class QGmodelWithRefinements(QGmodel):
           print "done"
           sys.evolve_model(tnow+dt)
         self.overridden().evolve_model(tnow+dt)
-        print "update refined regions...",
-        self.update_refined_regions()
-        print "done"
+        if len(self.refinements): 
+          print "update refined regions...",
+          self.update_refined_regions()
+          print "done"
         tnow=self.model_time
   
     def get_psi_dpsidt(self,dx,x,y,k=None):

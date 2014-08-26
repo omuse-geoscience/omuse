@@ -195,9 +195,7 @@ class TestQGmodel(TestWithMPI):
         
     def test6(self):
         instance=QGmodel()
-        Nx=instance.get_Nx()
-        Ny=instance.get_Ny()
-        Nm=instance.get_Nm()
+        Nx,Ny,Nm=instance.grid.shape
 
         self.assertEqual(401,Nx)
         
@@ -213,9 +211,7 @@ class TestQGmodel(TestWithMPI):
         
     def test7(self):
         instance=QGmodel()
-        Nx=instance.get_Nx()
-        Ny=instance.get_Ny()
-        Nm=instance.get_Nm()
+        Nx,Ny,Nm=instance.grid.shape
         self.assertEqual(401,Nx)
         
         minx,maxx,miny,maxy,minz,maxz=instance.get_boundary_index_range_inclusive(1)
@@ -256,9 +252,7 @@ class TestQGmodel(TestWithMPI):
         instance=QGmodel(redirection="none")
         Lx2=instance.parameters.Lx/2
         instance.parameters.Ly=Lx2
-        Nx=instance.get_Nx()
-        Ny=instance.get_Ny()
-        Nm=instance.get_Nm()
+        Nx,Ny,Nm=instance.grid.shape
         s=instance.boundaries(1).shape
         self.assertEqual(s,(2,Ny+2,1))
         s=instance.boundaries(2).shape
@@ -309,8 +303,7 @@ class TestQGmodel(TestWithMPI):
         instance.parameters.Ly=instance.parameters.Ly/16
         instance.parameters.Lx=instance.parameters.Lx/16
 
-        Nx=instance.parameters.Nx
-        Ny=instance.parameters.Ny
+        Nx,Ny,Nm=instance.grid.shape
 
         ix=numpy.arange(Nx)+1
         iy=numpy.arange(Ny)+1
@@ -450,3 +443,14 @@ class TestQGmodel(TestWithMPI):
                       2.*numpy.sin(pi*(wind_field.y/Ly-0.5)))
         self.assertAlmostEquals(wind_field.tau_x,expected,7)
         
+    def test23(self):
+        instance=QGmodel(redirection="none")
+        Lx=instance.parameters.Lx/2
+        instance.parameters.Lx=Lx
+        instance2=QGmodel(redirection="none")
+        print instance.parameters.copy()
+        instance2.parameters.reset_from_memento(instance.parameters)
+        self.assertEqual(instance2.parameters.Lx,Lx)
+        instance.stop()
+        instance2.stop()
+
