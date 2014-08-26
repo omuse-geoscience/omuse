@@ -287,21 +287,37 @@ def test_evolve_w_plot(sysfac,tend=1. | units.hour,dt=3600. | units.s,dtplot=Non
     f1.set_xlabel("x (x1000 km)")
         
     pyplot.draw()
-  raw_input()
+    raw_input()
 
-def refinement_east(dt=3600. | units.s):
+def refinement_east(dt=3600. | units.s): # east refers to direction of the boundary
   q1=QGmodelWithRefinements(redirection="none")
   q1.parameters.dt=dt/2    
+  
   q1.parameters.dx*=8
   q1.parameters.dy*=8
+  
+  Lx=q1.parameters.Lx
+  dx=q1.parameters.dx
 
-  q2=QGmodel(redirection="none")  
-  q2.parameters.dt=dt/2    
-  q2.parameters.Lx/=2
+  q1.add_refinement(parameters=dict(dt=dt/2,Lx=Lx/2,dx=dx/8,dy=dx/8))
 
-  q1.add_refinement(q2,position=[0,0]| units.m)
+  return q1
 
-  return q1  
+def refinement_west(dt=3600. | units.s): # east refers to direction of the boundary
+  q1=QGmodelWithRefinements(redirection="none")
+  q1.parameters.dt=dt/2    
+  
+  q1.parameters.dx*=8
+  q1.parameters.dy*=8
+  
+  Lx=q1.parameters.Lx
+  dx=q1.parameters.dx
+
+  q1.add_refinement(parameters=dict(dt=dt/2,Lx=Lx/2,dx=dx/8,dy=dx/8),
+         position=[Lx/2,0.*Lx])
+
+  return q1
+
 
 def refinement_north(dt=3600. | units.s):
   q1=QGmodelWithRefinements(redirection="none")
@@ -309,15 +325,14 @@ def refinement_north(dt=3600. | units.s):
   q1.parameters.dx*=8
   q1.parameters.dy*=8
   q1.parameters.interface_wind=True
+
+  Ly=q1.parameters.Ly
+  dx=q1.parameters.dx
+
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly/2,dx=dx/8,dy=dx/8))
+
   jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
-
-  q2=QGmodel(redirection="none")  
-  q2.parameters.dt=dt/2    
-  q2.parameters.Ly/=2
-  q2.parameters.interface_wind=True
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
-
-  q1.add_refinement(q2,position=[0,0]| units.m)
 
   return q1
 
@@ -327,14 +342,14 @@ def refinement_south(dt=3600. | units.s):
   q1.parameters.dx*=8
   q1.parameters.dy*=8
   q1.parameters.interface_wind=True
+
+  Ly=q1.parameters.Ly
+  dx=q1.parameters.dx
+
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly/2,dx=dx/8,dy=dx/8),
+                       position=[0| units.m, Ly/2])
+
   jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
-
-  q2=QGmodel(redirection="none")  
-  q2.parameters.dt=dt/2    
-  q2.parameters.Ly/=2
-  q2.parameters.interface_wind=True
-
-  q1.add_refinement(q2,position=[0| units.m, q2.parameters.Ly])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
@@ -345,15 +360,15 @@ def refinement_south_west(dt=3600. | units.s):
   q1.parameters.dx*=8
   q1.parameters.dy*=8
   q1.parameters.interface_wind=True
+
+  Ly=q1.parameters.Ly
+  Lx=q1.parameters.Lx
+  dx=q1.parameters.dx
+
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly/2,Lx=Lx/2,dx=dx/8,dy=dx/8),
+                       position=[0| units.m, Ly/2])
+
   jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
-
-  q2=QGmodel(redirection="none")  
-  q2.parameters.dt=dt/2    
-  q2.parameters.Lx/=2
-  q2.parameters.Ly/=2
-  q2.parameters.interface_wind=True
-
-  q1.add_refinement(q2,position=[q2.parameters.Lx, q2.parameters.Ly])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
@@ -364,15 +379,15 @@ def refinement_north_east_south(dt=3600. | units.s):
   q1.parameters.dx*=8
   q1.parameters.dy*=8
   q1.parameters.interface_wind=True
+
+  Ly=q1.parameters.Ly
+  Lx=q1.parameters.Lx
+  dx=q1.parameters.dx
+
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly/2,Lx=Lx/2,dx=dx/8,dy=dx/8),
+                       position=[0| units.m, Ly/4])
+
   jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
-
-  q2=QGmodel(redirection="none")  
-  q2.parameters.dt=dt/2    
-  q2.parameters.Lx/=2
-  q2.parameters.Ly/=2
-  q2.parameters.interface_wind=True
-
-  q1.add_refinement(q2,position=[q2.parameters.Lx, q2.parameters.Ly/2])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
@@ -383,15 +398,15 @@ def refinement_central(dt=3600. | units.s):
   q1.parameters.dx*=8
   q1.parameters.dy*=8
   q1.parameters.interface_wind=True
+
+  Ly=q1.parameters.Ly
+  Lx=q1.parameters.Lx
+  dx=q1.parameters.dx
+
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly/2,Lx=Lx/2,dx=dx/8,dy=dx/8),
+                       position=[Lx/4, Ly/4])
+
   jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
-
-  q2=QGmodel(redirection="none")  
-  q2.parameters.dt=dt/2    
-  q2.parameters.Lx/=2
-  q2.parameters.Ly/=2
-  q2.parameters.interface_wind=True
-
-  q1.add_refinement(q2,position=[q2.parameters.Lx/2, q2.parameters.Ly/2])
   jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
@@ -402,32 +417,76 @@ def nested_refinement(dt=3600. | units.s):
   q1.parameters.dx*=8
   q1.parameters.dy*=8
   q1.parameters.interface_wind=True
-  jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
+  Ly=q1.parameters.Ly
   Lx=q1.parameters.Lx
+  dx=q1.parameters.dx
 
-  q2=QGmodelWithRefinements(redirection="none")  
-  q2.parameters.dt=dt/4    
-  q2.parameters.Lx/=2
-  q2.parameters.dx*=4
-  q2.parameters.dy*=4
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Lx=Lx/2,dx=dx/2,dy=dx/2),
+                       position=[0*Lx, 0*Ly])
+  q3=q2.add_refinement(parameters=dict(dt=dt/4,Ly=Ly/2,Lx=Lx/2,dx=dx/8,dy=dx/8),
+                       position=[0*Lx/4, 0*Ly])
 
-  q3=QGmodel(redirection="none")  
-  q3.parameters.dt=dt/4    
-  q3.parameters.Lx/=2
-  q3.parameters.Ly/=2
-  q3.parameters.interface_wind=True
+  jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
+  jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
   jans_wind_model(q3.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
-  q1.add_refinement(q2,position=[0,0]| units.m)
-  q2.add_refinement(q3,position=[0,0]| units.m)
+  return q1
+
+def dual_refinement(dt=3600. | units.s):
+  q1=QGmodelWithRefinements(redirection="none")
+  q1.parameters.dt=dt/2    
+  q1.parameters.dx*=8
+  q1.parameters.dy*=8
+  q1.parameters.interface_wind=True
+
+  Ly=q1.parameters.Ly
+  Lx=q1.parameters.Lx
+  dx=q1.parameters.dx
+  
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly/4,Lx=Lx/4,dx=dx/8,dy=dx/8),
+                       position=[Lx/8, 3*Ly/8])
+  q3=q1.add_refinement(parameters=dict(dt=dt/4,Ly=Ly/4,Lx=Lx/4,dx=dx/8,dy=dx/8),
+                       position=[5*Lx/8, 3*Ly/8])
+
+  jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
+  jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
+  jans_wind_model(q3.wind_field,q1.parameters.Ly,q1.parameters.tau)
 
   return q1
+
+def refinement_rectangle(dt=3600. | units.s):
+  q1=QGmodelWithRefinements(redirection="none")
+  q1.parameters.dt=dt/2    
+  q1.parameters.dx*=8
+  q1.parameters.dy*=8
+  q1.parameters.interface_wind=True
+
+  Ly=q1.parameters.Ly
+  Lx=q1.parameters.Lx
+  dx=q1.parameters.dx
+
+  q2=q1.add_refinement(parameters=dict(dt=dt/2,Ly=Ly,Lx=Lx/2,dx=dx/8,dy=dx/8),
+                       position=[Lx/2, 0.*Ly])
+
+  print q1.grid.shape
+  print q2.grid.shape
+  print q2.boundaries(1).shape,q2.boundaries(1).get_maximum_position()
+  print q2.boundaries(2).shape,q2.boundaries(2).get_maximum_position()
+  print q2.boundaries(3).shape,q2.boundaries(3).get_maximum_position()
+  print q2.boundaries(4).shape,q2.boundaries(4).get_maximum_position()
+
+#  raise
+  jans_wind_model(q1.wind_field,q1.parameters.Ly,q1.parameters.tau)
+  jans_wind_model(q2.wind_field,q1.parameters.Ly,q1.parameters.tau)
+
+  return q1
+
   
 if __name__=="__main__":
   dt=1800 | units.s
   
   def sysfac():
-    return refinement_east(dt)
+    return refinement_west(dt)
   
   test_evolve_w_plot(sysfac,tend=100*dt,dt=dt,dtplot=4*dt)
