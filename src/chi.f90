@@ -58,7 +58,7 @@ else if( boundary(1) == 0) then
   rhs(1,2:Ny-1)  = 2.d0*chi_prev(1,2,2:Ny-1)
 else if(boundary(1) == 2) then
 !tbd: fix beta_term and wind_term and jac_term and possibly vis terms (atm not necessary)
-  chii(1,1,1:Nx)=boundaries(1)%chi(1,1,1:Nx)
+  chii(1,1,1:Ny)=boundaries(1)%chi(1,1,1:Ny)
 endif
 
 if( boundary(2) == 1) then
