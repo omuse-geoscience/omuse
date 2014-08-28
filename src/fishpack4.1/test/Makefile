@@ -19,3 +19,4 @@ $(EXES) : $(SRC)
 
 clean :
 	rm -f $(EXES)
+	rm -rf *.dSYM
