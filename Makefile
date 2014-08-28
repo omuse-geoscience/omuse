@@ -10,15 +10,14 @@ ifneq (,$(findstring gfortran, $(notdir $(FORTRAN))))
 FISHPACK_FLAGS = -fdefault-real-8 
 export FISHPACK_FLAGS
 LDFLAGS  += -L./src/fishpack4.1/lib/ -lfishpack
+FCFLAGS += -fno-automatic
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FORTRAN))), ifort)
 # ifort flags
 LDFLAGS  += -O2 -lm -mkl -I./src/include
-FCFLAGS += -O2 -mkl -I./src/include
+FCFLAGS += -O2 -mkl -I./src/include  -heap-arrays 1024
 endif
-
-
 
 OBJS = interface.o
 
@@ -31,6 +30,7 @@ all: qgmodel_worker
 clean:
 	$(RM) -f *.so *.o *.pyc *.mod worker_code.cc worker_code.h 
 	$(RM) *~ worker_code worker_code.f90 qgmodel_worker
+	$(RM) -rf qgmodel_worker.dSYM 
 	make -C src clean
 
 $(CODELIB):
