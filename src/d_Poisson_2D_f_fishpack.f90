@@ -50,6 +50,11 @@ bd_ax(:) = 0.0D0
 bd_bx(:) = 0.0D0
 bd_ay(:) = 0.0D0
 bd_by(:) = 0.0D0
+
+f(1,:) = chii(1,:)
+f(Nnx,:) = chii(Nnx,:)
+f(:,1) = chii(:,1)
+f(:,Nny) = chii(:,Nny)
 ! NOTE:
 !print *, ' The SOLUTION depends NOT on boundary values of the rhs for Dirichlet !!!!!!!!!!!!!!'
 !f(1,:) = 1.d10
