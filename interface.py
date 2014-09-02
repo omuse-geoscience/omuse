@@ -6,9 +6,10 @@ from amuse.units import units
 
 import subprocess 
 
-def jans_wind_model(wind_field,Ly,tau):
-  wind_field.tau_x=tau*(numpy.cos(2*numpy.pi*(wind_field.y/Ly-0.5)) + 
-              2*numpy.sin(numpy.pi*(wind_field.y/Ly-0.5)))
+def jans_wind_model(x,y,Ly,tau):
+  tau_x=tau*(numpy.cos(2*numpy.pi*(y/Ly-0.5)) + 
+              2*numpy.sin(numpy.pi*(y/Ly-0.5)))
+  return tau_x,0.*tau_x
 
 class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
@@ -23,7 +24,7 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         CodeInterface.__init__(self, name_of_the_worker="qgmodel_worker", **keyword_arguments)
         LiteratureReferencesMixIn.__init__(self)
 
-        stacksize=subprocess.check_output('mpirun sh -c "ulimit -s"', shell=True)
+#        stacksize=subprocess.check_output('mpirun sh -c "ulimit -s"', shell=True)
 #        if int(stacksize) < 2**17:
 #          raise Exception("remember to increase the stacksize for qgmodel!")
 
@@ -723,6 +724,12 @@ class QGmodel(CommonCode):
 
     def boundaries(self,x):
         return eval(self._boundaries[x])
+
+    def set_wind(self,f): # convenience function to set wind and turn on interface_wind
+        if not self.parameters.interface_wind:
+          raise Exception("unexpected set_wind")
+        tau_x,tau_y=f(self.wind_field.x,self.wind_field.y)
+        self.wind_field.tau_x=tau_x
 
     def define_state(self, object): 
         object.set_initial_state('UNINITIALIZED')
