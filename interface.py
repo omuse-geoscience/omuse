@@ -6,9 +6,20 @@ from amuse.units import units
 
 import subprocess 
 
+# singly gyre (cf Viebahn 2014)
+def single_gyre_wind_model(x,y,Ly,tau):
+  tau_x=-tau/numpy.pi*numpy.cos(numpy.pi*y/Ly)
+  return tau_x,0.*tau_x
+
+# original qgmodel wind
 def jans_wind_model(x,y,Ly,tau):
   tau_x=tau*(numpy.cos(2*numpy.pi*(y/Ly-0.5)) + 
               2*numpy.sin(numpy.pi*(y/Ly-0.5)))
+  return tau_x,0.*tau_x
+
+# dijkstra 2005 paper wind
+def dijkstra_wind_model(x,y,Ly,tau,sigma=0.):
+  tau_x= - tau*( sigma * numpy.cos(numpy.pi*y/Ly)+(1.-sigma)*numpy.cos(2.*numpy.pi*y/Ly) )
   return tau_x,0.*tau_x
 
 class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
