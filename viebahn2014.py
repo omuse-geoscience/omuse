@@ -5,91 +5,80 @@ from os import path
 #try:
 #from amuse.community.qgmodel.interface import QGmodel,QGmodelInterface
 #except ImportError as ex:
-from interface import QGmodel,QGmodelInterface
+from interface import QGmodel,QGmodelInterface,single_gyre_wind_model
 
 from amuse.units import units
 
 from matplotlib import pyplot
 
-def high_level():
+from amuse.io import write_set_to_file
+
+def viebahn2014(N=50,reynolds_number=1,dm=0.04):
+
+  Nx=N
+  Ny=N
+
+  beta0=1.8616e-11 |(units.m * units.s)**-1
+  L=1.e6 | units.m
+  H=4000.| units.m
+  rho=1000. | units.kg/units.m**3
+  dx=L/Nx
+
+  A_H=beta0*(dm*L)**3
+  tau=reynolds_number*A_H*rho*beta0*H
+  U=tau/beta0/rho/H/L
+  delta_m=(A_H/beta0)**(1./3)/L
+  delta_i=(U/beta0)**0.5/L
+  timescale=1./(beta0*L)
+
+  print "Viebahn 2014 setup"
+  print "N=%i, Reynolds_number=%f"%(N,reynolds_number)
+  print "dm (derived):", (A_H/beta0)**(1./3)/L
+  print "tau:", tau.value_in(units.Pa)
+  print "A:", A_H
+  print "timescale:", timescale.in_(units.s)
+  print "delta_m:", delta_m
+  print "delta_i:", delta_i
 
   qg=QGmodel(redirection="none")
-  qg.initialize_code()
 
-  Nx=128
-  Ny=128
-
-  qg.parameters.Lx=1.e6 | units.m
-  qg.parameters.Ly=1.e6 | units.m
-  qg.parameters.dx=qg.parameters.Lx/Nx
-  qg.parameters.dy=qg.parameters.Ly/Ny
-  qg.parameters.ocean_depth=600 | units.m
-  qg.parameters.tau=0.15 | units.Pa
-  qg.parameters.beta0=1.6e-11 | (units.m*units.s)**-1
-
-  qg.parameters.dt=1800 | units.s
-  
-  qg.parameters.free_slip=False
-  
-  rho0=qg.parameters.rho
-  beta0=qg.parameters.beta0
-  H=qg.parameters.ocean_depth
-  L=qg.parameters.Lx
-  T=qg.parameters.tau
-
-  U_dijkstra=1.6e-2 | units.m/units.s
-  U=(T/(beta0*rho0*H*L)) 
-  print "actual, target U:", U.in_(units.m/units.s), U_dijkstra
-  
-  
-  Reynolds_number=10.
-  
-  A_H=U*L/Reynolds_number
-  
+  qg.parameters.Lx=L
+  qg.parameters.Ly=L
+  qg.parameters.dx=dx
+  qg.parameters.dy=dx
+  qg.parameters.dt=3600 | units.s
   qg.parameters.A_H=A_H
+  qg.parameters.interface_wind=True
+  qg.parameters.rho=rho
+  qg.parameters.beta0=beta0
+  qg.parameters.ocean_depth=H  
+  qg.parameters.tau=tau
+    
+  def wind_function(x,y):
+    return single_gyre_wind_model(x,y,L,tau)
   
-  timescale=1/(beta0*L)
-  
-  print "timescale:", timescale.in_(units.s)
-  print qg.parameters 
+  qg.set_wind(wind_function)
 
-  qg.commit_parameters()
-  
-#  qg.grid.psi=(qg.grid.x/L ) | units.m**2/units.s
-  
-  qg.initialize_grid()
+  return qg
 
-  pyplot.ion()
-  f=pyplot.figure(figsize=(12,6))
-  pyplot.show()
 
-  dtplot=12.| units.hour
+def evolve_to_eq(qg,f=0.01,label=""):
 
+  dtplot=10.| units.day
+
+  psi=qg.grid[:,:,0].psi
   for i in range(101):
     tend=i*dtplot
 
     qg.evolve_model(tend)
-    psi=qg.grid.psi[:,:,0]
+    prev=psi
+    psi=qg.grid[:,:,0].psi
 
-    print qg.model_time.in_(units.day),psi.max(),psi.min()
+    d=abs(psi-prev).sum()/psi.sum()
+    if d<0.01: break
   
-    f.clf()
-    f1=pyplot.subplot(121)
-    f1.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,origin="lower")
-
-    f2=pyplot.subplot(122)
-    x=qg.grid.x[:,64,0].value_in(units.km)
-    psi=qg.grid.psi[:,64,0]
-    psi=psi/psi.max()
-    
-    f2.plot(x,psi)
-
-    pyplot.draw()
-    c=raw_input()
-    if c=="q": break
-
-
+  write_set_to_file(qg.grid,"viebahn2014_grid"+label,"amuse")
 
 if __name__=="__main__":
-  high_level()
-  
+  sys=viebahn2014(50,1.)  
+  evolve_to_eq(sys,label="_reference")
