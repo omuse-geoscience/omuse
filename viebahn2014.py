@@ -2,10 +2,7 @@ import numpy
 
 from os import path
  
-#try:
-#from amuse.community.qgmodel.interface import QGmodel,QGmodelInterface
-#except ImportError as ex:
-from interface import QGmodel,QGmodelInterface,single_gyre_wind_model
+from interface import QGmodel,single_gyre_wind_model
 
 from amuse.units import units
 
@@ -15,14 +12,11 @@ from amuse.io import write_set_to_file
 
 def viebahn2014(N=50,reynolds_number=1,dm=0.04):
 
-  Nx=N
-  Ny=N
-
   beta0=1.8616e-11 |(units.m * units.s)**-1
   L=1.e6 | units.m
   H=4000.| units.m
   rho=1000. | units.kg/units.m**3
-  dx=L/Nx
+  dx=L/N
 
   A_H=beta0*(dm*L)**3
   tau=reynolds_number*A_H*rho*beta0*H
@@ -46,7 +40,7 @@ def viebahn2014(N=50,reynolds_number=1,dm=0.04):
   qg.parameters.Ly=L
   qg.parameters.dx=dx
   qg.parameters.dy=dx
-  qg.parameters.dt=3600 | units.s
+  qg.parameters.dt=900 | units.s
   qg.parameters.A_H=A_H
   qg.parameters.interface_wind=True
   qg.parameters.rho=rho
@@ -75,10 +69,11 @@ def evolve_to_eq(qg,f=0.01,label=""):
     psi=qg.grid[:,:,0].psi
 
     d=abs(psi-prev).sum()/psi.sum()
+    print i,d
     if d<0.01: break
   
   write_set_to_file(qg.grid,"viebahn2014_grid"+label,"amuse")
 
 if __name__=="__main__":
-  sys=viebahn2014(50,1.)  
+  sys=viebahn2014(400,20.)  
   evolve_to_eq(sys,label="_reference")
