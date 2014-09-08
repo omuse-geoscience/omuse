@@ -1070,6 +1070,8 @@ class QGmodel(CommonCode):
 class QGmodelWithRefinements(QGmodel):
     def __init__(self,*args,**kwargs):
       self.refinements=[]
+      self._args=args
+      self._kwargs=kwargs
       QGmodel.__init__(self,*args,**kwargs)
       
     def interpolate_grid(self,grid):
@@ -1085,8 +1087,9 @@ class QGmodelWithRefinements(QGmodel):
   
     def add_refinement(self,sys=None,position=[0.,0.] | units.m,offset=None,parameters=dict()):
       if sys is None:
-        sys=self.__class__(redirection="none")
+        sys=self.__class__(*self._args,**self._kwargs)
         sys.parameters.reset_from_memento(self.parameters)
+      if callable(sys): sys=sys()
       for param,val in parameters.items():
         setattr(sys.parameters, param, val)
       if offset is not None:
