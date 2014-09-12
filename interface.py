@@ -1073,13 +1073,13 @@ class QGmodelWithRefinements(QGmodel):
       self._args=args
       self._kwargs=kwargs
       QGmodel.__init__(self,*args,**kwargs)
-      
+          
     def interpolate_grid(self,grid):
       copy=grid.empty_copy()    
       x=grid.x.flatten()
       y=grid.y.flatten()
       dx=max(self.grid.cellsize()[0],grid.cellsize()[0])
-      psi,dpsi_dt=self.get_psi_state_at_point(dx+0.*x,x,y)
+      psi,dpsi_dt=self.get_psi_state_at_point(dx,x,y)
       copy.psi=psi.reshape(copy.shape)
       copy.dpsi_dt=dpsi_dt.reshape(copy.shape)    
       channel=copy.new_channel_to(grid)
@@ -1088,8 +1088,9 @@ class QGmodelWithRefinements(QGmodel):
     def add_refinement(self,sys=None,position=[0.,0.] | units.m,offset=None,parameters=dict()):
       if sys is None:
         sys=self.__class__(*self._args,**self._kwargs)
-        sys.parameters.reset_from_memento(self.parameters)
-      if callable(sys): sys=sys()
+      if callable(sys):
+        sys=sys()
+      sys.parameters.reset_from_memento(self.parameters)
       for param,val in parameters.items():
         setattr(sys.parameters, param, val)
       if offset is not None:
@@ -1106,6 +1107,8 @@ class QGmodelWithRefinements(QGmodel):
       parent_minpos=self.grid.get_minimum_position()
       parent_maxpos=self.grid.get_maximum_position()
       dx,dy=self.grid.cellsize()
+      self._gridx=self.grid.x
+      self._gridy=self.grid.y
       
       if minpos[0]<parent_minpos[0]+dx/2:
         print "linking west boundary"
@@ -1115,7 +1118,7 @@ class QGmodelWithRefinements(QGmodel):
         print "west boundary interpolated"
         sys.parameters.boundary_west="interface"
         sys.west_boundary_updater=self.interpolate_grid
-        
+      
       if maxpos[0]>parent_maxpos[0]-dx/2:
         print "linking east boundary"
         sys.parameters.boundary_east=self.parameters.boundary_east
@@ -1191,9 +1194,9 @@ class QGmodelWithRefinements(QGmodel):
       return psi,dpsi
   
     def update_refined_regions(self):
-      dx=0*self.grid.x+self.grid.cellsize()[0]
-      x=self.grid.x
-      y=self.grid.y
+      x=self._gridx
+      y=self._gridy
+      dx=0.*x+self.grid.cellsize()[0]
 
       minx=x-dx/2
       maxx=x+dx/2
