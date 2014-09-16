@@ -1070,6 +1070,9 @@ class QGmodel(CommonCode):
 class QGmodelWithRefinements(QGmodel):
     def __init__(self,*args,**kwargs):
       self.refinements=[]
+      self.verbose=False
+      if 'verbose' in kwargs:
+        self.verbose=verbose
       self._args=args
       self._kwargs=kwargs
       QGmodel.__init__(self,*args,**kwargs)
@@ -1157,15 +1160,15 @@ class QGmodelWithRefinements(QGmodel):
       while tnow<tend-dt/2:
         self.overridden().evolve_model(tnow+dt/2)
         for sys in self.refinements:
-          print "update boundaries...",
+          if self.verbose:  print "update boundaries...",
           sys.update_boundaries()
-          print "done"
+          if self.verbose:  print "done"
           sys.evolve_model(tnow+dt)
         self.overridden().evolve_model(tnow+dt)
         if len(self.refinements): 
-          print "update refined regions...",
+          if self.verbose: print "update refined regions...",
           self.update_refined_regions()
-          print "done"
+          if self.verbose: print "done"
         tnow=self.model_time
   
     def get_psi_dpsidt(self,dx,x,y,k=None):
