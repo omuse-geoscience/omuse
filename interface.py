@@ -1152,8 +1152,14 @@ class QGmodelWithRefinements(QGmodel):
         sys.get_psi_dpsidt=sys.get_psi_state_at_point
   
       return sys
+
+    def evolve_model(self,tend,dt=None,method="EBER")
+      if method=="EBER":
+        self.evolve_model_EBER(tend,dt)
+      else:
+        self.evolve_model_EREB(tend,dt)
   
-    def evolve_model(self,tend,dt=None):
+    def evolve_model_EBER(self,tend,dt=None):
       if dt is None:
         dt=2*self.parameters.dt
       tnow=self.model_time
@@ -1170,6 +1176,40 @@ class QGmodelWithRefinements(QGmodel):
           self.update_refined_regions()
           if self.verbose: print "done"
         tnow=self.model_time
+
+    def evolve_model_EREB(self,tend,dt=None):
+      if dt is None:
+        dt=2*self.parameters.dt
+        
+      first=True
+      tnow=self.model_time
+      while tnow<tend-dt/2:
+        if self.verbose:  print "update boundaries...",
+        if first:
+          for sys in self.refinements:
+            if self.verbose:  print "update boundaries...",
+            sys.update_boundaries()
+          if self.verbose:  print "done"
+          first=False
+        for sys in self.refinements:
+          sys.evolve_model(tnow+dt/2)
+        self.overridden().evolve_model(tnow+dt/2)
+
+        if self.verbose: print "update refined regions...",
+        if len(self.refinements): 
+          self.update_refined_regions()
+        if self.verbose: print "done"
+
+        self.overridden().evolve_model(tnow+dt)
+        if self.verbose:  print "update boundaries...",
+        for sys in self.refinements:
+          if self.verbose:  print "update boundaries...",
+          sys.update_boundaries()
+        for sys in self.refinements:
+          sys.evolve_model(tnow+dt)
+
+        tnow=self.model_time
+
   
     def get_psi_dpsidt(self,dx,x,y,k=None):
       minx=x-dx/2
@@ -1192,8 +1232,6 @@ class QGmodelWithRefinements(QGmodel):
         p,d=self.get_psi_state_at_point(dx[select],x[select],y[select])
         psi[select]=p
         dpsi[select]=d
-#      print "points done:", done.sum()
-#      print "points skipped:", (1-done).sum()
       return psi,dpsi
   
     def update_refined_regions(self):
@@ -1210,13 +1248,15 @@ class QGmodelWithRefinements(QGmodel):
       for sys in self.refinements:
         gridminx,gridminy=sys.grid.get_minimum_position()
         gridmaxx,gridmaxy=sys.grid.get_maximum_position()
-        select=-( (gridminx>minx)+(gridmaxx<maxx)+(gridminy>miny)+(gridmaxy<maxy)+done)
+        gridminx+=sys.grid.cellsize()[0]  # interior only...
+        gridmaxx-=sys.grid.cellsize()[0]
+        gridminy+=sys.grid.cellsize()[1]
+        gridmaxy-=sys.grid.cellsize()[1]                
+#        select=-( (gridminx>minx)+(gridmaxx<maxx)+(gridminy>miny)+(gridmaxy<maxy)+done)
+        select=(~done)*(minx>=gridminx)*(maxx<=gridmaxx)*(miny>=gridminy)*(maxy<=gridmaxy) 
         if numpy.any(select): 
           p,d=sys.get_psi_state_at_point(dx[select],x[select],y[select])
           psi[select]=p
-#          print self.grid[100,100,0].psi,psi[100,100,0],sys.grid.psi[100,100,0]
-#          print sys.get_psi_state_at_point(dx[0:2,0,0],self.grid[99:101,10,0].x,self.grid[99:101,10,0].y)
         done=done+select
       if numpy.any(done):
         self.grid[done].psi=psi[done]
-#      print self.grid[100,100,0].psi,psi[100,100,0],sys.grid.psi[100,100,0]
