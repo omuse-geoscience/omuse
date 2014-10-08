@@ -1153,11 +1153,15 @@ class QGmodelWithRefinements(QGmodel):
   
       return sys
 
-    def evolve_model(self,tend,dt=None,method="EBER")
+    def evolve_model(self,tend,dt=None,method="EBER"):
       if method=="EBER":
         self.evolve_model_EBER(tend,dt)
-      else:
+      elif method=="EREB":
         self.evolve_model_EREB(tend,dt)
+      elif method=="BRE":
+        self.evolve_model_BRE(tend,dt)
+      else:
+        raise Exception("unknown method")
   
     def evolve_model_EBER(self,tend,dt=None):
       if dt is None:
@@ -1210,6 +1214,23 @@ class QGmodelWithRefinements(QGmodel):
 
         tnow=self.model_time
 
+    def evolve_model_BRE(self,tend,dt=None):
+      if dt is None:
+        dt=2*self.parameters.dt
+      tnow=self.model_time
+      while tnow<tend-dt/2:
+        for sys in self.refinements:
+          if self.verbose:  print "update boundaries...",
+          sys.update_boundaries()
+          if self.verbose:  print "done"
+        if len(self.refinements): 
+          if self.verbose: print "update refined regions...",
+          self.update_refined_regions()
+          if self.verbose: print "done"
+        self.overridden().evolve_model(tnow+dt)
+        for sys in self.refinements:
+          sys.evolve_model(tnow+dt)
+        tnow=self.model_time
   
     def get_psi_dpsidt(self,dx,x,y,k=None):
       minx=x-dx/2
@@ -1248,10 +1269,10 @@ class QGmodelWithRefinements(QGmodel):
       for sys in self.refinements:
         gridminx,gridminy=sys.grid.get_minimum_position()
         gridmaxx,gridmaxy=sys.grid.get_maximum_position()
-        gridminx+=sys.grid.cellsize()[0]  # interior only...
-        gridmaxx-=sys.grid.cellsize()[0]
-        gridminy+=sys.grid.cellsize()[1]
-        gridmaxy-=sys.grid.cellsize()[1]                
+#        gridminx+=sys.grid.cellsize()[0]  # interior only...
+#        gridmaxx-=sys.grid.cellsize()[0]
+#        gridminy+=sys.grid.cellsize()[1]
+#        gridmaxy-=sys.grid.cellsize()[1]                
 #        select=-( (gridminx>minx)+(gridmaxx<maxx)+(gridminy>miny)+(gridmaxy<maxy)+done)
         select=(~done)*(minx>=gridminx)*(maxx<=gridmaxx)*(miny>=gridminy)*(maxy<=gridmaxy) 
         if numpy.any(select): 
