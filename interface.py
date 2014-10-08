@@ -1281,3 +1281,13 @@ class QGmodelWithRefinements(QGmodel):
         done=done+select
       if numpy.any(done):
         self.grid[done].psi=psi[done]
+
+class QGmodel_(QGmodel):
+    def evolve_model(self,tend,dt=None):
+      if dt is None:
+        dt=self.parameters.dt
+      tnow=self.model_time
+      while self.model_time<tend-dt/2:
+        self.initialize_grid()
+        self.overridden().evolve_model(tnow+dt)
+        tnow=self.model_time
