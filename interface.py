@@ -919,7 +919,7 @@ class QGmodel(CommonCode):
             "get_R_H", 
             "set_R_H",
             "R_H", 
-            "bottom friction coefficient", 
+            "bottom friction coefficient (f_0*delta_E/2/H)", 
             default_value = 0.0 | units.s**-1
         ) 
         object.add_method_parameter(
