@@ -521,6 +521,6 @@ if __name__=="__main__":
   dt=1800 | units.s
   
   def sysfac():
-    return refinement_east(dt)
+    return nested_refinement(dt)
   
   test_evolve_w_plot(sysfac,tend=1000*dt,dt=dt,dtplot=4*dt)
