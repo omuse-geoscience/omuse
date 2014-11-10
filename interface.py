@@ -1153,9 +1153,9 @@ class QGmodelWithRefinements(QGmodel):
   
       return sys
 
-    def evolve_model(self,tend,dt=None,method="EBER"):
+    def evolve_model(self,tend,dt=None,method="EBER",restriction_correction=None):
       if method=="EBER":
-        self.evolve_model_EBER(tend,dt)
+        self.evolve_model_EBER(tend,dt,restriction_correction=restriction_correction)
       elif method=="EREB":
         self.evolve_model_EREB(tend,dt)
       elif method=="BRE":
@@ -1163,7 +1163,7 @@ class QGmodelWithRefinements(QGmodel):
       else:
         raise Exception("unknown method")
   
-    def evolve_model_EBER(self,tend,dt=None):
+    def evolve_model_EBER(self,tend,dt=None,restriction_correction=None):
       if dt is None:
         dt=2*self.parameters.dt
       tnow=self.model_time
@@ -1178,6 +1178,8 @@ class QGmodelWithRefinements(QGmodel):
         if len(self.refinements): 
           if self.verbose: print "update refined regions...",
           self.update_refined_regions()
+          if restriction_correction is not None:
+            restriction_correction(self.grid)
           if self.verbose: print "done"
         tnow=self.model_time
 

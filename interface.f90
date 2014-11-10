@@ -181,7 +181,7 @@ function initialize_grid() result(ret)
   integer :: ret,i
 
 ! naive initialization of psi_2
-  psi_2=psi_1
+!  psi_2=psi_1
   chi_prev=0.
 ! note in principle the only way to restart consistently is by writing and
 ! reading psi_2 and chi_prev! 
@@ -208,7 +208,7 @@ function initialize_grid() result(ret)
        &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
        &    psi_1,boundary,vis_bot_curr,vis_bot_prev,vis_lat_prev,chi_prev, &
        &    chii,boundaries)
-  psi_2=psi_1-dt*chii ! initialization of psi_2 !
+!  psi_2=psi_1-dt*chii ! initialization of psi_2 !
 
   counter=counter+1
   ret=0
