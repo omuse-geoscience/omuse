@@ -30,7 +30,7 @@ class TestQGmodelInterface(TestWithMPI):
          ("R_H",0),("A_H",100), ("lambda0",0.),("lambda1",2.e-5),
          ("Nm",1),("begin_time",0.),("wind_sigma",-99.),
          ("e111",0),("phi1z0",1.4142135623731),("ra_alpha",0.1),
-         ("interface_wind",0)]:
+         ("interface_wind",0),("raw_alpha",1.0),("timestep_method","leapfrog")]:
             result,err=getattr(instance, 'get_'+key)()
             self.assertEquals( result, val)
             newvalue=type(val)(123.)
@@ -454,3 +454,13 @@ class TestQGmodel(TestWithMPI):
         instance.stop()
         instance2.stop()
 
+    def test24(self):
+        instance=QGmodel()
+        instance.parameters.timestep_method="euler"
+        instance.parameters.raw_parameter=0.123
+        instance.commit_parameters()
+        b1=instance.get_timestep_method()
+        self.assertEqual(b1,"euler")
+        b1=instance.get_raw_alpha()
+        self.assertEqual(b1,0.123)
+        instance.stop()
