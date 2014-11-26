@@ -122,6 +122,33 @@ class QGmodelInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMi
         function.result_type = 'i'
         return function
 
+    @legacy_function    
+    def set_raw_alpha():
+        function = LegacyFunctionSpecification()  
+        function.addParameter('raw_alpha', dtype='d', direction=function.IN)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
+    def get_raw_alpha():
+        function = LegacyFunctionSpecification()  
+        function.addParameter('raw_alpha', dtype='d', direction=function.OUT)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
+    def set_timestep_method():
+        function = LegacyFunctionSpecification()  
+        function.addParameter("timestep_method", dtype='string', direction=function.IN)
+        function.result_type = 'i'
+        return function
+
+    @legacy_function    
+    def get_timestep_method():
+        function = LegacyFunctionSpecification()  
+        function.addParameter("timestep_method", dtype='string', direction=function.OUT)
+        function.result_type = 'i'
+        return function
 
     @legacy_function    
     def get_dpsi_dt():
@@ -854,6 +881,22 @@ class QGmodel(CommonCode):
             "robert_asselin_alpha", 
             "robert_asselin filter parameter (0.01-0.1)", 
             default_value = 0.1
+        )
+
+        object.add_method_parameter(
+            "get_raw_alpha", 
+            "set_raw_alpha",
+            "raw_parameter", 
+            "robert-asselin-williams filter parameter (0.0-1., 1.= normal ra leapfrog)", 
+            default_value = 1.
+        )
+
+        object.add_method_parameter(
+            "get_timestep_method", 
+            "set_timestep_method",
+            "timestep_method", 
+            "timestep method (euler, leapfrog)", 
+            default_value = "leapfrog"
         )
 
         object.add_boolean_parameter(

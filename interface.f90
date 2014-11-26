@@ -5,7 +5,7 @@ module qgmodel
               & Nx,Ny,Nt,Nm !,restart,restart_num
   real(8)    :: tau,A_H,R_H,H,rho,beta0,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
               & dx,dy,dt,T,t_curr,err_tol,relax_coef
-  real(8)    :: begin_time, wind_sigma, ra_alpha
+  real(8)    :: begin_time, wind_sigma, ra_alpha, raw_alpha
   real(8), allocatable,dimension (:,:)   :: max_psi
   real(8), allocatable,dimension (:,:,:) :: psi_1,psi_2,inter,chii,chi_prev, &
                                           & vis_bot_prev,vis_bot_curr, &
@@ -22,6 +22,8 @@ module qgmodel
   
   character(len=25) :: filename
   integer :: boundary(4)
+
+  character(len=15) :: timestep_method="leapfrog"
 
 contains
 
@@ -51,6 +53,7 @@ subroutine default_numerical_parameters()
   boundary(1:4)  = 1   ! 1=free_slip, 0=no_slip, 2=interface
   
   ra_alpha       = 0.1d0
+  raw_alpha      = 1.d0
   interface_wind = 0  ! 0=use wind routine, 1= use interface wind
 !  restart        = 0  ! not used for amuse
 !  restart_num    = 360 ! not used                
@@ -178,6 +181,67 @@ function commit_parameters() result(ret)
 end function
 
 function initialize_grid() result(ret)
+  integer :: ret
+
+  if(timestep_method.EQ."euler") then
+    ret=initialize_euler()
+    return
+  endif
+  if(timestep_method.EQ."leapfrog") then
+    ret=initialize_leapfrog()
+    return
+  endif
+  if(timestep_method.EQ."adams_bashforth") then
+    ret=initialize_ab()
+    return
+  endif
+  ret=-1
+
+end function
+
+function initialize_euler() result(ret)
+  integer :: ret,i
+
+  chi_prev=0.
+! initialize vis_*_prev from psi_2
+  call vis_bot(Nm,Nx,Ny,boundary,psi_2,vis_bot_prev,boundaries)
+  call vis_lat(Nm,Nx,Ny,boundary,psi_2,vis_lat_prev,boundaries)
+! initialize vis_*_curr from psi_1
+  call vis_bot(Nm,Nx,Ny,boundary,psi_1,vis_bot_curr,boundaries)
+  call vis_lat(Nm,Nx,Ny,boundary,psi_1,vis_lat_curr,boundaries)
+
+! chi is already calculated here so it becomes available for other codes
+  call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
+       &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
+       &    psi_1,boundary,vis_bot_curr,vis_bot_curr,vis_lat_curr,chi_prev, &
+       &    chii,boundaries)
+
+  counter=counter+1
+  ret=0
+end function
+
+function initialize_ab() result(ret)
+  integer :: ret,i
+
+  chi_prev=0.
+! initialize vis_*_prev from psi_2
+  call vis_bot(Nm,Nx,Ny,boundary,psi_2,vis_bot_prev,boundaries)
+  call vis_lat(Nm,Nx,Ny,boundary,psi_2,vis_lat_prev,boundaries)
+! initialize vis_*_curr from psi_1
+  call vis_bot(Nm,Nx,Ny,boundary,psi_1,vis_bot_curr,boundaries)
+  call vis_lat(Nm,Nx,Ny,boundary,psi_1,vis_lat_curr,boundaries)
+
+! chi is already calculated here so it becomes available for other codes
+  call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
+       &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
+       &    psi_1,boundary,vis_bot_curr,vis_bot_curr,vis_lat_curr,chi_prev, &
+       &    chii,boundaries)
+
+  counter=counter+1
+  ret=0
+end function
+
+function initialize_leapfrog() result(ret)
   integer :: ret,i
 
 ! naive initialization of psi_2
@@ -216,6 +280,77 @@ end function
 
 function evolve_model(tend) result(ret)
   integer :: ret
+  real(8) :: tend
+  
+  if(timestep_method.EQ."euler") then
+    ret=evolve_leapfrog(tend)
+    return
+  endif
+  if(timestep_method.EQ."leapfrog") then
+    ret=evolve_leapfrog(tend)
+    return
+  endif
+  if(timestep_method.EQ."adams_bashforth") then
+    ret=evolve_ab(tend)
+    return
+  endif
+  
+  ret=-1
+end function
+
+function evolve_euler(tend) result(ret)
+  integer :: ret
+  real(8) :: tend
+  
+  do while ( t_curr < tend)
+      
+   t_curr = t_curr + 2*dt
+       
+   psi_2 = psi_1
+   psi_1 = psi_1 + 2.d0*dt*chii
+      
+   chi_prev = chii
+   vis_bot_prev  = vis_bot_curr
+   call vis_bot(Nm,Nx,Ny,boundary,psi_1,vis_bot_curr,boundaries)
+   vis_lat_prev  = vis_lat_curr
+   call vis_lat(Nm,Nx,Ny,boundary,psi_1,vis_lat_curr,boundaries)
+   call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
+       &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
+       &    psi_1,boundary,vis_bot_curr,vis_bot_curr,vis_lat_curr,chi_prev, &
+       &    chii,boundaries)
+   counter = counter + 1 
+  enddo
+  ret=0
+end function
+
+function evolve_ab(tend) result(ret)
+  integer :: ret
+  real(8) :: tend
+  
+  do while ( t_curr < tend)
+      
+   t_curr = t_curr + 2*dt
+       
+   psi_2 = psi_1
+   psi_1 = psi_1 + dt*(3*chii-chi_prev)
+      
+   chi_prev = chii
+   vis_bot_prev  = vis_bot_curr
+   call vis_bot(Nm,Nx,Ny,boundary,psi_1,vis_bot_curr,boundaries)
+   vis_lat_prev  = vis_lat_curr
+   call vis_lat(Nm,Nx,Ny,boundary,psi_1,vis_lat_curr,boundaries)
+   call chi(tau,A_H,R_H,Lx,Ly,lambda0,lambda1,e111,phi1z0, &
+       &    Nm,Nx,Ny,dx,H,rho,beta0,err_tol,max_it,relax_coef, &
+       &    psi_1,boundary,vis_bot_curr,vis_bot_curr,vis_lat_curr,chi_prev, &
+       &    chii,boundaries)
+   counter = counter + 1 
+  enddo
+  ret=0
+end function
+
+
+function evolve_leapfrog(tend) result(ret)
+  integer :: ret
   integer :: save_num
   real(8) :: tend
   
@@ -223,10 +358,10 @@ function evolve_model(tend) result(ret)
       
    t_curr = t_curr + dt
        
-  !Robert-Asselin filter
+  !Robert-Asselin filter + williams
    inter = psi_2 + 2.d0*dt*chii
-   psi_1 = psi_1 + ra_alpha*(inter-2.d0*psi_1+psi_2)
-   psi_2 = inter
+   psi_1 = psi_1 + ra_alpha*(inter-2.d0*psi_1+psi_2)*raw_alpha
+   psi_2 = inter - ra_alpha*(inter-2.d0*psi_1+psi_2)*(1.d0-raw_alpha)
   !!!
   ! do exactly the same thing again with opposite psi arrays
   ! (specials: leap-frog time stepping, and using previous viscosity)
@@ -245,8 +380,8 @@ function evolve_model(tend) result(ret)
 
   !Robert-Asselin filter
    inter = psi_1 + 2.d0*dt*chii
-   psi_2 = psi_2 + ra_alpha*(inter-2.d0*psi_2+psi_1)
-   psi_1 = inter
+   psi_2 = psi_2 + ra_alpha*(inter-2.d0*psi_2+psi_1)*raw_alpha
+   psi_1 = inter - ra_alpha*(inter-2.d0*psi_2+psi_1)*(1.d0-raw_alpha)
   !!!
 
    chi_prev = chii
@@ -325,6 +460,34 @@ function set_ra_alpha(t) result (ret)
   integer :: ret
   real(8) :: t
   ra_alpha=t
+  ret=0
+end function
+
+function get_raw_alpha(t) result (ret)
+  integer :: ret
+  real(8) :: t
+  t=raw_alpha
+  ret=0
+end function
+
+function set_raw_alpha(t) result (ret)
+  integer :: ret
+  real(8) :: t
+  raw_alpha=t
+  ret=0
+end function
+
+function get_timestep_method(t) result (ret)
+  integer :: ret
+  character(len=15) :: t
+  t=timestep_method
+  ret=0
+end function
+
+function set_timestep_method(t) result (ret)
+  integer :: ret
+  character(len=15) :: t
+  timestep_method=t
   ret=0
 end function
 
