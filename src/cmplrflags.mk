@@ -9,9 +9,10 @@ ifeq ($(MACHINE)-$(OS),x86_64-linux-gnu)
 # ***NOTE*** User must select between various Linux setups
 #            by commenting/uncommenting the appropriate compiler
 #
+#compiler=amuse
 #compiler=gnu
 #compiler=g95
-compiler=intel
+compiler?=intel
 #compiler=intel-ND
 #compiler=intel-lonestar
 #compiler=cray_xt3
@@ -24,6 +25,53 @@ compiler=intel
 #compiler=utils
 #
 #
+# compiler flags for AMUSE (flags assume intel ifort atm)
+ifeq ($(compiler),amuse)  
+  FC            ?=  ifort
+  PPFC          :=  $(FC)
+  PFC           ?=  mpif90
+  FFLAGS1       :=  $(INCDIRS) -O3 -FI -assume byterecl -132 -i-dynamic -xSSE4.2 -assume buffered_io
+  ifeq ($(DEBUG),full)
+     FFLAGS1       :=  $(INCDIRS) -g -O0 -traceback -debug -check all -i-dynamic -FI -assume byterecl -132 -DALL_TRACE -DFULL_STACK -DFLUSH_MESSAGES
+  endif
+  FFLAGS2       :=  $(FFLAGS1)
+  FFLAGS3       :=  $(FFLAGS1)
+  DA            :=  -DREAL8 -DLINUX -DCSCA
+  DP            :=  -DREAL8 -DLINUX -DCSCA -DCMPI
+  DPRE          :=  -DREAL8 -DLINUX
+  ifeq ($(SWAN),enable)
+     DPRE          := $(DPRE) -DADCSWAN
+  endif
+  IMODS         :=  -I
+  CC            := $(CC)
+  CCBE		:= $(CC)
+  CFLAGS        := $(INCDIRS) -O2 -march=k8 -m64 -mcmodel=medium -DLINUX
+  ifeq ($(DEBUG),full)
+     CFLAGS        := $(INCDIRS) -g -O0 -march=k8 -m64 -mcmodel=medium -DLINUX
+  endif
+  CLIBS         :=
+  FLIBS         :=
+  MSGLIBS       :=
+  ifeq ($(NETCDF),enable)
+     ifeq ($(MACHINENAME),blueridge)
+        FLIBS       := $(FLIBS) -L$(HDF5HOME) -lhdf5  
+#        NETCDFHOME  :=/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.1-gcc4.1-ifort
+        NETCDFHOME  :=/shared/apps/RHEL-5/x86_64/NetCDF/netcdf-4.1.2-gcc4.1-ifort
+        FLIBS          := $(FLIBS) -lnetcdff
+     else
+        FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
+     endif
+  endif
+  #jgf20110519: For netcdf on topsail at UNC, use
+  #NETCDFHOME=/ifs1/apps/netcdf/
+  $(warning (INFO) Corresponding machine found in cmplrflags.mk.)
+  ifneq ($(FOUND),TRUE)
+     FOUND := TRUE
+  else
+     MULTIPLE := TRUE
+  endif
+endif
+
 # Compiler Flags for gfortran and gcc
 ifeq ($(compiler),gnu)
   PPFC		:=  gfortran

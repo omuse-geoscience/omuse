@@ -1,5 +1,5 @@
 SHELL:=/bin/sh
-SRCDIR?=../adcirc/v50release_121024/
+SRCDIR=../adcirc/v50release_121024/
 #
 #  Makefile to Build PADCIRC and its pre-processor 
 #  University of Texas's parallel version of the Hydrodynamics
@@ -460,7 +460,7 @@ endif
 	$(CF) $(FFLAGS) -o $@ $(wildcard $(O_DIR)*.o) $(LIBS) $(MSGLIBS)
 
    $(LIBADC) :: $(O_DIR) $(ADC_MOBJ) $(MSG_MOBJ) $(NA_MOBJ) $(GIO_MOBJ) $(AGIO_MOBJ) $(KDTREE_MOBJ) $(ADC_OBJ) 
-	ar $(ARFLAGS) $@  $(wildcard $(O_DIR)[!driver]*.o) odir_metis/libmetis.a
+	ar $(ARFLAGS) $@  $(wildcard $(O_DIR)[!driver]*.o) #odir_metis/libmetis.a
 	ar -ts $@
 
 #Casey 080106: Added the following lines.
@@ -518,7 +518,7 @@ clean:
 clobber:
 	rm -r -f odir* 
 	rm -f adcprep adcprep_be adcirc $(PARALLEL_ADCIRC) adcswan padcswan p15 owi22 build13 aswip \
-           build12 buildstwave23 hot2asc inflate hstime sizes.o adcpost adccmp
+           build12 buildstwave23 hot2asc inflate hstime sizes.o adcpost adccmp $(LIBADC)
 help:
 	@echo "This makefile supports the following:"
 	@echo "make all        - makes all seven targets"
