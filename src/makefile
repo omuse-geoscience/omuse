@@ -350,6 +350,10 @@ $(O_DIR)%.o  : %.c
 $(O_DIR)%.o  : %.F
 	$(CF) -c $(FFLAGS) -o $@  $<
 	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
+%.o  : %.F90
+	$(CF) -c $(FFLAGS) -o $@  $<
+	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
+
 
 # Casey 080106: Added the following rules for the unstructured SWAN.
 $(O_DIR)%.o  : %.f
@@ -514,7 +518,7 @@ endif
 ########################## Misc Commands ####################################
 
 clean:
-	rm -f odir*/*.o  odir*/*.mod sizes.o
+	rm -f odir*/*.o  odir*/*.mod sizes.o *.o *.mod
 clobber:
 	rm -r -f odir* 
 	rm -f adcprep adcprep_be adcirc $(PARALLEL_ADCIRC) adcswan padcswan p15 owi22 build13 aswip \
@@ -559,6 +563,10 @@ cvstag:
 
 
 ########################## Defining the DAG  #################################
+
+# amuse module
+
+amuse_adcirc.o:  amuse_adcirc.F90
 
 #  adcprep modules
 

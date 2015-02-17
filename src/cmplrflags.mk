@@ -30,7 +30,7 @@ ifeq ($(compiler),amuse)
   FC            ?=  ifort
   PPFC          :=  $(FC)
   PFC           ?=  mpif90
-  FFLAGS1       :=  $(INCDIRS) -O3 -FI -assume byterecl -132 -i-dynamic -xSSE4.2 -assume buffered_io
+  FFLAGS1       :=  $(INCDIRS) -O3 -assume byterecl -132 -i-dynamic -xSSE4.2 -assume buffered_io
   ifeq ($(DEBUG),full)
      FFLAGS1       :=  $(INCDIRS) -g -O0 -traceback -debug -check all -i-dynamic -FI -assume byterecl -132 -DALL_TRACE -DFULL_STACK -DFLUSH_MESSAGES
   endif
