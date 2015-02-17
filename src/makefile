@@ -464,7 +464,7 @@ endif
 	$(CF) $(FFLAGS) -o $@ $(wildcard $(O_DIR)*.o) $(LIBS) $(MSGLIBS)
 
    $(LIBADC) :: $(O_DIR) $(ADC_MOBJ) $(MSG_MOBJ) $(NA_MOBJ) $(GIO_MOBJ) $(AGIO_MOBJ) $(KDTREE_MOBJ) $(ADC_OBJ) 
-	ar $(ARFLAGS) $@  $(wildcard $(O_DIR)[!driver]*.o) #odir_metis/libmetis.a
+	ar $(ARFLAGS) $@  $(filter-out $(O_DIR)driver.o, $(wildcard $(O_DIR)*.o)) 
 	ar -ts $@
 
 #Casey 080106: Added the following lines.

@@ -2,10 +2,8 @@ module amuse_adcirc
   use GLOBAL
 
 #ifdef CSWAN
-#err SWAN coupling TBD 
+#error SWAN coupling TBD 
 #endif
-
-#err test this
 
 contains
 
@@ -18,9 +16,10 @@ function initialize_code() result(ret)
   ret=0
 end function
 
-function evolve_model(tend) result(ret)
+function evolve_model() result(ret)
   USE ADCIRC_Mod, ONLY : ADCIRC_Run
   integer :: ret
+  real*8 :: tend
 
   call ADCIRC_Run
 
