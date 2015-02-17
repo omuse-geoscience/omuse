@@ -26,3 +26,9 @@ class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMix
         function = LegacyFunctionSpecification()
         function.result_type = 'i'
         return function
+
+    @legacy_function
+    def evolve_model():
+        function = LegacyFunctionSpecification()
+        function.result_type = 'i'
+        return function
