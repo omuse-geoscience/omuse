@@ -3,6 +3,13 @@ from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.community import *
 from amuse.support.options import option
 
+#~ IN=LegacyFunctionSpecification.IN
+#~ OUT=LegacyFunctionSpecification.OUT
+#~ 
+#~ functions=dict(
+ #~ evolve_model={ "parameters": ["tend",dict(dtype="double",direction=IN,unit=units.s),],
+                #~ "result_type": "i" } 
+#~ )
 
 class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
@@ -28,7 +35,22 @@ class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMix
         return function
 
     @legacy_function
-    def evolve_model():
+    def get_model_time():
         function = LegacyFunctionSpecification()
+        function.addParameter("tend", dtype='d', direction=function.OUT ,unit=units.s)
         function.result_type = 'i'
         return function
+    @legacy_function
+    def get_timestep():
+        function = LegacyFunctionSpecification()
+        function.addParameter("dt", dtype='d', direction=function.OUT ,unit=units.s)
+        function.result_type = 'i'
+        return function
+    @legacy_function
+    def evolve_model():
+        function = LegacyFunctionSpecification()
+        function.addParameter("tend", dtype='d', direction=function.IN ,unit=units.s)
+        function.result_type = 'i'
+        return function
+
+
