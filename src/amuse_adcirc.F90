@@ -1,4 +1,5 @@
 module amuse_adcirc
+  use sizes
   use GLOBAL
 
 #ifdef CSWAN
@@ -16,12 +17,37 @@ function initialize_code() result(ret)
   ret=0
 end function
 
-function evolve_model() result(ret)
-  USE ADCIRC_Mod, ONLY : ADCIRC_Run
-  integer :: ret
-  real*8 :: tend
+function get_model_time(tout) result(ret)
+  USE ADCIRC_Mod
 
-  call ADCIRC_Run
+  integer :: ret
+  real(8) :: tout  
+
+  tout = STATIM*86400.D0+DTDP*ITIME_BGN
+  
+  ret=0
+  
+end function
+
+function get_timestep(dtout) result(ret)
+  integer :: ret
+  real(8) :: dtout  
+
+  dtout = DTDP
+  
+  ret=0
+  
+end function
+
+
+function evolve_model(tend) result(ret)
+  USE ADCIRC_Mod
+  integer :: ret
+  real(8) :: tend
+
+  do while(ITIME_BGN*DTDP+STATIM*86400.D0<tend-DTDP/2)
+    call ADCIRC_Run(1)
+  enddo
 
   ret=0
 end function
