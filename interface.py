@@ -3,13 +3,6 @@ from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.community import *
 from amuse.support.options import option
 
-#~ IN=LegacyFunctionSpecification.IN
-#~ OUT=LegacyFunctionSpecification.OUT
-#~ 
-#~ functions=dict(
- #~ evolve_model={ "parameters": ["tend",dict(dtype="double",direction=IN,unit=units.s),],
-                #~ "result_type": "i" } 
-#~ )
 
 class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
@@ -28,29 +21,26 @@ class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMix
     def name_of_the_worker(self):
         return 'adcirc_worker'
 
-    @legacy_function
-    def test_amuse():
-        function = LegacyFunctionSpecification()
-        function.result_type = 'i'
-        return function
-
-    @legacy_function
+    @remote_function
     def get_model_time():
-        function = LegacyFunctionSpecification()
-        function.addParameter("tend", dtype='d', direction=function.OUT ,unit=units.s)
-        function.result_type = 'i'
-        return function
-    @legacy_function
+        returns (time=0.| units.s)
+        
+    @remote_function
     def get_timestep():
-        function = LegacyFunctionSpecification()
-        function.addParameter("dt", dtype='d', direction=function.OUT ,unit=units.s)
-        function.result_type = 'i'
-        return function
-    @legacy_function
-    def evolve_model():
-        function = LegacyFunctionSpecification()
-        function.addParameter("tend", dtype='d', direction=function.IN ,unit=units.s)
-        function.result_type = 'i'
-        return function
+        returns (dt=0. | units.s)
+        
+    @remote_function
+    def evolve_model(tend=0. | units.s):
+        pass
 
+    @remote_function(can_handle_array=True)
+    def get_node_state(index=0):
+        returns (eta=0. | units.m,vx=0.| units.m/units.s,vy=0.| units.m/units.s)
 
+    @remote_function(can_handle_array=True)
+    def get_node_position(index=0):
+        returns (x=0.| units.m,y=0. | units.m)
+
+    @remote_function(can_handle_array=True)
+    def get_element_nodes(index=0):
+        returns (n1=0,n2=0,n3=0)

@@ -13,12 +13,13 @@ from amuse.io import read_set_from_file
 default_options = dict(redirection="none")
 #default_options=dict(debugger="gdb")
 
-class TestKromeInterface(TestWithMPI):
+class TestAdcircInterface(TestWithMPI):
 
     def test1(self):
         print "Test 1: start"
 
         instance = AdcircInterface(**default_options)
+        instance.cleanup_code()
         instance.stop()
 
     def test2(self):
@@ -26,4 +27,5 @@ class TestKromeInterface(TestWithMPI):
 
         instance = AdcircInterface(**default_options)
         instance.test_amuse()
+        instance.cleanup_code()
         instance.stop()

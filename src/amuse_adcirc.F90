@@ -58,16 +58,8 @@ function cleanup_code() result(ret)
   integer :: ret
 
   call ADCIRC_Final
-
   ret=0
   
-end function
-
-function test() result(ret)
- integer :: ret
-
- print*," G= ",g
- ret=0
 end function
 
 function commit_parameters() result(ret)
