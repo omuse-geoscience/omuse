@@ -12,7 +12,7 @@ function initialize_code() result(ret)
   USE ADCIRC_Mod, ONLY : ADCIRC_Init
   integer :: ret
 
-  CALL ADCIRC_Init
+  CALL ADCIRC_Init()
   
   ret=0
 end function
