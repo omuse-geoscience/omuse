@@ -2,7 +2,7 @@ import numpy
 
 from amuse.units import units
 
-from amuse.datamodel import Particles,Particle
+from amuse.datamodel import Grid
 
 class adcirc_file_reader(file):
   def read_string(self,n=80):
@@ -157,39 +157,38 @@ class adcirc_grid_reader(object):
     f.close()
 
   def get_sets(self):
-    nodes=Particles(self.parameters["NP"])
+    nodes=Grid(self.parameters["NP"])
     nodes.x=self.p[:,0] | self.unit_position
     nodes.y=self.p[:,1] | self.unit_position
     nodes.depth=self.p[:,2] | self.unit_length
+        
+    elements=Grid(self.parameters["NE"])
+    elements.nodes=[(x[1]-1,x[2]-1,x[3]-1) for x in self.t]
     
-    elements=Particles(self.parameters["NE"])
-    elements.nodes=[nodes[x[1:]-1] for x in self.t]
-    
-    boundary=Particles()
+    boundary=[]
     for type_,seg in self.elev_spec_boundary_seg:
       indices=seg-1
-      subset=nodes[indices]
-      boundary.add_particle(Particle(nodes=subset,btype="elev",subtype=type_))
+      boundary.append(dict(nodes=indices,btype="elev",subtype=type_))
     for type_,seg in self.flow_spec_boundary_seg:
-      subset=nodes[seg-1]
-      boundary.add_particle(Particle(nodes=subset,btype="flow",subtype=type_))
+      indices=seg-1
+      boundary.append(dict(nodes=indices,btype="flow",subtype=type_))
     
     return nodes,elements,boundary
   
 def assign_neighbours(nodes,elements):  
     for n in nodes:
-      n.neighbours=numpy.array(Particles(),dtype=numpy.object)
+      n.neighbours=set()
     
     for e in elements:
       p1=e.nodes[0]
       p2=e.nodes[1]
       p3=e.nodes[2]
-      p1.neighbours.ensure_presence_of(p2)
-      p1.neighbours.ensure_presence_of(p3)
-      p2.neighbours.ensure_presence_of(p1)
-      p2.neighbours.ensure_presence_of(p3)
-      p3.neighbours.ensure_presence_of(p1)
-      p3.neighbours.ensure_presence_of(p2)
+      nodes[p1].neighbours.add(p2)
+      nodes[p1].neighbours.add(p3)
+      nodes[p2].neighbours.add(p1)
+      nodes[p2].neighbours.add(p3)
+      nodes[p3].neighbours.add(p1)
+      nodes[p3].neighbours.add(p2)
      
 def get_edges(elements):
     edges=set()
@@ -204,11 +203,11 @@ nodes,elements,boundary=a.get_sets()
 assign_neighbours(nodes,elements)
 edges=get_edges(elements)
 
-print nodes
+print nodes[1].neighbours
 print 
 print elements
 print
-
+print boundary
 
 a=adcirc_parameter_reader()
 a.read_parameters()
