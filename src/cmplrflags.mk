@@ -36,9 +36,9 @@ ifeq ($(compiler),amuse)
   endif
   FFLAGS2       :=  $(FFLAGS1)
   FFLAGS3       :=  $(FFLAGS1)
-  DA            :=  -DREAL8 -DLINUX -DCSCA
-  DP            :=  -DREAL8 -DLINUX -DCSCA -DCMPI
-  DPRE          :=  -DREAL8 -DLINUX
+  DA            :=  -DAMUSE -DREAL8 -DLINUX -DCSCA
+  DP            :=  -DAMUSE -DREAL8 -DLINUX -DCSCA -DCMPI
+  DPRE          :=  -DAMUSE -DREAL8 -DLINUX
   ifeq ($(SWAN),enable)
      DPRE          := $(DPRE) -DADCSWAN
   endif

@@ -3,6 +3,21 @@ module adcirc_interface
 
 contains
   
+function get_use_interface_elevation_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  flag=use_interface_elevation_boundary
+  ret=0
+end function  
+function set_use_interface_elevation_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  use_interface_elevation_boundary=flag
+  ret=0
+end function  
+
+
+  
 function get_node_state(ind,eta2_,uu2_,vv2_) result(ret)
   integer :: ind,ret
   real*8 :: eta2_,uu2_,vv2_
@@ -83,6 +98,30 @@ function get_elevation_boundary_node(inode,iseg,index_node) result(ret)
   ret=0
 end function
 
+function get_elevation_boundary_eta(inode,iseg,eta) result(ret)
+  integer :: ret, inode,iseg,index_node,i  
+  real*8 :: eta
+  i=sum(NVDLL(1:iseg-1))+inode
+  if(NBD(i).NE.NBDV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  eta=ESBIN(i)
+  ret=0
+end function
+
+function set_elevation_boundary_eta(inode,eta,iseg) result(ret)
+  integer :: ret, inode,iseg,index_node,i  
+  real*8 :: eta
+  i=sum(NVDLL(1:iseg-1))+inode
+  if(NBD(i).NE.NBDV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  ESBIN(i)=eta
+  ret=0
+end function
+
 function get_number_of_flow_boundary_segments(nout) result(ret)
   integer :: ret, nout
   nout=NBOU
@@ -106,10 +145,6 @@ function get_flow_boundary_type(inode,iseg,type_) result(ret)
   type_=IBTYPE(iseg)
   ret=0
 end function
-
-
-
-
 
 end module
 
