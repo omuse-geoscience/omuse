@@ -9,8 +9,8 @@ FFLAGS += -I./src/ -I./src/odir3/
 
 all: src/libadcirc.a src/amuse_adcirc.o adcirc_worker
 
-src/libadcirc.a:
-	make -C src/ adcirc libadcirc.a LIBADC=libadcirc.a BUILDTYPE=libadcirc.a FC="$(FC)" PFC="$(MPIFC)" compiler="amuse"
+src/libadcirc.a: adcirc/v50release_121024/src/*.F
+	make -C src/ libadcirc.a LIBADC=libadcirc.a BUILDTYPE=libadcirc.a FC="$(FC)" PFC="$(MPIFC)" compiler="amuse"
 
 src/amuse_adcirc.o: src/amuse_adcirc.F90
 	make -C src/ amuse_adcirc.o LIBADC=libadcirc.a BUILDTYPE=libadcirc.a FC="$(FC)" PFC="$(MPIFC)" compiler="amuse"

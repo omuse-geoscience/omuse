@@ -69,6 +69,14 @@ class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMix
     def get_elevation_boundary_node(index=0,index_of_segment=0):
         returns (node_index=0)
 
+    @remote_function(can_handle_array=True)
+    def set_elevation_boundary_eta(index=0,eta=0. | units.m,index_of_segment=0):
+        returns ()
+
+    @remote_function(can_handle_array=True)
+    def get_elevation_boundary_eta(index=0,index_of_segment=0):
+        returns (eta=0. | units.m)
+
     @remote_function
     def get_number_of_flow_boundary_segments():
         returns (n_elev_boundaries=0)
@@ -85,6 +93,13 @@ class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMix
     def get_flow_boundary_type(index=0,index_of_segment=0):
         returns (node_type=0)
 
+    @remote_function
+    def get_use_interface_elevation_boundary():
+        returns (use_interface_elevation_boundary='b')
+    @remote_function
+    def set_use_interface_elevation_boundary(use_interface_elevation_boundary='b'):
+        returns ()
+
 
 class Adcirc(CommonCode):
     def __init__(self, **options):
@@ -99,6 +114,15 @@ class Adcirc(CommonCode):
         return 1,self.get_number_of_nodes_in_elevation_boundary_segment(index_of_segment)
     def get_firstlast_node_of_flow_boundary_segment(self,index_of_segment):
         return 1,self.get_number_of_nodes_in_flow_boundary_segment(index_of_segment)
+
+    def define_parameters(self, object):
+        object.add_default_form_parameter(
+            "use_interface_elevation_boundary", 
+            "toggle the use of interface boundary conditions for the elevation specified boundaries", 
+            False
+        )
+      
+
   
     def define_particle_sets(self, object):
         object.define_grid('nodes',axes_names = ['x','y'])
@@ -119,6 +143,8 @@ class Adcirc(CommonCode):
     def specify_elevation_boundary_grid(self, definition, index=1):
         definition.set_grid_range('get_firstlast_node_of_elevation_boundary_segment') 
         definition.add_getter('get_elevation_boundary_node', names=('node',))
+        definition.add_getter('get_elevation_boundary_eta', names=('eta',))
+        definition.add_setter('set_elevation_boundary_eta', names=('eta',))
         definition.define_extra_keywords({'index_of_segment':index})
 
     def flow_boundaries(self):
