@@ -21,6 +21,9 @@ function initialize_code() result(ret)
   CALL ADCIRC_Init(ROOTD=ROOTDIR)
   allocate( ESBIN(MNETA) )
   ESBIN(:)=0.
+  allocate( WSX(MNP),WSY(MNP) )
+  WSX(:)=0.
+  WSY(:)=0.
   ret=0
 end function
 
@@ -31,6 +34,10 @@ function evolve_model(tend) result(ret)
     call ADCIRC_Run(1)
   enddo
   if(.not.use_interface_elevation_boundary) ESBIN(1:NETA)=ETA2(NBD(1:NETA))
+  if(.not.use_interface_met_forcing) then
+    WSX(1:NP)=WSX2(w:NP)
+    WSY(1:NP)=WSY2(w:NP)  
+  endif
   ret=0
 end function
 
@@ -77,6 +84,19 @@ function set_use_interface_elevation_boundary(flag) result(ret)
   ret=0
 end function  
 
+function get_use_interface_met_forcing(flag) result(ret)
+  integer :: ret
+  logical flag
+  flag=use_interface_met_forcing
+  ret=0
+end function  
+function set_use_interface_met_forcing(flag) result(ret)
+  integer :: ret
+  logical flag
+  use_interface_met_forcing=flag
+  ret=0
+end function  
+
 function get_node_state(ind,eta2_,uu2_,vv2_) result(ret)
   integer :: ind,ret
   real*8 :: eta2_,uu2_,vv2_
@@ -105,7 +125,6 @@ function get_node_coriolis_f(ind,corif_) result(ret)
   corif_=CORIF(ind)
   ret=0
 end function
-
 function set_node_coriolis_f(ind,corif_) result(ret)
   integer :: ind,ret
   real*8 :: corif_
@@ -113,6 +132,20 @@ function set_node_coriolis_f(ind,corif_) result(ret)
   ret=0
 end function
 
+function get_node_wind_stress(ind,wsx_,wsy_) result(ret)
+  integer :: ind,ret
+  real*8 :: wsx_,wsy_
+  wsx_=WSX(ind)
+  wsy_=WSY(ind)
+  ret=0
+end function
+function set_node_wind_stress(ind,wsx_,wsy_) result(ret)
+  integer :: ind,ret
+  real*8 :: wsx_,wsy_
+  WSX(ind)=wsx_
+  WSY(ind)=wsy_
+  ret=0
+end function
 
 function get_element_nodes(ind,n1,n2,n3) result(ret)
   integer :: ind,n1,n2,n3,ret
