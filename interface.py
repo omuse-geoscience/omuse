@@ -52,6 +52,13 @@ class AdcircInterface(CodeInterface,
     @remote_function(can_handle_array=True)
     def set_node_coriolis_f(index=0,coriolis_f=0. | units.s**-1):
         returns ()
+        
+    @remote_function(can_handle_array=True)
+    def get_node_wind_stress(index=0):
+        returns (tau_x=0. | units.Pa,tau_y=0. | units.Pa)
+    @remote_function(can_handle_array=True)
+    def set_node_wind_stress(index=0,tau_x=0.| units.Pa,tau_y=0. | units.Pa):
+        returns ()        
 
     @remote_function(can_handle_array=True)
     def get_node_position(index='i'):
@@ -116,6 +123,13 @@ class AdcircInterface(CodeInterface,
     def set_use_interface_elevation_boundary(use_interface_elevation_boundary='b'):
         returns ()
 
+    @remote_function
+    def get_use_interface_met_forcing():
+        returns (use_interface_met_forcing='b')
+    @remote_function
+    def set_use_interface_met_forcing(use_interface_met_forcing='b'):
+        returns ()
+
 
 class Adcirc(CommonCode):
     def __init__(self, **options):
@@ -137,13 +151,27 @@ class Adcirc(CommonCode):
             "toggle the use of interface boundary conditions for the elevation specified boundaries", 
             False
         )
+        object.add_default_form_parameter(
+            "use_interface_met_forcing", 
+            "toggle the use of interface meteorological forcings", 
+            False
+        )
+
         
     def define_particle_sets(self, object):
         object.define_grid('nodes',axes_names = ['x','y'])
-        object.set_grid_range('nodes', 'get_firstlast_node')    
+        object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_state', names=('eta','vx','vy'))
         object.add_getter('nodes', 'get_node_position', names=('x','y'))
-  
+
+        object.define_grid('forcings',axes_names = ['x','y'])
+        object.set_grid_range('forcings', 'get_firstlast_node')
+        object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f'))
+        object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f'))
+        object.add_getter('forcings', 'get_node_wind_stress', names=('tau_x','tau_y'))
+        object.add_setter('forcings', 'set_node_wind_stress', names=('tau_x','tau_y'))
+        object.add_getter('forcings', 'get_node_position', names=('x','y'))
+
         object.define_grid('elements',axes_names = ['x','y'])
         object.set_grid_range('elements', 'get_firstlast_element')    
         object.add_getter('elements', 'get_element_nodes', names=('n1','n2','n3'))

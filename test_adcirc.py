@@ -43,3 +43,22 @@ class TestAdcirc(TestWithMPI):
         self.assertEqual(rootdir,"data/test/")
         instance.cleanup_code()
         instance.stop()
+
+    def test1(self):
+        print "Test 1: parameters"
+
+        instance = Adcirc(**default_options)
+        instance.set_rootdir("data/test/")
+
+        self.assertEqual(instance.parameters.use_interface_elevation_boundary, False)
+        self.assertEqual(instance.parameters.use_interface_met_forcing, False)
+
+        instance.parameters.use_interface_elevation_boundary=True
+        instance.parameters.use_interface_met_forcing=True
+
+        self.assertEqual(instance.parameters.use_interface_elevation_boundary, True)
+        self.assertEqual(instance.parameters.use_interface_met_forcing, True)
+
+        instance.cleanup_code()
+        instance.stop()
+
