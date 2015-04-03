@@ -4,7 +4,9 @@ from amuse.community import *
 from amuse.support.options import option
 
 
-class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
+class AdcircInterface(CodeInterface, 
+                      CommonCodeInterface,
+                      LiteratureReferencesMixIn):
     """
     
     ADCIRC - ADvanced CIRCulation model
@@ -22,6 +24,13 @@ class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMix
         return 'adcirc_worker'
 
     @remote_function
+    def get_rootdir():
+        returns (rootdir="s")
+    @remote_function
+    def set_rootdir(rootdir="."):
+        returns ()
+
+    @remote_function
     def get_model_time():
         returns (time=0.| units.s)
         
@@ -36,6 +45,13 @@ class AdcircInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMix
     @remote_function(can_handle_array=True)
     def get_node_state(index=0):
         returns (eta=0. | units.m,vx=0.| units.m/units.s,vy=0.| units.m/units.s)
+
+    @remote_function(can_handle_array=True)
+    def get_node_coriolis_f(index=0):
+        returns (coriolis_f=0. | units.s**-1)
+    @remote_function(can_handle_array=True)
+    def set_node_coriolis_f(index=0,coriolis_f=0. | units.s**-1):
+        returns ()
 
     @remote_function(can_handle_array=True)
     def get_node_position(index='i'):
@@ -121,9 +137,7 @@ class Adcirc(CommonCode):
             "toggle the use of interface boundary conditions for the elevation specified boundaries", 
             False
         )
-      
-
-  
+        
     def define_particle_sets(self, object):
         object.define_grid('nodes',axes_names = ['x','y'])
         object.set_grid_range('nodes', 'get_firstlast_node')    
