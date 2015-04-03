@@ -2,6 +2,67 @@ module adcirc_interface
   use amuse_adcirc
 
 contains
+
+function set_rootdir(rootdir_) result(ret)
+  integer :: ret
+  character(256) :: rootdir_
+  ROOTDIR=rootdir_
+  ret=0
+end function
+function get_rootdir(rootdir_) result(ret)
+  integer :: ret
+  character(256) :: rootdir_
+  rootdir_=ROOTDIR
+  ret=0
+end function
+
+function initialize_code() result(ret)
+  integer :: ret
+  CALL ADCIRC_Init(ROOTD=ROOTDIR)
+  allocate( ESBIN(MNETA) )
+  ESBIN(:)=0.
+  ret=0
+end function
+
+function evolve_model(tend) result(ret)
+  integer :: ret
+  real(8) :: tend
+  do while(ITIME_BGN*DTDP+STATIM*86400.D0<tend-DTDP/2)
+    call ADCIRC_Run(1)
+  enddo
+  if(.not.use_interface_elevation_boundary) ESBIN(1:NETA)=ETA2(NBD(1:NETA))
+  ret=0
+end function
+
+function cleanup_code() result(ret)
+  integer :: ret
+  call ADCIRC_Final
+  ret=0  
+end function
+
+function commit_parameters() result(ret)
+ integer :: ret
+ ret=-2
+end function
+
+function recommit_parameters() result(ret)
+ integer :: ret
+ ret=-2
+end function
+
+function get_model_time(tout) result(ret)
+  integer :: ret
+  real(8) :: tout  
+  tout = STATIM*86400.D0+DTDP*ITIME_BGN
+  ret=0
+end function
+
+function get_timestep(dtout) result(ret)
+  integer :: ret
+  real(8) :: dtout  
+  dtout = DTDP  
+  ret=0
+end function
   
 function get_use_interface_elevation_boundary(flag) result(ret)
   integer :: ret
@@ -16,8 +77,6 @@ function set_use_interface_elevation_boundary(flag) result(ret)
   ret=0
 end function  
 
-
-  
 function get_node_state(ind,eta2_,uu2_,vv2_) result(ret)
   integer :: ind,ret
   real*8 :: eta2_,uu2_,vv2_
@@ -39,6 +98,21 @@ function get_node_position(ind,x_,y_) result(ret)
   y_=Y(ind)
   ret=0
 end function
+
+function get_node_coriolis_f(ind,corif_) result(ret)
+  integer :: ind,ret
+  real*8 :: corif_
+  corif_=CORIF(ind)
+  ret=0
+end function
+
+function set_node_coriolis_f(ind,corif_) result(ret)
+  integer :: ind,ret
+  real*8 :: corif_
+  CORIF(ind)=corif_
+  ret=0
+end function
+
 
 function get_element_nodes(ind,n1,n2,n3) result(ret)
   integer :: ind,n1,n2,n3,ret
