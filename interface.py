@@ -166,8 +166,8 @@ class Adcirc(CommonCode):
 
         object.define_grid('forcings',axes_names = ['x','y'])
         object.set_grid_range('forcings', 'get_firstlast_node')
-        object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f'))
-        object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f'))
+        object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f',))
+        object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f',))
         object.add_getter('forcings', 'get_node_wind_stress', names=('tau_x','tau_y'))
         object.add_setter('forcings', 'set_node_wind_stress', names=('tau_x','tau_y'))
         object.add_getter('forcings', 'get_node_position', names=('x','y'))

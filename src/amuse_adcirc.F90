@@ -21,6 +21,7 @@ end subroutine
 subroutine update_met_forcing()
   WSX2(1:NP)=WSX(1:NP)
   WSY2(1:NP)=WSY(1:NP)
+  NWS=OR(NWS,2**30)
 end subroutine
 
 end module
