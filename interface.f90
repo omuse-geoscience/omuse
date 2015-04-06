@@ -135,15 +135,15 @@ end function
 function get_node_wind_stress(ind,wsx_,wsy_) result(ret)
   integer :: ind,ret
   real*8 :: wsx_,wsy_
-  wsx_=WSX(ind)
-  wsy_=WSY(ind)
+  wsx_=WSX(ind)*RhoWat0
+  wsy_=WSY(ind)*RhoWat0
   ret=0
 end function
 function set_node_wind_stress(ind,wsx_,wsy_) result(ret)
   integer :: ind,ret
   real*8 :: wsx_,wsy_
-  WSX(ind)=wsx_
-  WSY(ind)=wsy_
+  WSX(ind)=wsx_/RhoWat0
+  WSY(ind)=wsy_/RhoWat0
   ret=0
 end function
 

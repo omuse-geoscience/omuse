@@ -44,7 +44,7 @@ class TestAdcirc(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
-    def test1(self):
+    def test2(self):
         print "Test 1: parameters"
 
         instance = Adcirc(**default_options)
@@ -62,3 +62,24 @@ class TestAdcirc(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
+    def test3(self):
+        instance = Adcirc(**default_options)
+        instance.set_rootdir("data/test/")
+        instance.initialize_code()
+
+        self.assertEqual(len(instance.nodes),63)
+        self.assertEqual(len(instance.elements),96)
+        self.assertEqual(len(instance.forcings),63)
+        
+        self.assertEquals(instance.forcings.coriolis_f, (63*[0.0])| units.s**-1)
+        self.assertEquals(instance.forcings.tau_x, ([0.0])| units.Pa)
+        self.assertEquals(instance.forcings.tau_y, ([0.0])| units.Pa)
+
+        instance.forcings.coriolis_f=numpy.arange(63) | units.s**-1
+        self.assertEquals(instance.forcings.coriolis_f, range(63)| units.s**-1)
+        forcings=instance.forcings.empty_copy()
+        forcings.tau_x=(numpy.arange(63)+123) | units.Pa
+        forcings.tau_y=numpy.arange(63) | units.Pa
+        forcings.new_channel_to(instance.forcings).copy_attributes(["tau_x","tau_y"])
+        self.assertEquals(instance.forcings.tau_x, range(123,123+63)| units.Pa)
+        self.assertEquals(instance.forcings.tau_y, range(63)| units.Pa)
