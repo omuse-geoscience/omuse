@@ -745,13 +745,13 @@ class QGmodel(CommonCode):
           self._boundaries[i+1]="self."+name
           self._boundaries[side]="self."+name
 
-    def west_boundary_updater(self):
+    def west_boundary_updater(self,boundary):
         raise Exception("define update function for interface boundaries")
-    def east_boundary_updater(self):
+    def east_boundary_updater(self,boundary):
         raise Exception("define update function for interface boundaries")
-    def south_boundary_updater(self):
+    def south_boundary_updater(self,boundary):
         raise Exception("define update function for interface boundaries")
-    def north_boundary_updater(self):
+    def north_boundary_updater(self,boundary):
         raise Exception("define update function for interface boundaries")
         
     def update_boundaries(self):
@@ -1115,7 +1115,7 @@ class QGmodelWithRefinements(QGmodel):
       self.refinements=[]
       self.verbose=False
       if 'verbose' in kwargs:
-        self.verbose=verbose
+        self.verbose=kwargs["verbose"]
       self._args=args
       self._kwargs=kwargs
       QGmodel.__init__(self,*args,**kwargs)
@@ -1203,6 +1203,8 @@ class QGmodelWithRefinements(QGmodel):
         self.evolve_model_EREB(tend,dt)
       elif method=="BRE":
         self.evolve_model_BRE(tend,dt)
+      elif method=="RBE":
+        self.evolve_model_RBE(tend,dt)
       else:
         raise Exception("unknown method")
   
@@ -1276,6 +1278,25 @@ class QGmodelWithRefinements(QGmodel):
         for sys in self.refinements:
           sys.evolve_model(tnow+dt)
         tnow=self.model_time
+
+    def evolve_model_RBE(self,tend,dt=None):
+      if dt is None:
+        dt=2*self.parameters.dt
+      tnow=self.model_time
+      while tnow<tend-dt/2:
+        if len(self.refinements): 
+          if self.verbose: print "update refined regions...",
+          self.update_refined_regions()
+          if self.verbose: print "done"
+        for sys in self.refinements:
+          if self.verbose:  print "update boundaries...",
+          sys.update_boundaries()
+          if self.verbose:  print "done"
+        self.overridden().evolve_model(tnow+dt)
+        for sys in self.refinements:
+          sys.evolve_model(tnow+dt)
+        tnow=self.model_time
+
   
     def get_psi_dpsidt(self,dx,x,y,k=None):
       minx=x-dx/2
