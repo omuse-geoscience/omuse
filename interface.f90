@@ -18,12 +18,7 @@ end function
 
 function initialize_code() result(ret)
   integer :: ret
-  CALL ADCIRC_Init(ROOTD=ROOTDIR)
-  allocate( ESBIN(MNETA) )
-  ESBIN(:)=0.
-  allocate( WSX(MNP),WSY(MNP) )
-  WSX(:)=0.
-  WSY(:)=0.
+  ROOTDIR='.'
   ret=0
 end function
 
@@ -48,8 +43,14 @@ function cleanup_code() result(ret)
 end function
 
 function commit_parameters() result(ret)
- integer :: ret
- ret=-2
+  integer :: ret
+  CALL ADCIRC_Init(ROOTD=ROOTDIR)
+  allocate( ESBIN(MNETA) )
+  ESBIN(:)=0.
+  allocate( WSX(MNP),WSY(MNP) )
+  WSX(:)=0.
+  WSY(:)=0.
+  ret=0
 end function
 
 function recommit_parameters() result(ret)
