@@ -3,6 +3,7 @@ from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.community import *
 from amuse.support.options import option
 
+from write_grid import adcirc_grid_writer,adcirc_parameter_writer
 
 class AdcircInterface(CodeInterface, 
                       CommonCodeInterface,
@@ -136,6 +137,23 @@ class Adcirc(CommonCode):
         # option for carthesian/ spherical coordinates
         CommonCode.__init__(self,  AdcircInterface(**options), **options)
 
+    def specify_grid_and_boundary(self,nodes,elements,boundary):
+        self._nodes=nodes
+        self._elements=elements
+        self._boundary=boundary
+
+    def commit_parameters(self):        
+        if self.parameters.use_interface_parameters:
+          A_H=self.parameters.A_H
+          dt=self.parameters.timestep
+          use_precor=self.parameters.use_predictor_corrector
+          param=adcirc_parameter_writer()
+          param.set_non_default(A_H, dt, use_precor)
+          param.write()
+        if self.parameters.use_interface_grid:
+          adcirc_grid_writer().write_grid(self._nodes,self._elements, self._boundary)
+        self.overridden().commit_parameters()
+
     def get_firstlast_node(self):
         return 1,self.get_number_of_nodes()
     def get_firstlast_element(self):
@@ -156,8 +174,32 @@ class Adcirc(CommonCode):
             "toggle the use of interface meteorological forcings", 
             False
         )
+        object.add_interface_parameter(
+            "A_H",
+            "turbulent lateral friction coefficient",
+            default_value = 100.0 | units.m**2/units.s
+        ) 
+        object.add_interface_parameter(
+            "timestep",
+            "ADCIRC timestep",
+            default_value = 360.0 | units.s
+        ) 
+        object.add_interface_parameter(
+            "use_predictor_corrector",
+            "flag for use of predictor corrector integrator",
+            default_value = True
+        ) 
+        object.add_interface_parameter(
+            "use_interface_parameters",
+            "flag for use of interface parameters (i.e. write fort.15)",
+            default_value = False
+        ) 
+        object.add_interface_parameter(
+            "use_interface_grid",
+            "flag for use of interface grid (i.e. write fort.14)",
+            default_value = False
+        )
 
-        
     def define_particle_sets(self, object):
         object.define_grid('nodes',axes_names = ['x','y'])
         object.set_grid_range('nodes', 'get_firstlast_node')
