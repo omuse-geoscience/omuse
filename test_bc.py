@@ -287,6 +287,10 @@ def test_evolve_w_plot(sysfac,tend=1. | units.hour,dt=3600. | units.s,dtplot=Non
     f1.set_xlabel("x (x1000 km)")
         
     pyplot.draw()
+    pyplot.savefig("test_bc.png")
+    if i%100==25: 
+      print "wait"
+      raw_input()
   print "done"
   raw_input()
 
