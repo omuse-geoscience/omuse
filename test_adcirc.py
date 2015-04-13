@@ -48,7 +48,9 @@ class TestAdcirc(TestWithMPI):
         print "Test 1: parameters"
 
         instance = Adcirc(**default_options)
+        instance.initialize_code()
         instance.set_rootdir("data/test/")
+        instance.commit_parameters()
 
         self.assertEqual(instance.parameters.use_interface_elevation_boundary, False)
         self.assertEqual(instance.parameters.use_interface_met_forcing, False)
@@ -64,8 +66,9 @@ class TestAdcirc(TestWithMPI):
 
     def test3(self):
         instance = Adcirc(**default_options)
-        instance.set_rootdir("data/test/")
         instance.initialize_code()
+        instance.set_rootdir("data/test/")
+        instance.commit_parameters()
 
         self.assertEqual(len(instance.nodes),63)
         self.assertEqual(len(instance.elements),96)
