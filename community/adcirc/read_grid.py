@@ -197,18 +197,20 @@ def get_edges(elements):
         edges.add( frozenset([e.nodes[i],e.nodes[j]]) )
     return edges
 
-a=adcirc_grid_reader()
-a.read_grid()
-nodes,elements,boundary=a.get_sets()
-assign_neighbours(nodes,elements)
-edges=get_edges(elements)
-
-print nodes[1].neighbours
-print 
-print elements
-print
-print boundary
-
-a=adcirc_parameter_reader()
-a.read_parameters()
-print a.parameters
+if __name__=="__main__":
+    a=adcirc_grid_reader()
+    a.read_grid()
+    nodes,elements,boundary=a.get_sets()
+    assign_neighbours(nodes,elements)
+    edges=get_edges(elements)
+    
+    print nodes[1].neighbours
+    print 
+    print elements
+    print
+    print boundary
+    
+    a=adcirc_parameter_reader()
+    a.read_parameters()
+    print a.parameters
+    
