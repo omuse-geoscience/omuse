@@ -40,7 +40,7 @@ default_parameters={
  "ESLM": dict(dtype=float , value=1000.0, description="LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1"),
  "CORI": dict(dtype=float , value=0.0, description="CORIOLIS PARAMETER: IGNORED IF NCOR = 1"),
  "NTIF": dict(dtype=int , value=0, description="TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BEING FORCED"),
- "NBFR": dict(dtype=int , value=0, description="TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES"),
+ "NBFR": dict(dtype=int , value=-1, description="TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES"),
  "ANGINN": dict(dtype=float , value=110.0, description="INNER ANGLE THRESHOLD"),
  "ITITER": dict(dtype=int, value=1, description="ALGEBRAIC SOLUTION PARAMETER: iterative or lumped"),
  "ISLDIA": dict(dtype=int, value=0, description="ALGEBRAIC SOLUTION PARAMETER: solver verbosity"),
@@ -154,7 +154,7 @@ class adcirc_grid_writer(object):
     self.unit_length = units.m
     self.unit_position = units.m
 
-  def write(self,x,y,depth,elements,boundary):
+  def write(self,x,y,depth,elements,elev_boundary,flow_boundary):
     f=adcirc_file_writer(self.filename,'w')
     f.write_var("AMUSE grid")
     f.write_var(len(elements),len(x))
@@ -162,23 +162,31 @@ class adcirc_grid_writer(object):
       f.write_var(i,x_,y_,d_)
     for i,n in enumerate(elements):
       f.write_var(i+1,3,n[0],n[1],n[2])
-    f.write_var(0)
-    f.write_var(0)
-    f.write_var(len(boundary))
-    NVEL=sum(map(lambda x:len(x[0]), boundary))
+
+    f.write_var(len(elev_boundary))
+    NETA=sum(map(lambda x:len(x[0]), elev_boundary))
+    f.write_var(NETA)
+    for b,t in elev_boundary:
+      f.write_var(len(b), t)
+      for node in b: f.write_var(node)    
+    
+    f.write_var(len(flow_boundary))
+    NVEL=sum(map(lambda x:len(x[0]), flow_boundary))
     f.write_var(NVEL)
-    for b,t in boundary:
+    for b,t in flow_boundary:
       f.write_var(len(b),t)
       for node in b: f.write_var(node)    
+      
     f.close()
 
-  def write_grid(self, nodes, elements, boundary):
+  def write_grid(self, nodes, elements, elev_boundary,flow_boundary):
     x=nodes.x.value_in(self.unit_length)
     y=nodes.y.value_in(self.unit_length)
     depth=nodes.depth.value_in(self.unit_length)
     element_nodes=elements.nodes+1
-    boundary_nodes=[(b.nodes+1,t) for b,t in boundary] 
-    self.write(x,y,depth,element_nodes,boundary_nodes)
+    elev_boundary_nodes=[(b.nodes+1,0) for b in elev_boundary] # type = always zero atm
+    flow_boundary_nodes=[(b.nodes+1,b[0].type) for b in flow_boundary]
+    self.write(x,y,depth,element_nodes,elev_boundary_nodes,flow_boundary_nodes)
 
 if __name__=="__main__":
   from simple_triangulations import square_domain_sets

@@ -136,11 +136,17 @@ class Adcirc(CommonCode):
     def __init__(self, **options):
         # option for carthesian/ spherical coordinates
         CommonCode.__init__(self,  AdcircInterface(**options), **options)
+        self._nodes=None
+        self._elements=None
+        self._elev_boundary=None
+        self._flow_boundary=None
+        self._parameters=None
 
-    def specify_grid_and_boundary(self,nodes,elements,boundary):
+    def assign_grid_and_boundary(self,nodes,elements,elev_boundary, flow_boundary):
         self._nodes=nodes
         self._elements=elements
-        self._boundary=boundary
+        self._elev_boundary=elev_boundary
+        self._flow_boundary=flow_boundary
 
     def commit_parameters(self):        
         if self.parameters.use_interface_parameters:
@@ -148,10 +154,13 @@ class Adcirc(CommonCode):
           dt=self.parameters.timestep
           use_precor=self.parameters.use_predictor_corrector
           param=adcirc_parameter_writer()
+          if self._parameters is not None:
+            param.parameters=self._parameters
           param.set_non_default(A_H, dt, use_precor)
           param.write()
         if self.parameters.use_interface_grid:
-          adcirc_grid_writer().write_grid(self._nodes,self._elements, self._boundary)
+          adcirc_grid_writer().write_grid(self._nodes,self._elements, 
+            self._elev_boundary,self._flow_boundary)
         self.overridden().commit_parameters()
 
     def get_firstlast_node(self):

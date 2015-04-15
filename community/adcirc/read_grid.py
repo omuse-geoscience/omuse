@@ -55,11 +55,11 @@ class adcirc_parameter_reader(object):
   def __init__(self,filename="fort.15"):
     self.filename=filename
   
-  def read_parameters(self):
+  def read_parameters(self,NETA=None):
     f=adcirc_file_reader(self.filename,'r')
     param=dict()
     param["RUNDES"]=f.read_string(32)    
-    param["RUNDID"]=f.read_string(24)    
+    param["RUNID"]=f.read_string(24)    
     param["NFOVER"]=f.read_int()
     param["NABOUT"]=f.read_int()
     param["NSCREEN"]=f.read_int()
@@ -103,6 +103,45 @@ class adcirc_parameter_reader(object):
     else:
       param["DRAMP"]=None
     param["A00"],param["B00"],param["C00"]=f.read_value(float,float,float)
+    param["H0"]=f.read_value()
+    param["SLAM0"],param["SFEA0"]=f.read_value(float,float)
+    if param["NOLIBF"]==0:
+      param["TAU"]=f.read_value()
+    elif param["NOLIBF"]==1:
+      param["CF"]=f.read_value()
+    elif param["NOLIBF"]==2:
+      param["CF"],param["HBREAK"],param["FTHETA"],param["FGAMMA"]=f.read_value(float,float,float,float)
+    if param["IM"] in [0,1,2]:
+      param["ESLM"]=f.read_value()
+    elif param["IM"]==10:
+      param["ESLM"],param["ESLC"]=f.read_value(float,float)
+    param["CORI"]=f.read_value()
+    param["NTIF"]=f.read_int()
+    param["NBFR"]=f.read_int()
+    param["BOUNTAG"]=[]
+    param["AMIG"]=[]
+    param["FF"]=[]
+    param["FACE"]=[]
+    for i in range(param["NBFR"]):
+      param["BOUNTAG"].append(f.read_string(10))
+      amig,ff,face=f.read_value(float,float,float)
+      param["AMIG"].append(amig)
+      param["FF"].append(ff)
+      param["FACE"].append(face)
+    if NETA is not None:
+      for i in range(param["NBFR"]):
+        f.read_string(10)
+        for i in range(NETA):
+          emo,efa=f.read_value(float,float)
+    else:
+      f.close()
+    param["ANGINN"]=f.read_value()
+    for i in range(10):
+      f.readline()
+    param["ITITER"],param["ISLDIA"],param["CONVCR"],param["ITMAX"]=f.read_value(int,int,float,int)
+    f.close()
+    
+    
 
 
 #~ H0  include this line if NOLIFA =0, 1
@@ -165,15 +204,23 @@ class adcirc_grid_reader(object):
     elements=Grid(self.parameters["NE"])
     elements.nodes=[(x[1]-1,x[2]-1,x[3]-1) for x in self.t]
     
-    boundary=[]
+    elev_boundary=[]
     for type_,seg in self.elev_spec_boundary_seg:
       indices=seg-1
-      boundary.append(dict(nodes=indices,btype="elev",subtype=type_))
+      b=Grid(len(indices))
+      b.nodes=indices
+      b.type=type_
+      elev_boundary.append(b)
+    
+    flow_boundary=[]
     for type_,seg in self.flow_spec_boundary_seg:
       indices=seg-1
-      boundary.append(dict(nodes=indices,btype="flow",subtype=type_))
+      b=Grid(len(indices))
+      b.nodes=indices
+      b.type=type_
+      flow_boundary.append(b)
     
-    return nodes,elements,boundary
+    return nodes,elements,elev_boundary,flow_boundary
   
 def assign_neighbours(nodes,elements):  
     for n in nodes:
