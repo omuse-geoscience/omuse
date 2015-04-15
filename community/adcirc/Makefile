@@ -7,7 +7,10 @@ CLASSNAME=AdcircInterface
 
 FFLAGS += -I./src/ -I./src/odir3/
 
-all: src/libamuse_adcirc.a src/amuse_adcirc.o adcirc_worker
+all: src src/libamuse_adcirc.a src/amuse_adcirc.o adcirc_worker
+
+src:
+	$(error "please link src to correct src_v[version] directory")  
 
 src/libamuse_adcirc.a: adcirc/v50release_121024/src/*.F
 	make -C src/ libamuse_adcirc.a BUILDTYPE=amuse FC="$(FC)" PFC="$(MPIFC)" compiler="intel" FSO=-FI

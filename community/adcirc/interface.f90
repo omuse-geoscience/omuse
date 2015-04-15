@@ -1,5 +1,6 @@
 module adcirc_interface
   use amuse_adcirc
+  implicit none
 
 contains
 
@@ -30,8 +31,8 @@ function evolve_model(tend) result(ret)
   enddo
   if(.not.use_interface_elevation_boundary) ESBIN(1:NETA)=ETA2(NBD(1:NETA))
   if(.not.use_interface_met_forcing) then
-    WSX(1:NP)=WSX2(w:NP)
-    WSY(1:NP)=WSY2(w:NP)  
+    WSX(1:NP)=WSX2(1:NP)
+    WSY(1:NP)=WSY2(1:NP)  
   endif
   ret=0
 end function
