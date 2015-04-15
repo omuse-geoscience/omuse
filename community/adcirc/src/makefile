@@ -17,7 +17,7 @@ SRCDIR=../adcirc/v50release_121024/
 #
 $(warning (INFO) Guessing the type of platform ADCIRC will run on...)
 
-NAME     := $(shell ./config.guess)
+NAME     := $(shell $(SRCDIR)/work/config.guess)
 LIST     := $(subst -, ,$(NAME))
 MACHINE  := $(word 1, $(LIST))
 VENDOR   := $(word 2, $(LIST))
@@ -27,9 +27,9 @@ VTAG     := $(shell echo $(TAG) | sed -e 's/_/./g' -e 's/V//')
 
 PARALLEL_ADCIRC   := padcirc
 $(warning (INFO) Name is $(NAME), Machine is $(MACHINE), Vendor is $(VENDOR), and OS is $(OS).)
-include cmplrflags.mk
+include $(SRCDIR)/work/cmplrflags.mk
 #Casey 090302: Include variables/flags from SWAN.
-#include ../swan/macros.inc
+include $(SRCDIR)/swan/macros.inc
 
 ifneq ($(compiler),)
 $(warning (INFO) The compiler variable in cmplrflags.mk is set to $(compiler).)
@@ -144,9 +144,19 @@ ifeq ($(BUILDTYPE),padcswan)
 endif
 #                                    libadc.a
 ifeq ($(BUILDTYPE),$(LIBADC)) 
+  CF:= $(PFC)
+  FFLAGS:= $(FFLAGS3) $(DP) $(IMODS) $(O_DIR)
+  VPATH := $(SRCDIR):$(SRCDIR)/src:$(SRCDIR)/KDTREE2:$(SRCDIR)/wind:$(SRCDIR):$(SRCDIR)/prep 
+  ifeq ($(NETCDF),enable)
+    LIBS  := -L$(NETCDFHOME)/lib -lnetcdf $(FLIBS)
+  endif
+  MSG_MOBJ:= $(O_DIR)messenger.o $(O_DIR)writer.o
+endif
+#                                    libamuse_adcirc.a
+ifeq ($(BUILDTYPE),amuse) 
   CF:= $(FC)
   O_DIR:=odir3/
-  FFLAGS:= $(FFLAGS3) $(DA) $(IMODS) $(O_DIR)
+  FFLAGS:= $(FFLAGS3) -DAMUSE $(DA) $(IMODS) $(O_DIR)
   VPATH := $(SRCDIR):$(SRCDIR)/src:$(SRCDIR)/KDTREE2:$(SRCDIR)/wind:$(SRCDIR):$(SRCDIR)/prep 
   ifeq ($(NETCDF),enable)
     LIBS  := -L$(NETCDFHOME)/lib -lnetcdf $(FLIBS)
@@ -351,9 +361,8 @@ $(O_DIR)%.o  : %.F
 	$(CF) -c $(FFLAGS) -o $@  $<
 	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
 %.o  : %.F90
-	$(CF) -c $(FFLAGS) -o $@  $<
+	$(CF) -c $(filter-out $(FSO), $(FFLAGS) ) -o $@  $<
 	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
-
 
 # Casey 080106: Added the following rules for the unstructured SWAN.
 $(O_DIR)%.o  : %.f
@@ -464,8 +473,13 @@ endif
 	$(CF) $(FFLAGS) -o $@ $(wildcard $(O_DIR)*.o) $(LIBS) $(MSGLIBS)
 
    $(LIBADC) :: $(O_DIR) $(ADC_MOBJ) $(MSG_MOBJ) $(NA_MOBJ) $(GIO_MOBJ) $(AGIO_MOBJ) $(KDTREE_MOBJ) $(ADC_OBJ) 
+	ar $(ARFLAGS) $@  $(ADC_MOBJ) $(MSG_MOBJ) $(NA_MOBJ) $(GIO_MOBJ) $(AGIO_MOBJ) $(KDTREE_MOBJ) $(ADC_OBJ)
+	ar -ts $@
+
+   libamuse_adcirc.a :: $(O_DIR) $(ADC_MOBJ) $(MSG_MOBJ) $(NA_MOBJ) $(GIO_MOBJ) $(AGIO_MOBJ) $(KDTREE_MOBJ) $(ADC_OBJ) 
 	ar $(ARFLAGS) $@  $(filter-out $(O_DIR)driver.o, $(wildcard $(O_DIR)*.o)) 
 	ar -ts $@
+
 
 #Casey 080106: Added the following lines.
    adcswan :: $(O_DIR)
@@ -522,7 +536,7 @@ clean:
 clobber:
 	rm -r -f odir* 
 	rm -f adcprep adcprep_be adcirc $(PARALLEL_ADCIRC) adcswan padcswan p15 owi22 build13 aswip \
-           build12 buildstwave23 hot2asc inflate hstime sizes.o adcpost adccmp $(LIBADC)
+           build12 buildstwave23 hot2asc inflate hstime sizes.o adcpost adccmp libamuse_adcirc.a
 help:
 	@echo "This makefile supports the following:"
 	@echo "make all        - makes all seven targets"
@@ -560,13 +574,12 @@ cvstag:
 	  @echo "To cvs tag do: make cvstag TAG=V?_?"
 	endif
 
-
-
-########################## Defining the DAG  #################################
-
 # amuse module
 
 amuse_adcirc.o:  amuse_adcirc.F90
+
+
+########################## Defining the DAG  #################################
 
 #  adcprep modules
 

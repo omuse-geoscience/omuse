@@ -7,18 +7,18 @@ CLASSNAME=AdcircInterface
 
 FFLAGS += -I./src/ -I./src/odir3/
 
-all: src/libadcirc.a src/amuse_adcirc.o adcirc_worker
+all: src/libamuse_adcirc.a src/amuse_adcirc.o adcirc_worker
 
-src/libadcirc.a: adcirc/v50release_121024/src/*.F
-	make -C src/ libadcirc.a LIBADC=libadcirc.a BUILDTYPE=libadcirc.a FC="$(FC)" PFC="$(MPIFC)" compiler="amuse"
+src/libamuse_adcirc.a: adcirc/v50release_121024/src/*.F
+	make -C src/ libamuse_adcirc.a BUILDTYPE=amuse FC="$(FC)" PFC="$(MPIFC)" compiler="intel" FSO=-FI
 
 src/amuse_adcirc.o: src/amuse_adcirc.F90
-	make -C src/ amuse_adcirc.o LIBADC=libadcirc.a BUILDTYPE=libadcirc.a FC="$(FC)" PFC="$(MPIFC)" compiler="amuse"
+	make -C src/ amuse_adcirc.o BUILDTYPE=amuse FC="$(FC)" PFC="$(MPIFC)" compiler="intel" FSO=-FI
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 $< $(CLASSNAME) -o $@
 
-adcirc_worker: worker_code.f90 interface.o src/amuse_adcirc.o src/libadcirc.a 
+adcirc_worker: worker_code.f90 interface.o src/amuse_adcirc.o src/libamuse_adcirc.a 
 	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $^ -o $@  $(LIBS) $(SC_FCLIBS) $(FS_LIBS)
 
 %.o: %.f90
