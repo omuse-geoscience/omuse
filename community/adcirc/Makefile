@@ -7,11 +7,11 @@ CLASSNAME=AdcircInterface
 
 FFLAGS += -I./src/ -I./src/odir3/
 
-ifeq ($(findstring gfortran, $(notdir $(FORTRAN))), gfortran)
+ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
 compiler="gnu"
 endif
 
-ifeq ($(findstring ifort, $(notdir $(FORTRAN))), ifort)
+ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
 compiler="intel"
 endif
 
