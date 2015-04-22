@@ -7,16 +7,24 @@ CLASSNAME=AdcircInterface
 
 FFLAGS += -I./src/ -I./src/odir3/
 
+ifeq ($(findstring gfortran, $(notdir $(FORTRAN))), gfortran)
+compiler="gnu"
+endif
+
+ifeq ($(findstring ifort, $(notdir $(FORTRAN))), ifort)
+compiler="intel"
+endif
+
 all: src src/libamuse_adcirc.a src/amuse_adcirc.o adcirc_worker
 
 src:
 	$(error "please link src to correct src_v[version] directory")  
 
 src/libamuse_adcirc.a: adcirc/v50release_121024/src/*.F
-	make -C src/ libamuse_adcirc.a BUILDTYPE=amuse FC="$(FC)" PFC="$(MPIFC)" compiler="intel" FSO=-FI
+	make -C src/ libamuse_adcirc.a BUILDTYPE=amuse FC="$(FC)" PFC="$(MPIFC)" compiler=$(compiler) FSO=-FI
 
 src/amuse_adcirc.o: src/amuse_adcirc.F90
-	make -C src/ amuse_adcirc.o BUILDTYPE=amuse FC="$(FC)" PFC="$(MPIFC)" compiler="intel" FSO=-FI
+	make -C src/ amuse_adcirc.o BUILDTYPE=amuse FC="$(FC)" PFC="$(MPIFC)" compiler=$(compiler) FSO=-FI
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 $< $(CLASSNAME) -o $@
