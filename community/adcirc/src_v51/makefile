@@ -582,7 +582,7 @@ endif
 ########################## Misc Commands ####################################
 
 clean:
-	rm -f odir*/*.o  odir*/*.mod sizes.o  *.o *.mod
+	rm -f odir*/*.o  sizes.o  *.o
 	rm -f  ../swan/*.f ../swan/*.for ../swan/*.f90
 clobber:
 	rm -r -f odir* actualflags.txt
