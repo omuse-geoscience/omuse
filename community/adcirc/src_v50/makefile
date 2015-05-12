@@ -156,7 +156,7 @@ endif
 ifeq ($(BUILDTYPE),amuse) 
   CF:= $(FC)
   O_DIR:=odir3/
-  FFLAGS:= $(FFLAGS3) -DAMUSE $(DA) $(IMODS) $(O_DIR)
+  FFLAGS:= -g $(FFLAGS3) -DAMUSE $(DA) $(IMODS) $(O_DIR)
   VPATH := $(SRCDIR):$(SRCDIR)/src:$(SRCDIR)/KDTREE2:$(SRCDIR)/wind:$(SRCDIR):$(SRCDIR)/prep 
   ifeq ($(NETCDF),enable)
     LIBS  := -L$(NETCDFHOME)/lib -lnetcdf $(FLIBS)
