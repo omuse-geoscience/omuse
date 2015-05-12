@@ -26,9 +26,9 @@ class TestAdcircInterface(TestWithMPI):
         print "Test 2: rootdir"
 
         instance = AdcircInterface(**default_options)
-        instance.set_rootdir("data/test/")
+        instance.set_rootdir("data/test/2d")
         rootdir,err=instance.get_rootdir()
-        self.assertEqual(rootdir,"data/test/")
+        self.assertEqual(rootdir,"data/test/2d")
         instance.cleanup_code()
         instance.stop()
 
@@ -38,9 +38,9 @@ class TestAdcirc(TestWithMPI):
         print "Test 1: rootdir"
 
         instance = Adcirc(**default_options)
-        instance.set_rootdir("data/test/")
+        instance.set_rootdir("data/test/2d")
         rootdir=instance.get_rootdir()
-        self.assertEqual(rootdir,"data/test/")
+        self.assertEqual(rootdir,"data/test/2d")
         instance.cleanup_code()
         instance.stop()
 
@@ -49,7 +49,7 @@ class TestAdcirc(TestWithMPI):
 
         instance = Adcirc(**default_options)
         instance.initialize_code()
-        instance.set_rootdir("data/test/")
+        instance.set_rootdir("data/test/2d")
         instance.commit_parameters()
 
         self.assertEqual(instance.parameters.use_interface_elevation_boundary, False)
@@ -67,7 +67,7 @@ class TestAdcirc(TestWithMPI):
     def test3(self):
         instance = Adcirc(**default_options)
         instance.initialize_code()
-        instance.set_rootdir("data/test/")
+        instance.set_rootdir("data/test/2d")
         instance.commit_parameters()
 
         self.assertEqual(len(instance.nodes),63)
