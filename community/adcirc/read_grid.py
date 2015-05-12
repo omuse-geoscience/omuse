@@ -14,6 +14,11 @@ class adcirc_file_reader(file):
     if len(types)==0: types=(float,)
     result=[x(l) for x,l in zip(types,self.readline().split())]    
     return result[0] if len(result)==1 else result    
+  def read_value_rows(n,*types):
+    result=[]
+    for i in range(n):
+      result.append(self.read_value(*types))
+    return result
   def read_single_type_attributes(self,n,m,dtype=int):
     result=numpy.zeros((n,m),dtype)
     _n=0
@@ -56,93 +61,110 @@ class adcirc_parameter_reader(object):
     self.filename=filename
   
   def read_parameters(self,NETA=None):
-    f=adcirc_file_reader(self.filename,'r')
-    param=dict()
-    param["RUNDES"]=f.read_string(32)    
-    param["RUNID"]=f.read_string(24)    
-    param["NFOVER"]=f.read_int()
-    param["NABOUT"]=f.read_int()
-    param["NSCREEN"]=f.read_int()
-    param["IHOT"]=f.read_int()
-    param["ICS"]=f.read_int()
-    param["IM"]=f.read_int()
-    if param["IM"] in [20,30]:
-      param["IDEN"]=f.read_int()
-    else:
-      param["IDEN"]=None
-    param["NOLIBF"]=f.read_int()
-    param["NOLIFA"]=f.read_int()
-    param["NOLICA"]=f.read_int()
-    param["NOLICAT"]=f.read_int()
-    param["NWP"]=f.read_int()
-    param["AttrName"]=[]
-    for i in range(param["NWP"]):
-      param["AttrName"].append(f.read_string(80))
-    param["NCOR"]=f.read_int()
-    param["NTIP"]=f.read_int()
-    param["NWS"]=f.read_int()
-    param["NRAMP"]=f.read_int()
-    param["G"]=f.read_value()    
-    param["TAU0"]=f.read_value()
-    if param["TAU0"]==-5.0:
-      _x,_y=f.read_value(float,float)
-      param["Tau0FullDomainMin"]=_x
-      param["Tau0FullDomainMax"]=_y
-    else:
-      param["Tau0FullDomainMin"]=None
-      param["Tau0FullDomainMax"]=None
-    param["DTDP"]=f.read_value()
-    param["STATIM"]=f.read_value()
-    param["REFTIM"]=f.read_value()
-#~ WTIMINC  Supplemental Meteorological/Wave/Ice Parameters Line
-    param["RNDAY"]=f.read_value()
-    if param["NRAMP"] in [0,1]:
-      param["DRAMP"]=f.read_value()
-    elif param["NRAMP"] in [2,3,4,5,6,7,8]:
-      raise Exception("tbd")
-    else:
-      param["DRAMP"]=None
-    param["A00"],param["B00"],param["C00"]=f.read_value(float,float,float)
-    param["H0"]=f.read_value()
-    param["SLAM0"],param["SFEA0"]=f.read_value(float,float)
-    if param["NOLIBF"]==0:
-      param["TAU"]=f.read_value()
-    elif param["NOLIBF"]==1:
-      param["CF"]=f.read_value()
-    elif param["NOLIBF"]==2:
-      param["CF"],param["HBREAK"],param["FTHETA"],param["FGAMMA"]=f.read_value(float,float,float,float)
-    if param["IM"] in [0,1,2]:
-      param["ESLM"]=f.read_value()
-    elif param["IM"]==10:
-      param["ESLM"],param["ESLC"]=f.read_value(float,float)
-    param["CORI"]=f.read_value()
-    param["NTIF"]=f.read_int()
-    param["NBFR"]=f.read_int()
-    param["BOUNTAG"]=[]
-    param["AMIG"]=[]
-    param["FF"]=[]
-    param["FACE"]=[]
-    for i in range(param["NBFR"]):
-      param["BOUNTAG"].append(f.read_string(10))
-      amig,ff,face=f.read_value(float,float,float)
-      param["AMIG"].append(amig)
-      param["FF"].append(ff)
-      param["FACE"].append(face)
-    if NETA is not None:
+    with adcirc_file_reader(self.filename,'r') as f:
+      param=dict()
+      param["RUNDES"]=f.read_string(32)    
+      param["RUNID"]=f.read_string(24)    
+      param["NFOVER"]=f.read_int()
+      param["NABOUT"]=f.read_int()
+      param["NSCREEN"]=f.read_int()
+      param["IHOT"]=f.read_int()
+      param["ICS"]=f.read_int()
+      param["IM"]=f.read_int()
+      if param["IM"] in [20,30]:
+        param["IDEN"]=f.read_int()
+      else:
+        param["IDEN"]=None
+      param["NOLIBF"]=f.read_int()
+      param["NOLIFA"]=f.read_int()
+      param["NOLICA"]=f.read_int()
+      param["NOLICAT"]=f.read_int()
+      param["NWP"]=f.read_int()
+      param["AttrName"]=[]
+      for i in range(param["NWP"]):
+        param["AttrName"].append(f.read_string(80))
+      param["NCOR"]=f.read_int()
+      param["NTIP"]=f.read_int()
+      param["NWS"]=f.read_int()
+      param["NRAMP"]=f.read_int()
+      param["G"]=f.read_value()    
+      param["TAU0"]=f.read_value()
+      if param["TAU0"]==-5.0:
+        _x,_y=f.read_value(float,float)
+        param["Tau0FullDomainMin"]=_x
+        param["Tau0FullDomainMax"]=_y
+      else:
+        param["Tau0FullDomainMin"]=None
+        param["Tau0FullDomainMax"]=None
+      param["DTDP"]=f.read_value()
+      param["STATIM"]=f.read_value()
+      param["REFTIM"]=f.read_value()
+  #~ WTIMINC  Supplemental Meteorological/Wave/Ice Parameters Line
+      param["RNDAY"]=f.read_value()
+      if param["NRAMP"] in [0,1]:
+        param["DRAMP"]=f.read_value()
+      elif param["NRAMP"] in [2,3,4,5,6,7,8]:
+        raise Exception("tbd")
+      else:
+        param["DRAMP"]=None
+      param["A00"],param["B00"],param["C00"]=f.read_value(float,float,float)
+      param["H0"]=f.read_value()
+      param["SLAM0"],param["SFEA0"]=f.read_value(float,float)
+      if param["NOLIBF"]==0:
+        param["TAU"]=f.read_value()
+      elif param["NOLIBF"]==1:
+        param["CF"]=f.read_value()
+      elif param["NOLIBF"]==2:
+        param["CF"],param["HBREAK"],param["FTHETA"],param["FGAMMA"]=f.read_value(float,float,float,float)
+      if param["IM"] in [0,1,2]:
+        param["ESLM"]=f.read_value()
+      elif param["IM"]==10:
+        param["ESLM"],param["ESLC"]=f.read_value(float,float)
+      param["CORI"]=f.read_value()
+      param["NTIF"]=f.read_int()
+      param["NBFR"]=f.read_int()
+      param["BOUNTAG"]=[]
+      param["AMIG"]=[]
+      param["FF"]=[]
+      param["FACE"]=[]
       for i in range(param["NBFR"]):
-        f.read_string(10)
-        for i in range(NETA):
-          emo,efa=f.read_value(float,float)
-    else:
-      f.close()
-    param["ANGINN"]=f.read_value()
-    for i in range(10):
-      f.readline()
-    param["ITITER"],param["ISLDIA"],param["CONVCR"],param["ITMAX"]=f.read_value(int,int,float,int)
-    f.close()
-    
-    
-
+        param["BOUNTAG"].append(f.read_string(10))
+        amig,ff,face=f.read_value(float,float,float)
+        param["AMIG"].append(amig)
+        param["FF"].append(ff)
+        param["FACE"].append(face)
+      if NETA is not None:
+        for i in range(param["NBFR"]):
+          f.read_string(10)
+          for i in range(NETA):
+            emo,efa=f.read_value(float,float)
+      else:
+        f.close()
+      param["ANGINN"]=f.read_value()
+      for i in range(10):
+        f.readline()
+      param["ITITER"],param["ISLDIA"],param["CONVCR"],param["ITMAX"]=f.read_value(int,int,float,int)
+      if param['IM'] in [1,11,21,31,2]:
+        # continue reading 3D info
+        param["IDEN"]=f.read_int()
+        param['ISLIP'],param['KP']=f.read_value(int,float)
+        param['Z0S'],param['Z0B']=f.read_value(float,float)
+        param['ALP1'],param['ALP2'],param['ALP3']=f.read_value(float,float,float)
+        param['IGC'],param['NFEN']=f.read_int(2)
+        param["SIGMA"]=None
+        if  param['IGC']==0:
+          param['SIGMA']=f.read_value_rows(param['NFEN'],float)
+        param['IEVC'],param['EVMIN'],param['EVCON']=f.read_value(int,float,float)
+        if param['IEVC'] in [50,51]:
+          param['THETA1'],param['THETA2']=f.read_value(float,float)
+        param['EVTOT']=None
+        if param['IEVC']==0: 
+          param[EVTOT]=f.read_value_rows(param['NFEN'],float)
+        for i in range(9):
+          f.readline()
+        if param['IM'] in [21,31]:
+          param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP']=f.read_int(3)
+          raise Exception("tbd: 3D baroclinic input")
 
 #~ H0  include this line if NOLIFA =0, 1
 #~ H0, INTEGER, INTEGER, VELMIN  include this line if NOLIFA =2, 3
