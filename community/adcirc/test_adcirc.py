@@ -32,6 +32,25 @@ class TestAdcircInterface(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
+    def test3(self):
+        print "Test 2: rootdir"
+
+        instance = AdcircInterface(**default_options)
+        instance.set_rootdir("data/test/3d")
+        instance.commit_parameters()
+        zn,err=instance.get_number_of_vertical_nodes()
+        self.assertEqual(err,0)
+        self.assertEqual(zn,21)
+        
+        s,err=instance.get_node_sigma(1,1)
+        self.assertEqual(s,-1.)
+        s,err=instance.get_node_sigma(zn,1)
+        self.assertEqual(s,1.)
+                
+        instance.cleanup_code()
+        instance.stop()
+
+
 class TestAdcirc(TestWithMPI):
 
     def test1(self):
@@ -86,3 +105,20 @@ class TestAdcirc(TestWithMPI):
         forcings.new_channel_to(instance.forcings).copy_attributes(["tau_x","tau_y"])
         self.assertEquals(instance.forcings.tau_x, range(123,123+63)| units.Pa)
         self.assertEquals(instance.forcings.tau_y, range(63)| units.Pa)
+
+        instance.cleanup_code()
+        instance.stop()
+
+
+    def test4(self):
+        instance = Adcirc(mode="3D",**default_options)
+        instance.initialize_code()
+        instance.set_rootdir("data/test/3d")
+        instance.commit_parameters()
+        
+        print instance.nodes.sigma
+        print instance.nodes[11].sigma
+        instance.cleanup_code()
+        instance.stop()
+        
+        

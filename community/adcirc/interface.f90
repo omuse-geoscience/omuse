@@ -149,6 +149,21 @@ function set_node_wind_stress(ind,wsx_,wsy_) result(ret)
   ret=0
 end function
 
+function get_node_sigma(ind,indz,s_) result(ret)
+  integer :: ind,indz,ret
+  real*8 :: s_
+  if(ind.LT.1.OR.ind.GT.NP) then
+    ret=-1
+    return
+  endif
+  if(indz.LT.1.OR.indz.GT.NFEN) then
+    ret=-1
+    return
+  endif
+  s_=SIGMA(indz)
+  ret=0
+end function
+
 function get_element_nodes(ind,n1,n2,n3) result(ret)
   integer :: ind,n1,n2,n3,ret
   if(ind.LT.1.OR.ind.GT.NE) then
@@ -254,6 +269,13 @@ function get_flow_boundary_type(inode,iseg,type_) result(ret)
   type_=IBTYPE(iseg)
   ret=0
 end function
+
+function get_number_of_vertical_nodes(nout) result(ret)
+  integer :: ret,nout
+  nout=NFEN
+  ret=0  
+end function
+
 
 end module
 
