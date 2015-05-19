@@ -66,12 +66,20 @@ class AdcircInterface(CodeInterface,
         returns (x=0.| units.m,y=0. | units.m)
 
     @remote_function(can_handle_array=True)
+    def get_node_depth(index='i'):
+        returns (depth=0.| units.m)
+
+    @remote_function(can_handle_array=True)
     def get_node_sigma(index='i',zindex='i'):
-        returns (sigma='d')
+        returns (sigma='d',z='d' | units.m)
 
     @remote_function(can_handle_array=True)
     def get_element_position(index='i'):
         returns (x=0.| units.m,y=0. | units.m)
+
+    @remote_function(can_handle_array=True)
+    def get_node_velocities_3d(index='i',zindex='i'):
+        returns (vx=0.| units.m/units.s, vy=0. | units.m/units.s, vz=0. | units.m/units.s)
 
     @remote_function(can_handle_array=True)
     def get_element_nodes(index=0):
@@ -230,8 +238,11 @@ class Adcirc(CommonCode):
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_state', names=('eta','vx','vy'))
         object.add_getter('nodes', 'get_node_position', names=('x','y'))
+        object.add_getter('nodes', 'get_node_depth', names=('depth',))
+        
         if self.mode in [self.MODE_3D]:
-            object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma',))
+            object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
+            object.add_gridded_getter('nodes', 'get_node_velocities_3d','get_firstlast_vertical_index', names = ('wx','wy','wz'))
 
         object.define_grid('forcings',axes_names = ['x','y'])
         object.set_grid_range('forcings', 'get_firstlast_node')
