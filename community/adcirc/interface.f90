@@ -121,6 +121,17 @@ function get_node_position(ind,x_,y_) result(ret)
   ret=0
 end function
 
+function get_node_depth(ind,dp_) result(ret)
+  integer :: ind,ret
+  real*8 :: dp_
+  if(ind.LT.1.OR.ind.GT.NP) then
+    ret=-1
+    return
+  endif
+  dp_=DP(ind)
+  ret=0
+end function
+
 function get_node_coriolis_f(ind,corif_) result(ret)
   integer :: ind,ret
   real*8 :: corif_
@@ -149,9 +160,10 @@ function set_node_wind_stress(ind,wsx_,wsy_) result(ret)
   ret=0
 end function
 
-function get_node_sigma(ind,indz,s_) result(ret)
+function get_node_sigma(ind,indz,s_,z_) result(ret)
   integer :: ind,indz,ret
-  real*8 :: s_
+  real*8 :: s_,z_
+  real*8, parameter :: a=1,b=-1
   if(ind.LT.1.OR.ind.GT.NP) then
     ret=-1
     return
@@ -161,8 +173,28 @@ function get_node_sigma(ind,indz,s_) result(ret)
     return
   endif
   s_=SIGMA(indz)
+  z_=(s_-a)/(a-b)*(DP(ind)+ETA2(ind))+ETA2(ind)
   ret=0
 end function
+
+function get_node_velocities_3d(ind,indz,vx_,vy_,vz_) result(ret)
+  integer :: ind,indz,ret
+  real*8 :: vx_,vy_,vz_
+  real*8, parameter :: a=1,b=-1
+  if(ind.LT.1.OR.ind.GT.NP) then
+    ret=-1
+    return
+  endif
+  if(indz.LT.1.OR.indz.GT.NFEN) then
+    ret=-1
+    return
+  endif
+  vx_=REAL(Q(ind,indz))
+  vy_=IMAG(Q(ind,indz))
+  vz_=WZ(ind,indz)
+  ret=0
+end function
+
 
 function get_element_nodes(ind,n1,n2,n3) result(ret)
   integer :: ind,n1,n2,n3,ret
