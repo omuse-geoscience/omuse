@@ -46,9 +46,21 @@ default_parameters={
  "ISLDIA": dict(dtype=int, value=0, description="ALGEBRAIC SOLUTION PARAMETER: solver verbosity"),
  "CONVCR": dict(dtype=int, value=1.e-10, description="ALGEBRAIC SOLUTION PARAMETER: convergence criterion"),
  "ITMAX": dict(dtype=int, value=25, description="ALGEBRAIC SOLUTION PARAMETER: max iterations"),
+ "ISLIP": dict(dtype=int, value=1, description="slip code"),
+ "KP": dict(dtype=float, value=0.01, description="slip coefficient"),
+ "Z0S": dict(dtype=float, value=0.01, description="free surface roughness (const horiz)"),
+ "Z0B": dict(dtype=float, value=0.1, description="bottom roughness (const horiz)"),
+ "ALP1": dict(dtype=float, value=0.5, description="timestepping coefficient (coriolis)"),
+ "ALP2": dict(dtype=float, value=0.5, description="timestepping coefficient (bottom fric.)"),
+ "ALP3": dict(dtype=float, value=0.5, description="timestepping coefficient (vert. diffusion)"),
+ "IGC": dict(dtype=int, value=1, description="type of vertical grid"),
+ "NFEN": dict(dtype=int, value=21, description="number of nodes in vertical grid"),
+ "IEVC": dict(dtype=int, value=1, description="vertical eddy viscosity code"),
+ "EVMIN": dict(dtype=float, value=1.e-6, description="minimal vertical eddy viscosity"),
+ "EVCON": dict(dtype=float, value=0.05, description="vertical eddy viscosity constant"),
  }
 
-footer="""\
+outputblock1="""\
  0 0.0 5.0  3                        ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
  0                                   ! TOTAL NUMBER OF ELEVATION RECORDING STATIONS
  0 0.0 5.0  3                        ! NOUTV,TOUTSV,TOUTFV,NSPOOLV:VEL STATION OUTPUT INFO (UNIT  62)
@@ -61,83 +73,118 @@ footer="""\
  0 1236                               ! NHSTAR,NHSINC - HOT START FILE GENERATION PARAMETERS                  
 """
 
+outputblock2="""\
+ 0  0.0  5.0  3                      ! DTS station output
+ 0
+ 0  0.0  5.0  3                      ! velocity station output
+ 0
+ 0  0.0  5.0  3                      ! turbulence station output
+ 0
+ 0   0.0  5.0     3                  ! DTS global output
+ 0   0.0  5.0     3                  ! velocity global output
+ 0   0.0  5.0     3                  ! turbulence global output
+"""
+
 class adcirc_file_writer(file):
   def write_var(self,*var):
     self.write(' '.join([str(x) for x in var])+"\n")
+  def write_var_rows(self,*var):
+    for v in zip(var):
+      self.write_var(*v)
+
 
 class adcirc_parameter_writer(object):
   def __init__(self,filename="fort.15"):
     self.filename=filename
     self.parameters=dict([(key,val["value"]) for key,val in default_parameters.items()])
   def write(self):
-    f=adcirc_file_writer(self.filename,'w')
-    param=self.parameters
-    f.write_var(param["RUNDES"])    
-    f.write_var(param["RUNID"])    
-    f.write_var(param["NFOVER"])
-    f.write_var(param["NABOUT"])
-    f.write_var(param["NSCREEN"])
-    f.write_var(param["IHOT"])
-    f.write_var(param["ICS"])
-    f.write_var(param["IM"])
-    if param["IM"] in [20,30]:
-      f.write_var(param["IDEN"])
-    else:
-      pass
-    f.write_var(param["NOLIBF"])
-    f.write_var(param["NOLIFA"])
-    f.write_var(param["NOLICA"])
-    f.write_var(param["NOLICAT"])
-    f.write_var(param["NWP"])
-    if param["NWP"]>0:
-      for x in param["AttrName"]:
-        f.write_var(x)
-    f.write_var(param["NCOR"])
-    f.write_var(param["NTIP"])
-    f.write_var(param["NWS"])
-    f.write_var(param["NRAMP"])
-    f.write_var(param["G"])    
-    f.write_var(param["TAU0"])
-    if param["TAU0"]==-5.0:
-      f.write_var(param["Tau0FullDomainMin"])
-      f.write_var(param["Tau0FullDomainMax"])
-    else:
-      pass
-    f.write_var(param["DTDP"])
-    f.write_var(param["STATIM"])
-    f.write_var(param["REFTIM"])
-#~ WTIMINC  Supplemental Meteorological/Wave/Ice Parameters Line
-    f.write_var(param["RNDAY"])
-    if param["NRAMP"] in [0,1]:
-      f.write_var(param["DRAMP"])
-    elif param["NRAMP"] in [2,3,4,5,6,7,8]:
-      raise Exception("tbd")
-    else:
-      pass
-    f.write_var(param["A00"],param["B00"],param["C00"])
-    if param["NOLIFA"] in [0,1]: 
-      f.write_var(param["H0"])
-    elif param["NOLIFA"] in [2,3]:
-      f.write_var(param["H0"],0,0,param["VELMIN"])
-    f.write_var(param["SLAM0"],param["SFEA0"])
-    if param["NOLIBF"]==0:
-      f.write_var(param["TAU"])
-    elif param["NOLIBF"]==1:
-      f.write_var(param["CF"])
-    elif param["NOLIBF"]==2:
-      f.write_var(param["CF"],param["HBREAK"],param["FTHETA"],param["FGAMMA"])
-    if param["IM"] in [0,1,2]:
-      f.write_var(param["ESLM"])
-    elif param["IM"]==10:
-      f.write_var(param["ESLM"],param["ESLC"])
-    f.write_var(param["CORI"])
-    f.write_var(param["NTIF"])
-    f.write_var(param["NBFR"])
-    f.write_var(param["ANGINN"])
-    f.write(footer)
-    f.write_var(param["ITITER"],param["ISLDIA"],
-                param["CONVCR"],param["ITMAX"])
-    f.close()
+    with adcirc_file_writer(self.filename,'w') as f:
+      param=self.parameters
+      f.write_var(param["RUNDES"])    
+      f.write_var(param["RUNID"])    
+      f.write_var(param["NFOVER"])
+      f.write_var(param["NABOUT"])
+      f.write_var(param["NSCREEN"])
+      f.write_var(param["IHOT"])
+      f.write_var(param["ICS"])
+      f.write_var(param["IM"])
+      if param["IM"] in [20,30]:
+        f.write_var(param["IDEN"])
+      else:
+        pass
+      f.write_var(param["NOLIBF"])
+      f.write_var(param["NOLIFA"])
+      f.write_var(param["NOLICA"])
+      f.write_var(param["NOLICAT"])
+      f.write_var(param["NWP"])
+      if param["NWP"]>0:
+        for x in param["AttrName"]:
+          f.write_var(x)
+      f.write_var(param["NCOR"])
+      f.write_var(param["NTIP"])
+      f.write_var(param["NWS"])
+      f.write_var(param["NRAMP"])
+      f.write_var(param["G"])    
+      f.write_var(param["TAU0"])
+      if param["TAU0"]==-5.0:
+        f.write_var(param["Tau0FullDomainMin"])
+        f.write_var(param["Tau0FullDomainMax"])
+      else:
+        pass
+      f.write_var(param["DTDP"])
+      f.write_var(param["STATIM"])
+      f.write_var(param["REFTIM"])
+  #~ WTIMINC  Supplemental Meteorological/Wave/Ice Parameters Line
+      f.write_var(param["RNDAY"])
+      if param["NRAMP"] in [0,1]:
+        f.write_var(param["DRAMP"])
+      elif param["NRAMP"] in [2,3,4,5,6,7,8]:
+        raise Exception("tbd")
+      else:
+        pass
+      f.write_var(param["A00"],param["B00"],param["C00"])
+      if param["NOLIFA"] in [0,1]: 
+        f.write_var(param["H0"])
+      elif param["NOLIFA"] in [2,3]:
+        f.write_var(param["H0"],0,0,param["VELMIN"])
+      f.write_var(param["SLAM0"],param["SFEA0"])
+      if param["NOLIBF"]==0:
+        f.write_var(param["TAU"])
+      elif param["NOLIBF"]==1:
+        f.write_var(param["CF"])
+      elif param["NOLIBF"]==2:
+        f.write_var(param["CF"],param["HBREAK"],param["FTHETA"],param["FGAMMA"])
+      if param["IM"] in [0,1,2]:
+        f.write_var(param["ESLM"])
+      elif param["IM"]==10:
+        f.write_var(param["ESLM"],param["ESLC"])
+      f.write_var(param["CORI"])
+      f.write_var(param["NTIF"])
+      f.write_var(param["NBFR"])
+      f.write_var(param["ANGINN"])
+      f.write(outputblock1)
+      f.write_var(param["ITITER"],param["ISLDIA"],
+                  param["CONVCR"],param["ITMAX"])
+      if param['IM'] in [1,11,21,31,2]:
+        # continue writing 3D info
+        f.write_var(param["IDEN"])
+        f.write_var(param['ISLIP'],param['KP'])
+        f.write_var(param['Z0S'],param['Z0B'])
+        f.write_var(param['ALP1'],param['ALP2'],param['ALP3'])
+        f.write_var(param['IGC'],param['NFEN'])
+        if  param['IGC']==0:
+          f.write_var_rows(param['SIGMA'])
+        f.write_var(param['IEVC'],param['EVMIN'],param['EVCON'])
+        if param['IEVC'] in [50,51]:
+          f.write_var(param['THETA1'],param['THETA2'])
+        if  param['IEVC']==0: 
+          f.write_var_rows(param['EVTOT'])
+        f.write(outputblock2)
+        if param['IM'] in [21,31]:
+          f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
+          raise Exception("tbd: 3D baroclinic input")
+      
+
   def set_non_default(self,A_H=100. | units.m**2/units.s, timestep=360. | units.s, 
          use_predictor_corrector=True):
     self.parameters["ESLM"]=A_H.value_in(units.m**2/units.s)

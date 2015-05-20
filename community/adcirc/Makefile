@@ -5,7 +5,7 @@ CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 CLASSNAME=AdcircInterface
 
-FFLAGS += -I./src/ -I./src/odir3/
+FCFLAGS += -I./src/ -I./src/odir3/
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
 compiler="gnu"
@@ -30,10 +30,10 @@ worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 $< $(CLASSNAME) -o $@
 
 adcirc_worker: worker_code.f90 interface.o src/amuse_adcirc.o src/libamuse_adcirc.a 
-	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $^ -o $@  $(LIBS) $(SC_FCLIBS) $(FS_LIBS)
+	$(MPIFC) $(FCFLAGS) $(SC_FLAGS) $(FS_FLAGS) $^ -o $@  $(LIBS) $(SC_FCLIBS) $(FS_LIBS)
 
 %.o: %.f90
-	$(FC) $(FFLAGS) -c -o $@ $<
+	$(FC) $(FCFLAGS) -c -o $@ $<
 
 clean:
 	make -C src/ clean

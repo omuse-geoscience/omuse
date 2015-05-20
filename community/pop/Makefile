@@ -1,6 +1,6 @@
 # standard amuse configuration include
 # config.mk will be made after ./configure has run
-AMUSE_DIR?=../../../..
+AMUSE_DIR?=../../../../..
 -include $(AMUSE_DIR)/config.mk
 
 MPIFC ?= mpif90
@@ -13,12 +13,15 @@ POPEXEDIR=$(CURDIR)/src
 POPDIR=$(CURDIR)/eSalsa-POP
 
 #-------------- NETCDF inserts
-NETCDFPATH = /home/ben
-NETCDFINC = -I$(NETCDFPATH)/include
-NETCDFLIB = -L$(NETCDFPATH)/lib
-LDFLAGS := $(LDFLAGS) $(NETCDFINC)
-FS_LIBS := $(FS_LIBS) $(NETCDFLIB) -lnetcdf -lnetcdff
+#~ NETCDFPATH = /home/ben
+#~ NETCDFINC = -I$(NETCDFPATH)/include
+#~ NETCDFLIB = -L$(NETCDFPATH)/lib
+#~ LDFLAGS := $(LDFLAGS) $(NETCDFINC)
+#~ FS_LIBS := $(FS_LIBS) $(NETCDFLIB) -lnetcdf -lnetcdff
 #-------------- End of NETCDF inserts
+
+FS_LIBS+=-lnetcdf -lnetcdff
+
 
 POPINCPATH = -Isrc/compile/
 
@@ -43,7 +46,7 @@ distclean: clean
 	rm -rf eSalsa-POP
 
 $(CODELIB):
-	make -C src POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR) POPDIR=$(POPDIR)
+	make -C src POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR) POPDIR=$(POPDIR) AMUSE_DIR="$(realpath $(AMUSE_DIR))"
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
@@ -52,4 +55,4 @@ pop_worker: worker_code.f90 $(CODELIB) $(OBJS)
 	$(MPIFC) $(POPINCPATH) $(FCFLAGS) $(FS_FLAGS) -fconvert=swap $< $(OBJS) $(CODELIB) $(FS_LIBS) -o $@
 
 %.o: %.f90
-	$(FC) $(POPINCPATH) $(FCFLAGS) -Wall -fbounds-check -c -o $@ $<
+	$(FC) $(POPINCPATH) $(FCFLAGS) -c -o $@ $<

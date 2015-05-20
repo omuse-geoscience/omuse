@@ -185,7 +185,7 @@ endif
 ifeq ($(BUILDTYPE),amuse) 
   CF:= $(FC)
   O_DIR:=odir3/
-  FFLAGS:= $(FFLAGS3) -DAMUSE $(DA) $(IMODS) $(O_DIR)
+  FFLAGS:= -g $(FFLAGS3) -DAMUSE $(DA) $(IMODS) $(O_DIR)
   VPATH := $(SRCDIR):$(SRCDIR)/src:$(SRCDIR)/KDTREE2:$(SRCDIR)/wind:$(SRCDIR):$(SRCDIR)/prep 
   ifeq ($(NETCDF),enable)
     LIBS  := -L$(NETCDFHOME)/lib -lnetcdf $(FLIBS)
@@ -582,7 +582,7 @@ endif
 ########################## Misc Commands ####################################
 
 clean:
-	rm -f odir*/*.o  odir*/*.mod sizes.o  *.o *.mod
+	rm -f odir*/*.o  sizes.o  *.o
 	rm -f  ../swan/*.f ../swan/*.for ../swan/*.f90
 clobber:
 	rm -r -f odir* actualflags.txt
