@@ -589,7 +589,7 @@ function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, intent(out) :: ssh_, uvel_, vvel_
+  real*8, dimension(n), intent(out) :: ssh_, uvel_, vvel_
   integer :: ii
 
   !local variable:
@@ -597,15 +597,27 @@ function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_, n) result (ret)
 
   if (n == 1) then
     call get_gridded_variable(g_i(1), g_j(1), PSURF(:,:,curtime,:), psurf_)
-    ssh_ = psurf_ / grav
+    ssh_(1) = psurf_ / grav
 
-    call get_gridded_variable(g_i(1), g_j(1), UVEL(:,:,1,curtime,:), uvel_)
-    call get_gridded_variable(g_i(1), g_j(1), VVEL(:,:,1,curtime,:), vvel_)
+    call get_gridded_variable(g_i(1), g_j(1), UVEL(:,:,1,curtime,:), uvel_(1))
+    call get_gridded_variable(g_i(1), g_j(1), VVEL(:,:,1,curtime,:), vvel_(1))
   else
     call gather_global(WORK_G, PSURF(:,:,curtime,:), master_task, distrb_clinic)
     if (my_task == master_task) then
       do ii=1,n
         ssh_(ii) = WORK_G(g_i(ii),g_j(ii)) / grav
+      enddo
+    endif
+    call gather_global(WORK_G, UVEL(:,:,1,curtime,:), master_task, distrb_clinic)
+    if (my_task == master_task) then
+      do ii=1,n
+        uvel_(ii) = WORK_G(g_i(ii),g_j(ii))
+      enddo
+    endif
+    call gather_global(WORK_G, VVEL(:,:,1,curtime,:), master_task, distrb_clinic)
+    if (my_task == master_task) then
+      do ii=1,n
+        vvel_(ii) = WORK_G(g_i(ii),g_j(ii))
       enddo
     endif
  
