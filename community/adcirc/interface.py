@@ -147,8 +147,6 @@ class AdcircInterface(CodeInterface,
     def set_use_interface_met_forcing(use_interface_met_forcing='b'):
         returns ()
 
-
-
 class Adcirc(CommonCode):
   
     MODE_2D = "2D"
@@ -195,6 +193,14 @@ class Adcirc(CommonCode):
         return 1,self.get_number_of_nodes_in_flow_boundary_segment(index_of_segment)
     def get_firstlast_vertical_index(self):
         return 1,self.get_number_of_vertical_nodes()
+    def get_firstlast_grid3d(self):
+        return 1,self.get_number_of_nodes(),1,self.get_number_of_vertical_nodes()
+
+    def get_node_position_3d(self,index,zindex):
+        sigma,z=self.get_node_sigma(index,zindex)
+        x,y=self.get_node_position(index)
+        return x,y,z
+
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
@@ -241,6 +247,13 @@ class Adcirc(CommonCode):
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
         
         if self.mode in [self.MODE_3D]:
+            object.define_grid('grid3d',axes_names=['x','y','z'])
+            object.set_grid_range('grid3d', 'get_firstlast_grid3d')
+            object.add_getter('grid3d', 'get_node_sigma', names = ('sigma','z'))
+            object.add_getter('grid3d', 'get_node_velocities_3d', names = ('wx','wy','wz'))
+            object.add_getter('grid3d', 'get_node_position_3d', names = ('x','y'))
+            
+            
             object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
             object.add_gridded_getter('nodes', 'get_node_velocities_3d','get_firstlast_vertical_index', names = ('wx','wy','wz'))
 
