@@ -1,6 +1,7 @@
 module amuse_adcirc
   use sizes
   use GLOBAL
+  use GLOBAL_3DVS
   use ADCIRC_Mod
 
   logical :: use_interface_elevation_boundary=.FALSE.
