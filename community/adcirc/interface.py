@@ -66,8 +66,20 @@ class AdcircInterface(CodeInterface,
         returns (x=0.| units.m,y=0. | units.m)
 
     @remote_function(can_handle_array=True)
+    def get_node_depth(index='i'):
+        returns (depth=0.| units.m)
+
+    @remote_function(can_handle_array=True)
+    def get_node_sigma(index='i',zindex='i'):
+        returns (sigma='d',z='d' | units.m)
+
+    @remote_function(can_handle_array=True)
     def get_element_position(index='i'):
         returns (x=0.| units.m,y=0. | units.m)
+
+    @remote_function(can_handle_array=True)
+    def get_node_velocities_3d(index='i',zindex='i'):
+        returns (vx=0.| units.m/units.s, vy=0. | units.m/units.s, vz=0. | units.m/units.s)
 
     @remote_function(can_handle_array=True)
     def get_element_nodes(index=0):
@@ -88,6 +100,10 @@ class AdcircInterface(CodeInterface,
     @remote_function
     def get_number_of_nodes_in_elevation_boundary_segment(index_of_segment=0):
         returns (n_nodes=0)   
+
+    @remote_function
+    def get_number_of_vertical_nodes():
+        returns (n_znodes=0)
 
     @remote_function(can_handle_array=True)
     def get_elevation_boundary_node(index=0,index_of_segment=0):
@@ -131,10 +147,14 @@ class AdcircInterface(CodeInterface,
     def set_use_interface_met_forcing(use_interface_met_forcing='b'):
         returns ()
 
-
 class Adcirc(CommonCode):
-    def __init__(self, **options):
-        # option for carthesian/ spherical coordinates
+  
+    MODE_2D = "2D"
+    MODE_3D = "3D"
+  
+    def __init__(self, mode=MODE_2D, **options):
+        self.mode=mode
+        # option for carthesian/ spherical coordinates?
         CommonCode.__init__(self,  AdcircInterface(**options), **options)
         self._nodes=None
         self._elements=None
@@ -171,6 +191,16 @@ class Adcirc(CommonCode):
         return 1,self.get_number_of_nodes_in_elevation_boundary_segment(index_of_segment)
     def get_firstlast_node_of_flow_boundary_segment(self,index_of_segment):
         return 1,self.get_number_of_nodes_in_flow_boundary_segment(index_of_segment)
+    def get_firstlast_vertical_index(self):
+        return 1,self.get_number_of_vertical_nodes()
+    def get_firstlast_grid3d(self):
+        return 1,self.get_number_of_nodes(),1,self.get_number_of_vertical_nodes()
+
+    def get_node_position_3d(self,index,zindex):
+        sigma,z=self.get_node_sigma(index,zindex)
+        x,y=self.get_node_position(index)
+        return x,y,z
+
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
@@ -214,6 +244,18 @@ class Adcirc(CommonCode):
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_state', names=('eta','vx','vy'))
         object.add_getter('nodes', 'get_node_position', names=('x','y'))
+        object.add_getter('nodes', 'get_node_depth', names=('depth',))
+        
+        if self.mode in [self.MODE_3D]:
+            object.define_grid('grid3d',axes_names=['x','y','z'])
+            object.set_grid_range('grid3d', 'get_firstlast_grid3d')
+            object.add_getter('grid3d', 'get_node_sigma', names = ('sigma','z'))
+            object.add_getter('grid3d', 'get_node_velocities_3d', names = ('wx','wy','wz'))
+            object.add_getter('grid3d', 'get_node_position_3d', names = ('x','y'))
+            
+            
+            object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
+            object.add_gridded_getter('nodes', 'get_node_velocities_3d','get_firstlast_vertical_index', names = ('wx','wy','wz'))
 
         object.define_grid('forcings',axes_names = ['x','y'])
         object.set_grid_range('forcings', 'get_firstlast_node')
