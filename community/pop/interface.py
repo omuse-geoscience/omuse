@@ -38,7 +38,7 @@ class POPInterface(CodeInterface):
 
 
     ##getters for node and element state
-    @remote_function(can_handle_array=True)
+    @remote_function(must_handle_array=True)
     def get_node_surface_state(i=0,j=0):
         returns (ssh=0. | units.cm, vx=0. | units.m/units.s, vy=0. | units.m/units.s)
 
