@@ -230,13 +230,13 @@ end function
 ! Be sure to call prepare_wind_stress() before calling this
 !
 !-----------------------------------------------------------------------
-function get_node_wind_stress(g_i, g_j, tau_x_, tau_y_) result(ret)
-  integer, intent(in) :: g_i, g_j
-  real*8, intent(out) :: tau_x_, tau_y_
-  integer :: ret
+function get_node_wind_stress(g_i, g_j, tau_x_, tau_y_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: tau_x_, tau_y_
 
-  call get_gridded_variable(g_i, g_j, tau_x, tau_x_)
-  call get_gridded_variable(g_i, g_j, tau_y, tau_y_)
+  call get_gridded_variable_vector(g_i, g_j, tau_x, tau_x_, n)
+  call get_gridded_variable_vector(g_i, g_j, tau_y, tau_y_, n)
 
   ret=0
 end function
@@ -300,13 +300,13 @@ function prepare_wind_stress() result(ret)
     ret=-1
   endif
 end function
-function set_node_wind_stress (g_i, g_j, tau_x_, tau_y_) result(ret)
-  real*8, intent(in) :: tau_x_, tau_y_
-  integer, intent(in) :: g_i, g_j ! global i and j indexes for the gridpoint
-  integer :: ret
+function set_node_wind_stress (g_i, g_j, tau_x_, tau_y_, n) result(ret)
+  integer :: ret, n
+  real*8, dimension(n), intent(in) :: tau_x_, tau_y_
+  integer, dimension(n), intent(in) :: g_i, g_j ! global i and j indexes for the gridpoint
 
-  call set_gridded_variable(g_i, g_j, tau_x, tau_x_)
-  call set_gridded_variable(g_i, g_j, tau_y, tau_y_)
+  call set_gridded_variable_vector(g_i, g_j, tau_x, tau_x_, n)
+  call set_gridded_variable_vector(g_i, g_j, tau_y, tau_y_, n)
 
   fupdate_wind_stress = .true.
 
@@ -335,8 +335,7 @@ function set_wind_stress() result(ret)
                       POP_fieldKindVector, errorCode, &
                       fillValue = 0.0_r8)
 
-  call rotate_wind_stress(tau_x, tau_y)
-
+  call rotate_wind_stress(tau_x, tau_y) !if not compiled correctly this function does nothing
 
 
   if (errorCode == POP_Success) then
@@ -357,7 +356,7 @@ subroutine get_gridded_variable(g_i, g_j, grid, value)
   real*8, intent(in), dimension(nx_block, ny_block, max_blocks_clinic) :: grid
   real*8, intent(out) :: value
 
-  integer :: i,j,iblock,ierr
+  integer :: i,j,iblock
   type (block) :: this_block
 
   include 'mpif.h'
@@ -406,11 +405,11 @@ subroutine get_gridded_variable(g_i, g_j, grid, value)
   enddo
 
   !only the output of the node with MPI rank 0 is significant in AMUSE, reduce to single value
-  if(my_task == master_task) then
-    call MPI_REDUCE(MPI_IN_PLACE, value, 1, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
-  else
-    call MPI_REDUCE(value, 0, 1, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
-  endif
+  !if(my_task == master_task) then
+  !  call MPI_REDUCE(MPI_IN_PLACE, value, 1, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
+  !else
+  !  call MPI_REDUCE(value, 0, 1, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
+  !endif
 
 !  if (ierr /= MPI_SUCCESS) then
 !   ret=-1
@@ -494,6 +493,65 @@ subroutine set_gridded_variable_3D(g_i, g_j, k, grid, value)
 end subroutine set_gridded_variable_3D
 
 
+
+subroutine get_gather(g_i, g_j, grid, value_, n)
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: value_
+  real*8, dimension(:,:,:), intent(in) :: grid
+
+  integer :: ii
+
+  call gather_global(WORK_G, grid, master_task, distrb_clinic)
+  if (my_task == master_task) then
+    do ii=1,n
+      value_(ii) = WORK_G(g_i(ii),g_j(ii))
+    enddo
+  endif
+end subroutine get_gather
+
+
+subroutine get_gridded_variable_vector(g_i, g_j, grid, value, n)
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, intent(in), dimension(:,:,:) :: grid
+  real*8, dimension(n), intent(out) :: value
+
+  integer :: ii,ierr
+
+  include 'mpif.h'
+
+  value = 0.0 !important for MPI_SUM used later
+
+  do ii=1,n
+    call get_gridded_variable(g_i(ii), g_j(ii), grid, value(ii))
+  enddo
+
+  !only the output of the node with MPI rank 0 is significant in AMUSE, reduce to single value per element
+  if(my_task == master_task) then
+    call MPI_REDUCE(MPI_IN_PLACE, value, n, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
+  else
+    call MPI_REDUCE(value, 0, n, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
+  endif
+
+end subroutine get_gridded_variable_vector
+
+subroutine set_gridded_variable_vector(g_i, g_j, grid, value, n)
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, intent(out), dimension(nx_block, ny_block, max_blocks_clinic) :: grid
+  real*8, dimension(n), intent(in) :: value
+
+  integer :: ii
+  do ii=1,n
+    call set_gridded_variable(g_i(ii), g_j(ii), grid, value(ii))
+  enddo
+
+end subroutine set_gridded_variable_vector
+
+
+
+
 !-----------------------------------------------------------------------
 !
 ! Getter and setter for Coriolis Force
@@ -503,21 +561,21 @@ end subroutine set_gridded_variable_3D
 ! on the modified FCOR for the U grid
 !
 !-----------------------------------------------------------------------
-function get_node_coriolis_f(g_i, g_j, corif_) result(ret)
-  integer :: ret
-  integer, intent(in) :: g_i, g_j
-  real*8, intent(out) :: corif_
+function get_node_coriolis_f(g_i, g_j, corif_, n) result(ret)
+  integer :: ret, n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: corif_
 
-  call get_gridded_variable(g_i, g_j, FCOR, corif_)
+  call get_gridded_variable_vector(g_i, g_j, FCOR, corif_, n)
 
   ret=0
 end function
-function set_node_coriolis_f(g_i, g_j, corif_) result(ret)
-  integer :: ret
-  integer, intent(in) :: g_i, g_j
-  real*8, intent(out) :: corif_
+function set_node_coriolis_f(g_i, g_j, corif_, n) result(ret)
+  integer :: ret, n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: corif_
 
-  call set_gridded_variable(g_i, g_j, FCOR, corif_)
+  call set_gridded_variable_vector(g_i, g_j, FCOR, corif_, n)
 
   fupdate_coriolis = .true.
 
@@ -590,37 +648,18 @@ function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_, n) result (ret)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: ssh_, uvel_, vvel_
-  integer :: ii
 
-  !local variable:
-  real*8 :: psurf_
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+    ssh_ = ssh_ / grav
 
-  if (n == 1) then
-    call get_gridded_variable(g_i(1), g_j(1), PSURF(:,:,curtime,:), psurf_)
-    ssh_(1) = psurf_ / grav
-
-    call get_gridded_variable(g_i(1), g_j(1), UVEL(:,:,1,curtime,:), uvel_(1))
-    call get_gridded_variable(g_i(1), g_j(1), VVEL(:,:,1,curtime,:), vvel_(1))
+    call get_gridded_variable_vector(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
+    call get_gridded_variable_vector(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   else
-    call gather_global(WORK_G, PSURF(:,:,curtime,:), master_task, distrb_clinic)
-    if (my_task == master_task) then
-      do ii=1,n
-        ssh_(ii) = WORK_G(g_i(ii),g_j(ii)) / grav
-      enddo
-    endif
-    call gather_global(WORK_G, UVEL(:,:,1,curtime,:), master_task, distrb_clinic)
-    if (my_task == master_task) then
-      do ii=1,n
-        uvel_(ii) = WORK_G(g_i(ii),g_j(ii))
-      enddo
-    endif
-    call gather_global(WORK_G, VVEL(:,:,1,curtime,:), master_task, distrb_clinic)
-    if (my_task == master_task) then
-      do ii=1,n
-        vvel_(ii) = WORK_G(g_i(ii),g_j(ii))
-      enddo
-    endif
- 
+    call get_gather(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+    ssh_ = ssh_ / grav
+    call get_gather(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
+    call get_gather(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   endif
 
   ret=0
@@ -630,25 +669,14 @@ function get_element_surface_state(g_i, g_j, temp_, salt_, n) result (ret)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: temp_, salt_
-  integer :: ii
 
-  if (n == 1) then
+  if (n < nx_global*ny_global) then
     !first 1 is depth level, second is tracer index (temp or salt)
-    call get_gridded_variable(g_i(1), g_j(1), TRACER(:,:,1,1,curtime,:), temp_(1))
-    call get_gridded_variable(g_i(1), g_j(1), TRACER(:,:,1,2,curtime,:), salt_(1))
+    call get_gridded_variable_vector(g_i, g_j, TRACER(:,:,1,1,curtime,:), temp_, n)
+    call get_gridded_variable_vector(g_i, g_j, TRACER(:,:,1,2,curtime,:), salt_, n)
   else
-    call gather_global(WORK_G, TRACER(:,:,1,1,curtime,:), master_task, distrb_clinic)
-    if (my_task == master_task) then
-      do ii=1,n
-        temp_(ii) = WORK_G(g_i(ii),g_j(ii))
-      enddo
-    endif
-    call gather_global(WORK_G, TRACER(:,:,1,2,curtime,:), master_task, distrb_clinic)
-    if (my_task == master_task) then
-      do ii=1,n
-        salt_(ii) = WORK_G(g_i(ii),g_j(ii))
-      enddo
-    endif
+    call get_gather(g_i, g_j, TRACER(:,:,1,1,curtime,:), temp_, n)
+    call get_gather(g_i, g_j, TRACER(:,:,1,2,curtime,:), salt_, n)
   endif
 
   ret=0
@@ -665,24 +693,24 @@ end function
 ! Elements on the T grid
 !
 !-----------------------------------------------------------------------
-function get_node_position(g_i, g_j, lat_, lon_) result(ret)
-  integer :: ret
-  integer, intent(in) :: g_i, g_j
-  real*8, intent(out) :: lat_, lon_
+function get_node_position(g_i, g_j, lat_, lon_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: lat_, lon_
 
-  call get_gridded_variable(g_i, g_j, ULAT, lat_)
-  call get_gridded_variable(g_i, g_j, ULON, lon_)
+  call get_gridded_variable_vector(g_i, g_j, ULAT, lat_, n)
+  call get_gridded_variable_vector(g_i, g_j, ULON, lon_, n)
 
   ret=0
 end function
 
-function get_element_position(g_i, g_j, lat_, lon_) result(ret)
-  integer :: ret
-  integer, intent(in) :: g_i, g_j
-  real*8, intent(out) :: lat_, lon_
+function get_element_position(g_i, g_j, lat_, lon_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: lat_, lon_
 
-  call get_gridded_variable(g_i, g_j, TLAT, lat_)
-  call get_gridded_variable(g_i, g_j, TLON, lon_)
+  call get_gridded_variable_vector(g_i, g_j, TLAT, lat_, n)
+  call get_gridded_variable_vector(g_i, g_j, TLON, lon_, n)
 
   ret=0
 end function
@@ -710,7 +738,8 @@ end function
 
 !-----------------------------------------------------------------------
 !
-! Getters and setters for 3D fields
+! Getters and setters for individual 3D fields
+! this code was written optimistically and probably needs adjustment later
 !
 !-----------------------------------------------------------------------
 function get_temperature(i, j, k, temp_) result (ret)
