@@ -66,7 +66,8 @@ def plot(lats, lons, sst):
 
 
 
-from amuse.community.pop.interface import POPInterface
+#from amuse.community.pop.interface import POPInterface
+from omuse.community.pop.interface import POPInterface
 
 p=POPInterface(channel_type="sockets",redirection="none")
 p.initialize_code()
@@ -97,7 +98,13 @@ pyplot.ion()
 sst = p.get_element_surface_state(i,j)['temp']
 
 print sst
-lats,lons=lons_and_lats()
+
+lat_lon = p.get_node_position(i,j)
+lats=lat_lon['lat']/numpy.pi*180
+lons=lat_lon['lon']/numpy.pi*180
+
+
+#lats,lons=lons_and_lats()
 
 plot(lats, lons, sst)
 pyplot.savefig("pop.png")

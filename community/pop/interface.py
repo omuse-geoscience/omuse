@@ -22,17 +22,17 @@ class POPInterface(CodeInterface):
 
 
     ##forcings getters and setters
-    @remote_function(can_handle_array=True)
+    @remote_function(must_handle_array=True)
     def get_node_wind_stress(i=0,j=0):
         returns (tau_x=0. | units.Pa,tau_y=0. | units.Pa)
-    @remote_function(can_handle_array=True)
+    @remote_function(must_handle_array=True)
     def set_node_wind_stress(i=0,j=0,tau_x=0.| units.Pa,tau_y=0. | units.Pa):
         returns ()
 
-    @remote_function(can_handle_array=True)
+    @remote_function(must_handle_array=True)
     def get_node_coriolis_f(i=0,j=0):
         returns (coriolis_f=0. | units.s**-1)
-    @remote_function(can_handle_array=True)
+    @remote_function(must_handle_array=True)
     def set_node_coriolis_f(i=0,j=0,coriolis_f=0. | units.s**-1):
         returns ()
 
@@ -50,11 +50,11 @@ class POPInterface(CodeInterface):
 
 
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
-    @remote_function(can_handle_array=True)
+    @remote_function(must_handle_array=True)
     def get_node_position(i=0,j=0):
         returns (lat=0. | units.deg, lon=0. | units.deg)
 
-    @remote_function(can_handle_array=True)
+    @remote_function(must_handle_array=True)
     def get_element_position(i=0,j=0):
         returns (lat=0. | units.deg, lon=0. | units.deg)
 
