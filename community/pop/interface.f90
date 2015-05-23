@@ -17,10 +17,12 @@ module pop_interface
   use blocks
   use communicate, only: my_task, master_task, MPI_COMM_OCN
   use gather_scatter
+  use grid
   use constants, only: grav
   use domain, only: distrb_clinic
-  use forcing_coupled, only: rotate_wind_stress
   use forcing_fields, only: SMF, SMFT, lsmft_avail
+  use forcing_ws
+  use forcing_tools, only: never
   use prognostic, only: TRACER, PSURF, UVEL, VVEL, RHO, curtime
   use timers, only: timer_print_all, get_timer, timer_start, timer_stop
   use time_management
@@ -53,6 +55,8 @@ module pop_interface
   logical :: &
      fupdate_coriolis,  &! flag for update coriolis force
      fupdate_wind_stress ! flag for update wind stress
+
+  logical :: initialized = .false.
 
   real (r8), dimension (nx_block, ny_block, max_blocks_clinic) :: &
      tau_x, tau_y    ! wind stress on t grid in N/m**2
@@ -97,6 +101,20 @@ function initialize_code() result(ret)
   call timer_start(timer_total)
 
   call get_timer(timer_step,'STEP',1,distrb_clinic%nprocs)
+
+  !-----------------------------------------------------------------------
+  !
+  ! set windstress to that it can be read before the first step is run
+  !
+  !-----------------------------------------------------------------------
+  if (lsmft_avail) then
+    call set_ws(SMF, SMFT=SMFT)
+  else
+    call set_ws(SMF)
+  endif
+
+
+  initialized = .true.
 
   ret=0
 end function
@@ -251,48 +269,12 @@ end function
 function prepare_wind_stress() result(ret)
   integer :: ret
 
-  ! local variables
-  integer :: iblock
+  tau_x =  SMF(:,:,1,:)/momentum_factor * cos(ANGLE) - SMF(:,:,2,:)/momentum_factor * sin(ANGLE)
+  tau_y =  ( SMF(:,:,2,:)/momentum_factor + tau_x * sin(ANGLE) ) / cos (ANGLE)
 
-  ! one problem may be that wind stress is zeroed above land points by
-  ! rotate_wind_stress()
-
-    if (lsmft_avail) then !use SMFT
-
-      ! do nothing to prepare SMFT
-
-    else  ! convert SMF into SMFT
-
-      do iblock=1,nblocks_clinic
-        call ugrid_to_tgrid(SMFT(:,:,1,iblock), SMF(:,:,1,iblock), iblock)
-        call ugrid_to_tgrid(SMFT(:,:,2,iblock), SMF(:,:,2,iblock), iblock)
-      enddo
-
-      call POP_HaloUpdate(SMFT(:,:,1,:),POP_haloClinic,  &
-                      POP_gridHorzLocCenter,          &
-                      POP_fieldKindVector, errorCode, &
-                      fillValue = 0.0_r8)
-
-      call POP_HaloUpdate(SMFT(:,:,2,:),POP_haloClinic,  &
-                      POP_gridHorzLocCenter,          &
-                      POP_fieldKindVector, errorCode, &
-                      fillValue = 0.0_r8)
-    endif
-
-    ! SMFT has been prepared now compute tau_x and tau_y from SMFT
-
-    ! the following computation is simply the inverted computation
-    ! of what happens within rotate_wind_stress():
-    !    SMFT(:,:,1,:) = (WORK1(:,:,:)*cos(ANGLET(:,:,:)) +  &
-    !                     WORK2(:,:,:)*sin(ANGLET(:,:,:)))*  &
-    !                     RCALCT(:,:,:)*momentum_factor
-    !    SMFT(:,:,2,:) = (WORK2(:,:,:)*cos(ANGLET(:,:,:)) -  &
-    !                     WORK1(:,:,:)*sin(ANGLET(:,:,:)))*  &
-    !                     RCALCT(:,:,:)*momentum_factor
-    ! where RCALCT is a 0 or 1 mask for land or ocean points
-    ! and WORK1 and WORK2 are tau_x and tau_y
-    tau_x =  SMFT(:,:,1,:)/momentum_factor * cos(ANGLET) - SMFT(:,:,2,:)/momentum_factor * sin(ANGLET)
-    tau_y = ( (SMFT(:,:,1,:) / momentum_factor) - tau_x * cos(ANGLET) ) / sin(ANGLET)
+!debugging
+!   tau_x = SMF(:,:,1,:)
+!   tau_y = SMF(:,:,2,:)
 
   if (errorCode == POP_Success) then
     ret=0
@@ -318,10 +300,22 @@ function set_wind_stress() result(ret)
 
   fupdate_wind_stress = .false.
 
+  !if we want to overwrite the wind stress, then we have to make sure that SMF is
+  !not overwritten by some later interpolation routine, therefore, we have to
+  !enforce the following settings
+  ws_data_type = 'none'
+  ws_data_next = never
+  ws_data_update = never
+  ws_interp_freq = 'never'
+
+  ws_interp_next = never
+  ws_interp_last = never
+  ws_interp_inc  = c0
+
   ! rotate_wind_stress applies tau_x and tau_y to the U-grid
   ! variable SMF (surface momentum fluxes (wind stress))
   ! wind stress in N/m^2 is converted to vel flux (cm^2/s^2)
-  ! the method expects tau_x and tau_y to be supplied for the T grid
+  ! the method expects tau_x and tau_y to be supplied for the U grid
 
   ! set_gridded_variable only sets grid points in the physical domain
   ! still need to update halo values
@@ -335,8 +329,7 @@ function set_wind_stress() result(ret)
                       POP_fieldKindVector, errorCode, &
                       fillValue = 0.0_r8)
 
-  call rotate_wind_stress(tau_x, tau_y) !if not compiled correctly this function does nothing
-
+  call rotate_wind_stress(tau_x, tau_y)
 
   if (errorCode == POP_Success) then
     ret=0
@@ -344,6 +337,55 @@ function set_wind_stress() result(ret)
     ret=-1
   endif
 end function
+
+
+! rotate_wind_stress()
+!   rotates true zonal/meridional wind stress into local
+!   coordinates, converts to dyne/cm**2
+!
+! adapted from forcing_coupled.F90, but modified to:
+! 1. not apply the land mask RCALC
+! 2. to have tau_x and tau_y be supplied on the U-grid instead of the T-grid
+subroutine rotate_wind_stress(WORK1, WORK2)
+
+  real (r8), dimension(nx_block,ny_block,max_blocks_clinic), intent(in) ::   &
+      WORK1, WORK2        ! contains tau_x and tau_y from coupler on U-grid
+
+  integer :: errorCode
+
+  !-----------------------------------------------------------------------
+  !
+  !  rotate and convert
+  !
+  !-----------------------------------------------------------------------
+
+   SMF(:,:,1,:) = (WORK1(:,:,:)*cos(ANGLE(:,:,:)) +  &
+                    WORK2(:,:,:)*sin(ANGLE(:,:,:)))*  &
+                    momentum_factor
+   SMF(:,:,2,:) = (WORK2(:,:,:)*cos(ANGLE(:,:,:)) -  &
+                    WORK1(:,:,:)*sin(ANGLE(:,:,:)))*  &
+                    momentum_factor
+
+  !-----------------------------------------------------------------------
+  !
+  !  perform halo updates following the vector rotation
+  !
+  !-----------------------------------------------------------------------
+
+  call POP_HaloUpdate(SMF(:,:,1,:),POP_haloClinic,  &
+                      POP_gridHorzLocCenter,          &
+                      POP_fieldKindVector, errorCode, &
+                      fillValue = 0.0_POP_r8)
+
+  call POP_HaloUpdate(SMF(:,:,2,:),POP_haloClinic,  &
+                      POP_gridHorzLocCenter,          &
+                      POP_fieldKindVector, errorCode, &
+                      fillValue = 0.0_POP_r8)
+
+end subroutine rotate_wind_stress
+
+
+
 
 
 !-----------------------------------------------------------------------
@@ -359,26 +401,12 @@ subroutine get_gridded_variable(g_i, g_j, grid, value)
   integer :: i,j,iblock
   type (block) :: this_block
 
-  include 'mpif.h'
-
   value = 0.0 !important for MPI_SUM used later
 
   ! search rather than iterate over all points
   do iblock=1, nblocks_clinic
     this_block = get_block(blocks_clinic(iblock),iblock)
   
-    !if (my_task == master_task) then  !debug info
-      !write(*,*) 'Master is looking for index', g_i, ',', g_j
-      !write(*,*) 'Start of block i index is:', this_block%i_glob(1)
-      !write(*,*) 'Start of block j index is:', this_block%j_glob(1)
-      !write(*,*) 'Start of domain in block i:', this_block%i_glob(1+nghost)
-      !write(*,*) 'Start of domain in block j:', this_block%i_glob(1+nghost)
-      !write(*,*) 'End of block i index is:', this_block%i_glob(nx_block)
-      !write(*,*) 'End of block j index is:', this_block%j_glob(nx_block)
-      !write(*,*) 'End of domain in block i:', this_block%i_glob(nx_block-nghost)
-      !write(*,*) 'End of domain in block j:', this_block%i_glob(ny_block-nghost)
-    !endif  
-
     ! i_glob and j_glob denote the global index of gridpoint within a block
     ! the ghost cells are also given indices but they may have very different values on cyclic borders etc
     ! for now, only look at the grid points that are not ghost cells
@@ -404,18 +432,6 @@ subroutine get_gridded_variable(g_i, g_j, grid, value)
 
   enddo
 
-  !only the output of the node with MPI rank 0 is significant in AMUSE, reduce to single value
-  !if(my_task == master_task) then
-  !  call MPI_REDUCE(MPI_IN_PLACE, value, 1, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
-  !else
-  !  call MPI_REDUCE(value, 0, 1, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
-  !endif
-
-!  if (ierr /= MPI_SUCCESS) then
-!   ret=-1
-!  else
-!   ret=0
-!  endif
 end subroutine get_gridded_variable
 
 subroutine set_gridded_variable(g_i, g_j, grid, value)
@@ -566,6 +582,10 @@ function get_node_coriolis_f(g_i, g_j, corif_, n) result(ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: corif_
 
+  if (initialized .eqv. .false.) then
+    call exit_POP(sigAbort, 'Error: get_node_coriolis_f() called before initialize_code()')
+  endif
+
   call get_gridded_variable_vector(g_i, g_j, FCOR, corif_, n)
 
   ret=0
@@ -634,7 +654,6 @@ function recommit_forcings() result(ret)
   if (fupdate_coriolis) then
     ret = set_coriolis_f()
   endif
-
 end function
 
 
@@ -730,6 +749,32 @@ function get_domain_size(x_, y_) result(ret)
   ret=0
 end function
 
+function get_number_of_vertical_levels(km_) result(ret)
+  integer :: ret
+  integer, intent(out) :: km_
+  km_ = km
+  ret=0
+end function
+
+function get_node_depth(g_i, g_j, depth_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: depth_
+
+  call get_gridded_variable_vector(g_i, g_j, HU, depth_, n)
+
+  ret=0
+end function
+
+function get_element_depth(g_i, g_j, depth_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: depth_
+
+  call get_gridded_variable_vector(g_i, g_j, HT, depth_, n)
+
+  ret=0
+end function
 
 
 
@@ -834,6 +879,47 @@ function set_density(i, j, k, rho_) result (ret)
 
   ret=0
 end function
+
+
+
+
+
+
+
+
+
+
+!-----------------------------------------------------------------------
+!
+! State transition functions
+!
+! Currently these both only call one internal routine, but this is likely
+! to be extended in the future
+!
+!-----------------------------------------------------------------------
+function recommit_parameters() result (ret)
+  integer :: ret
+  ret=0
+
+  ret = recommit_forcings()
+
+end function
+function prepare_parameters() result (ret)
+  integer :: ret
+  ret=0
+
+  if (initialized .eqv. .false.) then
+    call exit_POP(sigAbort, 'Error: prepare_parameters() called before initialize_code()')
+  endif
+
+  ret = prepare_wind_stress()
+
+end function
+
+
+
+
+
 
 
 

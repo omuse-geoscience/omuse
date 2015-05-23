@@ -55,4 +55,4 @@ pop_worker: worker_code.f90 $(CODELIB) $(OBJS)
 	$(MPIFC) $(POPINCPATH) $(FCFLAGS) $(FS_FLAGS) -fconvert=swap $< $(OBJS) $(CODELIB) $(FS_LIBS) -o $@
 
 %.o: %.f90
-	$(FC) $(POPINCPATH) $(FCFLAGS) -c -o $@ $<
+	$(FC) $(POPINCPATH) $(FCFLAGS) -Wall -c -o $@ $<
