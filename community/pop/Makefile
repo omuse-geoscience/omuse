@@ -34,7 +34,7 @@ all: pop_worker
 eSalsa-POP: download
 
 download:
-	git clone -b master https://github.com/NLeSC/eSalsa-POP.git
+	git clone -b amuse https://github.com/NLeSC/eSalsa-POP.git
 
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
