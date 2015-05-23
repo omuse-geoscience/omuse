@@ -95,11 +95,23 @@ pyplot.ion()
 
 
 #actually fetch and plot SST
+
+import time
+
+start=time.clock()
 sst = p.get_element_surface_state(i,j)['temp']
+end=time.clock()
+print 'gather state took:' + str(end-start) + 'secs.'
 
-print sst
 
+#print sst
+
+start=time.clock()
 lat_lon = p.get_node_position(i,j)
+end=time.clock()
+print 'reduce position took:' + str(end-start) + 'secs.'
+
+
 lats=lat_lon['lat']/numpy.pi*180
 lons=lat_lon['lon']/numpy.pi*180
 
