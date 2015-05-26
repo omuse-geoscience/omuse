@@ -185,8 +185,6 @@ class POP(CommonCode):
     def get_firstlast_node(self):
         size = self.get_domain_size()
         return 1,size[0],1,size[1]
-    def get_firstlast_element(self):
-        return self.get_firstlast_node(self)
 
     def get_ugrid_latlon_range(self):
         start = self.get_node_position(1,1)
@@ -219,7 +217,7 @@ class POP(CommonCode):
         object.add_getter('forcings', 'get_node_position', names=('lat','lon'))
 
         object.define_grid('elements',axes_names = ['x','y'])
-        object.set_grid_range('elements', 'get_firstlast_element')
+        object.set_grid_range('elements', 'get_firstlast_node')
      #   object.add_getter('elements', 'get_element_nodes', names=('n1','n2','n3'))   #adcirc specific
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
         object.add_getter('elements', 'get_element_surface_state', names=('temp','salt'))
