@@ -86,10 +86,8 @@ function initialize_code() result(ret)
   fupdate_coriolis = .false.
   fupdate_wind_stress = .false.
 
-  ! allocate space for global gathers
-  !if (my_task == master_task) then
-    allocate(WORK_G(nx_global,ny_global))
-  !endif
+  !allocate space for gather of global field
+  allocate(WORK_G(nx_global,ny_global))
 
   !-----------------------------------------------------------------------
   !
@@ -272,10 +270,6 @@ function prepare_wind_stress() result(ret)
   tau_x =  SMF(:,:,1,:)/momentum_factor * cos(ANGLE) - SMF(:,:,2,:)/momentum_factor * sin(ANGLE)
   tau_y =  ( SMF(:,:,2,:)/momentum_factor + tau_x * sin(ANGLE) ) / cos (ANGLE)
 
-!debugging
-!   tau_x = SMF(:,:,1,:)
-!   tau_y = SMF(:,:,2,:)
-
   if (errorCode == POP_Success) then
     ret=0
   else
@@ -307,7 +301,6 @@ function set_wind_stress() result(ret)
   ws_data_next = never
   ws_data_update = never
   ws_interp_freq = 'never'
-
   ws_interp_next = never
   ws_interp_last = never
   ws_interp_inc  = c0
@@ -360,11 +353,11 @@ subroutine rotate_wind_stress(WORK1, WORK2)
   !-----------------------------------------------------------------------
 
    SMF(:,:,1,:) = (WORK1(:,:,:)*cos(ANGLE(:,:,:)) +  &
-                    WORK2(:,:,:)*sin(ANGLE(:,:,:)))*  &
-                    momentum_factor
+                   WORK2(:,:,:)*sin(ANGLE(:,:,:)))*  &
+                   momentum_factor
    SMF(:,:,2,:) = (WORK2(:,:,:)*cos(ANGLE(:,:,:)) -  &
-                    WORK1(:,:,:)*sin(ANGLE(:,:,:)))*  &
-                    momentum_factor
+                   WORK1(:,:,:)*sin(ANGLE(:,:,:)))*  &
+                   momentum_factor
 
   !-----------------------------------------------------------------------
   !
@@ -422,9 +415,9 @@ subroutine get_gridded_variable(g_i, g_j, grid, value)
       j = 1+nghost + g_j - this_block%j_glob(1+nghost)
       
       !debugging: check if this went ok
-      if (this_block%i_glob(i) /= g_i .or. this_block%j_glob(j) /= g_j) then
-        write (*,*) 'Error: g_i =', g_i, ', g_j=', g_j, ' and found i=', this_block%i_glob(i), ' j=', this_block%j_glob(j) 
-      endif
+      !if (this_block%i_glob(i) /= g_i .or. this_block%j_glob(j) /= g_j) then
+      !  write (*,*) 'Error: g_i =', g_i, ', g_j=', g_j, ' and found i=', this_block%i_glob(i), ' j=', this_block%j_glob(j) 
+      !endif
 
       value = grid(i,j,iblock)
 
@@ -453,9 +446,9 @@ subroutine set_gridded_variable(g_i, g_j, grid, value)
       j = 1+nghost + g_j - this_block%j_glob(1+nghost)
 
       !debugging: check if this went ok
-      if (this_block%i_glob(i) /= g_i .or. this_block%j_glob(j) /= g_j) then
-        write (*,*) 'Error: g_i =', g_i, ', g_j=', g_j, ' and found i=', this_block%i_glob(i), ' j=', this_block%j_glob(j) 
-      endif
+      !if (this_block%i_glob(i) /= g_i .or. this_block%j_glob(j) /= g_j) then
+      !  write (*,*) 'Error: g_i =', g_i, ', g_j=', g_j, ' and found i=', this_block%i_glob(i), ' j=', this_block%j_glob(j) 
+      !endif
 
       grid(i,j,iblock) = value
       
@@ -564,6 +557,44 @@ subroutine set_gridded_variable_vector(g_i, g_j, grid, value, n)
   enddo
 
 end subroutine set_gridded_variable_vector
+
+subroutine get_gridded_variable_vector_3D(g_i, g_j, k, grid, value, n)
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j, k
+  real*8, intent(in), dimension(:,:,:,:) :: grid
+  real*8, dimension(n), intent(out) :: value
+
+  integer :: ii,ierr
+
+  include 'mpif.h'
+
+  value = 0.0 !important for MPI_SUM used later
+
+  do ii=1,n
+    call get_gridded_variable_3D(g_i(ii), g_j(ii), k(ii), grid, value(ii))
+  enddo
+
+  !only the output of the node with MPI rank 0 is significant in AMUSE, reduce to single value per element
+  if(my_task == master_task) then
+    call MPI_REDUCE(MPI_IN_PLACE, value, n, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
+  else
+    call MPI_REDUCE(value, 0, n, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
+  endif
+
+end subroutine get_gridded_variable_vector_3D
+
+subroutine set_gridded_variable_vector_3D(g_i, g_j, k, grid, value, n)
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j, k
+  real*8, intent(out), dimension(:,:,:,:) :: grid
+  real*8, dimension(n), intent(in) :: value
+
+  integer :: ii
+  do ii=1,n
+    call set_gridded_variable_3D(g_i(ii), g_j(ii), k(ii), grid, value(ii))
+  enddo
+
+end subroutine set_gridded_variable_vector_3D
 
 
 
@@ -787,95 +818,105 @@ end function
 ! this code was written optimistically and probably needs adjustment later
 !
 !-----------------------------------------------------------------------
-function get_temperature(i, j, k, temp_) result (ret)
+function get_temperature(i, j, k, temp_, n) result (ret)
   integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(out) :: temp_
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: temp_
 
-  call get_gridded_variable_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_)
+  call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
 
   ret=0
 end function
-function set_temperature(i, j, k, temp_) result (ret)
+function set_temperature(i, j, k, temp_, n) result (ret)
   integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(in) :: temp_
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: temp_
 
-  call set_gridded_variable_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_)
+  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
 
   ret=0
 end function
-function get_salinity(i, j, k, salt_) result (ret)
+function get_salinity(i, j, k, salt_, n) result (ret)
   integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(out) :: salt_
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: salt_
 
-  call get_gridded_variable_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_)
+  call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
 
   ret=0
 end function
-function set_salinity(i, j, k, salt_) result (ret)
+function set_salinity(i, j, k, salt_, n) result (ret)
   integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(in) :: salt_
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: salt_
 
-  call set_gridded_variable_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_)
-
-  ret=0
-end function
-
-function get_xvel(i, j, k, uvel_) result (ret)
-  integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(out) :: uvel_
-
-  call get_gridded_variable_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_)
-
-  ret=0
-end function
-function set_xvel(i, j, k, uvel_) result (ret)
-  integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(in) :: uvel_
-
-  call set_gridded_variable_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_)
-
-  ret=0
-end function
-function get_yvel(i, j, k, vvel_) result (ret)
-  integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(out) :: vvel_
-
-  call get_gridded_variable_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_)
-
-  ret=0
-end function
-function set_yvel(i, j, k, vvel_) result (ret)
-  integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(in) :: vvel_
-
-  call set_gridded_variable_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_)
+  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
 
   ret=0
 end function
 
-function get_density(i, j, k, rho_) result (ret)
+function get_xvel(i, j, k, uvel_, n) result (ret)
   integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(out) :: rho_
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: uvel_
 
-  call get_gridded_variable_3D(i, j, k, RHO(:,:,:,curtime,:), rho_)
+  call get_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
 
   ret=0
 end function
-function set_density(i, j, k, rho_) result (ret)
+function set_xvel(i, j, k, uvel_, n) result (ret)
   integer :: ret
-  integer, intent(in) :: i, j, k
-  real*8, intent(in) :: rho_
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: uvel_
 
-  call set_gridded_variable_3D(i, j, k, RHO(:,:,:,curtime,:), rho_)
+  call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
+
+  ret=0
+end function
+function get_yvel(i, j, k, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: vvel_
+
+  call get_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
+
+  ret=0
+end function
+function set_yvel(i, j, k, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: vvel_
+
+  call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
+
+  ret=0
+end function
+
+function get_density(i, j, k, rho_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: rho_
+
+  call get_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
+
+  ret=0
+end function
+function set_density(i, j, k, rho_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: rho_
+
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
 
   ret=0
 end function

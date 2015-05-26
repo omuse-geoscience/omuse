@@ -205,8 +205,9 @@ class POP(CommonCode):
 
         object.define_grid('nodes', axes_names = ['x','y'])
         object.set_grid_range('nodes', 'get_firstlast_node')
-        object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy'))
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
+        object.add_getter('nodes', 'get_node_depth', names=('depth'))
+        object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy'))
 
         object.define_grid('forcings',axes_names = ['x','y'])
         object.set_grid_range('forcings', 'get_firstlast_node')
@@ -220,6 +221,7 @@ class POP(CommonCode):
         object.set_grid_range('elements', 'get_firstlast_node')
      #   object.add_getter('elements', 'get_element_nodes', names=('n1','n2','n3'))   #adcirc specific
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
+        object.add_getter('elements', 'get_element_depth', names=('depth'))
         object.add_getter('elements', 'get_element_surface_state', names=('temp','salt'))
 
 
