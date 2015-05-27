@@ -624,7 +624,7 @@ end function
 function set_node_coriolis_f(g_i, g_j, corif_, n) result(ret)
   integer :: ret, n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(out) :: corif_
+  real*8, dimension(n), intent(in) :: corif_
 
   call set_gridded_variable_vector(g_i, g_j, FCOR, corif_, n)
 

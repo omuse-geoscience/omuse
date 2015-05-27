@@ -122,17 +122,17 @@ class POPInterfaceTests(TestWithMPI):
 
         #check if grid is increasing from west to east and
         #south to north
-	increasing_we = (se['lon'] - sw['lon']) > 0
-	increasing_sn = (nw['lat'] - sw['lat']) > 0
+        increasing_we = (se['lon'] - sw['lon']) > 0
+        increasing_sn = (nw['lat'] - sw['lat']) > 0
         self.assertTrue(increasing_we, msg='longitude appears to be non-increasing in west-east direction')
         self.assertTrue(increasing_sn, msg='latitude appears to be non-increasing in south-north direction')
 
         #check if point 1,1 on U grid is within (1,1), (1,2), (2,1), and (2,2) on the T grid
         u = instance.get_node_position(1, 1)
-	u_correct = (sw['lon'] < u['lon'] and se['lon'] > u['lon'])
-	u_correct = u_correct and (nw['lon'] < u['lon'] and ne['lon'] > u['lon'])
-	u_correct = u_correct and (sw['lat'] < u['lat'] and nw['lat'] > u['lat'])
-	u_correct = u_correct and (se['lat'] < u['lat'] and ne['lat'] > u['lat'])
+        u_correct = (sw['lon'] < u['lon'] and se['lon'] > u['lon'])
+        u_correct = u_correct and (nw['lon'] < u['lon'] and ne['lon'] > u['lon'])
+        u_correct = u_correct and (sw['lat'] < u['lat'] and nw['lat'] > u['lat'])
+        u_correct = u_correct and (se['lat'] < u['lat'] and ne['lat'] > u['lat'])
 
         self.assertTrue(increasing_sn, msg='u point with index 1,1 does not seem to be embedded by t cell at 1,1')
 
