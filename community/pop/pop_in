@@ -47,12 +47,12 @@
 
 &grid_nml
    horiz_grid_opt       = 'file'
-   horiz_grid_file      = '/home/ben/x1_Files/grid/horiz_grid_20010402.ieeer8'
+   horiz_grid_file      = 'data/input/grid/horiz_grid_20010402.ieeer8'
    sfc_layer_opt        = 'varthick'
    vert_grid_opt        = 'file'
-   vert_grid_file       = '/home/ben/x1_Files/grid/in_depths.dat'
+   vert_grid_file       = 'data/input/grid/in_depths.dat'
    topography_opt       = 'file'
-   topography_file      = '/home/ben/x1_Files/grid/topography_20010702.ieeei4'
+   topography_file      = 'data/input/grid/topography_20010702.ieeei4'
    partial_bottom_cells = .false.
    bottom_cell_file     = 'unknown_bottom_cell'
    region_mask_file     = 'unknown_region_mask'
@@ -63,7 +63,7 @@
 
 &init_ts_nml
    init_ts_option   = 'restart'
-   init_ts_file     = '/home/ben/x1_Files/restart/r.x1_SAMOC_control.00750101'
+   init_ts_file     = 'data/input/restart/r.x1_SAMOC_control.00750101'
    init_ts_file_fmt = 'bin'
 /
 
@@ -84,7 +84,7 @@
 &restart_nml
    restart_freq_opt = 'never' 
    restart_freq     = 1
-   restart_outfile  = '/home/ben/x1_Files/restart/r'
+   restart_outfile  = 'data/output/restart'
    restart_fmt      = 'nc'
    leven_odd_on     = .true. 
    even_odd_freq    = 2400
@@ -92,13 +92,13 @@
 /
 
 &tavg_nml
-   tavg_freq_opt  = 'nday'
+   tavg_freq_opt  = 'never'
    tavg_freq      = 5
    tavg_start_opt = 'nstep'
    tavg_start     = 0
    tavg_infile    = ''
    tavg_fmt_in    = 'bin'
-   tavg_outfile   = '/home/ben/x1_Files/tavg/t'
+   tavg_outfile   = ''
    tavg_fmt_out   = 'nc'
    tavg_contents  = 'tavg_contents'
 /
@@ -114,7 +114,7 @@
 &movie_nml
    movie_freq_opt  = 'never'
    movie_freq      = 100000
-   movie_outfile   = '/home/ben/x1_Files/movie/m'
+   movie_outfile   = ''
    movie_fmt       = 'bin'
    movie_contents  = 'movie_contents'
 /
@@ -243,7 +243,7 @@
    u_para = 5.0
    u_perp = 5.0
    var_viscosity_infile = 'ccsm-internal'
-   var_viscosity_outfile     = '/home/ben/x1_Files/var_visc'
+   var_viscosity_outfile     = 'data/output/var_visc'
    var_viscosity_outfile_fmt = 'nc'
    vconst_1    = 1.0e7
    vconst_2    = 0.0
@@ -291,7 +291,7 @@
    ws_interp_freq  = 'every-timestep'
    ws_interp_type  = 'linear'
    ws_interp_inc   = 1.e20
-   ws_filename     = '/home/ben/x1_Files/ws_monthly/ws.1958-2000.mon'
+   ws_filename     = 'data/input/ws_monthly/ws.1958-2000.mon'
    ws_file_fmt     = 'bin'
    ws_data_renorm(1)  = 10.
    ws_data_renorm(2)  = 10.
@@ -305,7 +305,7 @@
    shf_interp_type = 'linear'
    shf_interp_inc  = 72.
    shf_restore_tau = 30.
-   shf_filename    ='/home/ben/x1_Files/shf_monthly/shf.normal_year+flux.mon'
+   shf_filename    ='data/input/shf_monthly/shf.normal_year+flux.mon'
    shf_data_renorm(3) = 1.00
    shf_weak_restore = 0.
    shf_strong_restore   = 0.0
@@ -322,7 +322,7 @@
    sfwf_restore_tau    = 1.e20
    sfwf_weak_restore   = .0
    sfwf_strong_restore = .0
-   sfwf_filename       = '/home/ben/x1_Files/sfwf/sfwf_phc0-50_ncarp_r46+g8_0.5Sv_flux.mon'
+   sfwf_filename       = 'data/input/sfwf/sfwf_phc0-50_ncarp_r46+g8_0.5Sv_flux.mon'
    sfwf_file_fmt       = 'bin'
    sfwf_data_renorm(1) = 0.001
    sfwf_data_renorm(2) = 1.
@@ -396,7 +396,7 @@
 &dye_nml
    init_dye_option = 'restart'
    init_dye_init_file = 'same_as_TS'
-   dye_region_file = '/home/ben/x1_Files/runoff/dye_flux_greenland.r8'
+   dye_region_file = 'data/input/runoff/dye_flux_greenland.r8'
    dye_region_file_fmt = 'bin'
    tracer_init_ext(1)%mod_varname  = 'DYE'
    tracer_init_ext(1)%filename     = 'unknown'
