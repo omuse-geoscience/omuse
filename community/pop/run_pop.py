@@ -42,7 +42,14 @@ def myplot(lats, lons, xs, ys, sst):
 from omuse.community.pop.interface import POP
 from amuse.units import units
 
-p=POP(channel_type="sockets",redirection="none")
+p=POP(channel_type="sockets",redirection="none",number_of_workers=4)
+
+p.set_horiz_grid_file('/home/ben/x1_Files/grid/horiz_grid_20010402.ieeer8')
+p.set_vert_grid_file('/home/ben/x1_Files/grid/in_depths.dat')
+p.set_topography_file('/home/ben/x1_Files/grid/topography_20010702.ieeei4')
+p.set_ts_file('/home/ben/x1_Files/restart/r.x1_SAMOC_control.00750101')
+
+
 
 #prepare the plot stuff
 pyplot.ion()

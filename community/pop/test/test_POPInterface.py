@@ -24,6 +24,7 @@ class POPInterfaceTests(TestWithMPI):
     def test3(self):
         instance = POPInterface(**default_options)
         instance.initialize_code()
+        instance.commit_parameters()
         time_start = instance.get_model_time()['time']
         dt = instance.get_timestep_next()['dt']
         print 'time=', time_start, 'dt=', dt
@@ -56,6 +57,7 @@ class POPInterfaceTests(TestWithMPI):
     def test4(self):
         instance = POPInterface(**default_options)
         instance.initialize_code()
+        instance.commit_parameters()
 
         #get domain size
         size = instance.get_domain_size()
@@ -75,6 +77,7 @@ class POPInterfaceTests(TestWithMPI):
     def test5(self):
         instance = POPInterface(redirection="none")
         instance.initialize_code()
+        instance.commit_parameters()
 
         """ In POP the T-grid and U grid are aligned as follows:
               U ------U-------U-------U-------U
@@ -122,17 +125,17 @@ class POPInterfaceTests(TestWithMPI):
 
         #check if grid is increasing from west to east and
         #south to north
-	increasing_we = (se['lon'] - sw['lon']) > 0
-	increasing_sn = (nw['lat'] - sw['lat']) > 0
+        increasing_we = (se['lon'] - sw['lon']) > 0
+        increasing_sn = (nw['lat'] - sw['lat']) > 0
         self.assertTrue(increasing_we, msg='longitude appears to be non-increasing in west-east direction')
         self.assertTrue(increasing_sn, msg='latitude appears to be non-increasing in south-north direction')
 
         #check if point 1,1 on U grid is within (1,1), (1,2), (2,1), and (2,2) on the T grid
         u = instance.get_node_position(1, 1)
-	u_correct = (sw['lon'] < u['lon'] and se['lon'] > u['lon'])
-	u_correct = u_correct and (nw['lon'] < u['lon'] and ne['lon'] > u['lon'])
-	u_correct = u_correct and (sw['lat'] < u['lat'] and nw['lat'] > u['lat'])
-	u_correct = u_correct and (se['lat'] < u['lat'] and ne['lat'] > u['lat'])
+        u_correct = (sw['lon'] < u['lon'] and se['lon'] > u['lon'])
+        u_correct = u_correct and (nw['lon'] < u['lon'] and ne['lon'] > u['lon'])
+        u_correct = u_correct and (sw['lat'] < u['lat'] and nw['lat'] > u['lat'])
+        u_correct = u_correct and (se['lat'] < u['lat'] and ne['lat'] > u['lat'])
 
         self.assertTrue(increasing_sn, msg='u point with index 1,1 does not seem to be embedded by t cell at 1,1')
 
@@ -140,45 +143,3 @@ class POPInterfaceTests(TestWithMPI):
 
 
 
-
-
-
-class POPTests(TestWithMPI):
-
-    def test6(self):
-        instance = POP(channel_type="sockets",redirection="none")
-
-        self.assertEquals(instance.state_machine._current_state.name, 'UNINITIALIZED')
-
-        #a read of a parameter requires the state to be either EDIT or RUN, which means we pass through INITIALIZED
-        fcor = instance.forcings.coriolis_f 
-
-        #check if we are in the expected state
-        self.assertEquals(instance.state_machine._current_state.name, 'RUN')
-
-        #check if we read a sensible value
-        print 'fcor[1,1] = ', fcor[1,1]
-        self.assertTrue(fcor[1,1] != 0 | units.s**-1, msg='Expected coriolis force to be not equal to zero for node 1,1')
-
-        #proceed to evolve
-        time = instance.get_model_time()
-        tend = time + instance.get_timestep_next()
-        instance.evolve_model(tend)
-
-        #check if we are in the expected state
-        self.assertEquals(instance.state_machine._current_state.name, 'EVOLVED')
-
-        #try to read something again, should cause a state transition to RUN
-        fcor = instance.forcings.coriolis_f 
-
-        #check if we are in the expected state
-        self.assertEquals(instance.state_machine._current_state.name, 'RUN')
-
-        #check if we can write to coriolis_f
-        instance.forcings.coriolis_f = fcor
-
-        #check if we are in the expected state
-        self.assertEquals(instance.state_machine._current_state.name, 'EDIT')
-        
-
-        instance.stop()
