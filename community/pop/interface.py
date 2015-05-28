@@ -293,17 +293,11 @@ class POP(CommonCode):
         object.add_transition('INITIALIZED', 'EDIT', 'commit_parameters')
         object.add_transition('INITIALIZED', 'RUN', 'commit_parameters')
 
-        object.add_method('INITIALIZED', 'get_horiz_grid_option')
         object.add_method('INITIALIZED', 'set_horiz_grid_option')
-        object.add_method('INITIALIZED', 'get_horiz_grid_file')
         object.add_method('INITIALIZED', 'set_horiz_grid_file')
-        object.add_method('INITIALIZED', 'get_vert_grid_option')
         object.add_method('INITIALIZED', 'set_vert_grid_option')
-        object.add_method('INITIALIZED', 'get_vert_grid_file')
         object.add_method('INITIALIZED', 'set_vert_grid_file')
-        object.add_method('INITIALIZED', 'get_topography_option')
         object.add_method('INITIALIZED', 'set_topography_option')
-        object.add_method('INITIALIZED', 'get_topography_file')
         object.add_method('INITIALIZED', 'set_topography_file')
 
         object.add_method('INITIALIZED', 'get_ts_option')
@@ -343,10 +337,11 @@ class POP(CommonCode):
 
 
         #you can only edit stuff in state EDIT
-        object.add_method('EDIT','before_set_parameter')
+        object.add_method('INITIALIZED','before_set_parameter')
         #you can only read stuff in states RUN and EDIT
         object.add_method('EDIT','before_get_parameter')
         object.add_method('RUN','before_get_parameter')
+        object.add_method('INITIALIZED','before_get_parameter')
         #setting a parameter is the only way to endup in state EDIT from RUN
         object.add_transition('RUN','EDIT','before_set_parameter')
         object.add_transition('RUN','EDIT_FORCINGS','before_set_parameter')
