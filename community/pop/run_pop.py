@@ -54,8 +54,10 @@ p.set_ts_file('/home/ben/x1_Files/restart/r.x1_SAMOC_control.00750101')
 #prepare the plot stuff
 pyplot.ion()
 lats,lons = get_lats_lons(p)
+
 xs,ys = get_xy()
 sst = p.elements.temp.value_in(units.C)
+
 myplot(lats, lons, xs, ys, sst)
 
 

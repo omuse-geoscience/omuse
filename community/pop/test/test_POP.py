@@ -189,5 +189,176 @@ class POPTests(TestWithMPI):
         mystr = p.get_restart_file()
         self.assertEquals(mystr, bogus_file)
 
+        mystr = p.get_tavg_option()
+        self.assertEquals(mystr, 'never')
+        p.set_tavg_option('nday')
+        mystr = p.get_tavg_option()
+        self.assertEquals(mystr, 'nday')
+        mynum = p.get_tavg_freq_option()
+        self.assertEquals(mynum, 1)
+        p.set_tavg_freq_option(5)
+        mynum = p.get_tavg_freq_option()
+        self.assertEquals(mynum, 5)
+        mystr = p.get_tavg_file()
+        self.assertEquals(mystr, '')
+        p.set_tavg_file(bogus_file)
+        mystr = p.get_tavg_file()
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.get_movie_option()
+        self.assertEquals(mystr, 'never')
+        p.set_movie_option('nday')
+        mystr = p.get_movie_option()
+        self.assertEquals(mystr, 'nday')
+        mynum = p.get_movie_freq_option()
+        self.assertEquals(mynum, 1)
+        p.set_movie_freq_option(5)
+        mynum = p.get_movie_freq_option()
+        self.assertEquals(mynum, 5)
+        mystr = p.get_movie_file()
+        self.assertEquals(mystr, '')
+        p.set_movie_file(bogus_file)
+        mystr = p.get_movie_file()
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.get_runid()
+        self.assertEquals(mystr, 'AMUSE')
+        p.set_runid('MYRUNID')
+        mystr = p.get_runid()
+        self.assertEquals(mystr, 'MYRUNID')
+
+        mystr = p.get_dt_option()
+        self.assertEquals(mystr, 'steps_per_day')
+        p.set_dt_option('seconds')
+        mystr = p.get_dt_option()
+        self.assertEquals(mystr, 'seconds')
+        p.set_dt_option('steps_per_year')
+        mystr = p.get_dt_option()
+        self.assertEquals(mystr, 'steps_per_year')
+
+        mynum = p.get_dt_count()
+        self.assertEquals(mynum, 45)
+        p.set_dt_count(5)
+        mynum = p.get_dt_count()
+        self.assertEquals(mynum, 5)
+
+
+    def test4(self):
+        p = POP(**default_options)
+
+        mystr = ''
+        mynum = 0
+        bogus_file = '/fake/path/to/file'
+
+        mystr = p.parameters.ts_option
+        self.assertEquals(mystr, 'internal')
+        p.parameters.ts_option = 'restart'
+        mystr = p.parameters.ts_option
+        self.assertEquals(mystr, 'restart')
+        mystr = p.parameters.ts_file
+        self.assertEquals(mystr, '')
+        p.parameters.ts_file = bogus_file
+        mystr = p.parameters.ts_file
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.parameters.ts_file_format
+        self.assertEquals(mystr, 'bin')
+        p.parameters.ts_file_format = 'nc'
+        mystr = p.parameters.ts_file_format
+        self.assertEquals(mystr, 'nc')
+
+        mystr = p.parameters.distribution
+        self.assertEquals(mystr, 'cartesian')
+
+        p.parameters.distribution = 'predefined'
+        mystr = p.parameters.distribution
+        self.assertEquals(mystr, 'predefined')
+
+        mystr = p.parameters.distribution_file
+        self.assertEquals(mystr, '')
+        p.parameters.distribution_file = bogus_file
+        mystr = p.parameters.distribution_file
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.parameters.ew_boundary_type
+        self.assertEquals(mystr, 'cyclic')
+        p.parameters.ew_boundary_type = 'closed'
+        mystr = p.parameters.ew_boundary_type
+        self.assertEquals(mystr, 'closed')
+
+        mystr = p.parameters.ns_boundary_type
+        self.assertEquals(mystr, 'closed')
+        p.parameters.ns_boundary_type = 'tripole'
+        mystr = p.parameters.ns_boundary_type
+        self.assertEquals(mystr, 'tripole')
+
+        mystr = p.parameters.restart_option
+        self.assertEquals(mystr, 'never')
+        p.parameters.restart_option = 'nday'
+        mystr = p.parameters.restart_option
+        self.assertEquals(mystr, 'nday')
+        mynum = p.parameters.restart_freq_option
+        self.assertEquals(mynum, 1)
+        p.parameters.restart_freq_option = 5
+        mynum = p.parameters.restart_freq_option
+        self.assertEquals(mynum, 5)
+        mystr = p.parameters.restart_file
+        self.assertEquals(mystr, '')
+        p.parameters.restart_file = bogus_file
+        mystr = p.parameters.restart_file
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.parameters.tavg_option
+        self.assertEquals(mystr, 'never')
+        p.parameters.tavg_option = 'nday'
+        mystr = p.parameters.tavg_option
+        self.assertEquals(mystr, 'nday')
+        mynum = p.parameters.tavg_freq_option
+        self.assertEquals(mynum, 1)
+        p.parameters.tavg_freq_option = 5
+        mynum = p.parameters.tavg_freq_option
+        self.assertEquals(mynum, 5)
+        mystr = p.parameters.tavg_file
+        self.assertEquals(mystr, '')
+        p.parameters.tavg_file = bogus_file
+        mystr = p.parameters.tavg_file
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.parameters.movie_option
+        self.assertEquals(mystr, 'never')
+        p.parameters.movie_option = 'nday'
+        mystr = p.parameters.movie_option
+        self.assertEquals(mystr, 'nday')
+        mynum = p.parameters.movie_freq_option
+        self.assertEquals(mynum, 1)
+        p.parameters.movie_freq_option = 5
+        mynum = p.parameters.movie_freq_option
+        self.assertEquals(mynum, 5)
+        mystr = p.parameters.movie_file
+        self.assertEquals(mystr, '')
+        p.parameters.movie_file = bogus_file
+        mystr = p.parameters.movie_file
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.parameters.runid
+        self.assertEquals(mystr, 'AMUSE')
+        p.parameters.runid = 'MYRUNID'
+        mystr = p.parameters.runid
+        self.assertEquals(mystr, 'MYRUNID')
+
+        mystr = p.parameters.dt_option
+        self.assertEquals(mystr, 'steps_per_day')
+        p.parameters.dt_option = 'seconds'
+        mystr = p.parameters.dt_option
+        self.assertEquals(mystr, 'seconds')
+        p.parameters.dt_option = 'steps_per_year'
+        mystr = p.parameters.dt_option
+        self.assertEquals(mystr, 'steps_per_year')
+
+        mynum = p.parameters.dt_count
+        self.assertEquals(mynum, 45)
+        p.parameters.dt_count = 5
+        mynum = p.parameters.dt_count
+        self.assertEquals(mynum, 5)
 
 
