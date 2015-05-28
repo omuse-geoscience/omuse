@@ -81,6 +81,47 @@ class POPInterface(CodeInterface):
     def get_element_depth(i=0,j=0):
         returns (depth=0. | units.m)
 
+    #returns x velocity for 3D grid
+    @remote_function(must_handle_array=True)
+    def get_node3d_velocity_xvel(i=0,j=0,k=0):
+        returns (xvel=0. | units.m / units.s)
+    @remote_function(must_handle_array=True)
+    def set_node3d_velocity_xvel(i=0,j=0,k=0,xvel=0. | units.m / units.s):
+        returns ()
+    #returns y velocity for 3D grid
+    @remote_function(must_handle_array=True)
+    def get_node3d_velocity_yvel(i=0,j=0,k=0):
+        returns (yvel=0. | units.m / units.s)
+    @remote_function(must_handle_array=True)
+    def set_node3d_velocity_yvel(i=0,j=0,k=0,yvel=0. | units.m / units.s):
+        returns ()
+
+    #returns temperature for 3D grid
+    @remote_function(must_handle_array=True)
+    def get_element3d_temperature(i=0,j=0,k=0):
+        returns (temp=0. | units.C)
+    @remote_function(must_handle_array=True)
+    def set_element3d_temperature(i=0,j=0,k=0,temp=0. | units.C):
+        returns ()
+
+    #returns salinity for 3D grid
+    @remote_function(must_handle_array=True)
+    def get_element3d_salinity(i=0,j=0,k=0):
+        returns (salt=0. | units.g / units.kg)
+    @remote_function(must_handle_array=True)
+    def set_element3d_salinity(i=0,j=0,k=0,salt=0. | units.g / units.kg):
+        returns ()
+
+    #returns densiity for 3D grid
+    @remote_function(must_handle_array=True)
+    def get_element3d_density(i=0,j=0,k=0):
+        returns (rho=0. | units.g / units.cm**3)
+    @remote_function(must_handle_array=True)
+    def set_element3d_density(i=0,j=0,k=0,rho=0. | units.g / units.cm**3):
+        returns ()
+
+
+
 
     
         
@@ -352,6 +393,12 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'get_movie_file')
         object.add_method('INITIALIZED', 'set_movie_file')
 
+        object.add_method('INITIALIZED', 'get_runid')
+        object.add_method('INITIALIZED', 'set_runid')
+        object.add_method('INITIALIZED', 'get_dt_option')
+        object.add_method('INITIALIZED', 'set_dt_option')
+        object.add_method('INITIALIZED', 'get_dt_count')
+        object.add_method('INITIALIZED', 'set_dt_count')
 
         #you can only edit stuff in state EDIT
         object.add_method('INITIALIZED','before_set_parameter')
@@ -371,7 +418,19 @@ class POP(CommonCode):
             object.add_method(state, 'get_node_position')
             object.add_method(state, 'get_element_surface_state')
             object.add_method(state, 'get_node_surface_state')
+            object.add_method(state, 'get_node3d_velocity_xvel')
+            object.add_method(state, 'get_node3d_velocity_yvel')
+            object.add_method(state, 'get_element3d_temperature')
+            object.add_method(state, 'get_element3d_salinity')
+            object.add_method(state, 'get_element3d_density')
+
         object.add_method('EDIT', 'set_node_coriolis_f')
+        object.add_method('EDIT', 'set_node3d_velocity_xvel')
+        object.add_method('EDIT', 'set_node3d_velocity_yvel')
+        object.add_method('EDIT', 'set_element3d_temperature')
+        object.add_method('EDIT', 'set_element3d_salinity')
+        object.add_method('EDIT', 'set_element3d_density')
+
         object.add_method('EDIT_FORCINGS', 'set_node_wind_stress')
 
         #before we can run the model we need to recommit_parameters 
@@ -393,10 +452,14 @@ class POP(CommonCode):
         self.set_nprocs(self.nprocs)
         self.overridden().commit_parameters()
 
-
     def get_firstlast_node(self):
         size = self.get_domain_size()
         return 1,size[0],1,size[1]
+    def get_firstlast_grid3d(self):
+        size = self.get_domain_size()
+        km = self.get_number_of_vertical_levels()
+        return 1,size[0],1,size[1],1,km
+
 
     def get_ugrid_latlon_range(self):
         start = self.get_node_position(1,1)
@@ -421,20 +484,37 @@ class POP(CommonCode):
         object.add_getter('nodes', 'get_node_depth', names=('depth'))
         object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy'))
 
+        object.define_grid('node3d',axes_names=['x','y','z'])
+        object.set_grid_range('node3d', 'get_firstlast_grid3d')
+        object.add_getter('node3d', 'get_node3d_velocity_xvel', names = ('xvel'))
+        object.add_getter('node3d', 'get_node3d_velocity_yvel', names = ('yvel'))
+        object.add_setter('node3d', 'set_node3d_velocity_xvel', names = ('xvel'))
+        object.add_setter('node3d', 'set_node3d_velocity_yvel', names = ('yvel'))
+
+        #these are all on the U-grid
         object.define_grid('forcings',axes_names = ['x','y'])
         object.set_grid_range('forcings', 'get_firstlast_node')
-        object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f',))    #on the U-grid
+        object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f',))
         object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f',))
-        object.add_getter('forcings', 'get_node_wind_stress', names=('tau_x','tau_y')) #currently on the T-grid, fix later
+        object.add_getter('forcings', 'get_node_wind_stress', names=('tau_x','tau_y'))
         object.add_setter('forcings', 'set_node_wind_stress', names=('tau_x','tau_y'))
         object.add_getter('forcings', 'get_node_position', names=('lat','lon'))
 
         object.define_grid('elements',axes_names = ['x','y'])
         object.set_grid_range('elements', 'get_firstlast_node')
-     #   object.add_getter('elements', 'get_element_nodes', names=('n1','n2','n3'))   #adcirc specific
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
         object.add_getter('elements', 'get_element_depth', names=('depth'))
         object.add_getter('elements', 'get_element_surface_state', names=('temp','salt'))
+
+        object.define_grid('element3d',axes_names=['x','y','z'])
+        object.set_grid_range('element3d', 'get_firstlast_grid3d')
+        object.add_getter('element3d', 'get_element3d_temperature', names = ('temp'))
+        object.add_getter('element3d', 'get_element3d_salinity', names = ('salt'))
+        object.add_getter('element3d', 'get_element3d_density', names = ('rho'))
+        object.add_setter('element3d', 'set_element3d_temperature', names = ('temp'))
+        object.add_setter('element3d', 'set_element3d_salinity', names = ('salt'))
+        object.add_setter('element3d', 'set_element3d_density', names = ('rho'))
+
 
 
 

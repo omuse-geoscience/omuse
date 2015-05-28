@@ -362,3 +362,7 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
+#    def test5(self):
+#        p = POP(**default_options)
+#        3dtemp = p.elements3d.temp
+#        p.stop()

@@ -851,7 +851,7 @@ end function
 ! this code was written optimistically and probably needs adjustment later
 !
 !-----------------------------------------------------------------------
-function get_temperature(i, j, k, temp_, n) result (ret)
+function get_element3d_temperature(i, j, k, temp_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -861,7 +861,7 @@ function get_temperature(i, j, k, temp_, n) result (ret)
 
   ret=0
 end function
-function set_temperature(i, j, k, temp_, n) result (ret)
+function set_element3d_temperature(i, j, k, temp_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -871,7 +871,7 @@ function set_temperature(i, j, k, temp_, n) result (ret)
 
   ret=0
 end function
-function get_salinity(i, j, k, salt_, n) result (ret)
+function get_element3d_salinity(i, j, k, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -881,7 +881,7 @@ function get_salinity(i, j, k, salt_, n) result (ret)
 
   ret=0
 end function
-function set_salinity(i, j, k, salt_, n) result (ret)
+function set_element3d_salinity(i, j, k, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -892,7 +892,7 @@ function set_salinity(i, j, k, salt_, n) result (ret)
   ret=0
 end function
 
-function get_xvel(i, j, k, uvel_, n) result (ret)
+function get_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -902,7 +902,7 @@ function get_xvel(i, j, k, uvel_, n) result (ret)
 
   ret=0
 end function
-function set_xvel(i, j, k, uvel_, n) result (ret)
+function set_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -912,7 +912,7 @@ function set_xvel(i, j, k, uvel_, n) result (ret)
 
   ret=0
 end function
-function get_yvel(i, j, k, vvel_, n) result (ret)
+function get_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -922,7 +922,7 @@ function get_yvel(i, j, k, vvel_, n) result (ret)
 
   ret=0
 end function
-function set_yvel(i, j, k, vvel_, n) result (ret)
+function set_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -933,7 +933,7 @@ function set_yvel(i, j, k, vvel_, n) result (ret)
   ret=0
 end function
 
-function get_density(i, j, k, rho_, n) result (ret)
+function get_element3d_density(i, j, k, rho_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -943,7 +943,7 @@ function get_density(i, j, k, rho_, n) result (ret)
 
   ret=0
 end function
-function set_density(i, j, k, rho_, n) result (ret)
+function set_element3d_density(i, j, k, rho_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
