@@ -24,7 +24,7 @@
 /
 
 &time_manager_nml
-  runid             = 'x1_SAMOC_control'
+  runid             = 'AMUSE'
   stop_option       = 'never'
   stop_count        = 9999
   time_mix_opt      = 'avgfit'
@@ -85,7 +85,7 @@
 &restart_nml
    restart_freq_opt = 'never' 
    restart_freq     = 1
-   restart_outfile  = ' '
+   restart_outfile  = ''
    restart_fmt      = 'nc'
    leven_odd_on     = .true. 
    even_odd_freq    = 2400
@@ -106,7 +106,7 @@
 
 &history_nml
    history_freq_opt = 'never'
-   history_freq     = 100000
+   history_freq     = 1
    history_outfile  = ''
    history_fmt      = 'bin'
    history_contents = 'history_contents'

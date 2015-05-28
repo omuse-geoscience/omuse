@@ -268,7 +268,24 @@ class POPInterface(CodeInterface):
     def set_movie_file(filename='s'):
         returns ()
 
-
+    @remote_function
+    def get_runid():
+        returns (option='s')
+    @remote_function
+    def set_runid(option='s'):
+        returns ()
+    @remote_function
+    def get_dt_option():
+        returns (filename='s')
+    @remote_function
+    def set_dt_option(filename='s'):
+        returns ()
+    @remote_function
+    def get_dt_count():
+        returns (option=0)
+    @remote_function
+    def set_dt_count(option=0):
+        returns ()
 
 
 class POP(CommonCode):
@@ -467,14 +484,143 @@ class POP(CommonCode):
             default_value = ''
         )
 
+        object.add_method_parameter(
+            "get_ts_option",
+            "set_ts_option",
+            "ts_option",
+            "Option for the initial source for temperature and salinity",
+            default_value = 'internal'
+        )
+
+        object.add_method_parameter(
+            "get_ts_file",
+            "set_ts_file",
+            "ts_file",
+            "Path to filename for initial source of temperature and salinity",
+            default_value = ''
+        )
+        object.add_method_parameter(
+            "get_ts_file_format",
+            "set_ts_file_format",
+            "ts_file_format",
+            "File format for the file specified in ts_file, can be either 'bin' or 'nc'",
+            default_value = 'nc'
+        )
+
+        object.add_method_parameter(
+            "get_distribution",
+            "set_distribution",
+            "distribution",
+            "The distribution to use to distribution the decomposed domain among MPI workers, supported now: 'cartesian' and 'predefined'",
+            default_value = 'cartesian'
+        )
+        object.add_method_parameter(
+            "get_distribution_file",
+            "set_distribution_file",
+            "distribution_file",
+            "The path to the filename for the predefined distribution",
+            default_value = ''
+        )
+        object.add_method_parameter(
+            "get_ew_boundary_type",
+            "set_ew_boundary_type",
+            "ew_boundary_type",
+            "The type of the east-west boundary, can be either 'closed' or 'cyclic'",
+            default_value = 'cyclic'
+        )
+        object.add_method_parameter(
+            "get_ns_boundary_type",
+            "set_ns_boundary_type",
+            "ns_boundary_type",
+            "The type of the north-south boundary, can be any of 'closed', 'cyclic', or 'tripole'",
+            default_value = 'closed'
+        )
+
+        object.add_method_parameter(
+            "get_restart_option",
+            "set_restart_option",
+            "restart_option",
+            "Specifies the quantity used in freq_option, can be any of 'never', 'nhour', 'nday', 'nmonth', 'nyear'",
+            default_value = 'never'
+        )
+        object.add_method_parameter(
+            "get_restart_freq_option",
+            "set_restart_freq_option",
+            "restart_freq_option",
+            "The frequency with which restart files are written in days, or months, etc. depending on restart_option",
+            default_value = 1
+        )
+        object.add_method_parameter(
+            "get_restart_file",
+            "set_restart_file",
+            "restart_file",
+            "The filename of where the restart files should be written, the runid and data will be appended to the filename",
+            default_value = ''
+        )
+        object.add_method_parameter(
+            "get_tavg_option",
+            "set_tavg_option",
+            "tavg_option",
+            "Specifies the quantity used in freq_option, can be any of 'never', 'nhour', 'nday', 'nmonth', 'nyear'",
+            default_value = 'never'
+        )
+        object.add_method_parameter(
+            "get_tavg_freq_option",
+            "set_tavg_freq_option",
+            "tavg_freq_option",
+            "The frequency with which tavg output files are written in days, or months, etc. depending on restart_option",
+            default_value = 1
+        )
+        object.add_method_parameter(
+            "get_tavg_file",
+            "set_tavg_file",
+            "tavg_file",
+            "The filename of where the tavg output files should be written, the runid and data will be appended to the filename",
+            default_value = ''
+        )
+        object.add_method_parameter(
+            "get_movie_option",
+            "set_movie_option",
+            "movie_option",
+            "Specifies the quantity used in freq_option, can be any of 'never', 'nhour', 'nday', 'nmonth', 'nyear'",
+            default_value = 'never'
+        )
+        object.add_method_parameter(
+            "get_movie_freq_option",
+            "set_movie_freq_option",
+            "movie_freq_option",
+            "The frequency with which movie output files are written in days, or months, etc. depending on restart_option",
+            default_value = 1
+        )
+        object.add_method_parameter(
+            "get_movie_file",
+            "set_movie_file",
+            "movie_file",
+            "The filename of where the movie output files should be written, the runid and data will be appended to the filename",
+            default_value = ''
+        )
 
 
-
-
-
-
-
-
-
+        object.add_method_parameter(
+            "get_runid",
+            "set_runid",
+            "runid",
+            "The name of the current run used for naming the output files, default is 'AMUSE'",
+            default_value = 'AMUSE'
+        )
+        object.add_method_parameter(
+            "get_dt_option",
+            "set_dt_option",
+            "dt_option",
+            "The option used for setting the dt_count, can be 'auto_dt', 'steps_per_year', 'steps_per_day', 'seconds', 'hours'",
+            default_value = 'steps_per_day'
+        )
+        object.add_method_parameter(
+            "get_dt_count",
+            "set_dt_count",
+            "dt_count",
+            "The amount of seconds, hours, or steps per day or year, depending on the value of dt_option",
+            default_value = 45
+        )
 
 

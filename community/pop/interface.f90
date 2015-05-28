@@ -1417,6 +1417,63 @@ function set_movie_file(filename) result (ret)
 end function
 
 
+function get_runid(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = runid
+
+  ret=0
+end function
+function set_runid(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  runid = option
+end function
+function get_dt_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = dt_option
+
+  ret=0
+end function
+function set_dt_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'auto_dt' .OR. option == 'steps_per_year' .OR. option == 'steps_per_day' & 
+      .OR. option == 'seconds' .OR. option == 'hours') then
+    dt_option = option
+  else
+    ret=1
+  endif
+end function
+function get_dt_count(option) result (ret)
+  integer :: ret
+  integer, intent(out) :: option
+  
+  option = dt_count
+
+  ret=0
+end function
+function set_dt_count(option) result (ret)
+  integer :: ret
+  integer, intent(in) :: option
+  ret=0
+
+  dt_count = option
+end function
+
+
+
+
+
+
+
 
 
 
