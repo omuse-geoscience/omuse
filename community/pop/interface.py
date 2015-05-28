@@ -191,16 +191,19 @@ class POPInterface(CodeInterface):
     @remote_function
     def set_distribution(option='s'):
         returns ()
+    @remote_function
     def get_distribution_file():
         returns (filename='s')
     @remote_function
     def set_distribution_file(filename='s'):
         returns ()
+    @remote_function
     def get_ew_boundary_type():
         returns (option='s')
     @remote_function
     def set_ew_boundary_type(option='s'):
         returns ()
+    @remote_function
     def get_ns_boundary_type():
         returns (option='s')
     @remote_function
@@ -221,10 +224,10 @@ class POPInterface(CodeInterface):
     def set_restart_freq_option(option=0):
         returns ()
     @remote_function
-    def get_restart_directory():
-        returns (dirname='s')
+    def get_restart_file():
+        returns (filename='s')
     @remote_function
-    def set_restart_directory(dirname='s'):
+    def set_restart_file(filename='s'):
         returns ()
 
     @remote_function
@@ -240,10 +243,10 @@ class POPInterface(CodeInterface):
     def set_tavg_freq_option(option=0):
         returns ()
     @remote_function
-    def get_tavg_directory():
-        returns (dirname='s')
+    def get_tavg_file():
+        returns (filename='s')
     @remote_function
-    def set_tavg_directory(dirname='s'):
+    def set_tavg_file(filename='s'):
         returns ()
 
     @remote_function
@@ -259,10 +262,10 @@ class POPInterface(CodeInterface):
     def set_movie_freq_option(option=0):
         returns ()
     @remote_function
-    def get_movie_directory():
-        returns (dirname='s')
+    def get_movie_file():
+        returns (filename='s')
     @remote_function
-    def set_movie_directory(dirname='s'):
+    def set_movie_file(filename='s'):
         returns ()
 
 
@@ -302,6 +305,42 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'set_topography_option')
         object.add_method('INITIALIZED', 'get_topography_file')
         object.add_method('INITIALIZED', 'set_topography_file')
+
+        object.add_method('INITIALIZED', 'get_ts_option')
+        object.add_method('INITIALIZED', 'set_ts_option')
+        object.add_method('INITIALIZED', 'get_ts_file')
+        object.add_method('INITIALIZED', 'set_ts_file')
+        object.add_method('INITIALIZED', 'get_ts_file_format')
+        object.add_method('INITIALIZED', 'set_ts_file_format')
+        object.add_method('INITIALIZED', 'set_nprocs')
+        object.add_method('INITIALIZED', 'get_distribution')
+        object.add_method('INITIALIZED', 'set_distribution')
+        object.add_method('INITIALIZED', 'get_distribution_file')
+        object.add_method('INITIALIZED', 'set_distribution_file')
+        object.add_method('INITIALIZED', 'get_ew_boundary_type')
+        object.add_method('INITIALIZED', 'set_ew_boundary_type')
+        object.add_method('INITIALIZED', 'get_ns_boundary_type')
+        object.add_method('INITIALIZED', 'set_ns_boundary_type')
+
+        object.add_method('INITIALIZED', 'get_restart_option')
+        object.add_method('INITIALIZED', 'set_restart_option')
+        object.add_method('INITIALIZED', 'get_restart_freq_option')
+        object.add_method('INITIALIZED', 'set_restart_freq_option')
+        object.add_method('INITIALIZED', 'get_restart_file')
+        object.add_method('INITIALIZED', 'set_restart_file')
+        object.add_method('INITIALIZED', 'get_tavg_option')
+        object.add_method('INITIALIZED', 'set_tavg_option')
+        object.add_method('INITIALIZED', 'get_tavg_freq_option')
+        object.add_method('INITIALIZED', 'set_tavg_freq_option')
+        object.add_method('INITIALIZED', 'get_tavg_file')
+        object.add_method('INITIALIZED', 'set_tavg_file')
+        object.add_method('INITIALIZED', 'get_movie_option')
+        object.add_method('INITIALIZED', 'set_movie_option')
+        object.add_method('INITIALIZED', 'get_movie_freq_option')
+        object.add_method('INITIALIZED', 'set_movie_freq_option')
+        object.add_method('INITIALIZED', 'get_movie_file')
+        object.add_method('INITIALIZED', 'set_movie_file')
+
 
         #you can only edit stuff in state EDIT
         object.add_method('EDIT','before_set_parameter')

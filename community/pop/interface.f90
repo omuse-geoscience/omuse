@@ -1295,20 +1295,20 @@ function set_restart_freq_option(option) result (ret)
 
   restart_freq = option
 end function
-function get_restart_directory(dirname) result (ret)
+function get_restart_file(filename) result (ret)
   integer :: ret
-  character (char_len), intent(out) :: dirname
+  character (char_len), intent(out) :: filename
   
-  dirname = restart_outfile
+  filename = restart_outfile
 
   ret=0
 end function
-function set_restart_directory(dirname) result (ret)
+function set_restart_file(filename) result (ret)
   integer :: ret
-  character (char_len), intent(in) :: dirname
+  character (char_len), intent(in) :: filename
   ret=0
 
-  restart_outfile = dirname
+  restart_outfile = filename
 end function
 
 
@@ -1348,20 +1348,20 @@ function set_tavg_freq_option(option) result (ret)
 
   tavg_freq = option
 end function
-function get_tavg_directory(dirname) result (ret)
+function get_tavg_file(filename) result (ret)
   integer :: ret
-  character (char_len), intent(out) :: dirname
+  character (char_len), intent(out) :: filename
   
-  dirname = tavg_outfile
+  filename = tavg_outfile
 
   ret=0
 end function
-function set_tavg_directory(dirname) result (ret)
+function set_tavg_file(filename) result (ret)
   integer :: ret
-  character (char_len), intent(in) :: dirname
+  character (char_len), intent(in) :: filename
   ret=0
 
-  tavg_outfile = dirname
+  tavg_outfile = filename
 end function
 
 
@@ -1400,20 +1400,20 @@ function set_movie_freq_option(option) result (ret)
 
   movie_freq = option
 end function
-function get_movie_directory(dirname) result (ret)
+function get_movie_file(filename) result (ret)
   integer :: ret
-  character (char_len), intent(out) :: dirname
+  character (char_len), intent(out) :: filename
   
-  dirname = movie_outfile
+  filename = movie_outfile
 
   ret=0
 end function
-function set_movie_directory(dirname) result (ret)
+function set_movie_file(filename) result (ret)
   integer :: ret
-  character (char_len), intent(in) :: dirname
+  character (char_len), intent(in) :: filename
   ret=0
 
-  movie_outfile = dirname
+  movie_outfile = filename
 end function
 
 

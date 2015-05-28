@@ -12,6 +12,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("code").setLevel(logging.DEBUG)
 
+from nose.tools import nottest
 
 
 
@@ -19,6 +20,7 @@ class POPTests(TestWithMPI):
 
 
     #test the behavior of the state machine
+    #@nottest
     def test1(self):
         instance = POP(**default_options)
 
@@ -58,7 +60,7 @@ class POPTests(TestWithMPI):
 
 
 
-
+    #@nottest
     def test2(self):
         instance = POP(**default_options)
 
@@ -104,8 +106,8 @@ class POPTests(TestWithMPI):
         self.assertEquals(instance.state_machine._current_state.name, 'RUN')
 
         #almost equals
-        self.assertAlmostRelativeEqual(tau_x, tau_x_returned, places=10, msg='First check to see if wind stress can be retrieved after it was set')
-        self.assertAlmostRelativeEqual(tau_y, tau_y_returned, places=10, msg='First check to see if wind stress can be retrieved after it was set')
+        self.assertAlmostRelativeEqual(tau_x, tau_x_returned, places=10)
+        self.assertAlmostRelativeEqual(tau_y, tau_y_returned, places=10)
 
         #check to see if the forcings we have set are not overwritten by internal routines,
         #evolve the model 
@@ -116,9 +118,76 @@ class POPTests(TestWithMPI):
         #check if wind stress is still the same
         tau_x_returned = instance.forcings.tau_x
         tau_y_returned = instance.forcings.tau_y
-        self.assertAlmostRelativeEqual(tau_x, tau_x_returned, places=10, msg='Check to see if wind stress is not overwritten by the model')
-        self.assertAlmostRelativeEqual(tau_y, tau_y_returned, places=10, msg='Check to see if wind stress is not overwritten by the model')
-
-
+        self.assertAlmostRelativeEqual(tau_x, tau_x_returned, places=10)
+        self.assertAlmostRelativeEqual(tau_y, tau_y_returned, places=10)
 
         instance.stop()
+
+
+
+    def test3(self):
+        p = POP(**default_options)
+
+        mystr = ''
+        mynum = 0
+        bogus_file = '/fake/path/to/file'
+
+        mystr = p.get_ts_option()
+        self.assertEquals(mystr, 'internal')
+        p.set_ts_option('restart')
+        mystr = p.get_ts_option()
+        self.assertEquals(mystr, 'restart')
+        mystr = p.get_ts_file()
+        self.assertEquals(mystr, '')
+        p.set_ts_file(bogus_file)
+        mystr = p.get_ts_file()
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.get_ts_file_format()
+        self.assertEquals(mystr, 'bin')
+        p.set_ts_file_format('nc')
+        mystr = p.get_ts_file_format()
+        self.assertEquals(mystr, 'nc')
+
+        mystr = p.get_distribution()
+        self.assertEquals(mystr, 'cartesian')
+
+        p.set_distribution('predefined')
+        mystr = p.get_distribution()
+        self.assertEquals(mystr, 'predefined')
+
+        mystr = p.get_distribution_file()
+        self.assertEquals(mystr, '')
+        p.set_distribution_file(bogus_file)
+        mystr = p.get_distribution_file()
+        self.assertEquals(mystr, bogus_file)
+
+        mystr = p.get_ew_boundary_type()
+        self.assertEquals(mystr, 'cyclic')
+        p.set_ew_boundary_type('closed')
+        mystr = p.get_ew_boundary_type()
+        self.assertEquals(mystr, 'closed')
+        mystr = p.get_ns_boundary_type()
+        self.assertEquals(mystr, 'closed')
+        p.set_ns_boundary_type('tripole')
+        mystr = p.get_ns_boundary_type()
+        self.assertEquals(mystr, 'tripole')
+
+        mystr = p.get_restart_option()
+        self.assertEquals(mystr, 'never')
+        p.set_restart_option('nday')
+        mystr = p.get_restart_option()
+        self.assertEquals(mystr, 'nday')
+        mynum = p.get_restart_freq_option()
+        self.assertEquals(mynum, 1)
+        p.set_restart_freq_option(5)
+        mynum = p.get_restart_freq_option()
+        self.assertEquals(mynum, 5)
+        mystr = p.get_restart_file()
+        self.assertEquals(mystr, '')
+        p.set_restart_file(bogus_file)
+        mystr = p.get_restart_file()
+        self.assertEquals(mystr, bogus_file)
+
+
+

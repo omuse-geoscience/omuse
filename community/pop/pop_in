@@ -3,6 +3,7 @@
   nprocs_tropic = 8
   clinic_distribution_type = 'cartesian'
   tropic_distribution_type = 'cartesian'
+  distribution_file = ' '
   ew_boundary_type = 'cyclic'
   ns_boundary_type = 'closed'
 /
@@ -84,7 +85,7 @@
 &restart_nml
    restart_freq_opt = 'never' 
    restart_freq     = 1
-   restart_outfile  = 'data/output/restart'
+   restart_outfile  = ' '
    restart_fmt      = 'nc'
    leven_odd_on     = .true. 
    even_odd_freq    = 2400
@@ -93,7 +94,7 @@
 
 &tavg_nml
    tavg_freq_opt  = 'never'
-   tavg_freq      = 5
+   tavg_freq      = 1
    tavg_start_opt = 'nstep'
    tavg_start     = 0
    tavg_infile    = ''
@@ -113,7 +114,7 @@
 
 &movie_nml
    movie_freq_opt  = 'never'
-   movie_freq      = 100000
+   movie_freq      = 1
    movie_outfile   = ''
    movie_fmt       = 'bin'
    movie_contents  = 'movie_contents'
@@ -291,7 +292,7 @@
    ws_interp_freq  = 'every-timestep'
    ws_interp_type  = 'linear'
    ws_interp_inc   = 1.e20
-   ws_filename     = 'data/input/ws_monthly/ws.1958-2000.mon'
+   ws_filename     = '/home/ben/x1_Files/ws_monthly/ws.1958-2000.mon'
    ws_file_fmt     = 'bin'
    ws_data_renorm(1)  = 10.
    ws_data_renorm(2)  = 10.
@@ -305,7 +306,7 @@
    shf_interp_type = 'linear'
    shf_interp_inc  = 72.
    shf_restore_tau = 30.
-   shf_filename    ='data/input/shf_monthly/shf.normal_year+flux.mon'
+   shf_filename    ='/home/ben/x1_Files/shf_monthly/shf.normal_year+flux.mon'
    shf_data_renorm(3) = 1.00
    shf_weak_restore = 0.
    shf_strong_restore   = 0.0
@@ -322,7 +323,7 @@
    sfwf_restore_tau    = 1.e20
    sfwf_weak_restore   = .0
    sfwf_strong_restore = .0
-   sfwf_filename       = 'data/input/sfwf/sfwf_phc0-50_ncarp_r46+g8_0.5Sv_flux.mon'
+   sfwf_filename       = '/home/ben/x1_Files/sfwf/sfwf_phc0-50_ncarp_r46+g8_0.5Sv_flux.mon'
    sfwf_file_fmt       = 'bin'
    sfwf_data_renorm(1) = 0.001
    sfwf_data_renorm(2) = 1.
