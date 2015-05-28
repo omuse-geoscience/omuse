@@ -42,7 +42,7 @@ def myplot(lats, lons, xs, ys, sst):
 from omuse.community.pop.interface import POP
 from amuse.units import units
 
-p=POP(channel_type="sockets",redirection="none",number_of_workers=4)
+p=POP(channel_type="sockets",redirection="none",number_of_workers=8)
 
 p.set_horiz_grid_file('/home/ben/x1_Files/grid/horiz_grid_20010402.ieeer8')
 p.set_vert_grid_file('/home/ben/x1_Files/grid/in_depths.dat')

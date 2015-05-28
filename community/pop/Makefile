@@ -6,12 +6,12 @@ AMUSE_DIR?=../../../../..
 MPIFC ?= mpif90
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
-FCLAGS+=-fconvert=swap
+FCFLAGS+=-fconvert=swap
 POPFFLAGS=-Wall -fdefault-double-8 -fdefault-real-8 -fconvert=swap -fimplicit-none -fbounds-check
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
-FCLAGS+=-convert big_endian 
+FCFLAGS+=-convert big_endian 
 POPFFLAGS=-r8 -convert big_endian
 endif
 
@@ -22,11 +22,11 @@ POPEXEDIR=$(CURDIR)/src
 POPDIR=$(CURDIR)/eSalsa-POP
 
 #-------------- NETCDF inserts
-#~ NETCDFPATH = /home/ben
-#~ NETCDFINC = -I$(NETCDFPATH)/include
-#~ NETCDFLIB = -L$(NETCDFPATH)/lib
-#~ LDFLAGS := $(LDFLAGS) $(NETCDFINC)
-#~ FS_LIBS := $(FS_LIBS) $(NETCDFLIB) -lnetcdf -lnetcdff
+NETCDFPATH = /home/ben
+NETCDFINC = -I$(NETCDFPATH)/include
+NETCDFLIB = -L$(NETCDFPATH)/lib
+LDFLAGS := $(LDFLAGS) $(NETCDFINC)
+FS_LIBS := $(FS_LIBS) $(NETCDFLIB) -lnetcdf -lnetcdff
 #-------------- End of NETCDF inserts
 
 FS_LIBS+=-lnetcdf -lnetcdff
@@ -56,7 +56,7 @@ distclean: clean
 	rm -rf eSalsa-POP
 
 $(CODELIB):
-	make -C src POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR) POPDIR=$(POPDIR) AMUSE_DIR="$(realpath $(AMUSE_DIR))" FFLAGS="$(POPFFLAGS)"
+	make -C src POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR) POPDIR=$(POPDIR) AMUSE_DIR="$(realpath $(AMUSE_DIR))" POPFFLAGS="$(POPFFLAGS)"
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
