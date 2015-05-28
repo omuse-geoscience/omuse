@@ -4,7 +4,16 @@ AMUSE_DIR?=../../../../..
 -include $(AMUSE_DIR)/config.mk
 
 MPIFC ?= mpif90
-FC      = $(MPIFC)
+
+ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
+FCLAGS+=-fconvert=swap
+POPFFLAGS=-Wall -fdefault-double-8 -fdefault-real-8 -fconvert=swap -fimplicit-none -fbounds-check
+endif
+
+ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
+FCLAGS+=-convert big_endian 
+POPFFLAGS=-r8 -convert big_endian
+endif
 
 LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
@@ -31,9 +40,10 @@ CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 all: pop_worker 
 
-eSalsa-POP: download
+update: eSalsa-POP
+	cd eSalsa-POP; git pull
 
-download:
+eSalsa-POP:
 	git clone -b amuse https://github.com/NLeSC/eSalsa-POP.git
 
 clean:
@@ -46,13 +56,13 @@ distclean: clean
 	rm -rf eSalsa-POP
 
 $(CODELIB):
-	make -C src POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR) POPDIR=$(POPDIR) AMUSE_DIR="$(realpath $(AMUSE_DIR))"
+	make -C src POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR) POPDIR=$(POPDIR) AMUSE_DIR="$(realpath $(AMUSE_DIR))" FFLAGS="$(POPFFLAGS)"
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
 
 pop_worker: worker_code.f90 $(CODELIB) $(OBJS)
-	$(MPIFC) $(POPINCPATH) $(FCFLAGS) $(FS_FLAGS) -fconvert=swap $< $(OBJS) $(CODELIB) $(FS_LIBS) -o $@
+	$(MPIFC) $(POPINCPATH) $(FCFLAGS) $(FS_FLAGS) $< $(OBJS) $(CODELIB) $(FS_LIBS) -o $@
 
 %.o: %.f90
-	$(FC) $(POPINCPATH) $(FCFLAGS) -Wall -c -o $@ $<
+	$(MPIFC) $(POPINCPATH) $(FCFLAGS) -c -o $@ $<
