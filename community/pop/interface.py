@@ -15,7 +15,8 @@ class POPInterface(CodeInterface):
     use_modules = ['pop_interface']
     
     def __init__(self, **keyword_arguments):
-        CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(), number_of_workers = 8, **keyword_arguments)
+        keyword_arguments.setdefault('number_of_workers', 8)
+        CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(), **keyword_arguments)
 
     def name_of_the_worker(self):
         return 'pop_worker'
@@ -112,6 +113,9 @@ class POPInterface(CodeInterface):
     def prepare_parameters():
         returns ()
     @remote_function
+    def commit_parameters():
+        returns ()
+    @remote_function
     def recommit_parameters():
         returns ()
 
@@ -120,18 +124,156 @@ class POPInterface(CodeInterface):
         self.prepare_parameters()
         
 
+    @remote_function
+    def get_horiz_grid_option():
+        returns (option='s')
+    @remote_function
+    def set_horiz_grid_option(option='s'):
+        returns ()
+    @remote_function
+    def get_horiz_grid_file():
+        returns (filename='s')
+    @remote_function
+    def set_horiz_grid_file(filename='s'):
+        returns ()
+
+    @remote_function
+    def get_vert_grid_option():
+        returns (option='s')
+    @remote_function
+    def set_vert_grid_option(option='s'):
+        returns ()
+    @remote_function
+    def get_vert_grid_file():
+        returns (filename='s')
+    @remote_function
+    def set_vert_grid_file(filename='s'):
+        returns ()
+
+    @remote_function
+    def get_topography_option():
+        returns (option='s')
+    @remote_function
+    def set_topography_option(option='s'):
+        returns ()
+    @remote_function
+    def get_topography_file():
+        returns (filename='s')
+    @remote_function
+    def set_topography_file(filename='s'):
+        returns ()
+
+    @remote_function
+    def get_ts_option():
+        returns (option='s')
+    @remote_function
+    def set_ts_option(option='s'):
+        returns ()
+    @remote_function
+    def get_ts_file():
+        returns (filename='s')
+    @remote_function
+    def set_ts_file(filename='s'):
+        returns ()
+    @remote_function
+    def get_ts_file_format():
+        returns (filename='s')
+    @remote_function
+    def set_ts_file_format(filename='s'):
+        returns ()
+
+    @remote_function
+    def set_nprocs(nprocs=0):
+        returns ()
+    @remote_function
+    def get_distribution():
+        returns (option='s')
+    @remote_function
+    def set_distribution(option='s'):
+        returns ()
+    def get_distribution_file():
+        returns (filename='s')
+    @remote_function
+    def set_distribution_file(filename='s'):
+        returns ()
+    def get_ew_boundary_type():
+        returns (option='s')
+    @remote_function
+    def set_ew_boundary_type(option='s'):
+        returns ()
+    def get_ns_boundary_type():
+        returns (option='s')
+    @remote_function
+    def set_ns_boundary_type(option='s'):
+        returns ()
+
+
+    @remote_function
+    def get_restart_option():
+        returns (option='s')
+    @remote_function
+    def set_restart_option(option='s'):
+        returns ()
+    @remote_function
+    def get_restart_freq_option():
+        returns (option=0)
+    @remote_function
+    def set_restart_freq_option(option=0):
+        returns ()
+    @remote_function
+    def get_restart_directory():
+        returns (dirname='s')
+    @remote_function
+    def set_restart_directory(dirname='s'):
+        returns ()
+
+    @remote_function
+    def get_tavg_option():
+        returns (option='s')
+    @remote_function
+    def set_tavg_option(option='s'):
+        returns ()
+    @remote_function
+    def get_tavg_freq_option():
+        returns (option=0)
+    @remote_function
+    def set_tavg_freq_option(option=0):
+        returns ()
+    @remote_function
+    def get_tavg_directory():
+        returns (dirname='s')
+    @remote_function
+    def set_tavg_directory(dirname='s'):
+        returns ()
+
+    @remote_function
+    def get_movie_option():
+        returns (option='s')
+    @remote_function
+    def set_movie_option(option='s'):
+        returns ()
+    @remote_function
+    def get_movie_freq_option():
+        returns (option=0)
+    @remote_function
+    def set_movie_freq_option(option=0):
+        returns ()
+    @remote_function
+    def get_movie_directory():
+        returns (dirname='s')
+    @remote_function
+    def set_movie_directory(dirname='s'):
+        returns ()
 
 
 
 
-
-
-
-
-    
 class POP(CommonCode):
 
+    nprocs = 0
+
     def __init__(self, **options):
+        self.nprocs = options.setdefault('number_of_workers', 8)
         CommonCode.__init__(self,  POPInterface(**options), **options)
     
     def define_state(self, object):
@@ -143,8 +285,23 @@ class POP(CommonCode):
 
         #some parameters have to be derived before they can be read, therefore
         #reading anything should be preceded by a call to prepare_parameters
-        object.add_transition('INITIALIZED', 'EDIT', 'prepare_parameters')
-        object.add_transition('INITIALIZED', 'RUN', 'prepare_parameters')
+        #in the two-phase init, prepare_parameters is called by commit_parameters()
+        #commit_parameters must be called to finish the initialization
+        object.add_transition('INITIALIZED', 'EDIT', 'commit_parameters')
+        object.add_transition('INITIALIZED', 'RUN', 'commit_parameters')
+
+        object.add_method('INITIALIZED', 'get_horiz_grid_option')
+        object.add_method('INITIALIZED', 'set_horiz_grid_option')
+        object.add_method('INITIALIZED', 'get_horiz_grid_file')
+        object.add_method('INITIALIZED', 'set_horiz_grid_file')
+        object.add_method('INITIALIZED', 'get_vert_grid_option')
+        object.add_method('INITIALIZED', 'set_vert_grid_option')
+        object.add_method('INITIALIZED', 'get_vert_grid_file')
+        object.add_method('INITIALIZED', 'set_vert_grid_file')
+        object.add_method('INITIALIZED', 'get_topography_option')
+        object.add_method('INITIALIZED', 'set_topography_option')
+        object.add_method('INITIALIZED', 'get_topography_file')
+        object.add_method('INITIALIZED', 'set_topography_file')
 
         #you can only edit stuff in state EDIT
         object.add_method('EDIT','before_set_parameter')
@@ -180,6 +337,10 @@ class POP(CommonCode):
         object.add_transition('EVOLVED', 'RUN', 'prepare_parameters')
         object.add_transition('EVOLVED', 'EDIT', 'prepare_parameters')
 
+
+    def commit_parameters(self):
+        self.set_nprocs(self.nprocs)
+        self.overridden().commit_parameters()
 
 
     def get_firstlast_node(self):
@@ -226,7 +387,51 @@ class POP(CommonCode):
 
 
 
+    def define_parameters(self, object):
+        object.add_method_parameter(
+            "get_horiz_grid_option",
+            "set_horiz_grid_option",
+            "horiz_grid_option",
+            "Option for horizontal grid should be either \'internal\' or \'file\'",
+            default_value = 'internal'
+        )
+        object.add_method_parameter(
+            "get_horiz_grid_file",
+            "set_horiz_grid_file",
+            "horiz_grid_file",
+            "Filename for specifying the horizontal grid latitudes and longitudes",
+            default_value = ''
+        )
 
+        object.add_method_parameter(
+            "get_vert_grid_option",
+            "set_vert_grid_option",
+            "vert_grid_option",
+            "Option for vertical grid should be either \'internal\' or \'file\'",
+            default_value = 'internal'
+        )
+        object.add_method_parameter(
+            "get_vert_grid_file",
+            "set_vert_grid_file",
+            "vert_grid_file",
+            "Filename for specifying vertical grid layer depths",
+            default_value = ''
+        )
+
+        object.add_method_parameter(
+            "get_topography_option",
+            "set_topography_option",
+            "topography_option",
+            "Option for topography should be either \'internal\' or \'file\'",
+            default_value = 'internal'
+        )
+        object.add_method_parameter(
+            "get_topography_file",
+            "set_topography_file",
+            "topography_file",
+            "Filename for specifying the topography in number of depths levels per gridpoint",
+            default_value = ''
+        )
 
 
 

@@ -46,13 +46,13 @@
 /
 
 &grid_nml
-   horiz_grid_opt       = 'file'
-   horiz_grid_file      = 'data/input/grid/horiz_grid_20010402.ieeer8'
+   horiz_grid_opt       = 'internal'
+   horiz_grid_file      = ' '
    sfc_layer_opt        = 'varthick'
-   vert_grid_opt        = 'file'
-   vert_grid_file       = 'data/input/grid/in_depths.dat'
-   topography_opt       = 'file'
-   topography_file      = 'data/input/grid/topography_20010702.ieeei4'
+   vert_grid_opt        = 'internal'
+   vert_grid_file       = ' '
+   topography_opt       = 'internal'
+   topography_file      = ' '
    partial_bottom_cells = .false.
    bottom_cell_file     = 'unknown_bottom_cell'
    region_mask_file     = 'unknown_region_mask'
@@ -62,8 +62,8 @@
 /
 
 &init_ts_nml
-   init_ts_option   = 'restart'
-   init_ts_file     = 'data/input/restart/r.x1_SAMOC_control.00750101'
+   init_ts_option   = 'internal'
+   init_ts_file     = ' '
    init_ts_file_fmt = 'bin'
 /
 
@@ -394,9 +394,9 @@
 /
 
 &dye_nml
-   init_dye_option = 'restart'
+   init_dye_option = 'zero'
    init_dye_init_file = 'same_as_TS'
-   dye_region_file = 'data/input/runoff/dye_flux_greenland.r8'
+   dye_region_file = ' '
    dye_region_file_fmt = 'bin'
    tracer_init_ext(1)%mod_varname  = 'DYE'
    tracer_init_ext(1)%filename     = 'unknown'

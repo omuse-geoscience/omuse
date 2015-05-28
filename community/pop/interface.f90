@@ -19,11 +19,16 @@ module pop_interface
   use gather_scatter
   use grid
   use constants, only: grav
-  use domain, only: distrb_clinic
+  use domain, only: distrb_clinic, nprocs_clinic, nprocs_tropic, clinic_distribution_type, &
+         tropic_distribution_type, ew_boundary_type, ns_boundary_type
   use forcing_fields, only: SMF, SMFT, lsmft_avail
   use forcing_ws
   use forcing_tools, only: never
+  use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use prognostic, only: TRACER, PSURF, UVEL, VVEL, RHO, curtime
+  use restart, only: restart_freq_opt, restart_freq, restart_outfile
+  use tavg, only: tavg_freq_opt, tavg_freq, tavg_outfile
+  use movie, only: movie_freq_opt, movie_freq, movie_outfile
   use timers, only: timer_print_all, get_timer, timer_start, timer_stop
   use time_management
 !   use time_management, only: get_time_flag_id, check_time_flag, &
@@ -68,16 +73,38 @@ module pop_interface
 
 contains
 
+
 !-----------------------------------------------------------------------
 !
-! initialize the model run
+! pre-initialize the model run
 !
 !-----------------------------------------------------------------------
 function initialize_code() result(ret)
   integer :: ret
 
+  errorCode = POP_Success
+
+  call POP_Initialize0(errorCode)
+
+  if (errorCode /= POP_Success) then
+    ret=-1
+  else
+    ret=0
+  endif
+end function
+
+
+!-----------------------------------------------------------------------
+!
+! fully initialize the model run
+!
+!-----------------------------------------------------------------------
+function commit_parameters() result(ret)
+  integer :: ret
+
   !call POP_CommInitMessageEnvironment
 
+  ret=0
   errorCode = POP_Success
 
   call POP_Initialize(errorCode)
@@ -111,11 +138,17 @@ function initialize_code() result(ret)
     call set_ws(SMF)
   endif
 
-
   initialized = .true.
 
-  ret=0
+  ! ensure the forcings can be read
+  ret = prepare_parameters()
+
+  if (errorCode /= POP_Success) then
+    ret=-1
+  endif
 end function
+
+
 
 
 !-----------------------------------------------------------------------
@@ -959,6 +992,429 @@ end function
 
 
 
+
+
+
+
+
+
+!-----------------------------------------------------------------------
+!
+! Getters and settings for parameters
+!
+!-----------------------------------------------------------------------
+function get_horiz_grid_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = horiz_grid_opt
+
+  ret=0
+end function
+function set_horiz_grid_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'file' .OR. option == 'internal') then
+    horiz_grid_opt = option
+  else 
+    ret=-1
+  endif
+end function
+function get_horiz_grid_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = horiz_grid_file
+
+  ret=0
+end function
+function set_horiz_grid_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  horiz_grid_opt = 'file'
+  horiz_grid_file = option
+end function
+
+
+function get_vert_grid_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = vert_grid_opt
+
+  ret=0
+end function
+function set_vert_grid_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'file' .OR. option == 'internal') then
+    vert_grid_opt = option
+  else 
+    ret=-1
+  endif
+end function
+function get_vert_grid_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = vert_grid_file
+
+  ret=0
+end function
+function set_vert_grid_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  vert_grid_opt = 'file'
+  vert_grid_file = option
+end function
+
+function get_topography_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = topography_opt
+
+  ret=0
+end function
+function set_topography_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'file' .OR. option == 'internal') then
+    topography_opt = option
+  else 
+    ret=-1
+  endif
+end function
+function get_topography_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = topography_file
+
+  ret=0
+end function
+function set_topography_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  topography_opt = 'file'
+  topography_file = option
+end function
+
+
+function get_ts_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = init_ts_option
+
+  ret=0
+end function
+function set_ts_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'restart' .OR. option == 'internal') then
+    init_ts_option = option
+  else 
+    ret=-1
+  endif
+end function
+function get_ts_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = init_ts_file
+
+  ret=0
+end function
+function set_ts_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  init_ts_option = 'restart'
+  init_ts_file = option
+
+  ! prevent that this setting can be overwritten by a pointer file
+  luse_pointer_files = .false.
+end function
+function get_ts_file_format(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = init_ts_file_fmt
+
+  ret=0
+end function
+function set_ts_file_format(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'bin' .OR. option == 'nc') then
+    init_ts_file_fmt = option
+  else 
+    ret=-1
+  endif
+end function
+
+function set_nprocs(nprocs) result (ret)
+  integer :: ret
+  integer, intent(in) :: nprocs
+  ret=0
+
+  nprocs_clinic = nprocs
+  nprocs_tropic = nprocs
+end function
+
+
+
+function get_distribution(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = clinic_distribution_type
+
+  ret=0
+end function
+function set_distribution(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'cartesian' .OR. option == 'predefined') then
+    clinic_distribution_type = option
+    tropic_distribution_type = option
+  else
+    ret=1
+  endif
+end function
+function get_distribution_file(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: filename
+  ret=0
+
+  filename = distribution_file
+end function
+function set_distribution_file(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: filename
+  ret=0
+
+  distribution_file = filename
+  clinic_distribution_type = 'predefined'
+  tropic_distribution_type = 'predefined'
+end function
+
+function get_ew_boundary_type(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = ew_boundary_type
+
+  ret=0
+end function
+function set_ew_boundary_type(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'closed' .OR. option == 'cyclic') then
+    ew_boundary_type = option
+  else
+    ret=1
+  endif
+end function
+function get_ns_boundary_type(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = ns_boundary_type
+
+  ret=0
+end function
+function set_ns_boundary_type(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'closed' .OR. option == 'cyclic' .OR. option == 'tripole') then
+    ns_boundary_type = option
+  else
+    ret=1
+  endif
+end function
+
+
+
+function get_restart_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = restart_freq_opt
+
+  ret=0
+end function
+function set_restart_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'never' .OR. option == 'nyear' .OR. option == 'nmonth' & 
+      .OR. option == 'nday' .OR. option == 'nhour' .OR. option == 'nstep') then
+    restart_freq_opt = option
+  else
+    ret=1
+  endif
+end function
+function get_restart_freq_option(option) result (ret)
+  integer :: ret
+  integer, intent(out) :: option
+  
+  option = restart_freq
+
+  ret=0
+end function
+function set_restart_freq_option(option) result (ret)
+  integer :: ret
+  integer, intent(in) :: option
+  ret=0
+
+  restart_freq = option
+end function
+function get_restart_directory(dirname) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: dirname
+  
+  dirname = restart_outfile
+
+  ret=0
+end function
+function set_restart_directory(dirname) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: dirname
+  ret=0
+
+  restart_outfile = dirname
+end function
+
+
+
+function get_tavg_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = tavg_freq_opt
+
+  ret=0
+end function
+function set_tavg_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'never' .OR. option == 'nyear' .OR. option == 'nmonth' & 
+      .OR. option == 'nday' .OR. option == 'nhour' .OR. option == 'nstep') then
+    tavg_freq_opt = option
+  else
+    ret=1
+  endif
+end function
+function get_tavg_freq_option(option) result (ret)
+  integer :: ret
+  integer, intent(out) :: option
+  
+  option = tavg_freq
+
+  ret=0
+end function
+function set_tavg_freq_option(option) result (ret)
+  integer :: ret
+  integer, intent(in) :: option
+  ret=0
+
+  tavg_freq = option
+end function
+function get_tavg_directory(dirname) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: dirname
+  
+  dirname = tavg_outfile
+
+  ret=0
+end function
+function set_tavg_directory(dirname) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: dirname
+  ret=0
+
+  tavg_outfile = dirname
+end function
+
+
+function get_movie_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = movie_freq_opt
+
+  ret=0
+end function
+function set_movie_option(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  if (option == 'never' .OR. option == 'nyear' .OR. option == 'nmonth' & 
+      .OR. option == 'nday' .OR. option == 'nhour' .OR. option == 'nstep') then
+    movie_freq_opt = option
+  else
+    ret=1
+  endif
+end function
+function get_movie_freq_option(option) result (ret)
+  integer :: ret
+  integer, intent(out) :: option
+  
+  option = movie_freq
+
+  ret=0
+end function
+function set_movie_freq_option(option) result (ret)
+  integer :: ret
+  integer, intent(in) :: option
+  ret=0
+
+  movie_freq = option
+end function
+function get_movie_directory(dirname) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: dirname
+  
+  dirname = movie_outfile
+
+  ret=0
+end function
+function set_movie_directory(dirname) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: dirname
+  ret=0
+
+  movie_outfile = dirname
+end function
 
 
 
