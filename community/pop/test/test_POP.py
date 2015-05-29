@@ -125,6 +125,7 @@ class POPTests(TestWithMPI):
 
 
 
+    #@nottest
     def test3(self):
         p = POP(**default_options)
 
@@ -243,6 +244,7 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
+    #@nottest
     def test4(self):
         p = POP(**default_options)
 
@@ -362,7 +364,52 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
-#    def test5(self):
-#        p = POP(**default_options)
-#        3dtemp = p.elements3d.temp
-#        p.stop()
+    def test5(self):
+        p = POP(**default_options)
+
+        temp3d = p.elements3d.temp.value_in(units.C)
+        self.assertTrue(temp3d.all() < 50., msg='Less than 50 degrees seems reasonable for temperature')
+        self.assertTrue(temp3d.all() >-10., msg='More than -10 degrees seems reasonable for temperature')
+
+        salt3d = p.elements3d.salt.value_in(units.g/units.kg)
+
+        self.assertTrue(salt3d.all() < 1., msg='Less than one gram of salt per kg of water seems reasonable for salinity')
+        self.assertTrue(salt3d.all() >= 0., msg='Salinity should be positive or 0')
+
+        #check if we can write and again read what was written
+        bogus3d = numpy.random.random(p.elements3d.shape) | units.C
+        p.elements3d.temp = bogus3d
+        temp3d = p.elements3d.temp
+        self.assertEquals(temp3d, bogus3d)
+
+        #check if we can write and again read what was written
+        bogus3d = numpy.random.random(p.elements3d.shape) | units.g / units.kg
+        p.elements3d.salt = bogus3d
+        salt3d = p.elements3d.salt
+        self.assertEquals(salt3d, bogus3d)
+
+        #check if we can write and again read what was written
+        bogus3d = numpy.random.random(p.elements3d.shape) | units.g / units.cm**3
+        p.elements3d.rho = bogus3d
+        rho3d = p.elements3d.rho
+        self.assertEquals(rho3d, bogus3d)
+
+        p.stop()
+
+
+    def test6(self):
+        p = POP(**default_options)
+
+        #check if we can write and again read what was written
+        bogus3d = numpy.random.random(p.nodes3d.shape) | units.cm / units.s
+        p.nodes3d.xvel = bogus3d
+        xvel3d = p.nodes3d.xvel
+        self.assertEquals(xvel3d, bogus3d)
+
+        #check if we can write and again read what was written
+        bogus3d = numpy.random.random(p.nodes3d.shape) | units.cm / units.s
+        p.nodes3d.yvel = bogus3d
+        yvel3d = p.nodes3d.yvel
+        self.assertEquals(yvel3d, bogus3d)
+
+        p.stop()
