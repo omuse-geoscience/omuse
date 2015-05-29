@@ -41,14 +41,11 @@ class POPInterface(CodeInterface):
     ##getters for node and element state
     @remote_function(must_handle_array=True)
     def get_node_surface_state(i=0,j=0):
-        returns (ssh=0. | units.cm, vx=0. | units.m/units.s, vy=0. | units.m/units.s)
+        returns (ssh=0. | units.cm, vx=0. | units.cm / units.s, vy=0. | units.cm / units.s)
 
     @remote_function(must_handle_array=True)
     def get_element_surface_state(i=0,j=0):
         returns (temp=0. | units.C, salt=0. | units.g/units.kg) #salinity in gram per kg 
-#        returns (salt=0. | units.g/units.kg, temp=0. | units.C) #salinity in gram per kg 
-    
-
 
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
     @remote_function(must_handle_array=True)
@@ -84,16 +81,16 @@ class POPInterface(CodeInterface):
     #returns x velocity for 3D grid
     @remote_function(must_handle_array=True)
     def get_node3d_velocity_xvel(i=0,j=0,k=0):
-        returns (xvel=0. | units.m / units.s)
+        returns (xvel=0. | units.cm / units.s)
     @remote_function(must_handle_array=True)
-    def set_node3d_velocity_xvel(i=0,j=0,k=0,xvel=0. | units.m / units.s):
+    def set_node3d_velocity_xvel(i=0,j=0,k=0,xvel=0. | units.cm / units.s):
         returns ()
     #returns y velocity for 3D grid
     @remote_function(must_handle_array=True)
     def get_node3d_velocity_yvel(i=0,j=0,k=0):
-        returns (yvel=0. | units.m / units.s)
+        returns (yvel=0. | units.cm / units.s)
     @remote_function(must_handle_array=True)
-    def set_node3d_velocity_yvel(i=0,j=0,k=0,yvel=0. | units.m / units.s):
+    def set_node3d_velocity_yvel(i=0,j=0,k=0,yvel=0. | units.cm / units.s):
         returns ()
 
     #returns temperature for 3D grid
@@ -481,15 +478,15 @@ class POP(CommonCode):
         object.define_grid('nodes', axes_names = ['x','y'])
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
-        object.add_getter('nodes', 'get_node_depth', names=('depth'))
+        object.add_getter('nodes', 'get_node_depth', names=('depth',))
         object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy'))
 
-        object.define_grid('node3d',axes_names=['x','y','z'])
-        object.set_grid_range('node3d', 'get_firstlast_grid3d')
-        object.add_getter('node3d', 'get_node3d_velocity_xvel', names = ('xvel'))
-        object.add_getter('node3d', 'get_node3d_velocity_yvel', names = ('yvel'))
-        object.add_setter('node3d', 'set_node3d_velocity_xvel', names = ('xvel'))
-        object.add_setter('node3d', 'set_node3d_velocity_yvel', names = ('yvel'))
+        object.define_grid('nodes3d',axes_names=['x','y','z'])
+        object.set_grid_range('nodes3d', 'get_firstlast_grid3d')
+        object.add_getter('nodes3d', 'get_node3d_velocity_xvel', names = ('xvel',))
+        object.add_getter('nodes3d', 'get_node3d_velocity_yvel', names = ('yvel',))
+        object.add_setter('nodes3d', 'set_node3d_velocity_xvel', names = ('xvel',))
+        object.add_setter('nodes3d', 'set_node3d_velocity_yvel', names = ('yvel',))
 
         #these are all on the U-grid
         object.define_grid('forcings',axes_names = ['x','y'])
@@ -500,20 +497,22 @@ class POP(CommonCode):
         object.add_setter('forcings', 'set_node_wind_stress', names=('tau_x','tau_y'))
         object.add_getter('forcings', 'get_node_position', names=('lat','lon'))
 
+        #elements are on the T-grid
         object.define_grid('elements',axes_names = ['x','y'])
         object.set_grid_range('elements', 'get_firstlast_node')
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
-        object.add_getter('elements', 'get_element_depth', names=('depth'))
+        object.add_getter('elements', 'get_element_depth', names=('depth',))
         object.add_getter('elements', 'get_element_surface_state', names=('temp','salt'))
 
-        object.define_grid('element3d',axes_names=['x','y','z'])
-        object.set_grid_range('element3d', 'get_firstlast_grid3d')
-        object.add_getter('element3d', 'get_element3d_temperature', names = ('temp'))
-        object.add_getter('element3d', 'get_element3d_salinity', names = ('salt'))
-        object.add_getter('element3d', 'get_element3d_density', names = ('rho'))
-        object.add_setter('element3d', 'set_element3d_temperature', names = ('temp'))
-        object.add_setter('element3d', 'set_element3d_salinity', names = ('salt'))
-        object.add_setter('element3d', 'set_element3d_density', names = ('rho'))
+        #elements are on the T-grid
+        object.define_grid('elements3d',axes_names=['x','y','z'])
+        object.set_grid_range('elements3d', 'get_firstlast_grid3d')
+        object.add_getter('elements3d', 'get_element3d_temperature', names = ('temp',))
+        object.add_getter('elements3d', 'get_element3d_salinity', names = ('salt',))
+        object.add_getter('elements3d', 'get_element3d_density', names = ('rho',))
+        object.add_setter('elements3d', 'set_element3d_temperature', names = ('temp',))
+        object.add_setter('elements3d', 'set_element3d_salinity', names = ('salt',))
+        object.add_setter('elements3d', 'set_element3d_density', names = ('rho',))
 
 
 

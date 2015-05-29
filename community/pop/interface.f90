@@ -70,7 +70,6 @@ module pop_interface
      WORK_G            ! temporary 2D array for gathered data
 
 
-
 contains
 
 
@@ -114,7 +113,9 @@ function commit_parameters() result(ret)
   fupdate_wind_stress = .false.
 
   !allocate space for gather of global field
-  allocate(WORK_G(nx_global,ny_global))
+  if (my_task == master_task) then
+    allocate(WORK_G(nx_global,ny_global))
+  endif
 
   !-----------------------------------------------------------------------
   !
@@ -552,6 +553,26 @@ subroutine get_gather(g_i, g_j, grid, value_, n)
   endif
 end subroutine get_gather
 
+subroutine get_gather_3D(g_i, g_j, k, grid, value_, n)
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j, k
+  real*8, dimension(n), intent(out) :: value_
+  real*8, dimension(:,:,:,:), intent(in) :: grid
+
+  integer :: ii, ki
+
+  do ki=1,km
+    call gather_global(WORK_G, grid(:,:,ki,:), master_task, distrb_clinic)
+    if (my_task == master_task) then
+      do ii=1,n
+        if (k(ii) == ki) then
+          value_(ii) = WORK_G(g_i(ii),g_j(ii))
+        endif
+      enddo
+    endif
+  enddo
+end subroutine get_gather_3D
+
 
 subroutine get_gridded_variable_vector(g_i, g_j, grid, value, n)
   integer, intent(in) :: n
@@ -858,6 +879,7 @@ function get_element3d_temperature(i, j, k, temp_, n) result (ret)
   real*8, dimension(n), intent(out) :: temp_
 
   call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
+!  call get_gather_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
 
   ret=0
 end function
@@ -878,6 +900,7 @@ function get_element3d_salinity(i, j, k, salt_, n) result (ret)
   real*8, dimension(n), intent(out) :: salt_
 
   call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
+!  call get_gather_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
 
   ret=0
 end function
@@ -899,6 +922,7 @@ function get_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   real*8, dimension(n), intent(out) :: uvel_
 
   call get_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
+!  call get_gather_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
 
   ret=0
 end function
@@ -919,6 +943,7 @@ function get_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   real*8, dimension(n), intent(out) :: vvel_
 
   call get_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
+!  call get_gather_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
 
   ret=0
 end function
@@ -940,6 +965,7 @@ function get_element3d_density(i, j, k, rho_, n) result (ret)
   real*8, dimension(n), intent(out) :: rho_
 
   call get_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
+!  call get_gather_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
 
   ret=0
 end function
