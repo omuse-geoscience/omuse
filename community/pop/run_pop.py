@@ -6,10 +6,17 @@ from mpl_toolkits.basemap import Basemap
 from matplotlib import pyplot
 from matplotlib.mlab import griddata
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("code").setLevel(logging.DEBUG)
+
+numpy.random.seed(123451)
 
 def get_lats_lons(p):
     lats= p.nodes.lat.value_in(units.deg).flatten() / numpy.pi*180.0
     lons= p.nodes.lon.value_in(units.deg).flatten() / numpy.pi*180.0
+    lats+=numpy.random.random(len(lats))*1.e-4
+    lons+=numpy.random.random(len(lons))*1.e-4    
     a=numpy.where(lons>180)[0]
     lons[a]=lons[a]-360
     return lats,lons
@@ -22,7 +29,7 @@ def get_xy():
 
 def myplot(lats, lons, xs, ys, sst):
     sst=sst.flatten()
-    sst_=griddata(lons,lats,sst,xs,ys,interp='linear')
+    sst_=griddata(lons,lats,sst,xs,ys)
 
     pyplot.clf()
     m = Basemap(projection='kav7',lon_0=0.,llcrnrlat=-80,urcrnrlat=80,\
@@ -44,20 +51,21 @@ from amuse.units import units
 
 p=POP(channel_type="sockets",redirection="none",number_of_workers=8)
 
-#p.set_horiz_grid_file('/home/ben/x1_Files/grid/horiz_grid_20010402.ieeer8')
-#p.set_vert_grid_file('/home/ben/x1_Files/grid/in_depths.dat')
-#p.set_topography_file('/home/ben/x1_Files/grid/topography_20010702.ieeei4')
-#p.set_ts_file('/home/ben/x1_Files/restart/r.x1_SAMOC_control.00750101')
+p.set_horiz_grid_file('data/input/grid/horiz_grid_20010402.ieeer8')
+p.set_vert_grid_file('data/input/grid/in_depths.dat')
+p.set_topography_file('data/input/grid/topography_20010702.ieeei4')
+p.set_ts_file('data/input/restart/r.x1_SAMOC_control.00750101')
 
+raw_input()
 
 
 #prepare the plot stuff
 pyplot.ion()
 lats,lons = get_lats_lons(p)
-
 xs,ys = get_xy()
 sst = p.elements.temp.value_in(units.C)
-
+print sst[100,120]
+print sst.min(),sst.max()
 myplot(lats, lons, xs, ys, sst)
 
 
