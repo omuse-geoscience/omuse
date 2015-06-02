@@ -422,7 +422,7 @@ end subroutine rotate_wind_stress
 !-----------------------------------------------------------------------
 subroutine get_gridded_variable(g_i, g_j, grid, value)
   integer, intent(in) :: g_i, g_j
-  real*8, intent(in), dimension(nx_block, ny_block, max_blocks_clinic) :: grid
+  real*8, intent(in), dimension(:,:,:) :: grid
   real*8, intent(out) :: value
 
   integer :: i,j,iblock
@@ -463,7 +463,7 @@ end subroutine get_gridded_variable
 
 subroutine set_gridded_variable(g_i, g_j, grid, value)
   integer, intent(in) :: g_i, g_j
-  real*8, intent(out), dimension(nx_block, ny_block, max_blocks_clinic) :: grid
+  real*8, intent(inout), dimension(:,:,:) :: grid
   real*8, intent(in) :: value
 
   integer :: i,j,iblock
@@ -495,7 +495,7 @@ end subroutine set_gridded_variable
 
 subroutine get_gridded_variable_3D(g_i, g_j, k, grid, value)
   integer, intent(in) :: g_i, g_j, k
-  real*8, intent(in), dimension(nx_block, ny_block, km, max_blocks_clinic) :: grid
+  real*8, intent(in), dimension(:,:,:,:) :: grid
   real*8, intent(out) :: value
 
   integer :: i,j,iblock
@@ -516,7 +516,7 @@ subroutine get_gridded_variable_3D(g_i, g_j, k, grid, value)
 end subroutine get_gridded_variable_3D
 subroutine set_gridded_variable_3D(g_i, g_j, k, grid, value)
   integer, intent(in) :: g_i, g_j, k
-  real*8, intent(out), dimension(nx_block, ny_block, km, max_blocks_clinic) :: grid
+  real*8, intent(inout), dimension(:,:,:,:) :: grid
   real*8, intent(in) :: value
 
   integer :: i,j,iblock
@@ -533,6 +533,7 @@ subroutine set_gridded_variable_3D(g_i, g_j, k, grid, value)
       grid(i,j,k,iblock) = value
     endif
   enddo
+  
 end subroutine set_gridded_variable_3D
 
 
@@ -602,10 +603,11 @@ end subroutine get_gridded_variable_vector
 subroutine set_gridded_variable_vector(g_i, g_j, grid, value, n)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, intent(out), dimension(nx_block, ny_block, max_blocks_clinic) :: grid
+  real*8, intent(inout), dimension(:,:,:) :: grid
   real*8, dimension(n), intent(in) :: value
 
   integer :: ii
+
   do ii=1,n
     call set_gridded_variable(g_i(ii), g_j(ii), grid, value(ii))
   enddo
@@ -627,23 +629,21 @@ subroutine get_gridded_variable_vector_3D(g_i, g_j, k, grid, value, n)
   do ii=1,n
     call get_gridded_variable_3D(g_i(ii), g_j(ii), k(ii), grid, value(ii))
   enddo
-
   !only the output of the node with MPI rank 0 is significant in AMUSE, reduce to single value per element
   if(my_task == master_task) then
     call MPI_REDUCE(MPI_IN_PLACE, value, n, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
   else
     call MPI_REDUCE(value, 0, n, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
   endif
-
 end subroutine get_gridded_variable_vector_3D
 
 subroutine set_gridded_variable_vector_3D(g_i, g_j, k, grid, value, n)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j, k
-  real*8, intent(out), dimension(:,:,:,:) :: grid
+  real*8, intent(inout), dimension(:,:,:,:) :: grid
   real*8, dimension(n), intent(in) :: value
-
   integer :: ii
+
   do ii=1,n
     call set_gridded_variable_3D(g_i(ii), g_j(ii), k(ii), grid, value(ii))
   enddo
