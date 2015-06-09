@@ -1,0 +1,35 @@
+--- swan/swanmain.ftn	2015-06-08 14:13:55.000000000 +0200
++++ work/swanmain.ftn	2015-06-09 15:38:27.000000000 +0200
+@@ -26,7 +26,7 @@
+ !
+ !***********************************************************************
+ !                                                                      *
+-!NADC      PROGRAM SWAN
++!NADC      SUBROUTINE SWAN
+ !ADC      SUBROUTINE SWAN
+ !                                                                      *
+ !***********************************************************************
+--- swan/Makefile	2015-06-08 14:13:55.000000000 +0200
++++ work/Makefile	2015-06-09 15:37:57.000000000 +0200
+@@ -135,6 +135,12 @@
+ 	        FFLAGS90="$(FLAGS_OPT) $(FLAGS90_MSC) $(FLAGS_SER)" \
+                 INCS="$(INCS_SER)" LIBS="$(LIBS_SER)" OBJS="$(SWAN_OBJS)" $(SWAN_EXE)
+ 
++amuse:
++	@perl switch.pl $(swch) *.ftn *.ftn90
++	$(MAKE) FOR=$(F90_SER) FFLAGS="$(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_SER)" \
++	        FFLAGS90="$(FLAGS_OPT) $(FLAGS90_MSC) $(FLAGS_SER)" \
++                INCS="$(INCS_SER)" LIBS="$(LIBS_SER)" OBJS="$(SWAN_OBJS)" objects
++
+ omp:
+ 	@perl switch.pl $(swch) *.ftn *.ftn90
+ 	$(MAKE) FOR=$(F90_OMP) FFLAGS="$(FLAGS_OPT) $(FLAGS_MSC) $(FLAGS_OMP)" \
+@@ -182,6 +188,8 @@
+ $(SWAN_EXE): $(SWAN_OBJS)
+ 	$(FOR) $(OBJS) $(FFLAGS) $(OUT)$(SWAN_EXE) $(INCS) $(LIBS)
+ 
++objects: $(SWAN_OBJS)
++
+ .f.o:
+ 	$(FOR) $< -c $(FFLAGS) $(INCS)
+ 

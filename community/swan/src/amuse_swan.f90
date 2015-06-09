@@ -17,4 +17,35 @@ module amuse_swan
 
 contains
 
+function swan_entry() result(ret)
+  integer :: ret
+  logical STPNOW 
+  ret=0
+  call SWINITMPI
+  IF (STPNOW()) ret=-1
+!PUN      CALL MSG_INIT()                                             
+
+end function
+
+function swan_cleanup() result(ret)
+  integer :: ret
+  CALL SWEXITMPI
+!PUN      CALL MSG_FINI()
+end function
+
+function swan_init() result(ret)
+  integer :: ret
+  logical STPNOW 
+  ret=0
+  call SWINIT(INERR)
+!PUN      IF ( MNPROC>1 ) THEN
+!PUN         CALL SwanReadfort18
+!PUN!NADC         CALL MSG_TABLE()
+!PUN!NADC         CALL MSG_START()
+!PUN      ENDIF
+!TIMG      CALL SWTSTO(2)
+  if(INERR.GT.0) ret=-1
+  if(STPNOW()) ret=-2
+end function
+
 end module
