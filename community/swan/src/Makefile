@@ -2,7 +2,7 @@ FC ?= ifort
 MPIFC ?= mpif90
 
 libamuse_swan.a: work config code 
-	ar crs $@ $(filter-out swanmain.o, work/*.o)
+	ar crs $@ work/*.o
 
 amuse_swan.o: amuse_swan.f90
 	$(FC) -Iwork $(FCFLAGS) -c -o $@ $<
@@ -15,6 +15,7 @@ code:
 
 work:
 	cp -r swan work
+#	cd work; patch -p1 < ../swan.patch
 
 clean:
 	rm -f *.mod *.o libamuse_swan.a
