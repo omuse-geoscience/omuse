@@ -22,6 +22,7 @@ function swan_entry() result(ret)
   logical STPNOW 
   ret=0
   call SWINITMPI
+  CALL RDINIT
   IF (STPNOW()) ret=-1
 !PUN      CALL MSG_INIT()                                             
 

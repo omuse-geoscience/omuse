@@ -16,5 +16,7 @@ default_options = dict(redirection="none")
 class TestSwanInterface(TestWithMPI):
     def test1(self):
       s=SwanInterface(**default_options)
-      s.initialize_code()
-      s.cleanup_code()
+      err=s.initialize_code()
+      self.assertEqual(err,0)
+      err=s.cleanup_code()
+      self.assertEqual(err,0)
