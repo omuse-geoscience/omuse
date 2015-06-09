@@ -1,7 +1,9 @@
 FC ?= ifort
 MPIFC ?= mpif90
 
-libamuse_swan.a: work config code 
+.PHONY: work config code objects
+
+libamuse_swan.a: work config objects
 	ar crs $@ work/*.o
 
 amuse_swan.o: amuse_swan.f90
@@ -10,12 +12,16 @@ amuse_swan.o: amuse_swan.f90
 config: work
 	cp macros.inc work/macros.inc
 
-code:
+objects: config
+	-cd work; patch -N -p1 < ../swan.patch
+	make -C work amuse MPIFC="$(MPIFC)"
+
+code: config
+	-cd work; patch -N -p1 -R < ../swan.patch
 	make -C work/ ser MPIFC="$(MPIFC)"
 
 work:
 	cp -r swan work
-#	cd work; patch -p1 < ../swan.patch
 
 clean:
 	rm -f *.mod *.o libamuse_swan.a
