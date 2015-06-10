@@ -50,11 +50,15 @@ class POPInterface(CodeInterface):
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
     @remote_function(must_handle_array=True)
     def get_node_position(i=0,j=0):
-        returns (lat=0. | units.deg, lon=0. | units.deg)
+        returns (lat=0. | units.rad, lon=0. | units.rad)
 
     @remote_function(must_handle_array=True)
     def get_element_position(i=0,j=0):
-        returns (lat=0. | units.deg, lon=0. | units.deg)
+        returns (lat=0. | units.rad, lon=0. | units.rad)
+
+    @remote_function(must_handle_array=True)
+    def get_zt(k=0):
+        returns (z=0.| units.cm)
 
     @remote_function
     def get_number_of_nodes():
@@ -73,10 +77,10 @@ class POPInterface(CodeInterface):
     #returns the maximal depth at this position
     @remote_function(must_handle_array=True)
     def get_node_depth(i=0,j=0):
-        returns (depth=0. | units.m)
+        returns (depth=0. | units.cm)
     @remote_function(must_handle_array=True)
     def get_element_depth(i=0,j=0):
-        returns (depth=0. | units.m)
+        returns (depth=0. | units.cm)
 
     #returns x velocity for 3D grid
     @remote_function(must_handle_array=True)
@@ -470,26 +474,36 @@ class POP(CommonCode):
         end = self.get_element_position(size[0],size[1])
         return start[0],end[0],start[1],end[1]
 
+    def get_element3d_position(self,i,j,k):
+        lat,lon=self.get_element_position(i,j)
+        z=self.get_zt(k)
+        return lat,lon,z
+
+    def get_node3d_position(self,i,j,k):
+        lat,lon=self.get_node_position(i,j)
+        z=self.get_zt(k)
+        return lat,lon,z
 
     def define_particle_sets(self, object):
         #for now we refer to the U grid as the nodes and T grid as the elements
         #the forcings can be on either grid, depends on what is preferred for coupling with adcirc I guess
 
-        object.define_grid('nodes', axes_names = ['x','y'])
+        object.define_grid('nodes')
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
         object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy'))
 
-        object.define_grid('nodes3d',axes_names=['x','y','z'])
+        object.define_grid('nodes3d')
         object.set_grid_range('nodes3d', 'get_firstlast_grid3d')
+        object.add_getter('nodes3d', 'get_node3d_position', names=('lat','lon','z'))
         object.add_getter('nodes3d', 'get_node3d_velocity_xvel', names = ('xvel',))
         object.add_getter('nodes3d', 'get_node3d_velocity_yvel', names = ('yvel',))
         object.add_setter('nodes3d', 'set_node3d_velocity_xvel', names = ('xvel',))
         object.add_setter('nodes3d', 'set_node3d_velocity_yvel', names = ('yvel',))
 
         #these are all on the U-grid
-        object.define_grid('forcings',axes_names = ['x','y'])
+        object.define_grid('forcings')
         object.set_grid_range('forcings', 'get_firstlast_node')
         object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f',))
         object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f',))
@@ -498,15 +512,16 @@ class POP(CommonCode):
         object.add_getter('forcings', 'get_node_position', names=('lat','lon'))
 
         #elements are on the T-grid
-        object.define_grid('elements',axes_names = ['x','y'])
+        object.define_grid('elements')
         object.set_grid_range('elements', 'get_firstlast_node')
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
         object.add_getter('elements', 'get_element_depth', names=('depth',))
         object.add_getter('elements', 'get_element_surface_state', names=('temp','salt'))
 
         #elements are on the T-grid
-        object.define_grid('elements3d',axes_names=['x','y','z'])
+        object.define_grid('elements3d')
         object.set_grid_range('elements3d', 'get_firstlast_grid3d')
+        object.add_getter('elements3d', 'get_element3d_position', names = ('lat','lon','z'))
         object.add_getter('elements3d', 'get_element3d_temperature', names = ('temp',))
         object.add_getter('elements3d', 'get_element3d_salinity', names = ('salt',))
         object.add_getter('elements3d', 'get_element3d_density', names = ('rho',))
