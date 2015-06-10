@@ -861,6 +861,15 @@ function get_element_depth(g_i, g_j, depth_, n) result(ret)
   ret=0
 end function
 
+function get_zt(k, zt_, n) result(ret)
+  integer :: ret,n,i
+  integer, dimension(n), intent(in) :: k
+  real*8, dimension(n), intent(out) :: zt_
+
+  zt_(1:n)=zt(k(1:n))
+
+  ret=0
+end function
 
 
 
