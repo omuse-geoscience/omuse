@@ -337,6 +337,9 @@ class POP(CommonCode):
     def __init__(self, **options):
         self.nprocs = options.setdefault('number_of_workers', 8)
         CommonCode.__init__(self,  POPInterface(**options), **options)
+
+    def define_properties(self, object):
+        object.add_property('get_model_time', public_name = "model_time")
     
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
