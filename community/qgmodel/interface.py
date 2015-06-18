@@ -716,6 +716,10 @@ class QGmodel(CommonCode):
     def get_boundary_position_of_index(self,i,j,k,index_of_boundary):
         x,y=self.overridden().get_boundary_position_of_index(i,j,k,index_of_boundary)
         return x+self._position[0],y+self._position[1]
+
+    @property
+    def forcings(self):
+        return self.wind_field
     
     def define_particle_sets(self, object):
         object.define_grid('grid',axes_names = ['x','y'])
