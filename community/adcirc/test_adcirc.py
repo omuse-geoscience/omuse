@@ -178,4 +178,10 @@ class TestAdcirc(TestWithMPI):
         self.assertRaises(Exception, lambda : setattr(instance.parameters, "use_interface_grid",True),
          expected_message="While calling before_set_interface_parameter of Adcirc: No transition from current state state 'EDIT' to state 'INITIALIZED' possible")
         
+    def test9(self):
+        instance=Adcirc(**default_options)
+        instance.parameters.rootdir="data/test/2d"        
+
+        instance.nodes.vx
+        self.assertEqual(instance.get_name_of_current_state(), "EDIT")
         
