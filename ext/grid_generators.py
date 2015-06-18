@@ -1,16 +1,12 @@
 from omuse.units import units
+from amuse.units.trigo import *
 from amuse.datamodel import Grid
 import numpy
 
-colat=lambda fi: (numpy.pi/2| units.rad)-fi
-
 zero=units.zero
-pi=numpy.pi | units.rad
-tan=lambda x: numpy.tan(x.value_in(units.rad))
-sin=lambda x: numpy.sin(x.value_in(units.rad))
-cos=lambda x: numpy.cos(x.value_in(units.rad))
-arctan=lambda x: numpy.arctan(x) | units.rad
-arctan2=lambda x,y: numpy.arctan2(x,y) | units.rad
+pi=units.pi
+
+colat=lambda fi: (0.5*pi-fi)
 mlog=lambda x: numpy.log(x+(x==0.)) # m.. means masked
 
 class displaced_pole(object):
@@ -46,25 +42,31 @@ class displaced_pole(object):
 
     def _forward_transform(self,fi,l):
         l=l%(2*pi)
+        #polar stereographic projection
         r1=tan(colat(fi))/tan(colat(self.fi_JN))
-        theta2=(l>=self.l_pole)*(l-self.l_pole)+(l<self.l_pole)*(2*pi-(self.l_pole-l))
+        theta1=(l>=self.l_pole)*(l-self.l_pole)+(l<self.l_pole)*(2*pi-(self.l_pole-l))
         
-        c=1.*(theta2%pi != zero)*(-mlog(abs(tan(theta2/2)))+self.F(1.))
+        #integration constant c
+        c=(theta1%pi != zero)*(-mlog(abs(tan(theta1/2)))+self.F(1.))
 
+        #transformed longitude
+        theta2=(theta1==zero)*zero +  \
+               (zero<theta1)*(theta1<pi)*(2*arctan(numpy.exp(self.F(r1)-c))) + \
+               (theta1==pi)*pi + \
+               (pi<theta1)*(theta1<2*pi)*(2*pi-2*arctan(numpy.exp(self.F(r1)-c)))
 
-        theta3=(theta2==zero)*zero +  \
-               (zero<theta2)*(theta2<pi)*(2*arctan(numpy.exp(self.F(r1)-c))) + \
-               (theta2==pi)*pi + \
-               (pi<theta2)*(theta2<2*pi)*(2*pi-2*arctan(numpy.exp(self.F(r1)-c)))
-            
-        x=self.f(r1)+r1*cos(theta3)
-        y=r1*sin(theta3)
-        r2=(x**2+y**2)**0.5
+        #orthogonal grid projection
+        x=self.f(r1)+r1*cos(theta2)
+        y=r1*sin(theta2)
+        
+        #polar coordinates
+        r3=(x**2+y**2)**0.5
         theta3=arctan2(y,x)
-                    
+        
+        #inverse stereographic projection            
         l=theta3+self.l_pole
         l=(l<2*pi)*l + (l>=2*pi)*(l-2*pi)
-        fi=colat(arctan(r2*tan(colat(self.fi_JN))))
+        fi=colat(arctan(r3*tan(colat(self.fi_JN))))
       
         return fi,l
 
@@ -89,26 +91,30 @@ class displaced_pole(object):
 
     def _backward_transform(self,fi,l):
         l=l%(2*pi)
-      
-        r1=tan(colat(fi))/tan(colat(self.fi_JN))    
-        theta2=(l>=self.l_pole)*(l-self.l_pole)+(l<self.l_pole)*(2*pi-(self.l_pole-l))      
+        
+        #stereographic projection
+        r3=tan(colat(fi))/tan(colat(self.fi_JN))    
+        theta3=(l>=self.l_pole)*(l-self.l_pole)+(l<self.l_pole)*(2*pi-(self.l_pole-l))      
 
-        x=r1*cos(theta2)
-        y=r1*sin(theta2)
-    
-        r,theta=self.backward_iterative_solver(x,y,r1,theta2)
+        #inverse grid projection
+        x=r3*cos(theta3)
+        y=r3*sin(theta3)
+        r1,theta2=self.backward_iterative_solver(x,y,r3,theta3)
 
-        c=1.*(theta2%pi != zero)*(-mlog(abs(tan(theta/2)))+self.F(r))
+        #integration constant c
+        c=(theta2%pi != zero)*(-mlog(abs(tan(theta2/2)))+self.F(r1))
 
-        theta3=(theta==zero)*zero +  \
-               (zero<theta)*(theta<pi)*(2*arctan(numpy.exp(self.F(1.)-c))) + \
-               (theta==pi)*pi + \
-               (pi<theta)*(theta<2*pi)*(2*pi-2*arctan(numpy.exp(self.F(1.)-c)))
-                
-        l=theta3+self.l_pole
+        #transform back theta
+        theta1=(theta2==zero)*zero +  \
+               (zero<theta2)*(theta2<pi)*(2*arctan(numpy.exp(self.F(1.)-c))) + \
+               (theta2==pi)*pi + \
+               (pi<theta2)*(theta2<2*pi)*(2*pi-2*arctan(numpy.exp(self.F(1.)-c)))
+
+        #inverse stereographic projection
+        l=theta1+self.l_pole
         l=(l<2*pi)*l + (l>=2*pi)*(l-2*pi)
-        fi=colat(arctan(r*tan(colat(self.fi_JN))))
-          
+        fi=colat(arctan(r1*tan(colat(self.fi_JN))))
+
         return fi,l
 
     def backward_transform(self,fi,l):
@@ -124,8 +130,8 @@ class displaced_pole(object):
           dFI=(FI1-FI0)/n
         if dL is None:
           dL=(L1-L0)/m
-        FI,L=numpy.mgrid[FI0.value_in(units.deg):FI1.value_in(units.deg):dFI.value_in(units.deg),
-                           L0.value_in(units.deg):L1.value_in(units.deg):dL.value_in(units.deg)]
+        FI,L=numpy.mgrid[in_deg(FI0):in_deg(FI1):in_deg(dFI),
+                           in_deg(L0):in_deg(L1):in_deg(dL)]
         FI=FI|units.deg
         L=L|units.deg
         n,m=FI.shape
@@ -133,13 +139,13 @@ class displaced_pole(object):
         grid=Grid((n,m))
         grid.FI=FI
         grid.L=L
-        grid.lat=fi
-        grid.lon=l
+        grid.lat=to_deg(fi)
+        grid.lon=to_deg(l)
         return grid
 
 def test_transform():
     gg=displaced_pole()
-    N=0.1
+    N=0.5
     extent = (0,360.,0.05,89.95)
     xs,ys = numpy.mgrid[extent[0]:extent[1]:N, extent[2]:extent[3]:N]
     xs=xs.flatten() | units.deg
@@ -154,21 +160,20 @@ def test_transform():
     a2=abs(xs-2*pi-x0)
     dth=(a1<a2)*a1+(a1>=a2)*a2
     assert abs(ys-y0).max().number < 1.e-12
-    assert dth.max().number < 1.e-12
+    assert in_rad(dth).max() < 1.e-12
     print "test ok"
 
 
 if __name__=="__main__":
     from matplotlib import pyplot
     gg=displaced_pole()
-    
+
     grid=gg.generate_grid(FI1=90|units.deg,dFI=5|units.deg,dL=5| units.deg)
-
-    #~ test_transform()
-
+#~ 
     lat=grid.lat.value_in(units.deg)
     lon=grid.lon.value_in(units.deg)
 
     pyplot.plot(lon,lat,'r.')
-    #~ pyplot.plot(xs[a].value_in(units.deg),ys[a].value_in(units.deg),'g+')
     pyplot.show()    
+
+    #~ test_transform()
