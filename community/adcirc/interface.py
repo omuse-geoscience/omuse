@@ -161,7 +161,7 @@ class Adcirc(CommonCode):
         self._elev_boundary=None
         self._flow_boundary=None
         self._parameters=None
-
+       
     def assign_grid_and_boundary(self,nodes,elements,elev_boundary, flow_boundary):
         self._nodes=nodes
         self._elements=elements
@@ -204,6 +204,12 @@ class Adcirc(CommonCode):
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
+            "rootdir", 
+            "set the root directory", 
+            "."
+        )
+
+        object.add_default_form_parameter(
             "use_interface_elevation_boundary", 
             "toggle the use of interface boundary conditions for the elevation specified boundaries", 
             False
@@ -216,28 +222,36 @@ class Adcirc(CommonCode):
         object.add_interface_parameter(
             "A_H",
             "turbulent lateral friction coefficient",
-            default_value = 100.0 | units.m**2/units.s
+            100.0 | units.m**2/units.s,
+            "before_set_interface_parameter"
         ) 
         object.add_interface_parameter(
             "timestep",
             "ADCIRC timestep",
-            default_value = 360.0 | units.s
+            360.0 | units.s,
+            "before_set_interface_parameter"
         ) 
         object.add_interface_parameter(
             "use_predictor_corrector",
             "flag for use of predictor corrector integrator",
-            default_value = True
+            True,
+            "before_set_interface_parameter"
         ) 
         object.add_interface_parameter(
             "use_interface_parameters",
             "flag for use of interface parameters (i.e. write fort.15)",
-            default_value = False
+            False,
+            "before_set_interface_parameter"
         ) 
         object.add_interface_parameter(
             "use_interface_grid",
             "flag for use of interface grid (i.e. write fort.14)",
-            default_value = False
+            False,
+            "before_set_interface_parameter"
         )
+
+    def define_properties(self, object):
+        object.add_property('get_model_time', public_name = "model_time")
 
     def define_particle_sets(self, object):
         object.define_grid('nodes',axes_names = ['x','y'])
@@ -292,4 +306,27 @@ class Adcirc(CommonCode):
         definition.add_getter('get_flow_boundary_node', names=('node',))
         definition.add_getter('get_flow_boundary_type', names=('type',))
         definition.define_extra_keywords({'index_of_segment':index})
+
+    def define_state(self, object):
+        object.set_initial_state('UNINITIALIZED')
+        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+        object.add_method('!UNINITIALIZED', 'before_get_parameter')
+        object.add_method('!UNINITIALIZED', 'before_set_parameter')
+        object.add_method('END', 'before_get_parameter')
+        object.add_transition('!UNINITIALIZED!STOPPED', 'END', 'cleanup_code')
+        object.add_transition('END', 'STOPPED', 'stop', False)
+        object.add_method('STOPPED', 'stop')
+
+        object.add_transition('INITIALIZED','EDIT','commit_parameters')
+
+
+        #~ object.set_initial_state('UNINITIALIZED')
+        #~ object.add_transition('!STOPPED', 'END', 'cleanup_code')
+        #~ object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+        #~ object.add_transition('END', 'STOPPED', 'stop', False)
+        #~ object.add_method('STOPPED', 'stop')        
+ 
+        object.add_method('INITIALIZED', 'assign_grid_and_boundary')
+        object.add_method('INITIALIZED', 'before_set_interface_parameter')
+        object.add_method('INITIALIZED', 'set_rootdir')
 

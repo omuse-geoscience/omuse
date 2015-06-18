@@ -13,6 +13,11 @@ from amuse.io import read_set_from_file
 default_options = dict(redirection="none")
 #default_options=dict(debugger="gdb")
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("code").setLevel(logging.DEBUG)
+
+
 class TestAdcircInterface(TestWithMPI):
 
     def test1(self):
@@ -53,9 +58,9 @@ class TestAdcircInterface(TestWithMPI):
         self.assertEqual(err,0)
         self.assertEqual(zn,21)
         
-        s,err=instance.get_node_sigma(1,1)
+        s,z,err=instance.get_node_sigma(1,1)
         self.assertEqual(s,-1.)
-        s,err=instance.get_node_sigma(1,zn)
+        s,z,err=instance.get_node_sigma(1,zn)
         self.assertEqual(s,1.)
                 
         instance.cleanup_code()
@@ -157,3 +162,20 @@ class TestAdcirc(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
+    def test7(self):
+        instance=Adcirc(**default_options)
+        instance.parameters.rootdir="data/test/2d"        
+
+        instance.commit_parameters()
+        self.assertEqual(instance.get_name_of_current_state(), "EDIT")
+        
+    def test8(self):
+        instance=Adcirc(**default_options)
+        instance.parameters.rootdir="data/test/2d"        
+
+        instance.commit_parameters()
+        self.assertEqual(instance.get_name_of_current_state(), "EDIT")
+        self.assertRaises(Exception, lambda : setattr(instance.parameters, "use_interface_grid",True),
+         expected_message="While calling before_set_interface_parameter of Adcirc: No transition from current state state 'EDIT' to state 'INITIALIZED' possible")
+        
+        
