@@ -5,6 +5,7 @@
   tropic_distribution_type = 'cartesian'
   ew_boundary_type = 'cyclic'
   ns_boundary_type = 'closed'
+  distribution_file = ''
 /
 
 &context_nml
@@ -84,7 +85,7 @@
 &restart_nml
    restart_freq_opt = 'never' 
    restart_freq     = 1
-   restart_outfile  = 'data/output/restart'
+   restart_outfile  = ''
    restart_fmt      = 'nc'
    leven_odd_on     = .true. 
    even_odd_freq    = 2400
@@ -93,7 +94,7 @@
 
 &tavg_nml
    tavg_freq_opt  = 'never'
-   tavg_freq      = 5
+   tavg_freq      = 1
    tavg_start_opt = 'nstep'
    tavg_start     = 0
    tavg_infile    = ''
@@ -113,7 +114,7 @@
 
 &movie_nml
    movie_freq_opt  = 'never'
-   movie_freq      = 100000
+   movie_freq      = 1
    movie_outfile   = ''
    movie_fmt       = 'bin'
    movie_contents  = 'movie_contents'

@@ -819,6 +819,34 @@ function get_element_position(g_i, g_j, lat_, lon_, n) result(ret)
   ret=0
 end function
 
+function get_node_vposition(g_i, g_j, k, depth_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j, k
+  real*8, dimension(n), intent(out) :: depth_
+
+  ret=0
+  if (partial_bottom_cells) then
+    call get_gridded_variable_vector_3D(g_i, g_j, k, DZU, depth_, n)
+  else
+    ret = get_zt(k, depth_, n)
+  endif
+
+end function
+
+function get_element_vposition(g_i, g_j, k, depth_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j, k
+  real*8, dimension(n), intent(out) :: depth_
+
+  ret=0
+  if (partial_bottom_cells) then
+    call get_gridded_variable_vector_3D(g_i, g_j, k, DZT, depth_, n)
+  else
+    ret = get_zt(k, depth_, n)
+  endif
+
+end function
+
 function get_number_of_nodes(num) result(ret)
   integer :: ret
   integer, intent(out) :: num
