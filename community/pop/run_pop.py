@@ -59,8 +59,6 @@ p.set_ts_file('data/input/restart/r.x1_SAMOC_control.00750101')
 
 #raw_input()
 
-print p.elements3d.temp
-
 
 #prepare the plot stuff
 pyplot.ion()

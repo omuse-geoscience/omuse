@@ -105,6 +105,10 @@ class POPInterface(CodeInterface):
     @remote_function(must_handle_array=True)
     def set_node3d_velocity_yvel(i=0,j=0,k=0,yvel=0. | units.cm / units.s):
         returns ()
+    #returns z velocity for 3D grid
+    @remote_function(must_handle_array=True)
+    def get_node3d_velocity_zvel(i=0,j=0,k=0):
+        returns (zvel=0. | units.cm / units.s)
 
     #returns temperature for 3D grid
     @remote_function(must_handle_array=True)
@@ -433,6 +437,7 @@ class POP(CommonCode):
             object.add_method(state, 'get_node_surface_state')
             object.add_method(state, 'get_node3d_velocity_xvel')
             object.add_method(state, 'get_node3d_velocity_yvel')
+            object.add_method(state, 'get_node3d_velocity_zvel')
             object.add_method(state, 'get_element3d_temperature')
             object.add_method(state, 'get_element3d_salinity')
             object.add_method(state, 'get_element3d_density')
@@ -511,6 +516,7 @@ class POP(CommonCode):
         object.add_getter('nodes3d', 'get_node3d_position', names=('lat','lon','z'))
         object.add_getter('nodes3d', 'get_node3d_velocity_xvel', names = ('xvel',))
         object.add_getter('nodes3d', 'get_node3d_velocity_yvel', names = ('yvel',))
+        object.add_getter('nodes3d', 'get_node3d_velocity_zvel', names = ('zvel',))
         object.add_setter('nodes3d', 'set_node3d_velocity_xvel', names = ('xvel',))
         object.add_setter('nodes3d', 'set_node3d_velocity_yvel', names = ('yvel',))
 
