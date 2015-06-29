@@ -7,4 +7,8 @@ dyn=named_unit("Dyne","dyn", 1.e-5*N)
 bar=named_unit("Bar", "bar", 1.e5*Pa)
 dbar=deci(bar)
 
-psu=named("psu","psu", none)
+salt=named("absolute reference salinity","Sr", g/kg)
+psu=named("practical salinity unit","psu", (35.16504/35.) * salt)
+
+nautical_mile=named_unit("Nautical Mile", "nMile", 1852*m)
+knot=named_unit("Knot","knot",nautical_mile/hr)
