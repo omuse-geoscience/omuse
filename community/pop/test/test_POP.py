@@ -6,7 +6,8 @@ from omuse.community.pop.interface import POP
 
 from amuse.units import units
 
-default_options=dict(channel_type="sockets",redirection="none")
+#default_options=dict(channel_type="sockets",redirection="none")
+default_options=dict(redirection="none")
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -20,7 +21,7 @@ class POPTests(TestWithMPI):
 
 
     #test the behavior of the state machine
-    #@nottest
+    @nottest
     def test1(self):
         instance = POP(**default_options)
 
@@ -60,7 +61,7 @@ class POPTests(TestWithMPI):
 
 
 
-    #@nottest
+    @nottest
     def test2(self):
         instance = POP(**default_options)
 
@@ -125,7 +126,7 @@ class POPTests(TestWithMPI):
 
 
 
-    #@nottest
+    @nottest
     def test3(self):
         p = POP(**default_options)
 
@@ -244,7 +245,7 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
-    #@nottest
+    @nottest
     def test4(self):
         p = POP(**default_options)
 
@@ -364,6 +365,7 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
+    @nottest
     def test5(self):
         p = POP(**default_options)
 
@@ -397,6 +399,7 @@ class POPTests(TestWithMPI):
         p.stop()
 
 
+    @nottest
     def test6(self):
         p = POP(**default_options)
 
@@ -412,4 +415,60 @@ class POPTests(TestWithMPI):
         yvel3d = p.nodes3d.yvel
         self.assertEquals(yvel3d, bogus3d)
 
+        p.stop()
+
+    @nottest
+    def test7(self):
+        p = POP(**default_options)
+
+        #test whether the getters for depth are working as expected
+        dzt = p.elements3d.z
+        dzu = p.nodes3d.z
+
+        km = p.get_number_of_vertical_levels()
+
+        for i in range(0,km-1):
+            self.assertTrue(dzu[5, 5, i] <= dzt[5, 5, i], msg='expect dzu to be equal to or smaller than dzt')
+            self.assertTrue(dzt[5, 5, i] > (0.0 | units.cm), msg='expect dzt to be larger than 0.0')
+ 
+        p.stop()
+
+
+    def test8(self):
+        p = POP(**default_options)
+
+        p.set_horiz_grid_file('data/input/grid/horiz_grid_20010402.ieeer8')
+        p.set_vert_grid_file('data/input/grid/in_depths.dat')
+        p.set_topography_file('data/input/grid/topography_20010702.ieeei4')
+        p.set_ts_file('data/input/restart/r.x1_SAMOC_control.00750101')
+
+
+
+        #test whether the getter for vertical velocity is working correctly
+        xvel = p.nodes3d.xvel
+        yvel = p.nodes3d.yvel
+        zvel = p.nodes3d.zvel
+
+        km = p.get_number_of_vertical_levels()
+
+        size = p.get_domain_size()
+        
+        depth = p.nodes.depth.value_in(units.cm)
+
+        #look for a non-land ocean cell with some depth
+        for i in range(0, size[0]-1):
+            for j in range(0, size[1]-1):
+                if (depth[i,j] > 1000.0):
+                    print "Printing info for gridpoint " + str(i) + "," + str(j) + " with depth " + str(depth[i,j])
+
+
+        print "XVEL:"
+        print xvel[i, j, 0:km-1]
+        print "YVEL:"
+        print yvel[i, j, 0:km-1]
+        print "YVEL:"
+        print zvel[i, j, 0:km-1]
+
+        self.assertTrue(False)
+ 
         p.stop()

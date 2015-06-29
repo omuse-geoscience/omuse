@@ -25,6 +25,7 @@ module pop_interface
   use forcing_ws
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
+  use operators, only: wcalc
   use prognostic, only: TRACER, PSURF, UVEL, VVEL, RHO, curtime
   use restart, only: restart_freq_opt, restart_freq, restart_outfile
   use tavg, only: tavg_freq_opt, tavg_freq, tavg_outfile
@@ -64,7 +65,10 @@ module pop_interface
   logical :: initialized = .false.
 
   real (r8), dimension (nx_block, ny_block, max_blocks_clinic) :: &
-     tau_x, tau_y    ! wind stress on t grid in N/m**2
+     tau_x, tau_y   ! wind stress on t grid in N/m**2
+
+  real (r8), dimension (nx_block, ny_block, km, max_blocks_clinic) :: &
+     WVEL           ! 3D vertical velocity field, derived from UVEL and VVEL using wcalc
 
   real (r8), dimension (:,:), allocatable :: & 
      WORK_G            ! temporary 2D array for gathered data
@@ -819,6 +823,34 @@ function get_element_position(g_i, g_j, lat_, lon_, n) result(ret)
   ret=0
 end function
 
+function get_node_vposition(g_i, g_j, k, depth_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j, k
+  real*8, dimension(n), intent(out) :: depth_
+
+  ret=0
+  if (partial_bottom_cells) then
+    call get_gridded_variable_vector_3D(g_i, g_j, k, DZU, depth_, n)
+  else
+    ret = get_zt(k, depth_, n)
+  endif
+
+end function
+
+function get_element_vposition(g_i, g_j, k, depth_, n) result(ret)
+  integer :: ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j, k
+  real*8, dimension(n), intent(out) :: depth_
+
+  ret=0
+  if (partial_bottom_cells) then
+    call get_gridded_variable_vector_3D(g_i, g_j, k, DZT, depth_, n)
+  else
+    ret = get_zt(k, depth_, n)
+  endif
+
+end function
+
 function get_number_of_nodes(num) result(ret)
   integer :: ret
   integer, intent(out) :: num
@@ -967,6 +999,17 @@ function set_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   ret=0
 end function
 
+function get_node3d_velocity_zvel(i, j, k, wvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: wvel_
+
+  call get_gridded_variable_vector_3D(i, j, k, WVEL(:,:,:,:), wvel_, n)
+
+  ret=0
+end function
+
 function get_element3d_density(i, j, k, rho_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1023,10 +1066,43 @@ function prepare_parameters() result (ret)
 
   ret = prepare_wind_stress()
 
+  ret = prepare_vertical_velocity()
+
 end function
 
 
+function prepare_vertical_velocity() result (ret)
+  integer :: ret
 
+   real (r8), allocatable, dimension(:,:,:) :: &
+      WVELT   ! vertical velocity at T-points
+
+   type (block) :: &
+     this_block  ! block info for current block
+
+   integer(int_kind) :: iblock, k
+
+   allocate (WVELT(nx_block,ny_block,km))
+
+   WVELT = c0
+
+   do iblock = 1, nblocks_clinic
+
+      this_block = get_block(blocks_clinic(iblock),iblock)
+
+      call wcalc(WVELT, UVEL(:,:,:,curtime,iblock),   &
+                        VVEL(:,:,:,curtime,iblock), this_block)
+
+      do k = 1, km
+         call tgrid_to_ugrid(WVEL(:,:,k,iblock), WVELT(:,:,k), iblock)
+      enddo
+
+   enddo
+
+   deallocate (WVELT)
+
+  ret = 0
+end function
 
 
 
