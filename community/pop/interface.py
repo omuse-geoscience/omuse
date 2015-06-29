@@ -56,6 +56,15 @@ class POPInterface(CodeInterface):
     def get_element_position(i=0,j=0):
         returns (lat=0. | units.rad, lon=0. | units.rad)
 
+    #vertical position, may vary horizontally when using partial bottom cells
+    @remote_function(must_handle_array=True)
+    def get_node_vposition(i=0,j=0,k=0):
+        returns (depth=0. | units.cm)
+    @remote_function(must_handle_array=True)
+    def get_element_vposition(i=0,j=0,k=0):
+        returns (depth=0. | units.cm)
+
+    #distance from the surface to mid point of layer in vertical grid
     @remote_function(must_handle_array=True)
     def get_zt(k=0):
         returns (z=0.| units.cm)
@@ -96,6 +105,10 @@ class POPInterface(CodeInterface):
     @remote_function(must_handle_array=True)
     def set_node3d_velocity_yvel(i=0,j=0,k=0,yvel=0. | units.cm / units.s):
         returns ()
+    #returns z velocity for 3D grid
+    @remote_function(must_handle_array=True)
+    def get_node3d_velocity_zvel(i=0,j=0,k=0):
+        returns (zvel=0. | units.cm / units.s)
 
     #returns temperature for 3D grid
     @remote_function(must_handle_array=True)
@@ -424,6 +437,7 @@ class POP(CommonCode):
             object.add_method(state, 'get_node_surface_state')
             object.add_method(state, 'get_node3d_velocity_xvel')
             object.add_method(state, 'get_node3d_velocity_yvel')
+            object.add_method(state, 'get_node3d_velocity_zvel')
             object.add_method(state, 'get_element3d_temperature')
             object.add_method(state, 'get_element3d_salinity')
             object.add_method(state, 'get_element3d_density')
@@ -479,12 +493,12 @@ class POP(CommonCode):
 
     def get_element3d_position(self,i,j,k):
         lat,lon=self.get_element_position(i,j)
-        z=self.get_zt(k)
+        z=self.get_element_vposition(i,j,k)
         return lat,lon,z
 
     def get_node3d_position(self,i,j,k):
         lat,lon=self.get_node_position(i,j)
-        z=self.get_zt(k)
+        z=self.get_node_vposition(i,j,k)
         return lat,lon,z
 
     def define_particle_sets(self, object):
@@ -502,6 +516,7 @@ class POP(CommonCode):
         object.add_getter('nodes3d', 'get_node3d_position', names=('lat','lon','z'))
         object.add_getter('nodes3d', 'get_node3d_velocity_xvel', names = ('xvel',))
         object.add_getter('nodes3d', 'get_node3d_velocity_yvel', names = ('yvel',))
+        object.add_getter('nodes3d', 'get_node3d_velocity_zvel', names = ('zvel',))
         object.add_setter('nodes3d', 'set_node3d_velocity_xvel', names = ('xvel',))
         object.add_setter('nodes3d', 'set_node3d_velocity_yvel', names = ('yvel',))
 

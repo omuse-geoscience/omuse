@@ -6,6 +6,7 @@
   distribution_file= ' '
   ew_boundary_type = 'cyclic'
   ns_boundary_type = 'closed'
+  distribution_file = ''
 /
 
 &context_nml
