@@ -38,7 +38,7 @@ OBJS = interface.o
 CODELIB = src/libpop.a
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
-all: pop_worker 
+all: pop_worker
 
 update: eSalsa-POP
 	cd eSalsa-POP; git pull
