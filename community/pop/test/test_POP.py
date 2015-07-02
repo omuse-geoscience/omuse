@@ -21,7 +21,7 @@ class POPTests(TestWithMPI):
 
 
     #test the behavior of the state machine
-    @nottest
+    #@nottest
     def test1(self):
         instance = POP(**default_options)
 
@@ -61,7 +61,7 @@ class POPTests(TestWithMPI):
 
 
 
-    @nottest
+    #@nottest
     def test2(self):
         instance = POP(**default_options)
 
@@ -126,7 +126,7 @@ class POPTests(TestWithMPI):
 
 
 
-    @nottest
+    #@nottest
     def test3(self):
         p = POP(**default_options)
 
@@ -245,7 +245,7 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
-    @nottest
+    #@nottest
     def test4(self):
         p = POP(**default_options)
 
@@ -365,7 +365,7 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
-    @nottest
+    #@nottest
     def test5(self):
         p = POP(**default_options)
 
@@ -399,7 +399,7 @@ class POPTests(TestWithMPI):
         p.stop()
 
 
-    @nottest
+    #@nottest
     def test6(self):
         p = POP(**default_options)
 
@@ -417,7 +417,7 @@ class POPTests(TestWithMPI):
 
         p.stop()
 
-    @nottest
+    #@nottest
     def test7(self):
         p = POP(**default_options)
 
@@ -437,12 +437,10 @@ class POPTests(TestWithMPI):
     def test8(self):
         p = POP(**default_options)
 
-        p.set_horiz_grid_file('data/input/grid/horiz_grid_20010402.ieeer8')
-        p.set_vert_grid_file('data/input/grid/in_depths.dat')
-        p.set_topography_file('data/input/grid/topography_20010702.ieeei4')
-        p.set_ts_file('data/input/restart/r.x1_SAMOC_control.00750101')
-
-
+        #run for some time to ensure UVEL and VVEL contain something
+        time = p.get_model_time()
+        tend = time + (1.0 | units.day)
+        p.evolve_model(tend)
 
         #test whether the getter for vertical velocity is working correctly
         xvel = p.nodes3d.xvel
@@ -450,25 +448,41 @@ class POPTests(TestWithMPI):
         zvel = p.nodes3d.zvel
 
         km = p.get_number_of_vertical_levels()
-
         size = p.get_domain_size()
-        
         depth = p.nodes.depth.value_in(units.cm)
 
         #look for a non-land ocean cell with some depth
         for i in range(0, size[0]-1):
             for j in range(0, size[1]-1):
                 if (depth[i,j] > 1000.0):
-                    print "Printing info for gridpoint " + str(i) + "," + str(j) + " with depth " + str(depth[i,j])
+                    break
 
+        print "Printing info for gridpoint " + str(i) + "," + str(j) + " with depth " + str(depth[i,j])
+#        i=1
+#        j=127
 
         print "XVEL:"
         print xvel[i, j, 0:km-1]
         print "YVEL:"
         print yvel[i, j, 0:km-1]
-        print "YVEL:"
+        print "ZVEL:"
         print zvel[i, j, 0:km-1]
 
-        self.assertTrue(False)
- 
+        self.assertTrue( any( zv != (0.0 | units.cm / units.s) for zv in zvel[i, j, 0:km-1] ), msg="Expect at least one value to be not equal to zero")
+
         p.stop()
+
+
+    def test9(self):
+        p = POP(**default_options)
+
+        shf = p.elements.shf
+
+        print "SHF:"
+        print shf
+        shf_values = shf.value_in(units.W / units.m**2).flatten()
+        print shf_values
+        self.assertTrue( any( s != 0.0 for s in shf_values), msg="Expect at least one value to be not equal to zero")
+
+        p.stop()
+ 

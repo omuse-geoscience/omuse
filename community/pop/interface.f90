@@ -21,10 +21,12 @@ module pop_interface
   use constants, only: grav
   use domain, only: distrb_clinic, nprocs_clinic, nprocs_tropic, clinic_distribution_type, &
          tropic_distribution_type, ew_boundary_type, ns_boundary_type
-  use forcing_fields, only: SMF, SMFT, lsmft_avail
+  use forcing_fields, only: SMF, SMFT, lsmft_avail, STF
+  use forcing_shf, only: set_shf, SHF_QSW
   use forcing_ws
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
+  use io_types, only: nml_filename
   use operators, only: wcalc
   use prognostic, only: TRACER, PSURF, UVEL, VVEL, RHO, curtime
   use restart, only: restart_freq_opt, restart_freq, restart_outfile
@@ -142,6 +144,15 @@ function commit_parameters() result(ret)
   else
     call set_ws(SMF)
   endif
+
+  !-----------------------------------------------------------------------
+  !
+  ! set surface heat flux so that it can be read before the first step
+  ! this also sets SHF_QSW, although not passed as an argument
+  !
+  !-----------------------------------------------------------------------
+  call set_shf(STF)
+
 
   initialized = .true.
 
@@ -790,7 +801,27 @@ function get_element_surface_state(g_i, g_j, temp_, salt_, n) result (ret)
   ret=0
 end function
 
+function get_element_surface_heat_flux(g_i, g_j, shf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: shf_
 
+  real*8, dimension(nx_block, ny_block, max_blocks_clinic) :: WORK1
+  integer :: iblock
+
+  do iblock=1, nblocks_clinic
+    where (KMT(:,:,iblock) > 0)
+      WORK1(:,:,iblock) = (STF(:,:,1,iblock)+SHF_QSW(:,:,iblock))/hflux_factor ! W/m^2
+    elsewhere
+      WORK1(:,:,iblock) = c0
+    end where
+  end do
+
+  call get_gridded_variable_vector(g_i, g_j, WORK1, shf_, n)
+
+  ret=0
+end function
 
 
 !-----------------------------------------------------------------------
@@ -1579,7 +1610,13 @@ function set_dt_count(option) result (ret)
   dt_count = option
 end function
 
+function change_directory(pathname) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: pathname
 
+  call CHDIR(pathname)
+  ret=0
+end function
 
 
 

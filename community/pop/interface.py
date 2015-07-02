@@ -47,6 +47,10 @@ class POPInterface(CodeInterface):
     def get_element_surface_state(i=0,j=0):
         returns (temp=0. | units.C, salt=0. | units.g/units.kg) #salinity in gram per kg 
 
+    @remote_function(must_handle_array=True)
+    def get_element_surface_heat_flux(i=0,j=0):
+        returns (shf=0. | units.W/units.m**2) #surface heat flux in W/m**2
+
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
     @remote_function(must_handle_array=True)
     def get_node_position(i=0,j=0):
@@ -342,6 +346,11 @@ class POPInterface(CodeInterface):
     def set_dt_count(option=0):
         returns ()
 
+    @remote_function
+    def change_directory(pathname='s'):
+        returns ()
+
+
 
 class POP(CommonCode):
 
@@ -356,6 +365,8 @@ class POP(CommonCode):
     
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
+        object.add_method('UNINITIALIZED', 'change_directory')
+
         object.add_transition('!UNINITIALIZED!INITIALIZED!STOPPED', 'END', 'cleanup_code')
         object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
         object.add_transition('END', 'STOPPED', 'stop', False)
@@ -434,6 +445,7 @@ class POP(CommonCode):
             object.add_method(state, 'get_element_position')
             object.add_method(state, 'get_node_position')
             object.add_method(state, 'get_element_surface_state')
+            object.add_method(state, 'get_element_surface_heat_flux')
             object.add_method(state, 'get_node_surface_state')
             object.add_method(state, 'get_node3d_velocity_xvel')
             object.add_method(state, 'get_node3d_velocity_yvel')
@@ -535,6 +547,7 @@ class POP(CommonCode):
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
         object.add_getter('elements', 'get_element_depth', names=('depth',))
         object.add_getter('elements', 'get_element_surface_state', names=('temp','salt'))
+        object.add_getter('elements', 'get_element_surface_heat_flux', names=('shf',))
 
         #elements are on the T-grid
         object.define_grid('elements3d')
