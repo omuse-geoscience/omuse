@@ -99,6 +99,11 @@ class adcirc_parameter_reader(object):
       param["DTDP"]=f.read_value()
       param["STATIM"]=f.read_value()
       param["REFTIM"]=f.read_value()
+      if param["NWS"] in [0,1,11]:
+        pass
+      elif param["NWS"] in [4,5,6,7,10,12,15]:
+        param["WTIMINC"]=f.read_value()
+        
   #~ WTIMINC  Supplemental Meteorological/Wave/Ice Parameters Line
       param["RNDAY"]=f.read_value()
       if param["NRAMP"] in [0,1]:
@@ -141,8 +146,32 @@ class adcirc_parameter_reader(object):
       else:
         f.close()
       param["ANGINN"]=f.read_value()
-      for i in range(10):
+# dummy read
+      f.read_value(int,float,float,int)
+      NSTAE=f.read_int()
+      for i in range(NSTAE): f.readline()
+      f.read_value(int,float,float,int)
+      NSTAV=f.read_int()
+      for i in range(NSTAV): f.readline()
+      if param['IM']==10:
+        f.read_value(int,float,float,int)
+        NSTAC=f.read_int()
+        for i in range(NSTAC): f.readline()
+      if param['NWS']!=0:
+        f.read_value(int,float,float,int)
+        NSTAM=f.read_int()
+        for i in range(NSTAM): f.readline()
+      f.read_int(4)
+      f.read_int(4)
+      if param['IM']==10: f.read_int(4)
+      if param['NWS']!=0: f.read_int(4)
+      NHARF=f.read_int()
+      for i in range(NHARF): 
         f.readline()
+        f.readline()
+      f.readline()
+      f.readline()
+      f.readline()
       param["ITITER"],param["ISLDIA"],param["CONVCR"],param["ITMAX"]=f.read_value(int,int,float,int)
       if param['IM'] in [1,11,21,31,2]:
         # continue reading 3D info
@@ -183,11 +212,17 @@ class adcirc_parameter_reader(object):
     
 class adcirc_grid_reader(object):
   
-  def __init__(self,filename="fort.14"):
+  def __init__(self,filename="fort.14",coordinates="cartesian"):
     self.filename=filename
-    self.unit_length = units.m
-    self.unit_position = units.m
-
+    if coordinates=="cartesian":
+      self.unit_length = units.m
+      self.unit_position = units.m
+    elif coordinates=="spherical":
+      self.unit_length = units.m
+      self.unit_position = units.deg
+    else:
+      raise Exception("coordinates must be cartesian or spherical")  
+      
   def read_grid(self):
     f=adcirc_file_reader(self.filename,'r')
     param=dict()
