@@ -330,3 +330,10 @@ class Adcirc(CommonCode):
         object.add_method('INITIALIZED', 'before_set_interface_parameter')
         object.add_method('INITIALIZED', 'set_rootdir')
 
+        for state in ["RUN","EDIT"]:
+          object.add_method(state,"get_number_of_nodes")
+          object.add_method(state,"get_number_of_elements")
+          object.add_method(state,"get_number_of_nodes_in_elevation_boundary_segment")
+          object.add_method(state,"get_number_of_nodes_flow_boundary_segment")
+          object.add_method(state,"get_number_of_vertical_nodes")
+
