@@ -22,14 +22,16 @@ POPEXEDIR=$(CURDIR)/src
 POPDIR=$(CURDIR)/eSalsa-POP
 
 #-------------- NETCDF inserts
-#~ NETCDFPATH = /home/ben
-#~ NETCDFINC = -I$(NETCDFPATH)/include
-#~ NETCDFLIB = -L$(NETCDFPATH)/lib
-#~ LDFLAGS := $(LDFLAGS) $(NETCDFINC)
-#~ FS_LIBS := $(FS_LIBS) $(NETCDFLIB) -lnetcdf -lnetcdff
+NETCDFPATH = /hpc/sw/netcdf-4.1.3-intel-seq
+NETCDFINC = -I$(NETCDFPATH)/include
+NETCDFLIB = -L$(NETCDFPATH)/lib
+LDFLAGS := $(LDFLAGS) $(NETCDFINC) $(NETCDFLIB)
+FS_LIBS := $(FS_LIBS) $(NETCDFLIB) -lnetcdf -lnetcdff
+POPFFLAGS := $(POPFFLAGS) $(NETCDFINC) $(NETCDFLIB)
 #-------------- End of NETCDF inserts
 
 FS_LIBS+=-lnetcdf -lnetcdff
+
 
 
 POPINCPATH = -Isrc/compile/
