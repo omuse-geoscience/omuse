@@ -2,6 +2,8 @@ from amuse.community import *
 
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 
+from omuse.units.units import Sv
+
 class POPInterface(CodeInterface):
     
     """
@@ -350,6 +352,50 @@ class POPInterface(CodeInterface):
     def change_directory(pathname='s'):
         returns ()
 
+    #forcing options
+    @remote_function
+    def get_shf_filename():
+        returns (filename='s')
+    @remote_function
+    def get_shf_data_type():
+        returns (type='s')
+    @remote_function
+    def set_monthly_shf_file(filename='s'):
+        returns ()
+    @remote_function
+    def get_sfwf_filename():
+        returns (filename='s')
+    @remote_function
+    def get_sfwf_data_type():
+        returns (type='s')
+    @remote_function
+    def set_monthly_sfwf_file(filename='s'):
+        returns ()
+    @remote_function
+    def get_ws_filename():
+        returns (filename='s')
+    @remote_function
+    def get_ws_data_type():
+        returns (type='s')
+    @remote_function
+    def set_monthly_ws_file(filename='s'):
+        returns ()
+
+    @remote_function
+    def get_fwf_imposed():
+        returns (fwf=0. | Sv)
+    @remote_function
+    def set_fwf_imposed(fwf=0. | Sv):
+        returns ()
+    
+
+
+
+
+
+
+
+
 
 
 class POP(CommonCode):
@@ -385,6 +431,10 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'set_vert_grid_file')
         object.add_method('INITIALIZED', 'set_topography_option')
         object.add_method('INITIALIZED', 'set_topography_file')
+
+        object.add_method('INITIALIZED', 'set_monthly_shf_file')
+        object.add_method('INITIALIZED', 'set_monthly_sfwf_file')
+        object.add_method('INITIALIZED', 'set_monthly_ws_file')
 
         object.add_method('INITIALIZED', 'get_ts_option')
         object.add_method('INITIALIZED', 'set_ts_option')
@@ -748,4 +798,34 @@ class POP(CommonCode):
             default_value = 45
         )
 
+        object.add_method_parameter(
+            "get_shf_filename",
+            "",
+            "shf_filename",
+            "Input filename for surface heat flux forcing",
+            default_value = ''
+        )
+        object.add_method_parameter(
+            "get_sfwf_filename",
+            "",
+            "sfwf_filename",
+            "Input filename for surface freshwater flux forcing",
+            default_value = ''
+        )
+        object.add_method_parameter(
+            "get_ws_filename",
+            "",
+            "ws_filename",
+            "Input filename for surface wind stress forcing",
+            default_value = ''
+        )
+        object.add_method_parameter(
+            "get_fwf_imposed",
+            "set_fwf_imposed",
+            "fwf_imposed",
+            "Specifies the annual amount of imposed fresh water flux (in Sverdrups)",
+            default_value = 0.0 | Sv
+        )
 
+
+ 

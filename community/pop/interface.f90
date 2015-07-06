@@ -22,8 +22,10 @@ module pop_interface
   use domain, only: distrb_clinic, nprocs_clinic, nprocs_tropic, clinic_distribution_type, &
          tropic_distribution_type, ew_boundary_type, ns_boundary_type
   use forcing_fields, only: SMF, SMFT, lsmft_avail, STF
-  use forcing_shf, only: set_shf, SHF_QSW
-  use forcing_ws
+  use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, shf_interp_freq, shf_interp_type
+  use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, ws_data_update, ws_interp_freq, ws_interp_type, &
+      ws_interp_next, ws_interp_last, ws_interp_inc
+  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_interp_freq, sfwf_interp_type, fwf_imposed
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
@@ -1619,6 +1621,86 @@ function change_directory(pathname) result (ret)
 end function
 
 
+function get_shf_filename(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: filename
+  filename = shf_filename
+  ret=0
+end function
+function get_shf_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: type_
+  type_ = shf_data_type
+  ret=0
+end function
+function set_monthly_shf_file(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: filename
+  shf_data_type   = 'monthly'
+  shf_interp_freq = 'every-timestep'
+  shf_interp_type = 'linear'
+  shf_filename    = filename
+  ret=0
+end function
+
+function get_sfwf_filename(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: filename
+  filename = sfwf_filename
+  ret=0
+end function
+function get_sfwf_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: type_
+  type_ = sfwf_data_type
+  ret=0
+end function
+function set_monthly_sfwf_file(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: filename
+  sfwf_data_type   = 'monthly'
+  sfwf_interp_freq = 'every-timestep'
+  sfwf_interp_type = 'linear'
+  sfwf_filename    = filename
+  ret=0
+end function
+
+!imposed freshwater flux, only signifcant when ladjust_precip = .true.
+!value is in Sverdrups
+function get_fwf_imposed(fwf_) result (ret)
+  integer :: ret
+  real*8, intent(out) :: fwf_
+  fwf_ = fwf_imposed
+  ret=0
+end function
+function set_fwf_imposed(fwf_) result (ret)
+  integer :: ret
+  real*8, intent(in) :: fwf_
+  fwf_imposed = fwf_
+  ret=0
+end function
+
+function get_ws_filename(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: filename
+  filename = ws_filename
+  ret=0
+end function
+function get_ws_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: type_
+  type_ = ws_data_type
+  ret=0
+end function
+function set_monthly_ws_file(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: filename
+  ws_data_type    = 'monthly'
+  ws_interp_freq  = 'every-timestep'
+  ws_interp_type  = 'linear'
+  ws_filename = filename
+  ret=0
+end function
 
 
 
