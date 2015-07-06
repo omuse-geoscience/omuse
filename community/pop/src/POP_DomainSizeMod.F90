@@ -26,9 +26,9 @@
 ! !DEFINED PARAMETERS:
 
    integer (POP_i4), parameter, public ::  &  ! model size parameters
-      POP_nxGlobal =  320 ,&! extent of horizontal axis in i direction
-      POP_nyGlobal =  384 ,&! extent of horizontal axis in j direction
-      POP_km = 40          ,&! number of vertical levels
+      POP_nxGlobal =  320 ,&!320 extent of horizontal axis in i direction
+      POP_nyGlobal =  384  ,&!384 extent of horizontal axis in j direction
+      POP_km = 40          ,&!40 number of vertical levels
 !      POP_nxGlobal =  192 ,&! extent of horizontal axis in i direction
 !      POP_nyGlobal =  128 ,&! extent of horizontal axis in j direction
 !      POP_km = 20          ,&! number of vertical levels

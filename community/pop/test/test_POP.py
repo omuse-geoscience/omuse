@@ -433,7 +433,7 @@ class POPTests(TestWithMPI):
  
         p.stop()
 
-
+    #@nottest
     def test8(self):
         p = POP(**default_options)
 
@@ -472,7 +472,7 @@ class POPTests(TestWithMPI):
 
         p.stop()
 
-
+    #@nottest
     def test9(self):
         p = POP(**default_options)
 
@@ -486,3 +486,43 @@ class POPTests(TestWithMPI):
 
         p.stop()
  
+
+    #test the forcing options setting functions
+    def test10(self):
+
+        p = POP(**default_options)
+
+        self.assertTrue(p.parameters.ws_filename == '', msg="Default value for ws_filename should be empty string")
+        self.assertTrue(p.parameters.shf_filename == '', msg="Default value for shf_filename should be empty string")
+        self.assertTrue(p.parameters.sfwf_filename == '', msg="Default value for sfwf_filename should be empty string")
+
+        data_type = p.get_ws_data_type()
+        self.assertTrue(data_type == 'none', msg="Default value for ws_filename should be none")
+        data_type = p.get_shf_data_type()
+        self.assertTrue(data_type == 'none', msg="Default value for shf_filename should be none")
+        data_type = p.get_sfwf_data_type()
+        self.assertTrue(data_type == 'none', msg="Default value for sfwf_filename should be none")
+
+        bogus_file = '/path/to/non-existent/file'
+
+        p.set_monthly_ws_file(bogus_file)
+        p.set_monthly_shf_file(bogus_file)
+        p.set_monthly_sfwf_file(bogus_file)
+
+        self.assertTrue(p.parameters.ws_filename == bogus_file, msg="Error retrieving set value for ws_filename")
+        self.assertTrue(p.parameters.shf_filename == bogus_file, msg="Error retrieving set value for shf_filename")
+        self.assertTrue(p.parameters.sfwf_filename == bogus_file, msg="Error retrieving set value for sfwf_filename")
+
+        data_type = p.get_ws_data_type()
+        self.assertTrue(data_type == 'monthly', msg="Value for ws_filename should be monthly")
+        data_type = p.get_shf_data_type()
+        self.assertTrue(data_type == 'monthly', msg="Value for shf_filename should be monthly")
+        data_type = p.get_sfwf_data_type()
+        self.assertTrue(data_type == 'monthly', msg="Value for sfwf_filename should be monthly")
+
+
+
+
+
+
+

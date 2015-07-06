@@ -11,4 +11,4 @@ salt=named("absolute reference salinity","Sr", g/kg)
 psu=named("practical salinity unit","psu", (35.16504/35.) * salt)
 
 nautical_mile=named_unit("Nautical Mile", "nMile", 1852*m)
-knot=named_unit("Knot","knot",nautical_mile/hr)
+knot=named_unit("Knot","knot",nautical_mile/hour)

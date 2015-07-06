@@ -83,11 +83,16 @@ from omuse.community.pop.interface import POP
 p=POP(channel_type="distributed", redirection="none", number_of_workers=24)
 p.change_directory('/home/ben/amuse/amuse-svn/src/omuse/community/pop/')
 
-
 p.set_horiz_grid_file('data/input/grid/horiz_grid_20010402.ieeer8')
 p.set_vert_grid_file('data/input/grid/in_depths.dat')
 p.set_topography_file('data/input/grid/topography_20010702.ieeei4')
 p.set_ts_file('data/input/restart/r.x1_SAMOC_control.00750101')
+
+p.set_monthly_shf_file('data/input/shf_monthly/shf.normal_year+flux.mon')
+p.set_monthly_sfwf_file('data/input/sfwf/sfwf_phc0-50_ncarp_r46+g8_0.5Sv_flux.mon')
+p.set_monthly_ws_file('data/input/ws_monthly/ws.1958-2000.mon')
+
+
 
 #raw_input()
 
