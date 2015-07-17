@@ -26,17 +26,19 @@
 ! !DEFINED PARAMETERS:
 
    integer (POP_i4), parameter, public ::  &  ! model size parameters
-      POP_nxGlobal =  320 ,&!320 extent of horizontal axis in i direction
-      POP_nyGlobal =  384  ,&!384 extent of horizontal axis in j direction
-      POP_km = 40          ,&!40 number of vertical levels
-!      POP_nxGlobal =  192 ,&! extent of horizontal axis in i direction
-!      POP_nyGlobal =  128 ,&! extent of horizontal axis in j direction
-!      POP_km = 20          ,&! number of vertical levels
+!      POP_nxGlobal =  320 ,&!320 extent of horizontal axis in i direction
+!      POP_nyGlobal =  384  ,&!384 extent of horizontal axis in j direction
+!      POP_km = 40          ,&!40 number of vertical levels
+      POP_nxGlobal =  3600 ,&!320 extent of horizontal axis in i direction
+      POP_nyGlobal =  2400  ,&!384 extent of horizontal axis in j direction
+      POP_km = 42          ,&!40 number of vertical levels
       POP_nt =  2            ! total number of tracers
 
    integer (POP_i4), parameter, public :: &
-      POP_blockSizeX = 80, &! size of block in first  horizontal dimension
-      POP_blockSizeY = 64   ! size of block in second horizontal dimension
+!      POP_blockSizeX = 80, &! size of block in first  horizontal dimension
+!      POP_blockSizeY = 64   ! size of block in second horizontal dimension
+      POP_blockSizeX = 60, &! size of block in first  horizontal dimension
+      POP_blockSizeY = 60   ! size of block in second horizontal dimension
 
    !*** The model will inform the user of the correct
    !*** values for the parameters below.  A value higher than
@@ -48,8 +50,8 @@
    !***         num_procs
  
    integer (POP_i4), parameter, public :: &
-      POP_maxBlocksClinic = 3,  &! max number of blocks per processor
-      POP_maxBlocksTropic = 3    !   in each distribution
+      POP_maxBlocksClinic = 4,  &! max number of blocks per processor
+      POP_maxBlocksTropic = 4    !   in each distribution
 
 !EOP
 !BOC

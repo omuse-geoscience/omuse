@@ -13,16 +13,19 @@ logging.getLogger("code").setLevel(logging.DEBUG)
 numpy.random.seed(123451)
 
 def get_lats_lons(p):
-    lats= p.nodes.lat.value_in(units.rad).flatten() / numpy.pi*180.0
-    lons= p.nodes.lon.value_in(units.rad).flatten() / numpy.pi*180.0
-    lats+=numpy.random.random(len(lats))*1.e-4
-    lons+=numpy.random.random(len(lons))*1.e-4    
+    nodes = p.nodes
+    lats= nodes.lat.value_in(units.rad).flatten() / numpy.pi*180.0
+    lons= nodes.lon.value_in(units.rad).flatten() / numpy.pi*180.0
+   # lats+=numpy.random.random(len(lats))*1.e-4
+   # lons+=numpy.random.random(len(lons))*1.e-4    
     a=numpy.where(lons>180.0)[0]
     lons[a]=lons[a]-360.0
     return lats,lons
 
-def get_xy():
-    N = 500j
+def get_xy(p):
+    size = p.get_domain_size()
+    N = max(size)*1j
+   # N = 500j
     extent = (-180,180.,-90.,90.)
     xs,ys = numpy.mgrid[extent[0]:extent[1]:N, extent[2]:extent[3]:N]
     return xs,ys
@@ -30,9 +33,10 @@ def get_xy():
 
 #true_plot is used for visualizing how the grid sits in memory
 #without doing any grid transformations
-def true_plot(lats, lons, value):
+def true_plot(p, lats, lons, value):
     extent = (-180,180.,-90.,90.)
-    xs,ys = numpy.mgrid[extent[0]:extent[1]:320j, extent[2]:extent[3]:384j]
+    size = p.get_domain_size()
+    xs,ys = numpy.mgrid[extent[0]:extent[1]:size[0]*1j, extent[2]:extent[3]:size[1]*1j] 
 
     pyplot.clf()
     m = Basemap(projection='kav7',lon_0=0.,llcrnrlat=-80,urcrnrlat=80,\
@@ -96,25 +100,27 @@ from amuse.units import units
 
 #initialize code, print output of code to console
 instance = DistributedAmuse(redirection='none')
+#instance.parameters.debug = True
+instance.parameters.worker_queue_timeout=1 | units.hour
 instance.commit_parameters()
 
 print instance.parameters.webinterface_port
 
 resource = Resource()
 resource.name = "Cartesius"
-resource.location = "ben@int2.cartesius.surfsara.nl"
+resource.location = "ben@int1.cartesius.surfsara.nl"
 resource.scheduler_type = "slurm"
 resource.amuse_dir = "/home/ben/amuse/amuse-svn"
-resource.tmp_dir = "/home/ben"
+resource.tmp_dir = "/scratch-local/ben/distributed-amuse/"
 
 instance.resources.add_resource(resource)
 
 pilot = Pilot()
 pilot.resource_name="Cartesius"
 pilot.queue_name="short" 
-pilot.node_count=1
+pilot.node_count=50
 pilot.time= 1|units.hour
-pilot.slots_per_node=24
+pilot.slots_per_node=12
 pilot.label="CartesiusNode" 
 
 instance.pilots.add_pilot(pilot)
@@ -123,17 +129,20 @@ instance.use_for_all_workers()
 
 
 from omuse.community.pop.interface import POP
-p=POP(channel_type="distributed", redirection="none", number_of_workers=24)
+p=POP(channel_type="distributed", redirection="none", number_of_workers=600)
 p.change_directory('/home/ben/amuse/amuse-svn/src/omuse/community/pop/')
+p.set_namelist_filename('pop_in_highres')
 
-p.set_horiz_grid_file('data/input/grid/horiz_grid_20010402.ieeer8')
-p.set_vert_grid_file('data/input/grid/in_depths.dat')
-p.set_topography_file('data/input/grid/topography_20010702.ieeei4')
-p.set_ts_file('data/input/restart/r.x1_SAMOC_control.00750101')
+p.set_horiz_grid_file('/home/ben/pop/input/grid/grid.3600x2400.fob.da')
+p.set_vert_grid_file('/home/ben/pop/input/grid/in_depths.42.dat')
+p.set_topography_file('/home/ben/pop/input/grid/kmt_pbc.p1_tripole.s2.0-og.20060315.no_caspian_or_black')
+p.set_bottom_cell_file('/home/ben/pop/input/grid/dzbc_pbc.p1_tripole.s2.0-og.20060315.no_caspian_or_black')
+p.set_ts_file('/home/ben/pop/input/r.t0.1_42l_greenland.01150501')
 
-p.set_monthly_shf_file('data/input/shf_monthly/shf.normal_year+flux.mon')
-p.set_monthly_sfwf_file('data/input/sfwf/sfwf_phc0-50_ncarp_r46+g8_0.5Sv_flux.mon')
-p.set_monthly_ws_file('data/input/ws_monthly/ws.1958-2000.mon')
+p.set_monthly_shf_file('/home/ben/pop/input/forcing/shf.NY+H+f.mon')
+p.set_monthly_sfwf_file('/home/ben/pop/input/forcing/sfwf.C+r+g8+f.mon')
+p.set_monthly_ws_file('/home/ben/pop/input/forcing/ws.o_n_avg.mon')
+
 
 
 #raw_input()
@@ -141,36 +150,47 @@ p.set_monthly_ws_file('data/input/ws_monthly/ws.1958-2000.mon')
 
 #prepare the plot stuff
 pyplot.ion()
-#lats,lons = get_lats_lons(p)
-#xs,ys = get_xy()
 sst = p.elements.temp.value_in(units.C)
 #sst = p.elements.shf.value_in(units.W/units.m**2)
 
 print sst[100,120]
 print sst.min(),sst.max()
+
+#lats,lons = get_lats_lons(p)
+#xs,ys = get_xy(p)
 #myplot(lats, lons, xs, ys, sst)
+#true_plot(p, lats, lons, sst)
 
 pyplot.imshow(numpy.swapaxes(sst,0,1)[::-1,:], cmap=pyplot.cm.jet)
 
+raw_input()
+
+#see if it crashes
+temp3d = p.elements3d.temp[:,:,1]
 
 raw_input()
 
 
+
+"""
+
 #run the model for 30 days
-#time = p.get_model_time()
-#index = 0
-#while index<30:
-#    index = index + 1
-#    time = p.get_model_time()
-#    tend = time + (1 | units.day)
-#    p.evolve_model(tend)
-#    print 'model day ' + str(index) +  ' completed'
-#    sst = p.elements.temp.value_in(units.C)
-#    myplot(lats, lons, xs, ys, sst)
-#    pyplot.savefig("pop-" + str(index) + ".png")
+time = p.get_model_time()
+index = 0
+while True:
+    index = index + 1
+    time = p.get_model_time()
+    tend = time + p.get_timestep_next()
+    p.evolve_model(tend)
+    print 'model step ' + str(index) +  ' completed'
+    sst = p.elements.temp.value_in(units.C)
+    print sst.min(),sst.max()
+    pyplot.imshow(numpy.swapaxes(sst,0,1)[::-1,:], cmap=pyplot.cm.jet)
+    #myplot(lats, lons, xs, ys, sst)
 
+    raw_input()
 
-
+"""
 
 
 

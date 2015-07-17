@@ -11,8 +11,8 @@ POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -fconvert=swap -fimplici
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
-FCFLAGS+=-convert big_endian 
-POPFFLAGS=-O2 -r8 -convert big_endian
+FCFLAGS+=-O2 -r8 -g -convert big_endian -assume byterecl
+POPFFLAGS=-O2 -r8 -g -convert big_endian -assume byterecl
 endif
 
 LDFLAGS  += -lm $(MUSE_LD_FLAGS)
@@ -36,7 +36,7 @@ FS_LIBS+=-lnetcdf -lnetcdff
 
 POPINCPATH = -Isrc/compile/
 
-OBJS = interface.o
+OBJS = interface.o 
 CODELIB = src/libpop.a
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
@@ -68,3 +68,5 @@ pop_worker: worker_code.f90 $(CODELIB) $(OBJS)
 
 %.o: %.f90
 	$(MPIFC) $(POPINCPATH) $(FCFLAGS) -c -o $@ $<
+
+
