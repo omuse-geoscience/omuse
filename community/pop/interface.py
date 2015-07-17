@@ -2,7 +2,7 @@ from amuse.community import *
 
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 
-from omuse.units.units import Sv
+from omuse.units import units
 
 class POPInterface(CodeInterface):
     
@@ -223,6 +223,12 @@ class POPInterface(CodeInterface):
     @remote_function
     def set_topography_file(filename='s'):
         returns ()
+    @remote_function
+    def get_bottom_cell_file():
+        returns (filename='s')
+    @remote_function
+    def set_bottom_cell_file(filename='s'):
+        returns ()
 
     @remote_function
     def get_ts_option():
@@ -383,12 +389,18 @@ class POPInterface(CodeInterface):
 
     @remote_function
     def get_fwf_imposed():
-        returns (fwf=0. | Sv)
+        returns (fwf=0. | units.Sv)
     @remote_function
-    def set_fwf_imposed(fwf=0. | Sv):
+    def set_fwf_imposed(fwf=0. | units.Sv):
         returns ()
     
 
+    @remote_function
+    def get_namelist_filename():
+        returns (filename='s')
+    @remote_function
+    def set_namelist_filename(filename='s'):
+        returns ()
 
 
 
@@ -412,6 +424,7 @@ class POP(CommonCode):
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
         object.add_method('UNINITIALIZED', 'change_directory')
+        object.add_method('UNINITIALIZED', 'set_namelist_filename')
 
         object.add_transition('!UNINITIALIZED!INITIALIZED!STOPPED', 'END', 'cleanup_code')
         object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
@@ -660,6 +673,14 @@ class POP(CommonCode):
         )
 
         object.add_method_parameter(
+            "get_bottom_cell_file",
+            "set_bottom_cell_file",
+            "bottom_cell_file",
+            "Filename for specifying the partial bottom cells, setting this enables partial bottom cells",
+            default_value = ''
+        )
+
+        object.add_method_parameter(
             "get_ts_option",
             "set_ts_option",
             "ts_option",
@@ -799,24 +820,45 @@ class POP(CommonCode):
         )
 
         object.add_method_parameter(
-            "get_shf_filename",
+            "get_shf_data_type",
             "",
-            "shf_filename",
+            "surface_heat_flux_forcing",
+            "Setting for surface heat flux",
+            default_value = 'none'
+        )
+        object.add_method_parameter(
+            "get_sfwf_data_type",
+            "",
+            "surface_freshwater_flux_forcing",
+            "Setting for surface freshwater flux forcing",
+            default_value = 'none'
+        )
+        object.add_method_parameter(
+            "get_ws_data_type",
+            "",
+            "windstress_forcing",
+            "Setting for surface wind stress forcing",
+            default_value = 'none'
+        )
+        object.add_method_parameter(
+            "get_shf_filename",
+            "set_shf_monthly_file",
+            "surface_heat_flux_monthly_file",
             "Input filename for surface heat flux forcing",
             default_value = ''
         )
         object.add_method_parameter(
             "get_sfwf_filename",
-            "",
-            "sfwf_filename",
+            "set_sfwf_monthly_file",
+            "surface_freshwater_flux_monthly_file",
             "Input filename for surface freshwater flux forcing",
             default_value = ''
         )
         object.add_method_parameter(
             "get_ws_filename",
-            "",
-            "ws_filename",
-            "Input filename for surface wind stress forcing",
+            "set_ws_monthly_file",
+            "windstress_monthly_file",
+            "Input filename for wind stress forcing",
             default_value = ''
         )
         object.add_method_parameter(
@@ -824,8 +866,15 @@ class POP(CommonCode):
             "set_fwf_imposed",
             "fwf_imposed",
             "Specifies the annual amount of imposed fresh water flux (in Sverdrups)",
-            default_value = 0.0 | Sv
+            default_value = 0.0 | units.Sv
         )
 
+        object.add_method_parameter(
+            "get_namelist_filename",
+            "set_namelist_filename",
+            "namelist_filename",
+            "Input filename for reading the default settings, should be either pop_in_lowres or pop_in_highres",
+            default_value = 'pop_in_lowres'
+        )
 
  

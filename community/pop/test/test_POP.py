@@ -21,7 +21,7 @@ class POPTests(TestWithMPI):
 
 
     #test the behavior of the state machine
-    #@nottest
+    @nottest
     def test1(self):
         instance = POP(**default_options)
 
@@ -61,7 +61,7 @@ class POPTests(TestWithMPI):
 
 
 
-    #@nottest
+    @nottest
     def test2(self):
         instance = POP(**default_options)
 
@@ -126,7 +126,7 @@ class POPTests(TestWithMPI):
 
 
 
-    #@nottest
+    @nottest
     def test3(self):
         p = POP(**default_options)
 
@@ -245,7 +245,7 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
-    #@nottest
+    @nottest
     def test4(self):
         p = POP(**default_options)
 
@@ -365,7 +365,7 @@ class POPTests(TestWithMPI):
         self.assertEquals(mynum, 5)
 
 
-    #@nottest
+    @nottest
     def test5(self):
         p = POP(**default_options)
 
@@ -399,7 +399,7 @@ class POPTests(TestWithMPI):
         p.stop()
 
 
-    #@nottest
+    @nottest
     def test6(self):
         p = POP(**default_options)
 
@@ -417,7 +417,7 @@ class POPTests(TestWithMPI):
 
         p.stop()
 
-    #@nottest
+    @nottest
     def test7(self):
         p = POP(**default_options)
 
@@ -433,7 +433,7 @@ class POPTests(TestWithMPI):
  
         p.stop()
 
-    #@nottest
+    @nottest
     def test8(self):
         p = POP(**default_options)
 
@@ -472,7 +472,7 @@ class POPTests(TestWithMPI):
 
         p.stop()
 
-    #@nottest
+    @nottest
     def test9(self):
         p = POP(**default_options)
 
@@ -492,16 +492,13 @@ class POPTests(TestWithMPI):
 
         p = POP(**default_options)
 
-        self.assertTrue(p.parameters.ws_filename == '', msg="Default value for ws_filename should be empty string")
-        self.assertTrue(p.parameters.shf_filename == '', msg="Default value for shf_filename should be empty string")
-        self.assertTrue(p.parameters.sfwf_filename == '', msg="Default value for sfwf_filename should be empty string")
+        self.assertTrue(p.parameters.windstress_monthly_file == '', msg="Default value for windstress_monthly_file should be empty string")
+        self.assertTrue(p.parameters.surface_heat_flux_monthly_file == '', msg="Default value for surface_heat_flux_monthly_file should be empty string")
+        self.assertTrue(p.parameters.surface_freshwater_flux_monthly_file == '', msg="Default value for surface_freshwater_flux_monthly_file should be empty string")
 
-        data_type = p.get_ws_data_type()
-        self.assertTrue(data_type == 'none', msg="Default value for ws_filename should be none")
-        data_type = p.get_shf_data_type()
-        self.assertTrue(data_type == 'none', msg="Default value for shf_filename should be none")
-        data_type = p.get_sfwf_data_type()
-        self.assertTrue(data_type == 'none', msg="Default value for sfwf_filename should be none")
+        self.assertTrue(p.parameters.windstress_forcing == 'none', msg="Default for windstress forcing should be none")
+        self.assertTrue(p.parameters.surface_heat_flux_forcing == 'none', msg="Default for surface heat flux forcing should be none")
+        self.assertTrue(p.parameters.surface_freshwater_flux_forcing == 'none', msg="Default for surface freshwater flux forcing should be none")
 
         bogus_file = '/path/to/non-existent/file'
 
@@ -509,16 +506,13 @@ class POPTests(TestWithMPI):
         p.set_monthly_shf_file(bogus_file)
         p.set_monthly_sfwf_file(bogus_file)
 
-        self.assertTrue(p.parameters.ws_filename == bogus_file, msg="Error retrieving set value for ws_filename")
-        self.assertTrue(p.parameters.shf_filename == bogus_file, msg="Error retrieving set value for shf_filename")
-        self.assertTrue(p.parameters.sfwf_filename == bogus_file, msg="Error retrieving set value for sfwf_filename")
+        self.assertTrue(p.parameters.windstress_monthly_file == bogus_file, msg="Error retrieving set value for windstress_monthly_file")
+        self.assertTrue(p.parameters.surface_heat_flux_monthly_file == bogus_file, msg="Error retrieving set value for surface_heat_flux_monthly_file")
+        self.assertTrue(p.parameters.surface_freshwater_flux_monthly_file == bogus_file, msg="Error retrieving set value for surface_freshwater_flux_monthly_file")
 
-        data_type = p.get_ws_data_type()
-        self.assertTrue(data_type == 'monthly', msg="Value for ws_filename should be monthly")
-        data_type = p.get_shf_data_type()
-        self.assertTrue(data_type == 'monthly', msg="Value for shf_filename should be monthly")
-        data_type = p.get_sfwf_data_type()
-        self.assertTrue(data_type == 'monthly', msg="Value for sfwf_filename should be monthly")
+        self.assertTrue(p.parameters.windstress_forcing == 'monthly', msg="Setting for windstress forcing should be monthly")
+        self.assertTrue(p.parameters.surface_heat_flux_forcing == 'monthly', msg="Setting for surface heat flux forcing should be monthly")
+        self.assertTrue(p.parameters.surface_freshwater_flux_forcing == 'monthly', msg="Setting for surface freshwater flux forcing should be monthly")
 
 
 

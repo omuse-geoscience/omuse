@@ -44,9 +44,20 @@ module pop_interface
   use exit_mod, only: sigAbort, sigExit
 ! use io, only:
 
-  
 
   implicit none
+
+!interface
+!    subroutine start_timer ( ) bind (c)
+!      use iso_c_binding
+!    end subroutine start_timer
+!    subroutine stop_timer ( time ) bind (c)
+!      use iso_c_binding
+!      real (c_float) :: time
+!    end subroutine stop_timer
+!end interface
+  
+
 
 
 !-----------------------------------------------------------------------
@@ -559,9 +570,10 @@ subroutine get_gather(g_i, g_j, grid, value_, n)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: value_
-  real*8, dimension(:,:,:), intent(in) :: grid
+  real*8, dimension(:,:,:), intent(inout) :: grid
 
   integer :: ii
+  value_ = 0.0 !first zero the array
 
   call gather_global(WORK_G, grid, master_task, distrb_clinic)
   if (my_task == master_task) then
@@ -575,7 +587,7 @@ subroutine get_gather_3D(g_i, g_j, k, grid, value_, n)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j, k
   real*8, dimension(n), intent(out) :: value_
-  real*8, dimension(:,:,:,:), intent(in) :: grid
+  real*8, dimension(:,:,:,:), intent(inout) :: grid
 
   integer :: ii, ki
 
@@ -589,6 +601,7 @@ subroutine get_gather_3D(g_i, g_j, k, grid, value_, n)
       enddo
     endif
   enddo
+
 end subroutine get_gather_3D
 
 
@@ -646,6 +659,7 @@ subroutine get_gridded_variable_vector_3D(g_i, g_j, k, grid, value, n)
   do ii=1,n
     call get_gridded_variable_3D(g_i(ii), g_j(ii), k(ii), grid, value(ii))
   enddo
+
   !only the output of the node with MPI rank 0 is significant in AMUSE, reduce to single value per element
   if(my_task == master_task) then
     call MPI_REDUCE(MPI_IN_PLACE, value, n, MPI_DBL, MPI_SUM, master_task, MPI_COMM_OCN, ierr)
@@ -792,7 +806,6 @@ function get_element_surface_state(g_i, g_j, temp_, salt_, n) result (ret)
   real*8, dimension(n), intent(out) :: temp_, salt_
 
   if (n < nx_global*ny_global) then
-    !first 1 is depth level, second is tracer index (temp or salt)
     call get_gridded_variable_vector(g_i, g_j, TRACER(:,:,1,1,curtime,:), temp_, n)
     call get_gridded_variable_vector(g_i, g_j, TRACER(:,:,1,2,curtime,:), salt_, n)
   else
@@ -839,8 +852,42 @@ function get_node_position(g_i, g_j, lat_, lon_, n) result(ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: lat_, lon_
 
-  call get_gridded_variable_vector(g_i, g_j, ULAT, lat_, n)
-  call get_gridded_variable_vector(g_i, g_j, ULON, lon_, n)
+!  real :: time
+  integer :: ierr
+
+!  if (my_task == master_task) then
+!    write (*,*) 'get_node_position() called n=', n
+!  endif
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, ULAT, lat_, n)
+    call get_gridded_variable_vector(g_i, g_j, ULON, lon_, n)
+  else
+
+!  time = 0.0
+!  call MPI_Barrier(MPI_COMM_OCN, ierr)
+!  call start_timer
+   call get_gather(g_i, g_j, ULAT, lat_, n)
+!  call MPI_Barrier(MPI_COMM_OCN, ierr)
+!  call stop_timer(time)
+
+!  if (my_task == master_task) then
+!    write(*,*) 'get_gather took: ', time, 'ms .'
+!  endif
+
+!  time = 0.0
+!  call MPI_Barrier(MPI_COMM_OCN, ierr)
+!  call start_timer
+!  call get_gridded_variable_vector(g_i, g_j, ULAT, lat_, n)
+!  call MPI_Barrier(MPI_COMM_OCN, ierr)
+!  call stop_timer(time)
+
+!  if (my_task == master_task) then
+!    write(*,*) 'get_gridded_variable_vector took: ', time, ' ms.'
+!  endif
+   call get_gather(g_i, g_j, ULON, lon_, n)
+
+  endif
 
   ret=0
 end function
@@ -850,8 +897,13 @@ function get_element_position(g_i, g_j, lat_, lon_, n) result(ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: lat_, lon_
 
-  call get_gridded_variable_vector(g_i, g_j, TLAT, lat_, n)
-  call get_gridded_variable_vector(g_i, g_j, TLON, lon_, n)
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, TLAT, lat_, n)
+    call get_gridded_variable_vector(g_i, g_j, TLON, lon_, n)
+  else
+   call get_gather(g_i, g_j, TLAT, lat_, n)
+   call get_gather(g_i, g_j, TLON, lon_, n)
+  endif
 
   ret=0
 end function
@@ -911,7 +963,11 @@ function get_node_depth(g_i, g_j, depth_, n) result(ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: depth_
 
-  call get_gridded_variable_vector(g_i, g_j, HU, depth_, n)
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, HU, depth_, n)
+  else
+    call get_gather(g_i, g_j, HU, depth_, n)
+  endif
 
   ret=0
 end function
@@ -921,7 +977,11 @@ function get_element_depth(g_i, g_j, depth_, n) result(ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: depth_
 
-  call get_gridded_variable_vector(g_i, g_j, HT, depth_, n)
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, HT, depth_, n)
+  else
+    call get_gather(g_i, g_j, HT, depth_, n)
+  endif
 
   ret=0
 end function
@@ -952,8 +1012,32 @@ function get_element3d_temperature(i, j, k, temp_, n) result (ret)
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(out) :: temp_
 
-  call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
+!  real*4 :: time
+  integer :: ierr
+
+!  time = 0.0
+!  call MPI_Barrier(MPI_COMM_OCN, ierr)
+!  call start_timer
 !  call get_gather_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
+
+!  call MPI_Barrier(MPI_COMM_OCN, ierr)
+!  call stop_timer(time)
+
+!  if (my_task == master_task) then
+!    write(*,*) 'get_gather_3D took: ', time, 'ms .'
+!  endif
+
+!  time = 0.0
+!  call MPI_Barrier(MPI_COMM_OCN, ierr)
+!  call start_timer
+  call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
+
+!  call MPI_Barrier(MPI_COMM_OCN, ierr)
+!  call stop_timer(time)
+
+!  if (my_task == master_task) then
+!    write(*,*) 'get_gridded_variable_vector_3D took: ', time, ' ms.'
+!  endif
 
   ret=0
 end function
@@ -1254,6 +1338,22 @@ function set_topography_file(option) result (ret)
 
   topography_opt = 'file'
   topography_file = option
+end function
+function get_bottom_cell_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: option
+  
+  option = bottom_cell_file
+
+  ret=0
+end function
+function set_bottom_cell_file(option) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: option
+  ret=0
+
+  partial_bottom_cells = .true.
+  bottom_cell_file = option
 end function
 
 
@@ -1703,7 +1803,18 @@ function set_monthly_ws_file(filename) result (ret)
 end function
 
 
-
+function get_namelist_filename(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(out) :: filename
+  filename = nml_filename
+  ret=0
+end function
+function set_namelist_filename(filename) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: filename
+  nml_filename = filename
+  ret=0
+end function
 
 
 
