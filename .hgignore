@@ -2,10 +2,13 @@
 .*\.mod$
 .*\.pyc$
 .*\.a$
-community/pop/src/compile/*
-community/pop/src/pop
-community/pop/src/libpop.a
-community/pop/pop_worker
+community/pop/src_320x384x40/compile/*
+community/pop/src_320x384x40/pop
+community/pop/src_320x384x40/libpop.a
+community/pop/src_3600x2400x42/compile/*
+community/pop/src_3600x2400x42/pop
+community/pop/src_3600x2400x42/libpop.a
+community/pop/pop_worker_*
 community/pop/.*\.png$
 community/pop/eSalsa-POP/*
 community/pop/old/*
