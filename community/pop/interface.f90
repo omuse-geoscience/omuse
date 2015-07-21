@@ -1733,7 +1733,7 @@ function get_shf_data_type(type_) result (ret)
   type_ = shf_data_type
   ret=0
 end function
-function set_monthly_shf_file(filename) result (ret)
+function set_shf_monthly_file(filename) result (ret)
   integer :: ret
   character (char_len), intent(in) :: filename
   shf_data_type   = 'monthly'
@@ -1755,7 +1755,7 @@ function get_sfwf_data_type(type_) result (ret)
   type_ = sfwf_data_type
   ret=0
 end function
-function set_monthly_sfwf_file(filename) result (ret)
+function set_sfwf_monthly_file(filename) result (ret)
   integer :: ret
   character (char_len), intent(in) :: filename
   sfwf_data_type   = 'monthly'
@@ -1792,7 +1792,7 @@ function get_ws_data_type(type_) result (ret)
   type_ = ws_data_type
   ret=0
 end function
-function set_monthly_ws_file(filename) result (ret)
+function set_ws_monthly_file(filename) result (ret)
   integer :: ret
   character (char_len), intent(in) :: filename
   ws_data_type    = 'monthly'

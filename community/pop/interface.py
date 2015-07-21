@@ -366,7 +366,7 @@ class POPInterface(CodeInterface):
     def get_shf_data_type():
         returns (type='s')
     @remote_function
-    def set_monthly_shf_file(filename='s'):
+    def set_shf_monthly_file(filename='s'):
         returns ()
     @remote_function
     def get_sfwf_filename():
@@ -375,7 +375,7 @@ class POPInterface(CodeInterface):
     def get_sfwf_data_type():
         returns (type='s')
     @remote_function
-    def set_monthly_sfwf_file(filename='s'):
+    def set_sfwf_monthly_file(filename='s'):
         returns ()
     @remote_function
     def get_ws_filename():
@@ -384,7 +384,7 @@ class POPInterface(CodeInterface):
     def get_ws_data_type():
         returns (type='s')
     @remote_function
-    def set_monthly_ws_file(filename='s'):
+    def set_ws_monthly_file(filename='s'):
         returns ()
 
     @remote_function
