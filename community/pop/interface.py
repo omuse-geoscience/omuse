@@ -7,7 +7,6 @@ from omuse.units import units
 class POPInterface(CodeInterface):
     
     """
-
     POP - Parallel Ocean Program
 
     .. [#] https://github.com/NLeSC/eSalsa-POP
@@ -16,12 +15,24 @@ class POPInterface(CodeInterface):
     include_headers = ['worker_code.h']
     use_modules = ['pop_interface']
     
-    def __init__(self, **keyword_arguments):
-        keyword_arguments.setdefault('number_of_workers', 8)
-        CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(), **keyword_arguments)
+    MODE_NORMAL = '320x384x40'
+    MODE_HIGH = '3600x2400x42'
 
-    def name_of_the_worker(self):
-        return 'pop_worker'
+    def __init__(self, mode = MODE_NORMAL, **keyword_arguments):
+        self.mode = mode
+
+        keyword_arguments.setdefault('number_of_workers', 8)
+        CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **keyword_arguments)
+
+        if mode == self.MODE_NORMAL:
+            self.set_namelist_filename('pop_in_lowres')
+        elif mode == self.MODE_HIGH:
+            self.set_namelist_filename('pop_in_highres')
+        else:
+            raise Exception('Unknown mode')
+
+    def name_of_the_worker(self, mode):
+        return 'pop_worker_' + mode
 
 
     ##forcings getters and setters
@@ -414,9 +425,9 @@ class POP(CommonCode):
 
     nprocs = 0
 
-    def __init__(self, **options):
+    def __init__(self, mode = POPInterface.MODE_NORMAL, **options):
         self.nprocs = options.setdefault('number_of_workers', 8)
-        CommonCode.__init__(self,  POPInterface(**options), **options)
+        CommonCode.__init__(self,  POPInterface(mode = mode, **options), **options)
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -445,9 +456,9 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'set_topography_option')
         object.add_method('INITIALIZED', 'set_topography_file')
 
-        object.add_method('INITIALIZED', 'set_monthly_shf_file')
-        object.add_method('INITIALIZED', 'set_monthly_sfwf_file')
-        object.add_method('INITIALIZED', 'set_monthly_ws_file')
+        object.add_method('INITIALIZED', 'set_shf_monthly_file')
+        object.add_method('INITIALIZED', 'set_sfwf_monthly_file')
+        object.add_method('INITIALIZED', 'set_ws_monthly_file')
 
         object.add_method('INITIALIZED', 'get_ts_option')
         object.add_method('INITIALIZED', 'set_ts_option')
