@@ -71,7 +71,7 @@ class adcirc_parameter_reader(object):
       param["IHOT"]=f.read_int()
       param["ICS"]=f.read_int()
       param["IM"]=f.read_int()
-      if param["IM"] in [20,30]:
+      if param["IM"] in [20,30,21,31]:
         param["IDEN"]=f.read_int()
       else:
         param["IDEN"]=None
@@ -214,13 +214,8 @@ class adcirc_grid_reader(object):
   
   def __init__(self,filename="fort.14",coordinates="cartesian"):
     self.filename=filename
-    if coordinates=="cartesian":
-      self.unit_length = units.m
-      self.unit_position = units.m
-    elif coordinates=="spherical":
-      self.unit_length = units.m
-      self.unit_position = units.deg
-    else:
+    self.coordinates=coordinates
+    if coordinates not in ["cartesian","spherical"]:
       raise Exception("coordinates must be cartesian or spherical")  
       
   def read_grid(self):
@@ -254,9 +249,13 @@ class adcirc_grid_reader(object):
 
   def get_sets(self):
     nodes=Grid(self.parameters["NP"])
-    nodes.x=self.p[:,0] | self.unit_position
-    nodes.y=self.p[:,1] | self.unit_position
-    nodes.depth=self.p[:,2] | self.unit_length
+    if self.coordinates=="cartesian":
+      nodes.x=self.p[:,0] | units.m
+      nodes.y=self.p[:,1] | units.m
+    else:
+      nodes.x=self.p[:,0] | units.deg
+      nodes.y=self.p[:,1] | units.deg
+    nodes.depth=self.p[:,2] | units.m
         
     elements=Grid(self.parameters["NE"])
     elements.nodes=[(x[1]-1,x[2]-1,x[3]-1) for x in self.t]
