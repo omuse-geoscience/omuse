@@ -592,13 +592,15 @@ subroutine get_gather_3D(g_i, g_j, k, grid, value_, n)
   integer :: ii, ki
 
   do ki=1,km
-    call gather_global(WORK_G, grid(:,:,ki,:), master_task, distrb_clinic)
-    if (my_task == master_task) then
-      do ii=1,n
-        if (k(ii) == ki) then
-          value_(ii) = WORK_G(g_i(ii),g_j(ii))
-        endif
-      enddo
+    if (ANY(k(:) == ki)) then
+      call gather_global(WORK_G, grid(:,:,ki,:), master_task, distrb_clinic)
+      if (my_task == master_task) then
+        do ii=1,n
+          if (k(ii) == ki) then
+            value_(ii) = WORK_G(g_i(ii),g_j(ii))
+          endif
+        enddo
+      endif
     endif
   enddo
 
@@ -804,6 +806,10 @@ function get_element_surface_state(g_i, g_j, temp_, salt_, n) result (ret)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: temp_, salt_
+
+  if (my_task == master_task) then
+    write (*,*) 'get_element_surface_state() called with n=', n
+  endif
 
   if (n < nx_global*ny_global) then
     call get_gridded_variable_vector(g_i, g_j, TRACER(:,:,1,1,curtime,:), temp_, n)
@@ -1014,6 +1020,10 @@ function get_element3d_temperature(i, j, k, temp_, n) result (ret)
 
 !  real*4 :: time
   integer :: ierr
+
+  if (my_task == master_task) then
+    write (*,*) 'get_element3d_temperature() called with n=', n
+  endif
 
 !  time = 0.0
 !  call MPI_Barrier(MPI_COMM_OCN, ierr)
