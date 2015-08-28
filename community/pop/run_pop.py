@@ -1,4 +1,4 @@
-#!/home/bwn200/amuse/prerequisites/bin/python
+#!/home/ben/amuse/prerequisites/bin/python
 
 #for plotting
 import numpy
