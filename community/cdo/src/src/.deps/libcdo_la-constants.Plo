@@ -1,6 +1,0 @@
-libcdo_la-constants.lo: constants.c /usr/include/stdc-predef.h \
- constants.h
-
-/usr/include/stdc-predef.h:
-
-constants.h:

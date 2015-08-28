@@ -11,6 +11,8 @@ LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
 OBJS = interface.o
 
+CODE = cdo-1.7.0rc5
+
 CODELIB = src/src/cdo-biglib.a
 #CODELIB = src/src/libcdo-amuse.a
 
@@ -24,11 +26,17 @@ all: remapper_worker
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h
 	$(RM) *~ remapper_worker worker_code.cc
-#	make -C src clean
+#	make -C $(CODE) clean
+
+$(CODE):
+	tar zxf cdo-current.tar.gz
+	cd $(CODE)
+	./configure
+	cd -
 
 $(CODELIB):
-	make -C src 
-	make -C src/src libcdo-amuse.a
+	make -C $(CODE) 
+	make -C $(CODE)/src libcdo-amuse.a
 
 worker_code.cc: interface.py worker_code.h
 	$(CODE_GENERATOR) --type=c interface.py CDOInterface -o $@
