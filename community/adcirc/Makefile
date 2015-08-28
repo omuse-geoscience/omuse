@@ -15,6 +15,8 @@ ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
 compiler="intel"
 endif
 
+FCFLAGS+=-traceback 
+
 all: src src/libamuse_adcirc.a src/amuse_adcirc.o adcirc_worker
 
 src:

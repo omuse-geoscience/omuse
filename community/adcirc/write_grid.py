@@ -1,6 +1,6 @@
 import numpy
 
-from amuse.units import units
+from amuse.units import units,trigo
 
 from amuse.datamodel import Grid
 
@@ -60,6 +60,9 @@ default_parameters={
  "EVCON": dict(dtype=float, value=0.05, description="vertical eddy viscosity constant"),
  }
 
+def get_default_parameter_set():
+  return dict([(key,val["value"]) for key,val in default_parameters.items()])
+
 outputblock1="""\
  0 0.0 5.0  3                        ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
  0                                   ! TOTAL NUMBER OF ELEVATION RECORDING STATIONS
@@ -96,7 +99,7 @@ class adcirc_file_writer(file):
 class adcirc_parameter_writer(object):
   def __init__(self,filename="fort.15"):
     self.filename=filename
-    self.parameters=dict([(key,val["value"]) for key,val in default_parameters.items()])
+    self.parameters=get_default_parameter_set()
   def write(self):
     with adcirc_file_writer(self.filename,'w') as f:
       param=self.parameters
@@ -186,20 +189,23 @@ class adcirc_parameter_writer(object):
       
 
   def set_non_default(self,A_H=100. | units.m**2/units.s, timestep=360. | units.s, 
-         use_predictor_corrector=True):
+         use_predictor_corrector=True, ICS=1,SLAM0=0.,SFEA0=0.):
     self.parameters["ESLM"]=A_H.value_in(units.m**2/units.s)
     if use_predictor_corrector:
       self.parameters["DTDP"]=-timestep.value_in(units.s)
     else:
       self.parameters["DTDP"]=timestep.value_in(units.s)
-      
+    self.parameters["ICS"]=ICS
+    self.parameters["SLAM0"]=trigo.in_deg(SLAM0)
+    self.parameters["SFEA0"]=trigo.in_deg(SFEA0)
 
 class adcirc_grid_writer(object):
   
-  def __init__(self,filename="fort.14"):
+  def __init__(self,filename="fort.14",coordinates="cartesian"):
     self.filename=filename
-    self.unit_length = units.m
-    self.unit_position = units.m
+    self.coordinates=coordinates
+    if coordinates not in ["cartesian","spherical"]:
+      raise Exception("coordinates must be cartesian or spherical")  
 
   def write(self,x,y,depth,elements,elev_boundary,flow_boundary):
     f=adcirc_file_writer(self.filename,'w')
@@ -227,9 +233,13 @@ class adcirc_grid_writer(object):
     f.close()
 
   def write_grid(self, nodes, elements, elev_boundary,flow_boundary):
-    x=nodes.x.value_in(self.unit_length)
-    y=nodes.y.value_in(self.unit_length)
-    depth=nodes.depth.value_in(self.unit_length)
+    if self.coordinates=="cartesian":
+      x=nodes.x.value_in(units.m)
+      y=nodes.y.value_in(units.m)
+    else:
+      x=nodes.lon.value_in(units.deg)
+      y=nodes.lat.value_in(units.deg)      
+    depth=nodes.depth.value_in(units.m)
     element_nodes=elements.nodes+1
     elev_boundary_nodes=[(b.nodes+1,0) for b in elev_boundary] # type = always zero atm
     flow_boundary_nodes=[(b.nodes+1,b[0].type) for b in flow_boundary]
