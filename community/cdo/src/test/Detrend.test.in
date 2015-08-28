@@ -1,0 +1,72 @@
+#! @SHELL@
+echo 1..2 # Number of tests to be executed.
+#
+test -n "$CDO"      || CDO=cdo
+test -n "$DATAPATH" || DATAPATH=./data
+#
+CDOOUT=cout
+CDOERR=cerr
+#
+IFILE=$DATAPATH/detrend_data
+NTEST=1
+#
+RSTAT=0
+RFILE=$DATAPATH/detrend_ref
+OFILE=detrend_res
+#
+# detrend
+#
+CDOTEST="detrend"
+CDOCOMMAND="$CDO $CDOTEST $IFILE $OFILE"
+
+echo "Running test: $NTEST"
+echo "$CDOCOMMAND"
+
+$CDOCOMMAND
+test $? -eq 0 || let RSTAT+=1
+
+$CDO diff $OFILE $RFILE > $CDOOUT 2> $CDOERR
+test $? -eq 0 || let RSTAT+=1
+test -s $CDOOUT && let RSTAT+=1
+cat $CDOOUT $CDOERR
+
+test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+
+let NTEST+=1
+rm -f $OFILE
+#
+# trend
+#
+CDOTEST="trend/subtrend"
+CDOCOMMAND="$CDO trend $IFILE ta tb"
+
+echo "Running test: $NTEST"
+echo "$CDOCOMMAND"
+
+$CDOCOMMAND
+test $? -eq 0 || let RSTAT+=1
+#
+CDOCOMMAND="$CDO subtrend $IFILE ta tb $OFILE"
+
+echo "Running test: $NTEST"
+echo "$CDOCOMMAND"
+
+$CDOCOMMAND
+test $? -eq 0 || let RSTAT+=1
+
+$CDO diff $OFILE $RFILE > $CDOOUT 2> $CDOERR
+test $? -eq 0 || let RSTAT+=1
+test -s $CDOOUT && let RSTAT+=1
+cat $CDOOUT $CDOERR
+
+test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+
+let NTEST+=1
+rm -f $OFILE
+rm -f ta tb
+#
+rm -f $CDOOUT $CDOERR
+#
+exit 0

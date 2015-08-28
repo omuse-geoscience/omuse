@@ -1,0 +1,30 @@
+#! /bin/bash
+set -e
+[ x${DEBUG+set} != xset ] || set -x
+if [ yes != yes ]; then
+   exit 77
+fi
+ncdatafile="test$$.nc"
+tempfiles="${ncdatafile}"
+trap "EC=\$? ; \rm -f ${tempfiles}; exit \$EC" EXIT
+./test_cdf_write "${ncdatafile}"
+digest=$(./test_cdf_read "${ncdatafile}")
+missValueCount=$(echo "$digest" | /bin/sed -n '/^missing values count =/{
+s/^missing values count *= *//
+p
+q
+}')
+if [ "$missValueCount" -ne 1 ]; then
+  echo "Mismatch in expected number of missing values!" >&2
+  exit 1
+fi
+if ! echo "$digest" | grep 'variable 1 attribute "CDI Text Attribute test, created by", value: "CDI test_cdf_write"' >/dev/null; then
+  echo "Expected attribute not found" >&2
+  exit 1
+fi
+
+#
+# Local Variables:
+# mode: sh
+# End:
+#

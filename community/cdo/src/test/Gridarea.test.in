@@ -1,0 +1,37 @@
+#! @SHELL@
+echo 1..7 # Number of tests to be executed.
+#
+test -n "$CDO"      || CDO=cdo
+test -n "$DATAPATH" || DATAPATH=./data
+#
+CDOOUT=cout
+CDOERR=cerr
+REFVAL="12.5663706"
+GRIDS="global_5 global_2 global_1 global_.5 n32 n80 n160"
+RSTAT=0;
+PLANET_RADIUS=1
+export PLANET_RADIUS
+#
+NTEST=1
+#
+for GRID in $GRIDS; do
+  CDOTEST="gridarea $GRID"
+  CDOCOMMAND="$CDO outputf,%10.7f -fldsum -gridarea -random,$GRID"
+
+  echo "Running test: $NTEST"
+  echo "$CDOCOMMAND"
+
+  GLOBAREA=`$CDOCOMMAND`
+  echo "gridarea $GRID: >$GLOBAREA< >$REFVAL<"
+  if [ "$GLOBAREA" != "$REFVAL" ]; then RSTAT=`expr $RSTAT + 1`; fi
+
+  test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+  test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+
+  let NTEST+=1
+done
+#
+rm -f $CDOOUT $CDOERR
+unset PLANET_RADIUS
+#
+exit 0

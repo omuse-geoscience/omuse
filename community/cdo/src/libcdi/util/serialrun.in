@@ -1,0 +1,5 @@
+#! @SHELL@
+if [ "$1" = -n ]; then
+   shift ; shift
+fi
+exec "$@"

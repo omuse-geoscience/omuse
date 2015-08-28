@@ -1,0 +1,20 @@
+Test the cdo-operators
+======================
+
+To test the cdo operators use:
+    make
+or
+    make test
+or
+    ./test_operators
+
+The cdo operators are tested with python-unittests using the python-bindings for cdo.
+The python-bindings are located at cdo/contrib/python/cdo.py.
+The use is roughly exlained at:
+    https://code.zmaw.de/projects/cdo/wiki/Cdo%7Brbpy%7D
+    TODO: Provide a more thorough documentation/tutorial.
+The documentation of the python unittest framework can be found at:
+    http://docs.python.org/library/unittest.html
+
+The tests are grouped by operator. An operator is tested with the help of its file test_operator.py, which can comprise several tests.
+

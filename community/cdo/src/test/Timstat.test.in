@@ -1,0 +1,42 @@
+#! @SHELL@
+echo 1..9 # Number of tests to be executed.
+#
+test -n "$CDO"      || CDO=cdo
+test -n "$DATAPATH" || DATAPATH=./data
+#
+CDOOUT=cout
+CDOERR=cerr
+STATS="min max sum avg mean std std1 var var1"
+#
+IFILE=$DATAPATH/ts_mm_5years
+NTEST=1
+#
+for STAT in $STATS; do
+  RSTAT=0
+  RFILE=$DATAPATH/tim${STAT}_ref
+  OFILE=tim${STAT}_res
+
+  CDOTEST="tim$STAT"
+  CDOCOMMAND="$CDO tim${STAT} $IFILE $OFILE"
+
+  echo "Running test: $NTEST"
+  echo "$CDOCOMMAND"
+
+  $CDOCOMMAND
+  test $? -eq 0 || let RSTAT+=1
+
+  $CDO diff $OFILE $RFILE > $CDOOUT 2> $CDOERR
+  test $? -eq 0 || let RSTAT+=1
+  test -s $CDOOUT && let RSTAT+=1
+  cat $CDOOUT $CDOERR
+
+  test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+  test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+
+  let NTEST+=1
+  rm -f $OFILE
+done
+#
+rm -f $CDOOUT $CDOERR
+#
+exit 0

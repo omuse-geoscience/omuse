@@ -1,0 +1,14 @@
+#! /bin/sh
+
+set -e
+format=nc
+if [ yes = yes ]; then
+  exec >test_chunk_cksum_$format.log 2>&1
+  ./cksum_write_chunk -m 17
+  ./cksum_read example.$format
+  \rm example.cksum example.$format
+  \rm test_chunk_cksum_$format.log
+else
+  # skip tests for unsupported formats
+  exit 77
+fi

@@ -1,0 +1,46 @@
+#! @SHELL@
+echo 1..1 # Number of tests to be executed.
+#
+test -n "$CDO"      || CDO=cdo
+test -n "$DATAPATH" || DATAPATH=./data
+#
+CDOOUT=cout
+CDOERR=cerr
+#
+NTEST=1
+#
+for OPERATOR in copy; do
+  for FILE in testfile01c.nc; do
+    RSTAT=0
+    IFILE=$DATAPATH/${FILE}
+    OFILE=${OPERATOR}_${FILE}
+
+    CDOTEST="$OPERATOR $FILE"
+    CDOCOMMAND="$CDO $OPERATOR $IFILE $OFILE"
+
+    if [ "@ENABLE_NETCDF@" = yes ] ; then
+      echo "Running test: $NTEST"
+      echo "$CDOCOMMAND"
+
+      $CDOCOMMAND
+      test $? -eq 0 || let RSTAT+=1
+
+      $CDO diff $IFILE $OFILE > $CDOOUT 2> $CDOERR
+      test $? -eq 0 || let RSTAT+=1
+      test -s $CDOOUT && let RSTAT+=1
+      cat $CDOOUT $CDOERR
+
+      test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+      test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+    else
+      test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST # SKIP netCDF not enabled"
+    fi
+
+    let NTEST+=1
+    rm -f $OFILE
+  done
+done
+#
+rm -f $CDOOUT $CDOERR
+#
+exit 0

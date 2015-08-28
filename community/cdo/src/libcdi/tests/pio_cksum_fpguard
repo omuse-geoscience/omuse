@@ -1,0 +1,14 @@
+#! /bin/bash
+pio_write_args="-p PIO_FPGUARD -w 3"
+mpi_task_num=6
+LOG=pio_cksum_fpguard.log
+if [ "" = yes ]; then
+  . ./pio_write_run
+else
+  exit 77
+fi
+#
+# Local Variables:
+# mode: sh
+# End:
+#

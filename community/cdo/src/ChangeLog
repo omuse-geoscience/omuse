@@ -1,0 +1,2534 @@
+2015-10-28  Uwe Schulzweida
+
+	* using CDI library version 1.7.0
+	* Version 1.7.0 released
+
+2015-06-27  Uwe Schulzweida
+
+	* New operator: setmisstonn - Set missing value to nearest neightbour
+
+2015-06-26  Uwe Schulzweida
+
+	* remapdis: fixed seg fault on blizzard with large target grid (possibly compiler bug)
+
+2015-06-21  Uwe Schulzweida
+
+	* topo, temp, mask: added optional parameter for target grid
+
+2015-06-19  Uwe Schulzweida
+
+        * for: added docu
+
+2015-06-18  Uwe Schulzweida
+
+	* Ydrunstat: don't set the year to the minimum of years found on output timestep
+	* Ydaystat: set the year to the minimum of years found on output timestep
+
+2015-06-17  Uwe Schulzweida
+
+	* bug fix if table filename is a directory [Bug #5891]
+
+2015-06-12  Uwe Schulzweida
+
+	* diff: disable checkrel
+
+2015-06-10  Karl-Hermann Wieners
+
+	* expr: operators return 0 for arithmetics on constants [Bug #5875]
+
+2015-06-03  Uwe Schulzweida
+
+	* removed flag CMP_CODE
+	* replace: compare only parameter name; removed check of parameter number
+	* setpartabn: replace vlistDefVarCode() by vlistDefVarParam()
+
+2015-06-01  Uwe Schulzweida
+
+	* vertvar, vertstd: changed to weighted var/std if layer bounds are available
+
+2015-05-29  Uwe Schulzweida
+
+	* yseaspctl: check of verification date failed [Bug #5810]
+
+2015-05-28  Uwe Schulzweida
+
+	* Remap: fixed memory leak for r=max_remaps-1
+
+2015-05-26  Uwe Schulzweida
+
+	* New operator: vertstd1  - Vertical standard deviation [Divisor is (n-1)]
+	* New operator: vertvar1  - Vertical variance [Divisor is (n-1)]
+	* New operator: gridboxstd1 - Gridbox standard deviation [Divisor is (n-1)]
+	* New operator: gridboxvar1 - Gridbox variance [Divisor is (n-1)]
+	* New operator: merstd1  - Meridional standard deviation [Divisor is (n-1)]
+	* New operator: mervar1  - Meridional variance [Divisor is (n-1)]
+	* New operator: zonstd1  - Zonal standard deviation [Divisor is (n-1)]
+	* New operator: zonvar1  - Zonal variance [Divisor is (n-1)]
+
+2015-05-22  Uwe Schulzweida
+
+	* New operator: yseasvar1  - Multi-year seasonally variance [Divisor is (n-1)]
+	* New operator: yseasstd1  - Multi-year seasonally standard deviation [Divisor is (n-1)]
+	* New operator: seasvar1  - Seasonal variance [Divisor is (n-1)]
+	* New operator: seasstd1  - Seasonal standard deviation [Divisor is (n-1)]
+
+2015-05-21  Uwe Schulzweida
+
+	* after: extent incomming GEOPOTHEIGHT on full 3d hybrid levels to half 3d hybrid levels (bug fix)
+
+2015-05-19  Uwe Schulzweida
+
+        * Fldstat2: added support for option --reduce_dim
+
+2015-05-18  Uwe Schulzweida
+
+        * splityear*: support for constant fields is missing [Bug #5759]
+
+2015-05-17  Uwe Schulzweida
+
+	* env. CDO_TIMESTAT_DATE does not work [Bug #5758]
+
+2015-05-02  Uwe Schulzweida
+
+	* sqr: added support for complex numbers
+
+2015-05-01  Uwe Schulzweida
+
+	* masklonlatbox: added support for curvilinear grids
+
+2015-04-29  Uwe Schulzweida
+
+	* remapbil: optimized version without weights
+
+2015-04-28  Uwe Schulzweida
+
+	* selgrid: added parameter type var=varname to select all variables with the same grid as varname
+
+2015-04-28  Uwe Schulzweida
+
+	* using CDI library version 1.6.9
+	* Version 1.6.9 released
+	* clipping: update to YAC version 1.0.3
+
+2015-04-23  Uwe Schulzweida
+
+	* ydrunpctl: does not work in combination with ydrunmin/ydrunmax (bug fix)
+
+2015-04-21  Uwe Schulzweida
+
+	* New operator: genlevelbounds - Generate level bounds
+	* Added option --reduce_dim to reduce dimension (Timstat, Fldstat)
+	* Ensstat: added support for different missing values (bug fix)
+
+2015-04-17  Uwe Schulzweida
+
+	* Select: added parameter date
+
+2015-04-16  Uwe Schulzweida
+
+	* Select: added parameter startdate, enddate
+
+2015-04-13  Karl-Hermann Wieners
+
+	* New operator: aexpr -  Evaluate expressions and append results
+	* New operator: aexprf  - Evaluate expression script and append results
+	* New operator: selzaxisname  - Select z-axes by name
+
+2015-04-10  Uwe Schulzweida
+
+	* New operator: after - ECHAM standard post processor
+
+2015-04-02  Uwe Schulzweida
+
+	* Seltime: abort if no timestep is seleced
+
+2015-03-27  Uwe Schulzweida
+
+	* Fldstat: added parameter noweights to use constant grid cell area weights
+	* expr: added support for operator ?:,&&,||
+
+2015-03-26  Uwe Schulzweida
+
+	* using CDI library version 1.6.8
+	* Version 1.6.8 released
+
+2015-03-25  Uwe Schulzweida
+
+	* expr: added support for operator ?: (short ifelse)
+	* eof, eof3d: use area weights instead of no weights
+	* vertmean, vertavg: changed to weighted means if layer bounds are available
+
+2015-03-23  Uwe Schulzweida
+
+	* expr: added support for operator ?: (short ifelse test version)
+
+2015-03-22  Uwe Schulzweida
+
+	* configure: check whether netCDF4/HDF5 is threadsafe
+
+2015-03-21  Uwe Schulzweida
+
+	* expr: added support for logical operator <=>
+
+2015-03-20  Uwe Schulzweida
+
+	* Remap: renamed env. variable CDO_REMAP_NORMALIZE_OPT to CDO_REMAP_NORM
+	* Remap: renamed env. variable CDO_REMAP_SEARCH_RADIUS to CDO_REMAP_RADIUS
+
+2015-03-19  Uwe Schulzweida
+
+	* remapycon:  correct weights only for norm_opt=fracarea
+
+2015-03-18  Uwe Schulzweida
+
+	* expr: added support for logical operators <, >, <=, >=, !=, ==
+
+2015-03-17  Uwe Schulzweida
+
+	* gradsdes: grib index file is empty (introduced in 1.6.7)
+
+2015-03-11  Uwe Schulzweida
+
+	* delname: added wildcard support
+	* wildcardmatch(): use fnmatch() if available
+	* eofspatial: removed scaling with grid cell area weights (bug fix)
+	* eoftime: removed scaling with grid cell area weights (bug fix)
+
+2015-03-10  Uwe Schulzweida
+
+	* ensSTAT: added optional parameter count to count the number of valid values
+
+2015-03-09  Uwe Schulzweida
+
+	* setpartabp, setpartabn: added optional parameter convert to convert the units
+
+2015-02-04  Uwe Schulzweida
+
+	* select: added wildcard support for parameter name and param
+	* selname: added wildcard support
+
+2015-01-31  Uwe Schulzweida
+
+	* changed remapnn test to remapdis
+
+2015-01-30  Uwe Schulzweida
+
+        * cdoGenFileSuffix: filter wildcard characters
+
+2015-01-27  Uwe Schulzweida
+
+	* remapnn: Segmentation fault for extrapolation of regular 2D source grids [Bug #5448]
+
+2015-01-21  Uwe Schulzweida
+
+	* New operator: splityearmon - Split in years and months
+
+2015-01-20  Uwe Schulzweida
+
+	* remap: replaced critical section with store_link() by store_weightlinks()
+
+2015-01-06  Uwe Schulzweida
+
+	* intersection: use function sqrt(x) if sqrtl(x) is missing
+
+2015-01-05  Uwe Schulzweida
+
+	* New operator: yseasadd - Add multi-year seasonal time series
+	* New operator: yseassub - Subtract multi-year seasonal time series
+	* New operator: yseasmul - Multiply multi-year seasonal time series
+	* New operator: yseasdiv - Divide multi-year seasonal time series
+
+2014-12-26  Uwe Schulzweida
+
+	* sinfo: limit length of model and institute to CDI_MAX_NAME (bug fix)
+
+2014-12-19  Uwe Schulzweida
+
+	* Seaspctl: changed timestat_date to mean
+	* Seaspctl: added support for env. CDO_TIMESTAT_DATE
+	* Seasstat: changed timestat_date to mean
+	* Timpctl: changed timestat_date to mean
+	* Timpctl: added support for env. CDO_TIMESTAT_DATE
+	* Timstat: changed timestat_date to mean
+
+2014-12-18  Uwe Schulzweida
+
+	* Timselpctl: changed timestat_date to mean
+	* Timselpctl: added support for env. CDO_TIMESTAT_DATE
+	* Timselpctl: last output time step is written two times (bug fix)
+	* Timselstat: changed timestat_date to mean
+
+2014-12-16  Uwe Schulzweida
+
+	* intlevel3d: works only for regular grids, grid coordinate check disabled (bug fix)
+
+2014-12-15  Uwe Schulzweida
+
+	* Seasstat: added support for env. CDO_TIMESTAT_DATE
+	* Timselstat: added support for env. CDO_TIMESTAT_DATE
+
+2014-12-14  Uwe Schulzweida
+
+	* Timstat: added support for env. CDO_TIMESTAT_DATE
+
+2014-12-13  Uwe Schulzweida
+
+	* Runstat: added time bounds
+
+2014-12-12  Uwe Schulzweida
+
+	* using CDI library version 1.6.7
+	* Version 1.6.7 released
+
+2014-12-11  Uwe Schulzweida
+
+	* intlevel3d: does not work (bug fix)
+
+2014-12-03  Uwe Schulzweida
+
+	* added File.test.in to test all file formats
+
+2014-12-02  Uwe Schulzweida
+
+	* GRIB_API: segfaults when writing grib2 files [Bug #5351]
+
+2014-11-27  Uwe Schulzweida
+
+	* using CDI library version 1.6.6
+	* Version 1.6.6 released
+
+2014-11-25  Uwe Schulzweida
+
+	* merge: check number of timesteps [Bug #5338]
+
+2014-11-24  Uwe Schulzweida
+
+	* Seasstat: added support for time bounds
+	* Timstat: added time bounds
+
+2014-11-21  Uwe Schulzweida
+
+	* outputtab: added key nohead and docu
+
+2014-11-20  Uwe Schulzweida
+
+	* outputtab: added key timestep
+	* selrec: abort if used in combination with other operators
+
+2014-11-19  Uwe Schulzweida
+
+	* remapycon: fix omp Race Condition
+
+2014-11-12  Uwe Schulzweida
+
+	* using CDI library version 1.6.5.2
+	* Version 1.6.5.2 released
+
+2014-11-11  Uwe Schulzweida
+
+	* histcount: doesn't recognize missing values (bug fix)
+	* filesdes: doesn't work for GRIB2 files [Bug #5307]
+
+2014-10-31  Uwe Schulzweida
+
+	* using CDI library version 1.6.5.1
+	* Version 1.6.5.1 released
+
+2014-10-30  Uwe Schulzweida
+
+	* remapcon: reactivate normalize option destarea
+
+2014-10-29  Uwe Schulzweida
+
+	* remapcon: deactivate call to remap_normalize() (bug fix)
+
+2014-10-26  Uwe Schulzweida
+
+	* replace >#pragma omp atomic update< by >#include "pragma_omp_atomic_update.h"<
+
+2014-10-23  Uwe Schulzweida
+
+	* using CDI library version 1.6.5
+	* Version 1.6.5 released
+
+2014-10-21  Uwe Schulzweida
+
+	* sortlevel: added optional parameter -1 to reverse the sorting
+
+2014-10-16  Uwe Schulzweida
+
+	* Ydrunstat: set the year of all output timesteps to the lowest year of the output timesteps
+
+2014-10-15  Uwe Schulzweida
+
+	* cdoAbort: close all open CDI streams
+
+2014-10-06  Uwe Schulzweida
+
+	* gather: renamed to collgrid
+	* scatter: renamed to distgrid
+
+2014-09-23  Uwe Schulzweida
+
+	* cat: added support for option -O (overwrite existing output file)
+
+2014-09-19  Uwe Schulzweida
+
+	* --with-fftw3: changed default to no
+	* expand gridfile name parameter [Bug #5196]
+
+2014-09-18  Uwe Schulzweida
+
+	* gradsdes: added support for option 365_day_calendar
+
+2014-09-16  Uwe Schulzweida
+
+	* remapnn::grid_search_nbr: removed wrong omp simd pragma (bug fix)
+
+2014-09-04  Uwe Schulzweida
+
+	* vlistCompare: check flag CMP_CODE only if nvars > 1
+
+2014-08-20  Uwe Schulzweida
+
+	* remapycon: added support for concave grid cells
+
+2014-08-19  Uwe Schulzweida
+
+	* remaplaf: changed weight calculation from SCRIP to YAC
+
+2014-08-16  Uwe Schulzweida
+
+	* import_binary: option 365_day_calendar does not work (big fix)
+
+2014-08-13  Uwe Schulzweida
+
+	* lock call to vlistCopyFlag() [Support #5079]
+
+2014-08-11  Uwe Schulzweida
+
+	* select: print progress status
+
+2014-08-10  Uwe Schulzweida
+
+	* gridarea: added support for concave grid cells
+
+2014-08-06  Uwe Schulzweida
+
+	* setpartab: not callable by this name (bug fix)
+
+2014-07-28  Uwe Schulzweida
+
+	* remap_weights_conserv: changed great_circle_type[8] to great_circle_type[32] (bug fix) 
+	* remap_define_grid: bug fix for unstructured grids (ndims[1])
+
+2014-07-17  Yvonne Küstermann
+
+	* Filter: OpenMP version
+
+2014-07-12  Uwe Schulzweida
+
+	* sellonlatbox: skip variables with only one grid point
+
+2014-07-12  Uwe Schulzweida
+
+	* select: wrong result when select only one timestep (bug fix)
+
+2014-07-07  Uwe Schulzweida
+
+	* cat: added progress status
+
+2014-06-30  Uwe Schulzweida
+
+	* using CDI library version 1.6.4
+	* Version 1.6.4 released
+
+2014-06-30  Uwe Schulzweida
+
+	* Selbox: angle of rotated grid missing (bug fix)
+
+2014-06-19  Uwe Schulzweida
+
+	* Filter: disable zero-padding
+	* Detrend: added test
+	* added option --use_fftw: used in module filter
+
+2014-06-18  Uwe Schulzweida
+
+	* added option --netcdf_hdr_pad <nbr>: Pad netCDF output header with nbr bytes
+
+2014-06-12  Uwe Schulzweida
+
+	* remapeta: added support for standard name
+
+2014-06-11  Uwe Schulzweida
+
+	* Ymonstat: sorts output by month of year
+
+2014-06-10  Uwe Schulzweida
+
+	* eof3d: set sum weights to 1 (bug fix)
+	* eofcoeff: remove scaling with grid cell area weights (bug fix)
+	* eofcoeff3d: remove scaling with grid cell area weights (bug fix)
+
+2014-06-02  Uwe Schulzweida
+
+	* tinfo: added support for forecast time axis
+
+2014-05-22  Uwe Schulzweida
+
+	* remap.h: define M_PI [Bug #4845]
+
+2014-05-16  Uwe Schulzweida
+
+	* pstream.h: added include of sys/types [Bug #4810]
+
+2014-05-12  Uwe Schulzweida
+
+	* diff: check NaNs
+
+2014-05-09  Uwe Schulzweida
+
+	* make option -W default
+
+2014-04-24  Uwe Schulzweida
+
+	* Filter: segmentation fault (bug fix)
+	* Filter: filters only gridsize-1 grid cells (bug fix)
+	* setltype, chltype: added support for GRIB2
+
+2014-04-15  Uwe Schulzweida
+
+	* select/delete: add support for negative timesteps
+	* seltimestep: add support for negative timesteps [patch from: Etienne Tourigny]
+
+2014-04-14  Uwe Schulzweida
+
+	* New operator: sealevelpressure - sea level pressure
+
+2014-03-14  Uwe Schulzweida
+
+	* remapcon: check for missing values in normalisation
+
+2014-03-10  Uwe Schulzweida
+
+	* added Option -H to do not append to netCDF "history" global attribute
+
+2014-03-03  Uwe Schulzweida
+
+	* Zonstat: bug fix if input stream contains only zonal data
+
+2014-02-19  Uwe Schulzweida
+
+	* Diff: added number of different values to output
+
+2014-02-18  Uwe Schulzweida
+
+	* using CDI library version 1.6.3
+	* Version 1.6.3 released
+
+2014-01-29  Uwe Schulzweida
+
+	* gridFromH5file: skipped if attribute >bounds< is defined [Bug #4411]
+
+2014-01-24  Uwe Schulzweida
+
+	* expr: select variables by name
+
+2014-01-09  Uwe Schulzweida
+
+	* gradsdes: added support for GRIB files >2GB [request: Ingo Kirchner]
+
+2014-01-08  Uwe Schulzweida
+
+	* gradsdes: added overloading of streamInqGinfo() (bug fix for GRIB1)
+
+2014-01-07  Uwe Schulzweida
+
+	* settaxis: added support for negativ time increment
+
+2014-01-03  Uwe Schulzweida
+
+	* Added test/test_Select.sh
+
+2014-01-02 Uwe Schulzweida
+
+	* gradsdes: changed LCC to LCCR in PDEF definition [Bug #4344]
+
+2013-12-09 Uwe Schulzweida
+
+	* cat: "Segmentation fault" if the output file already exist [Bug #4291]
+
+2013-12-04 Uwe Schulzweida
+
+	* gridFromH5file: set fclose degree to H5F_CLOSE_STRONG [Bug #4272]
+	* cdoDefineGrid: first call gridFromH5file() for HDF tags
+
+2013-11-29 Uwe Schulzweida
+
+	* eca_csu: added number of csu periods with more than 5days per time period [request: Moritz Maneke]
+	* eca_cfd: added number of cfd periods with more than 5days per time period  [request: Moritz Maneke]
+
+2013-11-29 Uwe Schulzweida
+
+	* remapdis: optimization for regular 2D source grids
+
+2013-11-28 Uwe Schulzweida
+
+	* remapbic: optimization for regular 2D source grids
+
+2013-11-27 Uwe Schulzweida
+
+	* remapbil: optimization for regular 2D source grids
+
+2013-11-25  Uwe Schulzweida
+
+	* remapbil: skip explicitly call to sort_add() (weights are sorted implicitly)
+
+2013-11-18  Uwe Schulzweida
+
+	* remaplib: cleanup and preparation for opt. reg2d grids
+
+2013-11-13  Uwe Schulzweida
+
+	* delete: parameter level does not work [Bug #4216]
+
+2013-11-12  Uwe Schulzweida
+
+	* using CDI library version 1.6.2
+	* Version 1.6.2 released
+
+2013-11-06  Uwe Schulzweida
+
+	* Added test/test_Remap.sh
+
+2013-10-25  Uwe Schulzweida
+
+	* eca_gsl: start date of growing season is wrong if the length of growing season is zero (bug fix) 
+
+2013-10-21  Uwe Schulzweida
+
+	* splitmon: added optional parameter to set the format string for the month [Feature #4131]
+	* Sort: added support for multi level variables (bug fix) [report: Irina Fast]
+
+2013-10-18  Uwe Schulzweida
+
+	* gridarea: replace cell_area_tri() by huiliers_area()
+	* outputf: make second parameter (nelem) optional
+
+2013-10-06  Uwe Schulzweida
+
+	* gridarea: numeric inaccuracy for triangles located directly on the pole (bug fix)
+
+2013-09-02  Uwe Schulzweida
+
+	* Consecstat: init vars with 0 (bug fix)
+	* Seascount: added support for complex numbers
+	* Timcount: added support for complex numbers
+
+2013-08-26  Uwe Schulzweida
+
+	* Timstat: added support for complex numbers
+
+2013-08-09  Uwe Schulzweida
+
+	* setgridtype: parameter regular: added support for reduced grids on sub area
+
+2013-08-07  Uwe Schulzweida
+
+	* mastrfu: added missing value support
+
+2013-08-05  Uwe Schulzweida
+
+	* select: added support for key >timestep_of_year<
+
+2013-08-02  Uwe Schulzweida
+
+	* selyear: fixed wrong result for negative years [Bug #3836]
+
+2013-08-01  Uwe Schulzweida
+
+	* added support of ASCII grid description for GRID_LAEA
+
+2013-07-29  Uwe Schulzweida
+
+	* gridGenArea: added warning message if grid cell corner not available
+	* gp2sp: added warning message if gp data not found
+
+2013-07-08  Uwe Schulzweida
+
+	* split*: use filename extension from input file
+
+2013-06-28  Uwe Schulzweida
+
+	* gridCurvilinearToRegular: set tolerance to 1.e-6
+
+2013-06-28  Uwe Schulzweida
+
+	* using CDI library version 1.6.1
+	* Version 1.6.1 released
+
+2013-06-10  Uwe Schulzweida
+
+	* select: added support for key >minute< [request: Beate Gayer]
+
+2013-06-03  Uwe Schulzweida
+
+	* inttime: removes last time step [Bug #3611]
+
+2013-05-24  Uwe Schulzweida
+
+	* mrotuvb: added option >noint< to disable the interpolation to the grid cell centre
+
+2013-05-14  Uwe Schulzweida
+
+	* scatter: fails with missing values [Bug #3492]
+
+2013-04-19  Uwe Schulzweida
+
+	* gradsdes: added support for netCDF files
+
+2013-04-18  Uwe Schulzweida
+
+	* Info: add chunking information of netcdf files (only with verbose output) [Feature #3489]
+
+2013-04-17 Uwe Schulzweida
+
+	* select: added support to expand integer parameter
+	* select: added support for key >hour<
+
+2013-04-10 Uwe Schulzweida
+
+	* shifttime: wrong result for negative hours and days [Bug #3440]
+	* selmon: month not found for negative years [Bug #3439]
+	* splitmon: month not found for negative years
+
+2013-04-05 Uwe Schulzweida
+
+	* expr: wrong results if left operand has one level and right operand has more than one level (bug fix) [report: Walter Sauf]
+
+2013-04-02 Uwe Schulzweida
+
+	* enscrps: wrong result since CDO version 1.5.6 [Bug #3403]
+
+2013-03-19 Uwe Schulzweida
+
+	* fldcor: check missing value of 2. input file (bug fix) [report: Hans-Jürgen Panitz]
+
+2013-03-14 Uwe Schulzweida
+
+	* using CDI library version 1.6.0
+	* Version 1.6.0 released
+
+2013-03-01 Uwe Schulzweida
+
+	* gridarea: set number of timesteps to 0 (bug fix for operator chaining) [report: Dirk Notz]
+
+2013-02-25 Uwe Schulzweida
+
+	* merge: uses size of the first input file for the output buffer [Bug #3290]
+
+2013-02-22 Uwe Schulzweida
+
+	* New operator: yearmonmean - yearly mean from monthly data
+
+2013-02-21 Uwe Schulzweida
+
+	* added cdoDefaultFileType to UNCHANGED_RECORD (bug fix)
+
+2013-02-19 Uwe Schulzweida
+
+	* masklonlatbox: added support for curvilinear grids
+
+2013-02-09 Uwe Schulzweida
+
+	* New operator: duplicate  - Duplicates a dataset
+
+2013-02-08 Uwe Schulzweida
+
+	* sellonlatbox: wrong result with overlapped lonlatbox on curvilinear grids (bug fix) [report: Dirk Notz]
+
+2013-02-06 Uwe Schulzweida
+
+	* New operator: timselvar1  - Time range variance [Divisor is (n-1)]
+	* New operator: timselstd1  - Time range standard deviation [Divisor is (n-1)]
+	* New operator: runvar1  -  Running variance [Divisor is (n-1)]
+	* New operator: runstd1  -  Running standard deviation [Divisor is (n-1)]
+
+2013-02-05 Uwe Schulzweida
+
+	* ensrkhisttime: fixed memory fault [https://code.zmaw.de/boards/1/topics/1657]
+
+2013-02-04 Uwe Schulzweida
+
+	* Added CDO option -W to print extra warning messages
+
+2013-01-30 Uwe Schulzweida
+
+	* New operator: ymonvar1    - Multi-year monthly variance [Divisor is (n-1)]
+	* New operator: ymonstd1    - Multi-year monthly standard deviation [Divisor is(n-1)]
+	* New operator: ydayvar1   - Multi-year daily variance [Divisor is (n-1)]
+	* New operator: ydaystd1   - Multi-year daily standard deviation [Divisor is (n-1)]
+	* New operator: yhourvar1   - Multi-year hourly variance [Divisor is (n-1)]
+	* New operator: yhourstd1   - Multi-year hourly standard deviation [Divisor is (n-1)]
+	* New operator: ydrunvar1    - Multi-year daily running variance [Divisor is (n-1)]
+	* New operator: ydrunstd1    - Multi-year daily running standard deviation [Divisor is (n-1)]
+
+
+2013-01-25 Uwe Schulzweida
+
+        * New operator: timvar1    - Time variance [Divisor is (n-1)]
+	* New operator: timstd1    - Time standard deviation [Divisor is (n-1)]
+        * New operator: hourvar1   - Hourly variance [Divisor is (n-1)]
+	* New operator: hourstd1   - Hourly standard deviation [Divisor is (n-1)]
+	* New operator: dayvar1    - Daily variance [Divisor is (n-1)]
+	* New operator: daystd1    - Daily standard deviation [Divisor is (n-1)]
+	* New operator: monvar1    - Monthly variance [Divisor is (n-1)]
+	* New operator: monstd1    - Monthly standard deviation [Divisor is (n-1)]
+	* New operator: yearvar1   - Yearly variance [Divisor is (n-1)]
+	* New operator: yearstd1   - Yearly standard deviation [Divisor is (n-1)]
+
+2013-01-23 Uwe Schulzweida
+
+	* New operator: ensstd1 - Ensemble standard deviation [Divisor is (n-1)]
+	* New operator: ensvar1 - Ensemble variance [Divisor is (n-1)]
+	* New operator: fldstd1 - Field standard deviation [Divisor is (n-1)]
+	* New operator: fldvar1 - Field variance [Divisor is (n-1)]
+
+2013-01-22 Helmut Haak
+
+	* New operator: adisit - Potential temperature to in-situ temperature
+
+2013-01-21 Uwe Schulzweida
+
+	* New operator: rhopot - Calculates potential density
+	* New operator: select - select fields from an unlimited number of input files
+
+2013-01-17 Uwe Schulzweida
+
+	* diff: print only records that differ
+	* setpartab: added namelist entry 'delete'
+
+2013-01-11 Uwe Schulzweida
+
+	* expr: wrong result for operation var1/var2 where var2 = 0
+
+2013-01-10 Uwe Schulzweida
+
+	* Settime: set number of output timesteps to unlimited
+
+2013-01-08 Uwe Schulzweida
+
+	* Runstat: added support for time bounds (Bug #3127)
+        * runpctl: added support for time bounds
+	* setcalendar: changed CDO calendar names to CF calendar names
+                    (standard, proleptic_gregorian, 360_day, 365_day, 366_day)
+
+2012-12-17 Uwe Schulzweida
+
+	* using CDI library version 1.5.9
+	* Version 1.5.9 released
+
+2012-12-06 Uwe Schulzweida
+
+	* PROJ.4: use proj_api.h instead of projects.h
+
+2012-11-27 Uwe Schulzweida
+
+	* gradsdes: use pstreamInqByteorder() [Bug #3041]
+	* zonSTAT: check whether a zonal grid already exists (bug fix)
+
+2012-11-26 Uwe Schulzweida
+
+	* added workaround to combine CDO operators with the result of	mergetime, merge, copy, cat, ens<STAT>
+	* Selbox: extend check for latitude indices
+
+2012-11-21 Uwe Schulzweida
+
+	* enlarge: added missing value support [request: Chris Fletcher]
+
+2012-11-15 Uwe Schulzweida
+
+	* Split: added parameter swap to swap the position of <obase> and <xxx>  in the filename
+	* splitgrid: bug fix for gridID output in filename <xxx>
+	* splitzaxis: bug fix for zaxisID output in filename <xxx>
+
+2012-11-14 Uwe Schulzweida
+
+	* cdo: added option -k <chunktype> to set the chunk type to auto, grid or lines
+	* cdo option -z zip: added optional compression level -z zip[_1-9] [request: Etienne Tourigny]
+
+2012-11-08 Uwe Schulzweida
+
+	* pipeInqVlist: wait MIN_WAIT_CYCLES if processNumsActive() == 1 (bug fix) [report:  Jaison Ambadan]
+
+2012-11-07 Uwe Schulzweida
+
+	* bug fix for user defined lon/lat grids
+             This bug was introduced in CDO version 1.5.8.
+
+2012-10-30 Uwe Schulzweida
+
+	* using CDI library version 1.5.8
+	* Version 1.5.8 released
+
+2012-10-29 Uwe Schulzweida
+
+	* mastrfu: set datatype to 32-bit float
+
+2012-10-23 Uwe Schulzweida
+
+	* Fldstat: set weight to 1 if gridsize is 1
+
+2012-10-19 Uwe Schulzweida
+
+	* added operator seinfo
+
+2012-10-17 Uwe Schulzweida
+
+	* eca_rr1: result has wrong long name attribute [Bug #2763]
+	* eca_pd: disabled, use eca_rr1  (same functionallity) [Bug #2763]
+
+2012-10-14 Uwe Schulzweida
+
+	* added operator tee
+
+2012-10-13 Uwe Schulzweida
+
+	* remaplaf: fixed bug in binary_search_int()
+
+2012-10-05 Uwe Schulzweida
+
+	* use read/write timer only for single threaded CDO version [Support #2854]
+
+2012-10-05 Modali Kameswarrao
+
+	* Maggraph update
+
+2012-09-25 Uwe Schulzweida
+
+	* replace: change streamNtsteps() to vlistNtsteps() (bug fix for CDI 1.5.7)
+
+2012-09-13 Uwe Schulzweida
+
+	* Added support for netCDF4(HDF5) formatted SCRIP grids
+
+2012-09-07 Uwe Schulzweida
+
+	* Info: changed output format
+	* Diff: changed output format
+
+2012-09-04 Uwe Schulzweida
+
+	* processDelete: set Process[processID].threadID = 0 (bug fix)
+
+2012-09-03 Uwe Schulzweida
+
+	* added CDO option -L to lock all I/O calls. This option is neccessary if external I/O libraries like 
+	  netCDF4 (HDF5) were installed without thread-safe support.
+
+2012-08-30 Uwe Schulzweida
+
+	* Sinfo: changed output format
+
+2012-08-28 Uwe Schulzweida
+
+	* using CDI library version 1.5.7 (merged from cdi-pio)
+	* activate pstreamCopyRecord()
+	* Version 1.5.7 released
+
+2012-08-23 Uwe Schulzweida
+
+	* Arith: bug fix for NVARS1 == NVARS2
+                    This bug was introduced in CDO version 1.5.6.
+
+2012-07-26 Uwe Schulzweida
+
+	* Version 1.5.6.1 released
+	* arradd: disable SSE2 optimazation (bug in residual loop)
+	    The following statistical functions are affected:
+	        *mean, *avg, *sum, *var, *std
+	    if all of the following conditions are  complied:
+	       - x86_64 machine (tornado, squall, thunder, lizard)
+	       - dataset has no missing values
+	       - the horizontal grid size is > 1 and not multiple of 8
+            This bug was introduced in CDO version 1.5.6.
+
+2012-07-23  Uwe Schulzweida
+
+	* using CDI library version 1.5.6
+	* Version 1.5.6 released
+
+2012-07-20  Uwe Schulzweida
+
+	* Fixed bug #2605
+
+2012-07-17  Uwe Schulzweida
+
+	* Added operator zonrange
+
+2012-07-12  Uwe Schulzweida
+
+	* vlistCompare(): added check to compare sorted parameter names
+
+2012-07-11  Uwe Schulzweida
+
+	* gradsdes: added support for 64-bit SERVICE, EXTRA and IEG format
+	* import_binary: added support for 64-bit floats via extra OPTION keyword flt64 [request: Tim Bruecher]
+
+2012-07-10  Uwe Schulzweida
+
+	* sort_iter: call to sort_par() only for parent <= (nthreads-1)
+	* added remapsort.c
+
+2012-07-07  Uwe Schulzweida
+
+	* remaplib::sort_add: use optimized version (speedup +20%)
+
+2012-07-03  Uwe Schulzweida
+
+	* userFileOverwrite: accept also a simple 'y' as yes [request: Dirk Notz]
+
+2012-06-26  Uwe Schulzweida
+
+	* Arith: added support for 3D masks [request: Ralf Müller]
+	* pipeInqVlist: wait only 1s and check for other active CDO processes
+
+2012-06-25  Uwe Schulzweida
+
+	* Selvar: added check for time constant fields (bug fix) [report: Ralf Müller]
+	* mastrfu: use grid coordinates from input file
+
+2012-06-21  Uwe Schulzweida
+
+	* pstreamCheckDatarange: activate check only if ivals > 0
+
+2012-06-15  Uwe Schulzweida
+
+	* ymonmean: removed time bounds if present (bug fix) [Bug #2474]
+	* ymonsub: added support for time bounds (bug fix) [Bug #2475]
+
+2012-06-08  Ralf Mueller
+
+	* New operator: showunit (Showinfo)
+
+2012-06-06  Uwe Schulzweida
+
+	* Sinfo: changed Time entry to Ttype
+	* changed timeID to tsteptype
+
+2012-05-31  Luis Kornblueh
+
+	* arradd: SSE2 version (performance +15%)
+
+2012-05-29  Uwe Schulzweida
+
+	* Runstat: optimize missing value handling (speedup)
+	* Runstat: OpenMP parallelization over parameter nts
+	* Runstat: added env. RUNSTAT_NOMISS
+
+2012-05-29  Uwe Schulzweida
+
+	* input: changed time axis to RELATIVE
+
+2012-05-15  Uwe Schulzweida
+
+	* using CDI library version 1.5.5
+	* Version 1.5.5 released
+
+2012-05-09  Uwe Schulzweida
+
+	* Ensstat3: nvars undefined (bug fix)
+
+2012-05-08  Uwe Schulzweida
+
+	* remap_bilin: using fabs(src_lats[n]) for distance-weighted average (big fix) [report: Renate Brokopf]
+	* remap_bilic: using fabs(src_lats[n]) for distance-weighted average (big fix)
+
+2012-04-20  Uwe Schulzweida
+
+	* grid.c::gridCurvilinearToRegular: bug fix [report: Ag Stevens]
+	* remaplib: changed warning message for bilinear/bicubic interpolation
+
+2012-04-17  Uwe Schulzweida
+
+	* Yseasstat: changed timestamp of DJF season to last timestep of February
+
+2012-04-16  Uwe Schulzweida
+
+	* ml2pl: added support for GRIB2 parameter names [Bug #2252]
+
+2012-03-14  Uwe Schulzweida
+
+	* pipeInqVlist: changed init of time_to_wait [Bug #2133]
+
+2012-03-02  Uwe Schulzweida
+
+	* replace: removed debug output [report: K. Houchi]
+
+2012-03-01  Uwe Schulzweida
+
+	* eca_rr1: missing value not set correctly (bug fix) [report: Hans-Juergen Panitz]
+	* ecacore: fix all missing values
+
+2012-02-20  Uwe Schulzweida
+
+	* geopotheight: added support for WMO code table
+
+2012-02-06  Uwe Schulzweida
+
+	* New module: Yhourarith (yhouradd, yhoursub, yhourmul, yhourdiv) [request: Beate Gayer]
+
+2012-02-01  Uwe Schulzweida
+
+	* mergetime: added env. SKIP_SAME_TIME to skip all double entries of the same timestamp [request: K. Houchi]
+	* Added operator rohpot - potential density for MPIOM (experimental) [request: Helmut Haak]
+
+2012-01-30  Uwe Schulzweida
+
+	* using CDI library version 1.5.4
+	* Version 1.5.4 released
+
+2012-01-24  Uwe Schulzweida
+
+	* remapcon: added env REMAP_AREA_MIN, to set the minimum area fraction [request: Gernot Geppert]
+
+2012-01-23  Uwe Schulzweida
+
+	* remaplaf: using binary search (speedup)
+	* Timstepstat: added support for time bounds
+
+2012-01-16  Uwe Schulzweida
+
+	* remaplib: use grid2_bound_box only for conservativ remapping
+
+2012-01-09  Uwe Schulzweida
+
+	* setgridtype: added support for grid type lonlat
+
+2012-01-05  Uwe Schulzweida
+
+	splitsel: added support for constant fields [Bug #1701]
+	Splittime: added support for constant fields
+
+2011-12-19  Uwe Schulzweida
+
+	* timpctl: check index of bins (bug fix for NaNs) [report: Christopher Moseley]
+
+2011-12-15  Uwe Schulzweida
+
+	* pipeInqVlist: use pthread_cond_timedwait to wait 30 sec (bug fix) [report: Carsten Ehbrecht]
+
+2011-12-13  Uwe Schulzweida
+
+	* pstreamCheckDatarange: use nint() to round smin and smax [report: Kristina Fröhlich]
+
+2011-11-16  Uwe Schulzweida
+
+	* Added operator timcovar - covariance over time
+	* Added operator fldcovar - covariance in grid space
+
+2011-10-26  Uwe Schulzweida
+
+	* shifttime: added support for time bounds
+	* setvrange: don't set the attribute valid_range
+
+2011-10-25  Uwe Schulzweida
+
+	* added operator mod - modulo [request: Swantje Preuschmann]
+
+2011-10-20  Uwe Schulzweida
+
+	* using CDI library version 1.5.3
+	* Version 1.5.3 released
+
+2011-10-19  Uwe Schulzweida
+
+	* Monarith (monadd, monsub, monmul, mondiv): wrong results for 3D variables (bug fix) [report: Chris Fletcher]
+
+2011-10-02  Uwe Schulzweida
+
+        * deflate compression with netCDF4 doesn't work (bug fix) [report: Geert Jan van Oldenborgh]
+
+2011-09-26  Uwe Schulzweida
+
+	* Added operator: muldoy - Multiply with day of year [request: David Gobbett]
+
+2011-09-19  Uwe Schulzweida
+
+	* eca_cdd, eca_cwd, eca_rr1, eca_sdii: variable parameter [request: Martin Stendel]
+
+2011-09-16  Uwe Schulzweida
+
+	* gridarea: bug fix for coarse grid cells with lons between 350 and 0 degrees [report: Aiko Voigt]
+
+2011-09-14  Uwe Schulzweida
+
+	* sellonlatbox: correct lon bounds if necessary (bug fix) [report: Klaus Keuler]
+
+2011-08-30  Uwe Schulzweida
+
+	* ifthenelse: uses only the first time step of the first input file (bug fix) [report: Ronny Petrik]
+
+2011-08-22  Uwe Schulzweida
+
+	* using CDI library version 1.5.2
+	* Version 1.5.2 released
+
+2011-08-19  Uwe Schulzweida
+
+	* ymon<stat>: preserve time axis attributes (big fix) [report: Martin Juckes]
+
+2011-08-12  Cedrick Ansorge
+
+        * eof, eoftime, eofspatial, eof3d - Empirical Orthogonal Functions:bug fix [report: Eileen Dahms and Frank Lunkeit]
+            There was a bug in the calculation of the Frobenius norm, which has only been triggered in some cases
+            when using a low precision. The normalization has been changed thus that the eigenvectors are not weighted
+            and their absolute is 1. The default settings for convergence have been changed to be more conservative:
+            CDO_SVD_MODE=jacobi    MAX_JACOBI_ITER=12     FNORM_PRECISION=1.e-12
+
+2011-08-12  Uwe Schulzweida
+
+	* setgridtype: compress GME grids [request: Jaison Ambadan]
+
+2011-08-11  Uwe Schulzweida
+
+        * remapeta: Changed minimum pressure level for condensation from 1000Pa to 0Pa [request: Patrick Joeckel]
+                           Use env. REMAPETA_PTOP to set the minimum pressure level for condensation.
+
+2011-08-09  Uwe Schulzweida
+
+	* dv2uv: added support for GRIB2 parameter names (d, vo)
+
+2011-08-04  Uwe Schulzweida
+
+	* expr: wrong result for expression 'const-var (e.g. 1-var)' (bug fix) [report: Hans-Jürgen Panitz]
+	           This bug was introduced in CDO version 1.5.1
+
+2011-08-04  Uwe Schulzweida
+
+	* invertlat: bug fix for CURVILINEAR grids [report: Christine Rademacher]
+	* import_binary: added support for OPTION ZREV (bug fix) [report: Rene Hommel]
+
+2011-08-01  Uwe Schulzweida
+
+	* histAddValue: added check for rounding errors
+
+2011-07-26  Uwe Schulzweida
+
+	* replace: added support to replace single levels
+	* Vertstat: bug fix for streams with time invariant variables
+
+2011-07-12  Uwe Schulzweida
+
+	* using CDI library version 1.5.1
+	* Version 1.5.1 released
+
+2011-07-11  Ralf Mueller
+
+	* Added operator stdatm: standard atmosphere values for T,PS
+	* Added operator intlevel3d: vertical interpolation to/from 3d vertical coordinates
+
+2011-07-04  Uwe Schulzweida
+
+	* Exprf:  wrong result for missing values != (double) -9.e33 (bug fix) [report: Michael Boettinger]
+
+2011-07-02  Uwe Schulzweida
+
+	* detrend: added support for time bounds (bug fix) [report: Andy Aschwanden]
+
+2011-07-01  Cedrick.Ansorge
+
+	* Filter: added support for time bounds (bug fix) [report: Andy Aschwanden]
+
+2011-06-01  Uwe Schulzweida
+
+	* setgridtype: convert curvilinear to unstructured grids [request: Steffen Tietsche]
+
+2011-05-25  Uwe Schulzweida
+
+	* Remap: added env REMAP_THRESHHOLD to set the threshhold for coordinate transformation
+
+2011-05-04  Uwe Schulzweida
+
+	* import_binary: Added support for 1 and 2 byte integer [code from: Karsten ???]
+
+2011-05-03  Uwe Schulzweida
+
+        * bug fix: fldmean and similar operators fail with 1D grid (1 latitude value) [report: Etienne Tourigny]
+
+2011-04-27  Uwe Schulzweida
+
+	* Added support for netCDF4 classic format; option -f nc4c
+	* eca*: use the input calendar for the output streams (bug fix) [report: Martin Juckes]
+
+2011-04-04  Uwe Schulzweida
+
+	* intyear: check contents of input files [report: Angelika Heil]
+	* pipeDefTimestep: set EOP if nrecs = 0 (dead lock) [report: Luis Kornnblueh]
+
+2011-03-16  Uwe Schulzweida
+
+	* eofspatial: integer overflow; wrong result for grid size > 46340 (bug fix) [report: Hans-Jürgen Panitz]
+	* outputkeys: added keys xind, yind [request: Nils Fischer]
+
+2011-03-15  Uwe Schulzweida
+
+	* using CDI library version 1.5.0
+	* Version 1.5.0 released
+
+2011-03-12  Uwe Schulzweida
+
+	* Added operator chparam -  Change parameter identifier
+
+2011-03-12  Uwe Schulzweida
+
+	* Added operator setparam - Set parameter identifiers
+	* Added operator splitparam - Split parameter identifiers
+
+2011-03-11  Uwe Schulzweida
+
+	* Added operator selparam - Select parameters by identifier
+	* Added operator delparam - Delete parameters by identifier
+	* sinfo: changed output of table and code number to parameter identifier
+	* info:  changed output of code number to parameter identifier
+	* diff:  changed output of code number to parameter identifier
+
+2011-03-09  Uwe Schulzweida
+
+	* setgrid: added parameter: dereference
+	* cdo: added option -O to overwrite existing output file [request: Chris Fletscher]
+
+2011-03-08  Uwe Schulzweida
+
+	* fldmean: check range of lon/lat bounds [report: Jonas Bhend]
+	* ml2pl: wrong result if input file contains full and half level data (bug fix) [report: Jaison Ambadan]
+
+2011-03-07  Uwe Schulzweida
+
+	* gridToCell(GME): set X/Y units to degrees_east/degrees_north [report: Patrick Brockmann]
+
+2011-03-05  Uwe Schulzweida
+
+	* expr: added functions abs(), int(), nint(), sqr()
+
+2011-02-25  Uwe Schulzweida
+
+	* remapbil: fix pole problem with gr15_psi grids [report: Karoline Block]
+
+2011-02-01  Uwe Schulzweida
+
+	* renamed function var to expr_var [report: Jed Kaplan]
+
+2011-01-25  Uwe Schulzweida
+
+	* splitcode: added support for code numbers > 999
+
+2011-01-21  Uwe Schulzweida
+
+        * changed grid name GRID_CELL to GRID_UNSTRUCTURED
+
+2011-01-18  Uwe Schulzweida
+
+	* spcut: only correct results with continuous wave numbers starting at 1 (bug fix)
+
+2011-01-15  Uwe Schulzweida
+
+	* remaplib: fix data race in calculation of bin_addr (OpenMP)
+
+2011-01-12  Uwe Schulzweida
+
+	* detrend: integer overflow; wrong result for nts > 46340 (bug fix) [report: Torsten Seifert]
+
+2011-01-11  Uwe Schulzweida
+
+	* sellonlatbox: does not work as expected (bug fix) [report: Jonathan Schubert]
+
+2011-01-10  Uwe Schulzweida
+
+	* Added operator delete - Delete fields
+	* sellonlatbox: cellidx was not initialized (bug fix) [report: Jaison Ambadan]
+
+2011-01-07  Uwe Schulzweida
+
+	* remaplib: Changed remap weights from 2D to 1D array
+
+2011-01-06  Uwe Schulzweida
+
+	* using CDI library version 1.4.7
+	* Version 1.4.7 released
+
+2011-01-05  Frank Kaspar
+
+	* import_cmsaf: set max length of date string to 8 (bug fix)
+
+2011-01-05  Uwe Schulzweida
+
+	* import_cmsaf: added time information also for time constant fields [request: Frank Kaspar]
+
+2010-12-17  Uwe Schulzweida
+
+	* eofcoeff: set size of eof_name to 6 (bug fix)
+
+2010-12-16  Uwe Schulzweida
+
+	* import_binary: check for gauss grids only when flag linear=0
+
+2010-12-14  Uwe Schulzweida
+
+	* readline: filter carriage return '\r' [report: Christian Steger]
+
+2010-12-13  Uwe Schulzweida
+
+	* setclonlatbox: bug fix for 1x1 grids [report: Angelika Heil]
+
+2010-12-06  Uwe Schulzweida
+
+	* Settime: bug fix for time independent variables in combination with other operators (pipes)
+
+2010-11-22  Uwe Schulzweida
+
+	* mulcoslat: added support for GME grids [request: Jaison-Thomas Ambadan]
+
+2010-11-19  Uwe Schulzweida
+
+	* select: added paramter *ltype* [request: Jaison-Thomas Ambadan]
+
+2010-11-16  Uwe Schulzweida
+
+	* Added operator eca_pd - Precipitation days index per time period [request: Barbara Hennemuth]
+
+2010-11-13  Uwe Schulzweida
+
+	* sellonlatbox: fix rounding error of the last lon index [report: Mondher Chekki]
+
+2010-11-10  Uwe Schulzweida
+
+	* ml2pl: open output stream after all error checks
+
+2010-11-08  Uwe Schulzweida
+
+	* sethalo: added support for grid units radian
+	* sethalo: correct lower bound of grid bounds for negative halos (bug fix)
+	* fldmean: gives wrong result for grid units radian (bug fix) [report: Pilar Ripodas]
+
+2010-10-21  Uwe Schulzweida
+
+	* Yseasstat: bug fix for datasets with time constant fields [report: Ute Merkel]
+
+2010-10-20  Uwe Schulzweida
+
+	* added docu for operator dv2ps
+
+2010-10-13  Uwe Schulzweida
+
+	* Cat: call vlistCompare for all input files
+
+2010-09-29  Uwe Schulzweida
+
+	* added env. CDO_FILE_SUFFIX to set the file suffix of CDO generated file names
+
+2010-09-27  Uwe Schulzweida
+
+	* Fldstat2: replaced macros FDIV and FSQRT by function calls DIV and SQRT
+
+2010-09-20  Uwe Schulzweida
+
+	* New module: Ydayarith (ydayadd, ydaysub, ydaymul, ydaydiv)
+
+2010-09-17  Uwe Schulzweida
+
+	* using CDI library version 1.4.6
+	* Version 1.4.6 released
+
+2010-09-07 Ralf Mueller
+
+	* using libtool for linking (rpath)
+	* include libcdi as subproject
+	* eca_gsl: adjust implementation to fit definition by ECA [report: Stefan Fronzek]
+	* eca_gsl: make usable in pipes (bug fix) [report: Stefan Fronzek]
+
+2010-08-26  Uwe Schulzweida
+
+	* sellevel: copy zaxis meta data name and units (bug fix) [report: Don Murray]
+
+2010-08-20  Uwe Schulzweida
+
+        * pstreamDefTimestep: removed call to streamSync (very slow on GPFS)
+
+2010-08-05  Uwe Schulzweida
+
+	* changed percentile parameter type from integer to float [request: Nikolaus Groll]
+
+2010-08-03  Uwe Schulzweida
+
+	* changed predefined gaussian grid names from t<RES>grid to n<N>
+
+2010-08-02  Uwe Schulzweida
+
+	* added grid mask support
+
+2010-07-30  Uwe Schulzweida
+
+	* sellonlatbox: fix rounding error of the last lon index [report: Flore Mounier]
+
+2010-07-22  Uwe Schulzweida
+
+	* Module Expr: added missing value support [request: Marco van Hulten]
+
+2010-07-13  Uwe Schulzweida
+
+	* gridFromNCfile: check grid_dims
+	* seldate: open output file only when time steps found (bug fix) [report: Hannes Reuter]
+
+2010-07-12  Cedrick Ansorge
+
+	* Added module Filter - Time series filtering
+
+2010-07-05  Uwe Schulzweida
+
+	* Version 1.4.5.1 released
+
+2010-07-05 Edi Kirk
+
+	* GRIB1 decode: Correct ZeroShiftError of simple packed spherical harmonics
+
+2010-06-30  Uwe Schulzweida
+
+	* bug fix for wrong result of SZIP compressed GRIB records with 24 bit 
+	  packing and a compression ratio < 1.05 [report: Aiko Voigt]
+
+2010-06-28  Uwe Schulzweida
+
+	* Version 1.4.5 released
+
+2010-06-17  Etienne Tourigny
+
+	* Added operator setvals - Set list of old values to new values
+
+2010-05-18  Cedrick Ansorge
+
+	* Added operator eof - Calculate EOFs in spatial or time space
+        * Added operator eoftime - Calculate EOFs in time space
+        * Added operator eofspatial - Calculate EOFs in spatial space
+	* Added operator eofcoeff - Principal coefficients of EOFs
+
+2010-05-17  Ralf Mueller
+
+	* Added operator consecsum - Consecutive Sum
+	* Added operator consects - Consecutive Timesteps
+
+2010-04-29  Uwe Schulzweida
+
+	* using CDI library version 1.4.4
+	* Version 1.4.4 released
+
+2010-04-19  Uwe Schulzweida
+
+        * fldsum: change result from 0 to missval, if only missing values found [report: Angelika Heil]
+	* intyear: set the interpolation result always to missval, if missing values found [report: Angelika Heil]
+
+2010-04-12  Uwe Schulzweida
+
+	* Added operator delday
+
+2010-04-09  Uwe Schulzweida
+
+	* Added support for time units 3hours and 6hours [request: Jaison-Thomas Ambadan]
+
+2010-04-07  Uwe Schulzweida
+
+	* Remap: bypass variables with gridtype generic and only one gridpoint
+
+2010-04-04  Uwe Schulzweida
+
+	* selgrid: change gridID to grididx (bug fix)
+	* Added operator cloudlayer: compute low, mid and high clouds [request: Daniel Klocke]
+
+2010-04-01  Martin Claus
+
+	* vertwind: added missing value support
+
+2010-03-25  Uwe Schulzweida
+
+	* standard deviation (bug fix): change the result from missval to zero, if variance is zero [report: Jaison-Thomas Ambadan]
+
+2010-03-23  Uwe Schulzweida
+
+	* Added operator tstepcount: count number of timesteps (experimental) [request: Swantje Preuschmann]
+
+2010-03-20  Uwe Schulzweida
+
+	* import_binary: added support for variables with different number of levels [report: Dennis Shea]
+
+2010-03-16  Uwe Schulzweida
+
+	* sellonlatbox: bug fix for parameter lon2 [report: Alberto Maurizi]
+	* random: added optional parameter seed
+
+2010-03-15  Uwe Schulzweida
+
+	* pstreamWriteRecord: check pstreamptr->varlist (bug fix) [report: Kevin Sieck]
+	* added operator fldcor to correlate two fields
+
+2010-03-12  Uwe Schulzweida
+
+	* added predefined grid t<RES>zon
+	
+2010-03-11  Uwe Schulzweida
+
+	* expr: added support for const/var (bug fix) [report: Youmin Chen]
+	
+2010-03-10  Uwe Schulzweida
+
+	* Added support for netCDF time bounds (bug fix) [report: Beate Geyer]
+
+2010-03-07  Uwe Schulzweida
+
+	* Released module Gridboxstat
+	
+2010-03-03  Uwe Schulzweida
+
+	* inputsrv: added level information (bug fix) [report: Simon Blessing]
+
+2010-02-22  Uwe Schulzweida
+
+	* using CDI library version 1.4.3
+	* changed GRIB1 default packing type of spherical harmonics to complex
+	* added CDO option -M to indicate that the I/O streams have missing values
+	* Version 1.4.3 released
+
+2010-02-08  Uwe Schulzweida
+
+	* using CDI library version 1.4.2
+	* Added new module Gridboxstat (testversion)
+	* Version 1.4.2 released
+
+2010-02-02  Uwe Schulzweida
+
+	* netCDF+packed data: check that all values are inside the valid range
+
+2010-02-01  Uwe Schulzweida
+
+	* remove netCDF offset/scalefactor if option -b 32 is set
+
+2010-01-28  Uwe Schulzweida
+
+	* Ensstat: don't overwrite existing files
+
+2010-01-20  Uwe Schulzweida
+
+	* Zonstat: added support for generic grids
+	* Merstat: added support for generic grids
+
+2010-01-14  Frank Kaspar
+
+	* import_cmsaf: added more corrections for wrong projection parameter
+
+2010-01-12  Uwe Schulzweida
+
+	* replace: added support for time constant fields [request: Wei Wei]
+
+2010-01-10  Uwe Schulzweida
+
+	* Genweights: use netCDF2 (64bit) for large remap weights files [request: Daniel Goll]
+
+2010-01-01  Uwe Schulzweida
+
+	* added module Fourier
+	* Detrend: OpenMP parallelization
+
+2009-12-23  Uwe Schulzweida
+
+	* remapcon, remaplaf: speed up by fast store of links
+
+2009-12-15  Uwe Schulzweida
+
+	* Version 1.4.1 released
+
+2009-12-14  Uwe Schulzweida
+
+	* Vertint: set default table number to 0
+	
+2009-12-10  Uwe Schulzweida
+
+	* Ensstat: change vlistCompare to func_sftn
+	
+2009-11-30  Uwe Schulzweida
+
+	* merge, mergetime: don't overwrite existing files
+	
+2009-11-27  Uwe Schulzweida
+
+	* New operator: splittabnum - Split parameter table numbers
+
+2009-11-19  Uwe Schulzweida
+
+	* showtime: removed output of date, only print time string hh:mm:ss
+	* convert date and time to string for printing
+
+2009-11-12  Uwe Schulzweida
+
+	* New operator: sethalo - Set the left and right bounds of a field
+	* change number of input streams from unlimited to 1 in pipes
+	* rename module Select to Selvar
+	* rename selgridname/selzaxisname to selgrid/selzaxis
+	* added operator vct2
+	* Selvar: abort if no variable is selected
+	
+2009-11-08  Uwe Schulzweida
+
+	* added default zaxis name "surface"
+	
+2009-11-04  Uwe Schulzweida
+
+	* setgridtype: added parameter regular to convert reduced gaussian grids
+	* gridFromFile: check floating point parameter
+
+2009-11-03  Uwe Schulzweida
+
+	* remap: bug fix for weights from gennn (set remap_extrapolate = TRUE) [report: Helmut Frank]
+
+2009-11-02  Uwe Schulzweida
+
+	* gridFromNCfile: lock call to nc_open (race condition) [report: Nils Fischer]
+
+2009-10-23  Uwe Schulzweida
+
+	* outputbounds: added support for meridional data
+	* showtime: added comma to output string (bug fix) [report: Stefan Hagemann]
+
+2009-10-21  Uwe Schulzweida
+
+	* using CDI library version 1.4.0.1
+	* seltime: bug fix for scanning of input parameter (report: Emanuele Lombardi]
+	* IEG format: bug fix for identification of lonlat grids
+	* GRIB format: bug fix for decoding of missing values (scalar version only)
+	* Version 1.4.0.1 released
+
+2009-10-07  Uwe Schulzweida
+
+	* cdotest:eca_gsl: bug fix [report: Harald Anlauf]
+
+2009-10-05  Uwe Schulzweida
+
+	* using CDI library version 1.4.0
+	* New operator: import_binary - Import binary data sets via a GrADS data descriptor file
+	* New operator: setvrange - Set valid range [request: Jörg Trentmann]
+	* added support of time units 'seconds' to all operators
+	  - the format of all time parameter changed from hh:mm to hh:mm:ss!
+	* gridarea: added support for hexagonal GME grid and tripolar MPIOM grid
+	* mergegrid: added support for rotated lon/lat grids
+	* Seasstat: added env. CDO_SEASON_START to set the start month of seasons [request: Laurent Mortier]
+	* remapnn: added support for GRID_CELL without bounds (full grid search)
+	* import_cmsaf: read native float datatype and convert it to double
+	* ieg: added support for Gaussian grids [request: Ralf Podzun]
+	* store_link_cnsrv: remove two restrict keywords (bug fix) [report: Clement Alo]
+	* shifttime: bug fix for negative time increments [report: Andreas Hänsler]
+	* Version 1.4.0 released
+
+2009-09-29  Frank Kaspar
+
+	* import_cmsaf: Replacing incorrect projection parameters for sinusoidal products
+
+2009-09-18  Ralf Mueller
+
+	* eca_gsl: consideration of different growing season start for northern and southern hemisphere
+
+2009-07-15  Ralf Mueller
+
+	* eca_gsl: bug fix for finalDay in ecacore:eca4 [report: Elke Keup-Thiel]
+
+2009-06-15  Uwe Schulzweida
+
+	* using CDI library version 1.3.2
+	* change C compiler to ANSI C99
+	* added option -Q to sort netCDF variable names
+	* added support for the parameter 'angle' to transform rotated coordinates 
+	        to geographic coordinates [request: Beate Mueller]
+	* splitsel: changed the number of output digits from 3 to 6
+	* settaxis: bug fix for time increment 'months' [report: Ute Merkel]
+	* remaplib: change loop counter from int to long
+	* remaplaf: fixed buffer overflow
+	* remapcon: change max_subseg from 1000 to 100000
+	* Remapeta: correct humidity up to highest level *nctop* where condensation is allowed
+	* replace: bug fix for searching of parameter code/name
+	* remapdis, remapnn: set num_srch_bins to 1 if REMAP_EXTRAPOLATE=OFF (bug fix) [report: Hamid Benhocine]
+	* Version 1.3.2 released
+
+2009-04-16  Uwe Schulzweida
+	
+	* using CDI library version 1.3.1
+	* set default calendar to proleptic gregorian
+	* New operator (experimental): select with parameter code, level, param
+	* added support for proleptic gregorian calendar
+	* added support for missval = NaN
+	* added support for GRID type Lambert Conformal Conic
+	* import_cmsaf: read parameter for Lambert Azimuthal Equal Area projection
+	* import_cmsaf: read parameter for Cylindrical Equal Area projection
+	* import_cmsaf: bug fix for datasets with gain/offset and more than 1 timestep
+	* Sinusoidal and Lambert Azimuthal Equal Area grids with units [km]
+	* cdoInitialize: omp_set_num_threads have to be called for every module
+	* expr: add ';' at the end of input expression if missing
+	* added predefined lonlat grid for germany, europe and africa
+	* gridFromName: define GRID with one point lon=<LON>_lat=<LAT>
+	* sellonlatbox: select box from circular curvilinear grids
+	* CDO_PCTL_NBINS: change default number of bins from 100 to 101
+	* change max parameter from 256 to 4096 (bug fix) [report: Nils Fischer]
+	* intlevel: use zaxis attributes from input [report: Carmen Ulmen]
+	* ml2pl: added support for Geopotential Height [request: Katharina Klehmet]
+	* remapbil, remapbic: enable extrapolation with REMAP_EXTRAPOLATE=ON
+	* remapdis, remapnn: disable extrapolation with REMAP_EXTRAPOLATE=OFF
+	* remapcon: eliminate srch_mask (~40% speed up)
+	* remapcon: change bound_box to int type (~25% speed up)
+	* remapcon: optimization of inner loop (~7% speed up)
+	* remaplaf: bug fix for fields with missing values
+	* remapnn: bug fix for distance equal zero
+	* genYbounds: bug fix for non global fields
+	* mermean: bug fix for weights from 'zonmean' (report: Michael Sigmond)
+	* replaced strncpy/strncmp by memcpy/memcmp
+	* remap: read grid corners only if needed
+	* Version 1.3.1 released
+
+2009-04-15  Pier Giuseppe Fogli
+
+	* chlevel: fixed bug that happens when the list of oldlev,newlev 
+	           contains the same level more than once
+
+2009-01-16  Álvaro M. Valdebenito
+
+	* Settime: added "seconds" support to "settunits", "settaxis" and "shifttime"
+
+2009-01-15  Uwe Schulzweida
+
+	* using CDI library version 1.3.0
+	* New operator: remapcon2 - Second order conservative remapping
+	* New operator: remaplaf - Largest area fraction remapping
+	* New operator: remapnn - Nearest neighbor remapping
+	* New operator: reci - Reciprocal value
+	* added support for GRID type Sinusoidal
+	* added support for GRID type Lambert Azimuthal Equal Area
+	* import_cmsaf: added support for monthly mean diurnal cycle
+	* remap: use gridIsCyclic to check whether lon is cyclic (bug fix)
+	* remap: check grid and weights
+	* remap: set num_srch_bins to nlat/2 (speedup)
+	* sinfo: extent grid description
+	* diff: check variable names
+	* sellonlatbox: bug fix for curvilinear grids
+	* setzaxis: change float to double (bug fix) [report: Pier Giuseppe Fogli]
+	* Arith: added filltype FILL_RECTS [request: Wolfgang Mueller]
+	* inputsrv: use -f format if set (bug fix)
+	* Seasstat: warning message for seasons with less than 3 input time steps
+	* merge: bug fix for usage in pipes [report: Álvaro M. Valdebenito]
+	* remapcon: change max_subseg from 100000 to 1000
+	* remapbil: 2. bug fix for cross_product eq zero
+	* gridWeights: bug fix for areas greater than hemisphere [report: Malte Heinemann]
+	* gridverify: replaced [Cedrick Ansorge]
+	* intlevel: bug fix for datasets with missing values
+	* yseasstd,yseasvar: wrong array index (bug fix) [report: Robert Nicholas]
+	* Version 1.3.0 released
+
+2008-11-13  Uwe Schulzweida
+
+	* using CDI library version 1.2.1
+	* New operator: import_cmsaf - import CM-SAF files
+	* New operator: gengrid - generate grid [request: Michael Boettinger]
+	* New operator: pow - Power [request: Gil Lizcano]
+	* New operator: tpnhalo (testversion)
+	* Module Timstat: use taxis with bounds from input [request: Beate Geyer]
+	* sellonlatbox: added support for grid units 'radians' [request: Jeff Daily]
+	* sellonlatbox: added support for GRID_CELL [request: Jeff Daily]
+	* Added option '-u' to determinate whether to overwrite existing files [request: David Wang]
+        * copy, cat: concatenate time constant fields
+	* copy, cat: compare input files
+	* zonvar: activation missing (bug fix) [report: Irene Fischer-Bruns]
+	* detrend: change taxisCreate to taxisDuplicate [report: Ute Merkel]
+	* remapdis: added support for GRID_CELL without bounds (full grid search)
+	* remapbil: bug fix for cross_product eq zero
+	* sethalo: bug fix for x/y bounds [report: Helmut Haak]
+	* ifthen:  bug fix for datasets with different missing values [report: Beate Geyer]
+	* runmean: bug fix for datasets with missing values [report: Carmen Ulmen]
+	* namelist: bug fix for wrong input
+	* Version 1.2.1 released
+
+2008-08-13  Uwe Schulzweida
+
+	* using CDI library version 1.2.0
+	* added support for netCDF4 classic with deflate option (option -z zip)
+	* Arith: added filltype FILL_FILE [request: Rita Seiffert]
+	* New operator: intlevel - Linear level interpolation
+	* New operator: invertlev - Invert levels [request: Marco Giorgetta]
+	* New operator: sellevidx - Select levels by index [request: David Wang]
+	* New module: Pressure (fpressure, hpressure) [request: Jan Kazir]
+	* New module: Tests (normal, studentt, chisquare, beta, fisher)
+	* New module: Echam5ini (read_e5ml, write_e5ml)
+	* New operator: import_amsr to read AMSR binary files
+	* New operator: vertwind (testversion) [request: Michael Boettinger]
+	* New operator: ml2pl_lp (testversion) [request: Hui Wan]
+	* remapdis: check that distance is inside the range of -1 to 1 [report: Hui Wan]
+	* remapeta: added missing value support
+	* vlistCompare: compare all lon/lat values
+	* setpartab: added parameter LTYPE [request: Stefan Petri]
+	* Settime: change TIME_CONSTANT to TIME_VARIABLE if ntstep = 0
+	* added support of CM-SAF HDF5 grids (test version)
+        * DBL_IS_EQUAL: check NaN with isnan (removed! compilation problems)
+	* yseasmean: bug fix for datasets with missing values [report: Hans-Jürgen Panitz]
+	* yhourmean: bug fix for datasets with missing values
+	* ydaymean: bug fix for datasets with missing values
+	* namelist: bug fix for wrong input
+	* ntime: bug fix for datasets with time constant parameter only [report: David Wang]
+	  (also affected: ndate, nmon, nyear, showdate, showtime, showmon, showyear)
+	* Version 1.2.0 released
+
+2008-04-08  Uwe Schulzweida
+
+	* using CDI library version 1.1.1
+	* configure: --with-szlib=<directory>
+	* configure: check stat.st_blksize
+	* New operator: regres (Regression) [request: Wolfgang Mueller]
+	* New module: Gridcell (gridarea, gridweights)
+	* New operator: del29feb to delete the 29. February [request: Etienne Tourigny]
+	* New operator: zaxisdes
+	* Exprf: using MT safe version of bison and flex (bug fix) [report: Claas Teichmann]
+	* Arith: using missval from vlistID1 if ( filltype == FILL_TS && vlistIDx1 != vlistID1 )
+	* Arithc: recalculate number of missing values (bug fix) [report: Holger Goettel]
+	* Vertint: support for data on hybrid half-level
+	* Vertint: support for GME data [request: Luis Kornblueh]
+	* Vertint: bug fix for input with time constant fields
+	* Outputgmt: use grid_mask if present
+	* Input: skip ',' from standard input stream
+	* splitsel: bug fix for multilevel/multivar datasets [report: Heiner Widmann]
+	* remaplib: set luse_grid_corners = TRUE for GRID_CELL (bug fix)
+	* remap_conserv: skip very small regions if num_subseg exceeded limit
+	* remapcon: bug fix for NORMALIZE_OPT 'dest' and 'none'
+	* Seltime: changed value of NOPERATORS (bug fix)
+	* Version 1.1.1 released
+
+2008-01-24  Uwe Schulzweida
+
+	* using CDI library version 1.1.0
+	* New module: Monarith (monadd, monsub, monmul, mondiv) [request: Daniel Hernandez]
+	* Add support for Lambert grids in GRIB files
+	* Seltime: bug fix for input with time constant fields [report: Claas Teichmann]
+	* Setlevel: bug fix for usage in pipes [report: Claas Teichmann]
+	* Outputbounds: use -ZNaN for missing values [request: Karin Meier-Fleischer]
+	* Outputbounds: add zonal mean [request: Malte Heinemann]
+	* Remap: check for non global grids
+	* Setgatts: improve attribute format
+	* diff: check number of time steps
+	* Timstat: change datetime type from INT64 to char[16]
+	* gridWeights: warning with code number when using constant area weights
+	* Version 1.1.0 released
+
+2007-10-29  Uwe Schulzweida
+
+	* cat: bug fix for large existing output files (>2GB) on 32-bit machines [report: Heinz-Dieter Hollweg]
+	* gradsdes: bug fix for monthly mean data with start day > 28 [report: Renate Brokopf]
+	* expr: change exponent precedence from left to right (bug fix)[report: Claas Teichmann]
+	* Version 1.0.9.1 released
+
+2007-10-22  Uwe Schulzweida
+
+	* using CDI library version 1.0.8
+	* New module: yhourstat (yhour -min/-max/-sum/-mean/-avg/-std/-var) [request: Holger Goettel]
+	* New operator: mrotuv [request: Uwe Mikolajewicz]
+	* New operator: varquot2test and meandiff2test [request: Irene Fischer-Bruns]
+	* ymonstat: write original order of timesteps [report: Ileana Bladé]
+	* gradsdes: add GRIB level type to VARS [report: Ben-Jei Tsuang]
+	* sellonlatbox: support for curvilinear grids [request: Hannes Isaak Reuter]
+	* bug fix for cdo option -f format [report: Stephan Lorenz]
+	* runstat: add env RUNSTAT_DATE to set output date [request: Claudia Wunram]
+	* ifthen: bug fix for masks that varies not with time [report: David Wang]
+	* mrotuvb: calculate coordinates from u and v
+	* eca_cdd/eca_cwd: bug fix for name2 [report: James Hoffmann]
+	* cdotest: bug fix in eca_gsl/module.c -> 2 input streams [report: Harald Anlauf]
+        * use always decode_date and encode_date to decode/encode date
+	* splitname: bug fix [report: Daniel Klocke]
+	* remapcon: bug fix reset BABY_STEP to 0.001 [report: Claas Teichmann]
+	* merge: bug fix for all files with constant fields only [report: Jan Keller]
+	* Version 1.0.9 released
+
+2007-07-04  Ralf Quast
+
+	* Timcount and Seascount: bug fix for missing values
+
+2007-06-27  Uwe Schulzweida
+
+	* using CDI library version 1.0.7
+	* New operator: remapeta
+	* New operator: tinfo
+        * Renamed chvar, selvar, delvar, showvar, setvar and splitvar
+               to chname, selname, delname, showname, setname and splitname
+        * Renamed nvar to npar and vardes to pardes
+	* Renamed selpctl to timselpctl
+	* Selstat: renamed to Timselstat
+	* Vertint: add support for LM VCT [request: Tanja Stanelle]
+	* Input: bug fix for missing values [report: Thomas Bruns]
+	* Merge: bug fix for files with constant fields only [report: Christian Rodehacke]
+	* expr.ex: bug fix for mixed time constant and variable fields
+	* Ymonstat: bug fix for missing values [report: Ivonne Anders]
+	* remapdis: bug fix if distance is zero
+	* remapcon: bug fix in intersection (s1 >= ZERO) [report: Joerg Wegner]
+	* remapcon: speed up by increasing BABY_STEP from 0.001 to 0.01
+	* interpolate: bug fix for north/south bounds > 90 or < -90 [report: Stefan Hagemann]
+	* gradsdes: bug fix for GRIB files with absolute path [report: Matthias Büchner]
+	* replace ztype2ltype by zaxis2ltype
+	* ltype2ztype: set default zaxis type to ZAXIS_GENERIC
+	* selltype, setltype, chltype: extent to all ltypes [request: Patrick Samuelsson]
+	* Version 1.0.8 released
+
+2007-06-26  Etienne Tourigny
+
+	* Add new operator: splitsel
+	* Add new operator: histfreq
+	* Add new operator: setrtoc and setrtoc2
+	* list.c: changes to accept inf and -inf as arguments 
+
+2007-06-07  Cedrick Ansorge
+
+	* New operator: smooth9
+
+2007-05-30  Ralf Quast
+
+	* New operator: timcount, hourcount, daycount, moncount, yearcount, seascount
+	* Renamed eca_fdns, eca_strwin, eca_strbre, eca_strgal, eca_hurr
+	       to fdns, strwin, strbre, strgal, hurr
+
+2007-04-18  Cedrick Ansorge
+
+	* New operator: maskregion
+
+2007-03-08  Uwe Schulzweida
+
+	* using CDI library version 1.0.6
+	* Add docu for dv2uvl and uv2dvl
+	* New operator: read_e5ini (test version)
+	* taxisCopyTimestep: bug fix [report: Harald Anlauf]
+	* sinfo: print ltype for GRIB records on GENERIC zaxis
+	* seldate: bug fix [report: Michael Hofstätter]
+	* fldmax: bug fix if all values < 0 and missvals [report: Karin Meier-Fleischer]
+	* vlistCompare: check grid orientation for func_sft
+	* gradsdes: set time increment to "mo" for monthly means
+	* gradsdes: process only the first 2GB of a GRIB file
+	* Version 1.0.7 released
+
+2007-01-02  Ralf Quast
+
+	* rename tchill to wct
+	* split eca_strwind into eca_strwin, eca_strbre, eca_strgal and eca_hurr
+
+2006-12-14  Uwe Schulzweida
+
+	* using CDI library version 1.0.5
+	* New operator: vertvar, timvar, yearvar, monvar, dayvar, hourvar
+	* New operator: runvar, seasvar, selvar, ydayvar, ydrunvar, ymonvar, yseasvar
+	* New operator: dv2uvl, uv2dvl [request: Luis Kornblueh]
+	* New operator: selsmon [request: Claudia Wunram]
+	* eca: Titles update
+	* remap: set norm_opt after read_remap_scrip (bug fix) [report: Andreas Sterl]
+	* cdo: FP_FAST_FMA bug fix [report: Sunpoet]
+	* ecacore: update [Ralf Quast]
+	* Version 1.0.6 released
+
+
+2006-11-30  Uwe Schulzweida
+
+	* using CDI library version 1.0.4
+	* New operator: showformat (Showinfo) [request: Helmuth Haak]
+	* remap: initialize links.option (bug fix) [report: Luis Kornblueh]
+	* update date/time conversion from udunits (bug fix) [report: Oliver Krueger]
+	* rotuvb: change coordinates to geographic (bug fix) [report: Klaus Wyser]
+	* Wind.c: define name, longname and units [report: Chiara Cagnazzo]
+	* add env CDO_DISABLE_HISTORY [request: Bjørge Solli]
+	* add env CDO_DISABLE_FILESUFFIX [request: Heiner Widmann]
+	* add suffix .sz for SZIP compressed files [request: Monika Esch]
+	* input: bug fix
+	* pstreamFindID: check pstreamptr->name before use (bug fix)
+	* operatorInqModID: speed up
+	* Version 1.0.5 released
+
+2006-11-17  Ralf Quast
+
+	* New module: Tchill (tchill)
+	* New module: Hi (hi)
+	* New module: ECA Indices of Daily Temperature and Precipitation Extremes
+	              (eca_cfd, eca_csu, eca_cwdi, eca_cwfi, eca_etr, eca_fd,
+	               eca_gsl, eca_hd, eca_hwdi, eca_hwfi, eca_id, eca_su,
+                       eca_tg10p, eca_tg90p, eca_tn10p, eca_tn90p,
+                       eca_tr, eca_tx10p, eca_tx90p,
+                       eca_cdd, eca_cwd, eca_r10mm, eca_r20mm,
+                       eca_r75p, eca_r75ptot, eca_r90p, eca_r90ptot,
+                       eca_r95p, eca_r95ptot, eca_r99p, eca_r99ptot,
+                       eca_rr1, eca_sdii, eca_fdns, eca_strwind)
+
+2006-11-06  Uwe Schulzweida
+
+	* processSelf: lock/unlock NumProcess (bug fix)
+	* pstreamOpenRead: move mutex_unlock after cdoInqHistory
+	* Version 1.0.4 released
+
+2006-11-06  Ralf Quast
+
+	* New module: Ydrunstat (ydrun -min, -max, -sum, -mean, -avg, -std, -var)
+	* New module: Timpctl (tim-, hour-, day-, mon-, year- pctl)
+	* New module: Selpctl (selpctl)
+	* New module: Runpctl (runpctl)
+	* New module: Seaspctl (seaspctl)
+	* New module: Ydaypctl (ydaypctl)
+	* New module: Ymonpctl (ymonpctl)
+	* New module: Yseaspctl (yseaspctl)
+	* New module: Ydrunpctl (ydrunpctl)
+	* New operator: enspctl (Ensstat)
+	* New operator: fldpctl (Fldstat)
+	* New operator: zonpctl (Zonstat)
+	* New operator: merpctl (Merstat)
+
+2006-11-02  Uwe Schulzweida
+
+	* using CDI library version 1.0.3
+	* New operator: intntime [request: Michael Boettinger]
+	* New operator: mrotuvb [request: Helmuth Haak]
+	* New operator: outputvector [request: Helmuth Haak]
+	* selyear: bug fix for years > 9999 [report: Uwe Mikolajewicz]
+	* inttime: extention for months and years [request: Holger Goettel]
+	* outputcenter: support of zonal and meridional fields
+	* zonavg: bug fix for non gaussian or non lonlat grids
+	* remaplib.sort_add: don't sort if num_links <= 1
+	* remaplib.remap_bi?: check that src_add is valid
+	* Remap: use REMAP_NON_GLOBAL only for gridsize > 1
+	* Version 1.0.3 released
+
+2006-09-18  Uwe Schulzweida
+
+	* using CDI library version 1.0.2
+	* set alias gradsdes to gradsdes2
+	* rename gradsdes to gradsdes1
+	* New operator: int and nint (Math) [request: Joerg Wegner]
+	* New operator: ydaysum, ymonsum, yseassum [request: Hannes Reuter]
+	* add option -e exp to test DRMAA
+	* add option -z szip to compress GRIB records with SZIP
+	* use DBL_IS_EQUAL to compare floating point
+	* remapbil, remapbic: improvement and speedup for regional lonlat grids
+	* Seltime: print warning message if parameter not found
+	* pstreamDefVlist: unpack netCDF data if datatype = FLT64
+	* Version 1.0.2 released
+
+2006-08-01  Uwe Schulzweida
+
+	* using CDI library version 1.0.1
+	* add option -b to set the number of bits for the output precision
+	* support of 1 to 32 bit GRIB data
+	* set MIN_STACK_SIZE to 64MB
+	* seldate: use parameter - for min and max val
+	* seldate: change date format to YYYY-MM-DDThh:mm [request: Martina Stockhaus]
+	* New operator: selstdname, showstdname [request: Martina Stockhaus]
+	* New operator: setrcaname, seloperator for RCA GRIB datasets [Frida Brantvall]
+	* New operator: selltype, setltype, chltype, showltype [together with Frida Brantvall]
+	* New operator: setpartabv
+	* add new parameter table format
+	* fix problems on cygwin [report: Mark Hadfield]
+	* merge: move vlistDestroy after streamClose [report: Matthias Cuntz]
+	* gradsdes: fix bug for only one record without time [report: Angelika Heil]
+	* gradsdes: fix problem for variable names with - character
+	* namelist update
+	* New module: Setbox [Etienne Tourigny]
+	* history format changed to nco [Etienne Tourigny]
+	* process: set MAX_ARGS from 1024 to 8192
+	* Version 1.0.1 released
+
+2006-06-15  Uwe Schulzweida
+
+	* using CDI library version 1.0.0
+	* New operator: dv2ps (Wind) [request: Luis Kornblueh]
+	* New module: Arithlat (mulcoslat, divcoslat) <- docu missing
+	* setreftime: use taxisDuplicate to copy bounds [report: Ivonne Anders]
+	* Seasstat: bug fix for datasets with only 1 season [report: Simon Blessing]
+	* Vertint: remove special treatment for geopoth
+	* configure: check compiler version
+	* Version 1.0.0 released
+
+2006-05-04  Uwe Schulzweida
+
+	* using CDI library version 0.9.7
+	* New module: Mergetime [request: Stefanie Legutke]
+	* New operator: atan2 (Arith) [request: Tom Hardy]
+	* New operator: abs (Math) [request: Reiner Schnur]
+	* New module: Enlargegrid [request: Tom Hardy] <- docu missing
+	* New module: Input (input inputext inputsrv)
+	* Invert: fix memory release problem [report: Tom Hardy]
+	* setzaxis: set MAX_LINE_LEN from 1024 to 65536 [bug report: Martine Michou]
+	* enlarge: update for zonal and meridional data [request: Wolfgang Mueller]
+	* gradsdes: bug fix for unsorted GRIB data [report: Stefan Bauer]
+	* splitzaxis: generate file name from zaxisID+1 [bug report: Martina Stockhaus]
+	* splitgrid:  generate file name from gridID+1
+	* Vardup: bug fix for missing values
+	* Timsort: bug fix for time constant fields
+	* Mastrfu: set units to [kg/s] [report: Rita Seiffert]
+	* Merstat: call gridWeights only if needed
+	* Vertint: use args2fltlist to read parameter list
+	* Splitrec: change record number from 5 to 6 digits
+	* Math: rename log to ln
+	* Change help info format
+	* Selbox, Maskbox, Mergegrid, Zonstat, Merstat: check number of different grids
+	* extent macro UNCHANGED_RECORD to cdoDefaultDataType and cdoDefaultByteorder
+	* pipeDefRecord, pstreamClose bug fix for seltimestep in pipes
+	* remove module docu from source code
+	* rename default grid name "ni" to "gme"
+	* rename operator intgrid to intgridbil
+	* add option -s for silent mode [request: Martina Stockhaus]
+	* Version 0.9.13 released
+
+2006-03-08  Uwe Schulzweida
+
+	* using CDI library version 0.9.6
+	* New module: Wind (uv2dv, dv2uv) <- docu missing
+	* New module: Histogram (histcount, histsum, histmean) <- docu missing
+	* New operator: sinfop (Sinfo)
+	* Intgrid: missing value support for intgrid
+	* Cat: the output file must not exist anymore
+	* Zonstat: add support for GRID_GENERIC if ny > 1
+	* read_remap_scrip: if GME grid, read GME mask (bug report Luis)
+	* remaplib: change read/write of grid corners (bug fix)
+	* Spectral: rename sp2gp2/gp2sp2 to sp2gpl/gp2spl
+	* namelist: update
+	* Version 0.9.12 released
+	
+2006-02-01  Uwe Schulzweida
+
+	* using CDI library version 0.9.5
+	* use macro DBL_IS_EQUAL to check floating-point equality
+	* use taxisCopyTimestep if posible
+	* New operator: sp2gp2 (Spectral) for ERA40 data
+	* New operator: gp2sp2 (Spectral) for ERA40 data
+	* New operator: replace (Replace)
+	* New operator: specinfo to print info for spectral transformation
+	* New module: Selstat (selmin, selmax, selsum, selmean, selavg, selstd)
+	* New module: Mergegrid (mergegrid) <- docu missing
+	* Runstat: adjust date and time
+	* Merge: duplicate taxis (bug fix)
+	* Vertint: abort for different grids (bug fix)
+	* Gradsdes: set XYHEADER to 644 (bug report: Holger)
+	* Remap: add GME grid support
+	* Remap: use environment variable NORMLIZE_OPT (bug fix)
+	* Cat: set tsID2 to 1 for input files with constant data only
+	* zaxis: add vct support for hybrid levels
+	* remaplib: change max_subseg from 10000 to 100000
+	* Selrec: add IEG support
+	* Version 0.9.11 released
+
+2005-12-14  Uwe Schulzweida
+
+	* using CDI library version 0.9.4
+	* IEG support
+	* New operator: ifthenelse (Cond2)
+	* Timer: option -T
+	* Gradsdes: IEG 32 support
+	* Selbox: add rotated grids
+	* Diff: change date and time format to ISO
+	* Gradsdes: bug fix for lonlat grids from N->S (report: Thibaut Gridel)
+	* Inttime: abort if units is not minutes, hours or days (bug fix)
+	* Settime: add all available calendars
+	* Inttime: add all available calendars
+	* fourier: made ifax and trig local (bug fix)
+	* Version 0.9.10 released
+
+2005-10-18  Uwe Schulzweida
+
+	* using CDI library version 0.9.2
+	* remapcon: replace gridbox_area after remapping
+	* intgrid: init array2 with zero
+	* Timsort: OpenMP version
+	* gradsdes: bug fix for ZDEF
+	* pstream: mt safe
+	* New operator: gradsdes2 (Gradsdes)
+	* New module: Ensstat (ensmin ensmax enssum ensmean ensavg ensstd ensvar)
+	* New operator: remap (Remap)
+	* New operator: gencon (Remap)
+	* New operator: outputf (Output)
+	* New operator: enlarge (Enlarge)
+	* Arith: support of constant species
+	* zaxis: add bounds
+	* Version 0.9.9 released
+	
+2005-07-17  Uwe Schulzweida
+
+	* using CDI library version 0.9.1
+	* Arith:
+            - filling up 1. record or timestep of 1. or 2. stream if needed
+	* New operator: setlevel (Set)
+	* New operator: chlevel, chlevelv, chlevelc (Change)
+	* Inttime: change date and time format to ISO
+	* Cond: bug fix (change taxisID1 to taxisID2)
+	* Condc: bug fix (else if statemants)
+	* Compc: bug fix (else if statemants)
+	* Copy: bug fix (taxisID2)
+	* gridWeights: bug fix for non global gaussian grids
+	* replace args2intarr by args2intlist
+	* replace args2fltarr by args2fltlist
+	* Speedup remap and remapcon on NEC sx6
+	* Speedup spectral transformation (replace phcs by jspleg1)
+	* Version 0.9.8 released
+
+2005-05-26  Uwe Schulzweida
+
+	* using CDI library version 0.9.0
+	* Speedup Remap with masks by saving MAX_REMAPS maps
+	* Speedup remapcon
+	    - remap_conserv (change malloc to realloc)
+	    - store_link_cnsrv (change search loop)
+	* Setmiss: setctomiss with NaN
+	* Info, Sinfo, Showinfo, Settime, Seltime: change date and time format to ISO
+	* New module: Maskbox (masklonlatbox, maskindexbox)
+	* New module: Arithdays (muldpm, divdpm, muldpy, divdpy)
+	* New operator: setcalendar (Settime)
+	* New operator: setgridarea (Setgrid)
+	* New operator: seltabnum (Select)
+	* Cond: bug fix (filling up the first file)
+	* setmissval: bug fix
+	* farstd, farcstd: bug fix (for missing values)
+	* gridWeights: calculate area weights for LONLAT grids
+	* rename Expr.c to Exprf.c
+	* change function cdoOperatorID
+	* field.h: bug fix for MUL with 0
+	* bug fix in all Modules (define timestep)
+	* Version 0.9.7 released
+
+2005-04-03  Uwe Schulzweida
+
+	* using CDI library version 0.8.9
+	* support for rotated grids
+	* New module: Detrend (detrend)
+	* New module: Trend (trend)
+	* New module: Subtrend (subtrend)
+	* New module: Timsort (timsort)
+	* New module: Ydaystat (ydaymin, ydaymax, ydaymean, ydayavg, ydaystd)
+	* New module: Ymonarith (ymonadd, ymonsub, ymonmul, ymondiv)
+	* rename Lm* to Ymon* and Ls* to Yseas*
+	* Splityear: change filename for doubled years
+	* Version 0.9.6 released
+
+2005-02-17  Uwe Schulzweida
+
+	* using CDI library version 0.8.8
+	* bug fix for taxis with remap, copy, setgrid
+	* New operator: shifttime (shift time steps)
+	* changing all integer level to floating point
+	* Vertint: check range of surface pressure
+	* Sinfo: print data type and file type
+	* Invert: extended for curivilinear grids
+	* pstream: add function pstreamInqFiletype
+	* Reduced grids: read/write record if -R is used
+	* Version 0.9.5 released
+
+2005-01-03  Uwe Schulzweida
+
+	* using CDI library version 0.8.7
+	* New operator: setmissval (set the missing value)
+	* New operator: setpartab (set the parameter table)
+	* Docu for operator infov, sinfov and diffv
+	* Version 0.9.4 released
+
+2004-12-17  Uwe Schulzweida
+
+	* changes for CDI library version 0.8.6
+	* New operator: gradsdes for GRIB, SERVICE and EXTRA files
+	* Setmiss: float (4 Byte reals) support
+	* Invert: bug fix
+	* Selbox: buf fix (add gridDefNvertex)
+	* grid.c: using grids from other datafile
+	* grid.c: generate grid from PINGO file
+	* fourier.c: multi threaded version of fft_set
+	* configure: checks for pthread and malloc library
+	* Version 0.9.3 released
+
+2004-11-17  Uwe Schulzweida
+
+	* changes for CDI library version 0.8.5
+	* New module: Seasstat (seasmin, seasmax, seassum, seasmean, seasavg, seasstd)
+	* New module: Lsstat (lsmean, lsavg, lsmin, lsmax, lsstd)
+	* New operator: Selseas
+	* New operator: Splitseas
+	* Seldate: change parameter to start date and optional end date
+	* readline: add parameter max length
+	* grid.c: generate grid from CDI file
+	* remapcon: Bug fix for NORMALIZE_OPT and missing values
+	* pthread_create: check return value
+	* Version 0.9.2 released
+
+2004-10-14  Uwe Schulzweida
+	
+	* changes for CDI library version 0.8.4
+	* use compNlon to compute nlon from nlat
+	* pipeInqTimestep: Bug fix for Timstat in pipes
+	* Select: Print message if isel not found
+	* Timstat: add missing value support
+	* Runstat: add missing value support
+	* Lmstat: add missing value support
+	* Inttime: add missing value support
+	* Intyear: add missing value support
+	* Vertstat: add missing value support
+	* new operator: timmean, yearmean, monmean, daymean, hourmean
+	* new operator: runmean
+	* new operator: lmmean
+	* new operator: vertmean
+	* new operator: map (source code from PINGO)
+	* new operator: setreftime
+	* new operator: selrec
+	* new operator: splityear
+	* netCDF2 support
+	* Version 0.9.1 released
+
+2004-09-08  Uwe Schulzweida
+
+	* changes for CDI library version 0.8.3
+	* new module: Vertint (ml2pl, ml2hl)
+	* new module: Outputgmt (outputcenter, outputbounds)
+	* new operator: settaxis, settunits
+	* Arith, Cond, Comp:
+		input stream2 can only have 1 record or 1 timestep
+	* Inttime: set ntsteps to 1 if ijulinc = 0
+	* Timstat: set ntsteps to 1 for tim*
+	* seltimestep: set ntsteps to 1 if nsel = 1
+	* replace all streamCopyRecord by streamReadRecord and streamWriteRecord for piping
+	* Version 0.9.0 released
+	
+2004-07-09  Uwe Schulzweida
+
+	* changes for CDI library version 0.8.2
+	* new module: Remap (remapcon, remapbil, remapbic, remapdis)
+	* new module: Setgatt (setgatt, setgatts)
+	* new module: Sort (sortcode, sortvar, sortlevel)
+	* new module: Writegrid
+	* new module: Vertstat (vertmin, vertmax, vertsum, vertavg, vertstd)
+	* new operator: delcode, delvar
+	* Timstat, Lmstat: use absolute timeaxis for output
+	* bug fix for use alias names in pipeline
+	* sellonlatbox: bug fix for selection out of bounds
+	* new option -v: Print extra details for some operators
+	* new option -R: Convert reduced to regular grid
+	* Version 0.8.9 released
+	
+2004-05-21  Uwe Schulzweida
+
+	* changes for CDI library version 0.8.1
+	* Timstat, Runstat, Lmstat: extended for variables with TIME_CONSTANT
+	* pipeDefTimestep: compute nrecs for TIME_VARIABLE
+	* Splittime: bug fix for splithour and splitmon
+	* new operator: chvar, setvar
+	* new module: Intyear
+	* Version 0.8.8 released
+
+2004-04-19  Uwe Schulzweida
+
+	* changes for CDI library version 0.8.0
+	* Arith: new operator (min and max)
+	* Arith: extended for missing values
+	* Arithc: extended for missing values
+	* Selindexbox: extended for curivilinear grids
+	* new module: Fillmiss
+	* new module: Varrms
+	* new module: Fldrms
+	* new module: Setgridtype
+	* bug fix: setmisstoc
+	* bug fix: Change, Set, Settime - change copy to read/write
+	* Version 0.8.7 released
+	
+2004-03-14  Uwe Schulzweida
+
+	* changes for CDI library version 0.7.9
+	* change format for online help information
+	* new module: Change (chcode)
+	* new module: Set (setcode)
+	* new module: Settime (setdate, settime, setyear, setmon, setday)
+	* new module: Runstat (runmin, runmax, runsum, runavg, runstd)
+	* new module: Merstat (mermin, mermax, mersum, meravg, mermean, mervar, merstd)
+	* new module: Zonstat (zonmin, zonmax, zonsum, zonavg, zonmean, zonvar, zonstd)
+	* new module: Fldstat (fldmin, fldmax, fldsum, fldavg, fldmean, fldvar, fldstd)
+	* new module: Cond  (ifthen,  ifnotthen)
+	* new module: Condc (ifthenc, ifnotthenc)
+	* Select: select float levels instead of integer
+	* Infos: rename infos to sinfo and vinfo to infov
+	* Timstat: bug fix (calculate timerange)
+	* Version 0.8.6 released
+
+2004-01-05  Uwe Schulzweida
+
+	* changes for CDI library version 0.7.8
+	* New module: Cat (cat)
+	* New module: Selbox (selindexbox, sellonlatbox)
+	* New module: Merge (merge)
+	* New module: Output (output, outputint, outputsrv, outputext)
+	* New module: Genvar (random, const)
+	* New module: Arithconst (addc, subc, mulc, divc)
+	* New module: Math (sqr sqrt exp log log10 sin cos tan asin acos atan)
+	* New module: Ninfo (nyear nmon ndate ntime ncode nvar nlevel)
+	* New module: Showinfo (showyear showmon showdate showtime showcode showvar showlevel)
+	* gridFromName: add default grid name r<LON>x<LAT>
+	* Copy: changed from one to unlimited inputfiles
+	* Split: bug fix for splitcode
+	* Version 0.8.5 released
+
+2003-12-14  Uwe Schulzweida
+
+	* changes for CDI library version 0.7.7
+	* pipe bug fix
+	* New module: Lmstat (lmean, lmavg, lmmin, lmmax, lmstd)
+	* New module: Splitrec
+	* Version 0.8.4 released
+
+2003-10-29  Uwe Schulzweida
+
+	* changes for CDI library version 0.7.5
+	* Version 0.8.3 released
+
+2003-10-12  Uwe Schulzweida
+
+	* changes for CDI library version 0.7.4
+	* changes for CDI library version 0.7.2 (HDF test interface)
+	* New operator: intarea, setctomiss, setmisstoc, setrangetomiss
+	* Version 0.8.2 released
+
+2003-09-22  Uwe Schulzweida
+
+	* New operator: interpolate (source from PINGO)
+	* Version 0.8.1 released
+
+2003-09-10  Uwe Schulzweida
+
+	* renamed to CDO (Climate Data Operators)
+	* changes for CDI library version 0.7.0
+	* replace info with vlist
+	* New operator: splithour, splitday, splitmon
+	* Version 0.8.0 released
+
+2003-07-30  Uwe Schulzweida
+
+	* changes for gdi library version 0.6.0
+	* Info.c: handle missing values
+	* Version 0.7.0 released
+
+2003-06-25  Uwe Schulzweida
+
+	* gdi library version 0.5.11
+	* New operator: intgridtraj, mastrfu
+	* Version 0.6.4 released
+
+2003-06-23  Uwe Schulzweida
+
+	* New operator: intgrid, intpoint, inttime
+	* Version 0.6.3 released
+
+2003-06-12  Uwe Schulzweida
+
+	* gdi library version 0.5.9
+	* grib library version 0.4.5
+	* Version 0.6.2 released
+
+2003-05-17  Uwe Schulzweida
+
+	* add module Spectral with operator sp2gp, gp2sp and sp2sp
+	* Version 0.6.1 released
+
+2003-04-06  Uwe Schulzweida
+
+	* Version 0.6.0 released

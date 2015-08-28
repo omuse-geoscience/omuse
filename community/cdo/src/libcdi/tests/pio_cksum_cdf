@@ -1,0 +1,15 @@
+#! /bin/bash
+pio_write_args="-f nc4 -w 3"
+mpi_task_num=7
+LOG=pio_cksum_cdf.log
+suffix=nc4
+if [ "" = yes -a "yes" = yes ]; then
+  . ./pio_write_run
+else
+  exit 77
+fi
+#
+# Local Variables:
+# mode: sh
+# End:
+#

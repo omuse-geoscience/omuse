@@ -1,0 +1,1769 @@
+2015-10-28  Uwe Schulzweida
+
+	* Version 1.7.0 released
+
+2015-06-16  Uwe Schulzweida
+
+	* merge changes from branches/cdi-tiles [from Florian Prill]
+	* added rubyVersionCheck.patch [from Nathanael Huebbe]
+
+2015-06-02  Uwe Schulzweida
+
+	* gribapiDefParam: check range of parameter number
+
+2015-05-28  Uwe Schulzweida
+
+	* dmemory: added env. MEMORY_INFO
+
+2015-04-28  Uwe Schulzweida
+
+	* Version 1.6.9 released
+        * using CGRIBEX library version 1.7.2
+
+2015-04-22  Uwe Schulzweida
+
+	* gribapiDefParam: use cfName to find parameter ids
+	* cgribex rotated grids: added support for parameter >angle< (bug fix)
+	* netcdf rotated grids: bug fix for negative angles
+
+2015-04-21  Uwe Schulzweida
+
+	* dmemory.c: merge changes from branches/cdi-tilesAndFileDrivenInput
+
+2015-03-30  Uwe Schulzweida
+
+	* gribapiDefLevel: use function grib2DefLevel() to write grib2 levels
+
+2015-03-29  Uwe Schulzweida
+
+	* vlistMerge: compare size of grids (bug fix)
+
+2015-03-27  Uwe Schulzweida
+
+	* gribapiScanTimestep1: fixed bug from previous merge of branches/cdi_fileDrivenInput (GRIB2 read failed)
+
+2015-03-26  Uwe Schulzweida
+
+        * merged changes from branches/cdi_fileDrivenInput
+
+2015-03-26  Uwe Schulzweida
+
+	* Version 1.6.8 released
+        * using CGRIBEX library version 1.7.1
+
+2015-02-18  Uwe Schulzweida
+
+	* cdiDecodeTimevalue: fix rounding error for negativ timevalue
+
+2015-02-12  Uwe Schulzweida
+
+	* scan netcdf time units attribute (bug fix)
+
+2015-02-02  Uwe Schulzweida
+
+	* gribapiDefDateTimeRel: forecastTime [Bug #5435]
+	* cdfCopyRecord: incorrect checksum for freed object [Bug #5461]
+
+2015-01-16  Uwe Schulzweida
+
+	* cdiDecodeTimevalue: round seconds for TUNIT_SECOND (bug fix)
+
+2015-01-12  Uwe Schulzweida
+
+	* cdfCreateRecords: call cdfCreateRecords(streamptr, 1) if not done before (bug fix)
+
+2015-01-09  Uwe Schulzweida
+
+	* cdi_create_records: the contents of unused records must not be interpreted (bug fix) [patch from Nathanael Huebbe]
+
+2014-12-19  Uwe Schulzweida
+
+	* netCDF: renamed coordinate bounds dimension from nv2 to bnds
+	* netCDF: renamed time bounds dimension from nb2 to bnds
+
+2014-12-11  Uwe Schulzweida
+
+	* Version 1.6.7 released
+
+2014-12-10  Uwe Schulzweida
+
+	* vlistDefAttXXX: limit length of attribute name to CDI_MAX_NAME
+
+2014-12-05  Uwe Schulzweida
+
+	* netCDF absolute time axis with units month: change day from 00 to 01
+	* netCDF absolute time axis with units year: change month/day from 0000 to 0101
+
+2014-12-03  Uwe Schulzweida
+
+	* gribapi: time dependent metadata [Feature #4720]
+
+2014-12-01  Uwe Schulzweida
+
+	* GRIB_API output does not work (bug fix)
+
+2014-11-27  Uwe Schulzweida
+
+	* Version 1.6.6 released
+
+2014-11-20  Uwe Schulzweida
+
+	* table::decodeForm1: missing longname results in Abort trap (bug fix)
+
+2014-11-14  Uwe Schulzweida
+
+	* cdfCopyRecord: removed limit for datasize
+
+2014-11-12  Uwe Schulzweida
+
+	* Version 1.6.5.2 released
+
+2014-11-12  Uwe Schulzweida
+
+	* transpose2dArrayXX: wrong result (bug fix)
+
+2014-11-08  Uwe Schulzweida
+
+	* cgribexScanTimestep1: set flag to 0 in call to cgribexVarCompare() (bug fix)
+
+2014-11-05  Uwe Schulzweida
+
+	* IEG: added support for coordinate scale factor [patch from Kevin Sieck]
+
+2014-10-31  Uwe Schulzweida
+
+	* Version 1.6.5.1 released
+
+2014-10-31  Uwe Schulzweida
+
+	* netCDF: call set_validrangeDP() in cdfReadVar() (bug fix)
+	* netCDF: call cdfDoInputDataTransformation() if have missvals (bug fix)
+
+2014-10-24  Uwe Schulzweida
+
+        * gridCompare: change limit of difference from 0.001 to 0.0015
+
+2014-10-23  Nathanael Huebbe
+
+	* resource_handle: optimize error messages
+
+2014-10-23  Uwe Schulzweida
+
+	* Version 1.6.5 released
+	* using CGRIBEX library version 1.6.5
+
+2014-10-21  Uwe Schulzweida
+
+	* vlistDefVarXXXKey: check validity of vlist object [Feature #4720]
+	* lock CDI internal vlist objects
+
+2014-10-13  Uwe Schulzweida
+
+	* added support for grib_api key typeOfSecondFixedSurface
+
+2014-10-10  Uwe Schulzweida
+
+	* netCDF: added support 1D level variables
+
+2014-10-07  Uwe Schulzweida
+
+	* read netCDF: cache time variable
+
+2014-08-21  Uwe Schulzweida
+
+	* reshGetElem: call show_stackframe() to print a backtrace
+
+2014-08-20  Uwe Schulzweida
+
+	* added CDI function gribapiLibraryVersion(major_version, minor_version, revision_version) [Feature #5043]
+
+2014-08-15  Uwe Schulzweida
+
+	* gridCompare: check position parameter of unstructured grids only if gridnumber > 0
+
+2014-08-13  Uwe Schulzweida
+
+	* cgribex: use timerange indicator to identify different variables
+	* gribapi: use timerange indicator to identify different variables
+
+2014-08-12  Daniel Reinert
+
+	* listDestroy(): set resHListSize=0 [Bug #5058]
+	* NetCDF: Reading uuidOfVGrid [Bug #5046]
+
+2014-08-04  Nathanael Huebbe
+
+	* NetCDF single precision input
+
+2014-07-31  Uwe Schulzweida
+
+	* netCDF4: added support for xtype NC_STRING
+
+2014-07-25  Uwe Schulzweida
+
+	* vlistInqAtt: return -1 if attnum is out of range
+	* vlistInqAttXXX: return -1 if attname not found
+
+2014-07-24  Uwe Schulzweida
+
+	* gribapiEncode: update additional keys defined with vlistDefVarXXXKey() [Feature #4720]
+
+2014-07-22  Uwe Schulzweida
+
+	* added vlistDefVarProductDefinitionTemplate() to define GRIB2 Product Definition Template Number [Feature #4694]
+
+2014-07-21  Uwe Schulzweida
+
+	* gribapiDefSteptype: changed proDefTempNum to 1/11 for typeOfGeneratingProcess=4
+	* file write: set default to NONBLOCK if available
+
+2014-07-18  Uwe Schulzweida
+
+	* added function streamReadVarF() and streamReadVarSliceF()
+	* streamWriteVarF, streamWriteVarSliceF: added support for GRIB1 (cgribex)
+
+2014-07-17  Uwe Schulzweida
+
+	* grib2: activate jpeg support in combination with masks (missing values)
+
+2014-07-01  Uwe Schulzweida
+
+	* netCDF: skip coordinate variables with more than 2 dimension
+
+2014-06-26  Uwe Schulzweida
+
+	* Version 1.6.4 released
+	* using EXSE library version 1.3.2
+	* using CGRIBEX library version 1.6.4
+
+2014-06-16  Uwe Schulzweida
+
+	* added support for env var CDI_NETCDF_HDR_PAD (pad netCDF header with nbr bytes)
+
+2014-06-06  Uwe Schulzweida
+
+	* Loss of coordinates attribute when merging files [Bug #4880]
+
+2014-06-04  Uwe Schulzweida
+
+	* netCDF: do not defined attribute calendar and units for time bounds [report: Stephanie Legutke]
+
+2014-05-19  Uwe Schulzweida
+
+	* netCDF: added support for  opendap files by https
+
+2014-05-16  Uwe Schulzweida
+
+	* netCDF: added write support of lat/lon coordinates without dimension
+
+2014-05-15  Uwe Schulzweida
+
+	* cgribexGetGrid: correct last lon when last lon < first lon
+
+2014-05-14  Uwe Schulzweida
+
+	* netCDF: skip unsupported dimension (no xyzt)
+
+2014-05-13  Uwe Schulzweida
+
+	* netCDF: added read support for lon/lat coordinates without dimension
+
+2014-05-12  Uwe Schulzweida
+
+	* gridCreate: removed default stdname and units  for GENERIC grids
+
+2014-05-11  Uwe Schulzweida
+
+	* added support for GRIB_API key cfName
+
+2014-04-10  Uwe Schulzweida
+
+	* varscan::cmpparam: apply patch from Thomas Jahns
+
+2014-03-24  Uwe Schulzweida
+
+	* configure --with-netCDF: set default=no
+	* gribapiDefDateTimeRel: set vdate to rdate for time invariant fields [Bug #4641]
+
+2014-03-20  Uwe Schulzweida
+
+	* netCDF4: changed default file name suffix from nc4 to nc
+	* GRIB2: changed default file name suffix fromg g2 to grb
+
+2014-03-10  Uwe Schulzweida
+
+	* netCDF4 classic: existing files are converted to netCDF4 - classic flag is lost (bug fix)
+	* cgribexDefParam: check validity of parameter number
+
+2014-03-04  Uwe Schulzweida
+
+	* zaxisCreate: check number of levels
+
+2014-02-27  Uwe Schulzweida
+
+	* added taxisDefFdate() and taxisDefFtime() - Define the forecast reference date
+	* added taxisInqFdate() and taxisInqFtime() - Get  the forecast reference date
+
+2014-02-21  Uwe Schulzweida
+
+	* grib_api: debug patch from Florian and Daniel
+
+2014-02-20  Uwe Schulzweida
+
+	* grib2: set stepUnits after changing the template [Bug #4500]
+
+2014-02-14  Uwe Schulzweida
+
+	* Version 1.6.3 released
+	* using CGRIBEX library version 1.6.3
+
+2014-02-03 Uwe Schulzweida
+
+	* gridInqUUID: changed return value from char* to void
+	* zaxisInqUUID: changed return value from char* to void
+
+2014-01-31 Uwe Schulzweida
+
+	* stream_cdf: added cdfDefZaxisUUID() [patch: Florian Prill]
+
+2014-01-13 Uwe Schulzweida
+
+	* stream_cdf::define_all_grids: bug fix for unstructured grids and an additional undefined dimension [report: Florian Prill]
+
+2014-01-08  Uwe Schulzweida
+
+	* streamInqGinfo: added support for GRIB files > 2GB
+
+2014-01-03  Uwe Schulzweida
+
+	* streamOpenA, streamOpen: parameter recordBufIsToBeCreated missing in call to cdiStreamOpenDefaultDelegate() (bug fix)
+
+2013-12-09  Uwe Schulzweida
+
+	* streamOpenA: removed line "streamptr->record = record"; record is allocated in cdiStreamOpenDefaultDelegate() (bug fix)
+
+2013-11-28  Uwe Schulzweida
+
+	* Merged branch cdi-pio to trunk cdi
+
+2013-11-12  Uwe Schulzweida
+
+	* Version 1.6.2 released
+	* using CGRIBEX library version 1.6.2
+
+2013-11-05  Uwe Schulzweida
+
+	* Added CDI function zaxisDefNlevRef() and zaxisInqNlevRef() [Feature #4117]
+
+2013-11-04  Uwe Schulzweida
+
+	* Merged branch cdi-pio to trunk cdi
+
+2013-10-22  Uwe Schulzweida
+
+	* Added support for netCDF CF time attribute: climatology [Feature #4092]
+
+2013-10-17  Uwe Schulzweida
+
+	* stream_cdf::isLatAxis() and isLonAxis(): added support for stdname latitude and longitude
+
+2013-10-15  Uwe Schulzweida
+
+	* added support for GRIB2 key typeOfGeneratingProcess
+	* added interface function vlistDefVarTypeOfGeneratingProcess() and vlistInqVarTypeOfGeneratingProcess()
+
+2013-10-07  Uwe Schulzweida
+
+	* listSizeExtend: initialize ops, val and status (Bug #3994) 
+
+2013-10-07  Uwe Schulzweida
+
+	* stream_cdf::isLonAxis/isLatAxis: case sensitive units check
+
+2013-09-02  Uwe Schulzweida
+
+	* streamCopyRecord: allow mixed netCDF file types
+
+2013-08-26  Uwe Schulzweida
+
+	* gribapiDefLevel: Bug fix for ZAXIS_REFERENCE (Bug #3747)
+
+2013-08-16  Uwe Schulzweida
+
+	* netCDF: read reference of an unstructured grid
+	* netCDF: write reference of an unstructured grid
+
+2013-08-15  Uwe Schulzweida
+
+	* made gridtype GRID_REFERENCE part of GRID_UNSTRUCTED
+	* removed gridtype GRID_REFERENCE
+
+2013-08-12  Uwe Schulzweida
+
+	* GRIB2: added support for level type Lake Bottom (grib level type 162)
+        * GRIB2: added support for level type Bottom Of Sediment Layer (grib level type 163)
+        * GRIB2: added support for level type Bottom Of Thermally Active Sediment Layer (grib level type 164)
+        * GRIB2: added support for level type Bottom Of Sediment Layer Penetrated By Thermal Wave (grib level type 165)
+        * GRIB2: added support for level type Mixing Layer (grib level type 166)
+
+2013-08-09  Uwe Schulzweida
+
+	* gribapiGetValidityDateTime: check timeRangeIndicator for editionNumber =1 (bug fix)
+
+2013-07-16  Uwe Schulzweida
+
+	* netCDF: added support for zaxis attribute: positive
+
+2013-07-15  Uwe Schulzweida
+
+	* Version 1.6.1.1 released (merged branch cdi-pio to trunk cdi)
+
+2013-07-08  Uwe Schulzweida
+
+	* netCDF: wrong result if type  of data and type of attribute valid_range differ [Bug #3727]
+
+2013-07-04  Uwe Schulzweida
+
+	* gribapiDefLevel::ZAXIS_DEPTH_BELOW_LAND: apply scalefactor to dlevel2 (bug fix) [report: Harald Anlauf]
+	* streamFilesuffix: changed default filename suffix for FILETYPE_NC2 to nc
+
+2013-06-28  Uwe Schulzweida
+
+	* Version 1.6.1 released
+	* using CGRIBEX library version 1.6.1
+
+2013-06-27  Uwe Schulzweida
+
+	* file.c: added env. var. FILE_TYPE_WRITE (1:open; 2:fopen)
+
+2013-06-11  Uwe Schulzweida
+
+	* GRIB2: added support for snow level (level type 114)
+	* GRIB2: added support for layers with zaxis type ZAXIS_PRESSURE
+
+2013-06-06  Uwe Schulzweida
+
+	* cdfDefVarMissval: changed xtype from NC_BYTE to NC_INT for missvals > 127 (workaround for a netCDF bug)
+	* use 'number_of_grid_used' only for undefined grid types
+
+2013-06-03  Uwe Schulzweida
+
+	* added patch from Florian Prill: Lesen von 'number_of_grid_used', GRID_REFERENCE (bug fix)
+
+2013-05-29  Uwe Schulzweida
+
+	* netCDF: skip 4D variables without time dimension (bug fix)
+
+2013-05-28  Uwe Schulzweida
+
+	* GRIB2: added support for pressure levels with 3 fractional digits
+
+2013-05-27  Uwe Schulzweida
+
+	* gribapiGetEndStep: use stepUnits for timeunits2
+	* grib2GetLevel: set level bounds if  0 < leveltype2 < 255
+
+2013-05-23  Uwe Schulzweida
+
+	* netCDF: missing_value attribute removed [Bug #3592]
+
+2013-05-17  Uwe Schulzweida
+
+	* added CDI function cdiHaveFiletype() to check whether a filetype is available
+
+2013-05-13  Uwe Schulzweida
+
+	* added patch from Florian Prill: Lesen von "Nicht-Standard" GRIB-Keys (bug fix)
+
+2013-04-26  Uwe Schulzweida
+
+	* added patch from Florian Prill: Lesen von "Nicht-Standard" GRIB-Keys
+
+2013-04-25  Uwe Schulzweida
+
+	* institutInq: check contents of name and longname (bug fix) [Bug #3419]
+
+2013-04-23  Uwe Schulzweida
+
+	* cfortran.h::kill_trailing: wrong result with gcc -O3, use prama for -O2 (bug fix) [report: Luis Kornblueh]
+	* vlistXXXAttTxt: use cdi fortran datatype CBUF (char *) for the last argument (bug fix) [report: Luis Kornblueh]
+	* gridXXXUUID: use cdi fortran datatype CBUF (char *) for the last argument (bug fix) [Bug #3424]
+	* zaxisXXXUUID: use cdi fortran datatype CBUF (char *) for the last argument (bug fix)
+
+2013-04-19  Uwe Schulzweida
+
+	* stream_gribapi: replaced function getLevelFactor() [Bug #3446]
+
+2013-04-18  Uwe Schulzweida
+
+	* added function vlistDefVarExtra() and vlistInqVarExtra()
+
+2013-04-04  Uwe Schulzweida
+
+	* vlistDefVarDatatype: changed default missing values of signed integers to -TYPE_MAX
+
+2013-04-02  Uwe Schulzweida
+
+	* cdi.h: changed >char*< to >char *< (bug fix for fortran interface)
+	* make_cdilib: changed position of error.c and error.h (bug fix)
+
+2013-03-14  Uwe Schulzweida
+
+	* Version 1.6.0 released
+	* using CGRIBEX library version 1.6.0
+
+2013-03-13  Florian Prill
+
+	* Read arbitrary GRIB keys [Feature #3267]
+
+2013-03-13  Uwe Schulzweida
+
+	* GRIB: added support for time step unit: seconds [Bug #3352]
+
+2013-03-12  Uwe Schulzweida
+
+	* Added support for level type CLOUD_BASE, CLOUD_TOP and ISOTHERM_ZERO [Feature #3247]
+	* stream_gribapi: changed units for level type GRIB2_LTYPE_LANDDEPTH to m (internally mm) [Bug #3287]
+	* gribapiGetGrid: get gridDescriptionFile with grib_get_string() instead of grib_get_bytes() (bug fix)
+
+2013-03-11  Uwe Schulzweida
+
+	* stream_gribapi: added support for local table shortName.def [Bug #3343]
+
+2013-03-08  Uwe Schulzweida
+
+	* vtime2timeval: check validity of month
+
+2013-03-07  Uwe Schulzweida
+
+	* cdfDefGrid: bug fix for generic grids with nx or ny > 0
+	* netCDF: ignore the attribute valid_min/valid_max, if the data type is inconsistent
+
+2013-02-18  Florian Prill
+
+	* Added function vlistDefVarIntKey() and vlistDefVarDblKey() to set GRIB_API Key/Value pairs
+
+2013-02-13  Uwe Schulzweida
+
+	* cgribexGetTsteptype: changed default to TSTEP_INSTANT [Bug #3211]
+
+2013-02-04  Uwe Schulzweida
+
+	* netCDF: ignore the attribute valid_range, if the data type is inconsistent
+	* netCDF: added env IGNORE_VALID_RANGE to ignore the attribute valid_range
+
+2013-01-31  Uwe Schulzweida
+
+	* stream_cgribex::cgribexGetGrid: add 360 to lastLon, if lastlon <firstLon [Bug #3189]
+
+2013-01-08  Uwe Schulzweida
+
+	* netCDF: check position of time dimension
+
+2013-01-15  Thomas Jahns
+
+	* make_fint.c: added regexec support
+
+2013-01-08  Uwe Schulzweida
+
+	* global netCDF attribute "source" missing (bug fix)
+
+2012-12-18  Uwe Schulzweida
+
+	* reshGetValue: added caller function name to error message
+
+2012-12-17  Uwe Schulzweida
+
+	* Version 1.5.9 released
+        * using CGRIBEX library version 1.5.6
+
+2012-12-13  Uwe Schulzweida
+
+	* removed unused function streamDefineTaxis()
+	* fix warning in streamDefTimestep() for stream with constant fields only
+
+2012-12-11  Uwe Schulzweida
+
+	* added cdfGridCompress() to compress coordinates
+	* added vlistDefVarChunkType() and vlistInqVarChunkType()
+
+2012-12-03  Uwe Schulzweida
+
+	* vlistCopyFlag: added support for level bounds
+
+2012-11-26  Uwe Schulzweida
+
+	* netCDF: added support for time axis name and long_name
+
+2012-11-17  Uwe Schulzweida
+
+	* stream_cdf::define_all_vars: added txt attributes to vlistDefAttTxt() without trailing 0 [Bug #3004]
+
+2012-11-16  Uwe Schulzweida
+
+	* file.c: added support for unbuffered write
+
+2012-11-15  Uwe Schulzweida
+
+	* cdfReadVarSliceDP: store DATATYPE_FLT32 in a float array and	convert it to double (speedup 2x)
+	* cdfInqTimestep: added check for timevalue = NC_FILL_DOUBLE
+
+2012-11-14  Uwe Schulzweida
+
+	* app/cdi: added optional compression level -z zip[_1-9]
+
+2012-11-09  Uwe Schulzweida
+
+	* file.c::file_initialize: added support for env GRIB_API_IO_BUFFER_SIZE [request: Florian Prill]
+
+2012-11-07  Uwe Schulzweida
+
+	* gridGenXvals/gridGenYvals: removed changes from 1.5.8 (bug fix)
+	* cgribexGetGrid: bug fix for xinc/yinc recomputation
+
+2012-11-05  Uwe Schulzweida
+
+	* grib2: correct endStep if timeunits is not equal stepUnits (bug fix)
+	* cgribexGetGrid: bug fix for yinc for odd ysize
+
+2012-10-30  Uwe Schulzweida
+
+	* Version 1.5.8 released
+	* using CGRIBEX library version 1.5.5
+
+2012-10-29  Uwe Schulzweida
+
+	* stream_cgribex.c: do not check fraction of xinc/yinc" stream_cgribex.c
+	* gridGenXvals/gridGenYvals: recheck xinc/yinc if (first+(size-1)*inc) > last
+
+2012-10-26  Uwe Schulzweida
+
+	* stream_gribapi.c::gribapiScanTimestep: changed GRIBAPI_MISSVAL to cdiDefaultMissval
+
+2012-10-18  Uwe Schulzweida
+
+	* vlistCopyFlag: copy ensdata (bug fix) [report: Jaison Ambadan]
+
+2012-10-16  Uwe Schulzweida
+
+	* grib2: changed packingType from grid_jpeg to grid_simple if nmiss > 0 (bug fix)
+
+2012-10-18  Uwe Schulzweida
+
+	* grib2: added stepType support for absolute time axis
+
+2012-10-15  Uwe Schulzweida
+
+	* pio.h remove line 'typedef int MPI_Comm;' [Bug #2882]
+
+2012-09-21  Uwe Schulzweida
+
+	* vlistInqZaxis: use zaxisGetIndexList() to get global zaxisIDs (bug fix)
+
+2012-09-20  Uwe Schulzweida
+
+	* listSizeExtend: init ops, val and status
+
+2012-09-20  Thomas Jahns
+
+	* listInitialize: set mutex type to PTHREAD_MUTEX_RECURSIVE
+
+2012-09-11  Uwe Schulzweida
+
+	* cdfInqContents: make ncid local to varid
+	* cdfInqContents: group reading of global attribute to read_global_attributtes()
+	* cdfInqContents: set ntsteps to 0 if no data variable found
+	* netCDF: set 1D arrays to coordinate variables if axis attribute is available
+
+2012-09-10  Uwe Schulzweida
+
+	* unreduced: compute nlon and nvalues from rowlon[] (bug fix)
+
+2012-09-05  Uwe Schulzweida
+
+	* cgribexEncode: initialize the first 256 entries of isec1 to zero
+
+2012-08-30  Uwe Schulzweida
+
+	* app/cdi: changed output format of option -s (sinfo)
+
+2012-08-27  Uwe Schulzweida
+
+	* Version 1.5.7 released
+	* model.c::modelInq*: check instID != UNDEFID (buf fix)
+	* institution.c::insitutInq*: check instID != UNDEFID (buf fix)
+	* Merge of branch cdo-pio into trunk cdi
+	* using CGRIBEX library version 1.5.4
+	* using EXSE library version 1.3.1
+
+2012-07-23  Uwe Schulzweida
+
+	* Version 1.5.6 released
+	* using CGRIBEX library version 1.5.3
+
+2012-07-17  Modali Kameswarrao
+
+	* added vlistDefVarEnsemble() for GRIB1 and netCDF
+
+2012-07-13  Uwe Schulzweida
+
+	* added call to cdiInitialize() in all streamOpen functions (bug fix)
+	* added support for environment variable NC_CHUNKSIZEHINT [Feature #2142]
+
+2012-07-04  Uwe Schulzweida
+
+	* grib scan timestep: changed Error() to Warning() for inconsistent timesteps
+
+2012-07-04  Uwe Schulzweida
+
+	* stream_cdf::define_all_grids: modify check for same x and y varids
+	* cdfInqContents: set all undefined 1D variables to data variables [request: Florian Prill]
+
+2012-06-20  Uwe Schulzweida
+
+	* cdf_write_var_data: bug fix for unscaled uint8, int8, int16, int32 (bug introduced in 1.5.5)
+
+2012-06-18  Uwe Schulzweida
+
+	* grib_api: use key significanceOfReferenceTime only for GRIB2
+
+2012-06-06  Uwe Schulzweida
+
+	* added support for grib_api key stepType  [request: Dörte Liermann]
+	* changed TIME_CONSTANT and TIME_VARIABLE to TSTEP_CONSTANT and TSTEP_XXX
+	* renamed vlistInqVarTime() vlistInqVarTsteptype()
+
+2012-06-01  Uwe Schulzweida
+
+	* stream_gribapi: added support for level type HYBRID_HALF	[request: Dörte Liermann]
+
+2012-05-18  Uwe Schulzweida
+
+	* stream_cdf::cdfDefUnstructured: fixed memory bug [ICON - Bug #2398]
+
+2012-05-15  Uwe Schulzweida
+
+	* Version 1.5.5 released
+	* using CGRIBEX library version 1.5.2
+
+2012-05-02 Uwe Schulzweida
+
+	* cdi.h: added vlistDefVarTime() [request: Florian Prill]
+
+2012-05-02 Uwe Schulzweida
+
+	* stream_gribapi: bug fix for validation date and time
+
+2012-04-27 Uwe Schulzweida
+
+	* stream_cdf::define_all_grids: changed scale_add() parameter from x to y (bug fix)
+
+2012-04-26 Uwe Schulzweida
+
+	* added support for ZAXIS_DEPTH_BELOW_LAND units "mm",  "cm", "dm" and "m"
+
+2012-03-24 Uwe Schulzweida
+
+	* added single precision support: streamWriteVarF, streamWriteVarSliceF
+
+2012-02-15 Uwe Schulzweida
+
+	* stream_cdf::cdfDefDatatype: bug fix for DATATYPE_UINT8
+
+2012-02-02 Uwe Schulzweida
+
+	* stream_cdf::cdfDefCurvilinear: bug fix for CLM s,u,v grids [report: Hans-Jürgen Panitz]
+
+2012-01-30 Uwe Schulzweida
+
+	* Version 1.5.4 released
+
+2011-12-27 Uwe Schulzweida
+
+	* added support for GRIB2 packing type grid_ieee
+
+2011-12-19 Luis Kornblueh
+
+	* added suppport for GRIB2 level type 150
+
+2011-12-13 Uwe Schulzweida
+
+	* verify_coordinate_vars: bug fix in check for units = "1" [report: Katharina Six]
+
+2011-11-11 Uwe Schulzweida
+
+	* added support for netCDF attributes scale_factor and add_offset for lon/lat coordinates
+
+2012-01-06  Uwe Schulzweida
+
+	* added support for GRIB gaussian grid parameter NumPar on non global grids [Bug #1711]
+	* added interface functions gridDefNP/gridInqNP (number of parallels between a pole and the equator)
+
+2011-11-04 Uwe Schulzweida
+
+	* added support for GRIB1_LTYPE_SIGMA_LAYER
+
+2011-11-01 Uwe Schulzweida
+
+	* added support for netcdf attribute valid_min/valid_max [request: Etienne Tourigny]
+
+2011-10-27 Uwe Schulzweida
+
+	* cdilib.c::defineAttributes: bug fix atttxt [report: Florian Prill]
+
+2011-10-25 Uwe Schulzweida
+
+	* added support for netcdf attribute valid_range [request: Etienne Tourigny]
+
+2011-10-17  Uwe Schulzweida
+
+	* Version 1.5.3 released
+	* using CGRIBEX library version 1.5.1
+
+2011-10-11  Uwe Schulzweida
+
+       * zaxisCompare: set epsilon from 0 to 1e-9 [request: Felicia Brisc]
+
+2011-10-06  Uwe Schulzweida
+
+	* added level type ZAXIS_TOA, ZAXIS_SEA_BOTTOM, ZAXIS_ATMOSPHERE [request: Dörte Liermann]
+
+2011-10-05  Uwe Schulzweida
+
+	* stream_cdf::cdfInqContents: check units of hybrid levels
+	* varAddRecord: used max number of bit_per_value for 3D GRIB data
+	* gribapiDefGrid: added parameter jScansPositively [report: Juan Jose Tasso]
+
+2011-10-02  Uwe Schulzweida
+
+	* deflate compression with netCDF4 doesn't work (bug fix) [report: Geert Jan van Oldenborgh]
+
+2011-09-21  Uwe Schulzweida
+
+	* correct netCDF dimension order of unstructured grids (bug fix) [report: Ralf Mueller]
+
+2011-08-22 Uwe Schulzweida
+
+	* Version 1.5.2 released
+
+2011-08-15  Uwe Schulzweida
+
+	* streamFilesuffix: added suffix for filetype NC4C (bug fix)
+
+2011-08-06  Uwe Schulzweida
+
+	* scanVarAttributes: check size of axis attribute (bug fix) [report: David Huard]
+
+2011-07-29  Uwe Schulzweida
+
+	* Added flexible XYZ dimension ordering for netCDF [request: Andy Aschwanden]
+
+2011-07-28  Uwe Schulzweida
+
+	* added interface function vlistDefVarXYZ to set the dimension order
+
+2011-07-23  Pier Giuseppe Fogli
+
+	* added interface function zaxisInqVct to read the VCT
+
+2011-07-23  Uwe Schulzweida
+
+	* netcdf input: correct wrong formatted time units [request: Harald Anlauf]
+
+2011-07-14  Uwe Schulzweida
+
+	* netcdf: added support for GRID_FOURIER (fourier coefficients)
+
+2011-07-12  Uwe Schulzweida
+
+	* Version 1.5.1 released
+
+2011-07-07  Uwe Schulzweida
+
+	* vlistCopy: allocate and copy varsAllocated elements (bug fix) [report: Ralf Mueller]
+
+2011-06-24  Uwe Schulzweida
+
+	* vtime2timeval: do not round result (bug fix for TUNIT_YEAR) [report: Andy Aschwanden]
+
+2011-06-01  Uwe Schulzweida
+
+	* CDI: changed compression type from Ztype to CompType
+	* CDI: changed compression level from Zlevel to CompLevel [report: Thomas Jahns]
+
+2011-05-13  Uwe Schulzweida
+
+	* gridGenYvals: changed delta eps to 0.002 for gaussian grids [report: John Lillibridge] 
+	* ruby/python interface: changed GRID_CELL to GRID_UNSTRUCTURED [report: Tim Cera]
+
+2011-05-12  Uwe Schulzweida
+
+	* grid::compareXYvals: bug fix for generic grids [report: Felicia Brisc]
+
+2011-04-28  Uwe Schulzweida
+
+	* Added attribute standard_name to netCDF time var [request: Karin Meier-Fleischer]
+	* Added attribute standard_name to netCDF zaxes [request: Karin Meier-Fleischer]
+	* Added attribute positive to netCDF zaxes [request: Karin Meier-Fleischer]
+
+2011-04-27  Uwe Schulzweida
+
+	* Added support for FILETYPE_NC4C (netcdf4 classic)
+	* netcdf: Skiped time dependent variables if number of time steps is zero
+
+2011-03-15  Uwe Schulzweida
+
+	* using CGRIBEX library version 1.5.0
+	* Version 1.5.0 released
+
+2011-03-13  Uwe Schulzweida
+
+	* stream_cdf: added support for GRIB2 parameter identifier
+
+2011-03-08  Uwe Schulzweida
+
+	* Version 1.4.8 released
+
+2011-02-06  Uwe Schulzweida
+
+	* vlistDestroy: fix memory leak
+
+2011-01-25  Uwe Schulzweida
+
+	* added netCDF support for level bounds
+
+2011-01-21  Uwe Schulzweida
+
+	* added grid type GRID_REFERENCE
+	* changed grid name GRID_CELL to GRID_UNSTRUCTURED
+
+2011-01-19  Uwe Schulzweida
+
+	* added support to encode/decode GRIB1 with GRIB_API
+
+2011-01-03  Uwe Schulzweida
+
+	* using CGRIBEX library version 1.4.7
+	* Version 1.4.7 released
+
+2010-11-09  Uwe Schulzweida
+
+	* improved support for netCDF output from WRF model
+
+2010-10-28  Uwe Schulzweida
+
+	* cdfDefZaxis: changed hybrid level type from int to float
+	* taxisCopyTimestep: added mutex_lock
+	
+2010-10-26  Uwe Schulzweida
+
+	* cgribexAddRecord: correct xinc/yinc if necessary [report: Anders Ullerstig]
+	
+2010-10-12  Uwe Schulzweida
+
+        * cdfDefVCT: remove var mlev and ilev (bug fix) [report: Torsten Weber]
+
+2010-10-05  Uwe Schulzweida
+
+	* cdfOpenFile: create netCDF4 files without NC_CLASSIC_MODEL
+	* cdfOpenFile: switch off checking of netCDF4 format (read)
+	
+2010-09-27  Uwe Schulzweida
+
+        * cdfDefTime: bug fix for time units 3HOURS, 6HOURS, 12HOURS
+	
+2010-09-17  Uwe Schulzweida
+
+	* using CGRIBEX library version 1.4.6
+	* Version 1.4.6 released
+
+2010-09-09  Uwe Schulzweida
+
+	* GRIB1: use packing only for non constant fields [request: Luis Kornblueh]
+	* varDefZtype: bug fix [report: Stephanie Legutke]
+	
+2010-09-07  Ralf Mueller
+
+	* use libtool 2.2.10 for compiling + linking
+	* create shared + static library with PIC support by default
+	  (positions independant code)
+	* build CDI configuration file: cdi.settings
+
+2010-09-03  Uwe Schulzweida
+
+	* check axis attribute (bug fix) [report: Cui Chen]
+	
+2010-08-26  Uwe Schulzweida
+
+	* vlistCopyFlag: copy zaxis meta data
+	
+2010-08-25  Uwe Schulzweida
+
+	* Added support for attribute type int16 and float32 [Request: Don Murray]
+	
+2010-08-24  Uwe Schulzweida
+	
+	* Version 1.4.5.2 released [request: Luis Kornblueh]
+
+2010-08-02  Uwe Schulzweida
+
+	* added grid mask support
+	
+2010-07-26  Uwe Schulzweida
+
+	* added ECHAM6 GRIB1 code table
+
+2010-07-23  Uwe Schulzweida
+
+	* cdfInqContents: fixed out of bounds access to attstring [report: Heiner Widmann]
+	
+2010-07-05  Uwe Schulzweida
+
+	* cdfInqContents: fix problem of wrong stdname for grid description [report: Michael Boettinger]
+	* Version 1.4.5.1 released
+
+2010-07-05 Edi Kirk
+
+	* GRIB1 decode: Correct ZeroShiftError of simple packed spherical harmonics
+
+2010-07-01  Uwe Schulzweida
+
+	* cdfInqContents: use complex packing for spectral data [report: Edi Kirk]
+
+2010-06-30  Uwe Schulzweida
+
+	* using CGRIBEX library version 1.4.5.1 (szip bug fix for 24 bit data)
+
+2010-06-16  Uwe Schulzweida
+
+	* using CGRIBEX library version 1.4.5
+	* Version 1.4.5 released
+
+2010-05-16  Uwe Schulzweida
+
+	* stream_history: added NC4 support [report: Etienne Tourigny]
+	
+2010-05-13  Uwe Schulzweida
+
+	* cdfDefXYaxis: check also dimnames (bug fix) [report: Mikhail Itkin]
+	
+2010-05-12  Uwe Schulzweida
+
+	* stream_cdf: added support for uppercase attributes [request: Patrick Brockmann]
+	
+2010-05-07  Uwe Schulzweida
+
+	* gridGenYvals: bug fix for nlat > 4096 [report: Thomas Bergmann]
+
+2010-04-29  Uwe Schulzweida
+
+	* Version 1.4.4 released
+
+2010-04-24  Uwe Schulzweida
+
+	* gaussgrid: define M_SQRT2 [report: alastair.mckinstry@ichec.ie]
+
+2010-04-16  Uwe Schulzweida
+
+	* MAX_STREAMS: changed fixed size of 4096 to dynamic range of 1024 - 65536
+	* MAX_VLISTS:  changed fixed size of 4096 to dynamic range of 1024 - 65536
+	* MAX_TAXES:   changed fixed size of 4096 to dynamic range of 1024 - 65536
+	
+2010-04-13  Uwe Schulzweida
+
+	* cgribexDefTime: bug fix for GRIB time range 10
+	
+2010-04-09  Uwe Schulzweida
+
+	* added support for GRIB time units 3hours and 6hours [request: Jaison-Thomas Ambadan]
+	
+2010-04-01  Uwe Schulzweida
+
+	* vlistMerge: added support to merge levels
+
+2010-03-31  Uwe Schulzweida
+
+        * cgribexDefTime: bug fix for timerange=3 [report: Veronika Gayler]
+	* using CGRIBEX library version 1.4.4
+
+2010-03-30  Uwe Schulzweida
+
+	* vlistCat: correct temporary parameter numbers
+
+2010-03-19  Uwe Schulzweida
+
+	* added support for non integer time units MONTH
+
+2010-03-12  Uwe Schulzweida
+
+	* gauaw: bug fix for allocation of zfnlat for odd number of nlat
+
+2010-03-04  Uwe Schulzweida
+
+	* cdfDefGrid: check whether the variable or dimension name already exist
+	
+2010-02-27  Uwe Schulzweida
+
+        * grid.c: replace for loops by memcpy (speed up)
+
+2010-02-25  Uwe Schulzweida
+
+	* implementation of gridDestroy
+	
+2010-02-22  Uwe Schulzweida
+
+	* Version 1.4.3 released
+
+2010-02-18  Uwe Schulzweida
+
+	* grib1: bug fix for description of gaussian reduced grids [report: Klaus Wyser]
+
+2010-02-16  Uwe Schulzweida
+
+	* gauaw: new code to calculate gaussian grid [Luis Kornblueh]
+	
+2010-02-15  Uwe Schulzweida
+
+	* rotated grids: correct standard name [report: Michael Boettinger]
+	* cgribexDefTime: bug fix for timerange = -1
+
+2010-02-10  Uwe Schulzweida
+
+	* added support for encoding of complex packed spectral data in GRIB1
+
+2010-02-09  Uwe Schulzweida
+
+	* added function gridInqComplexPacking/gridDefComplexPacking
+
+2010-02-08  Uwe Schulzweida
+
+	* Version 1.4.2 released
+
+2010-01-25  Uwe Schulzweida
+
+	* added support for timerange 1,2,3,4,5 (GRIB1)
+
+2010-01-14  Uwe Schulzweida
+
+	* cdfDefVar: define add_offset and scale_factor always together
+	
+2010-01-13  Uwe Schulzweida
+
+	* added optional sorting of parameters
+
+2010-01-13  Oliver Fuhrer
+
+	* added support for cosmo GRIB parameter tables
+	* added missing value support for cosmo GRIB files
+
+2010-01-07  Uwe Schulzweida
+
+	* using CGRIBEX library version 1.4.2 (large record support)
+	
+2009-12-29  Uwe Schulzweida
+
+	* using EXSE library version 1.2.0 (complex numbers with EXTRA)
+
+2009-12-15  Uwe Schulzweida
+
+	* fileRead: check result of fread
+	* binReadF77Block: check result of fileRead
+	* Version 1.4.1 released
+
+2009-12-11  Uwe Schulzweida
+
+	* streamSync: check that vlist has variables to sync [report: Martin Schultz]
+	
+2009-12-09  Uwe Schulzweida
+
+	* cdfDefVar: define attribute _FillValue if missval was defined (speed up)
+	
+2009-12-08  Uwe Schulzweida
+
+	* allocate gribHandle for every grid/zaxis combination (speed up for writing GRIB2)
+	
+2009-11-30  Uwe Schulzweida
+
+	* cdfInqContents: bug fix for GRID_CELL with levels [report: Stephan Lorenz]
+
+2009-11-25  Uwe Schulzweida
+
+	* using GRIB library version 1.4.1
+	  check max limit of binary scale value (bug fix)
+
+2009-11-22  Uwe Schulzweida
+
+	* change code/tabnum to param
+	
+2009-11-20  Uwe Schulzweida
+
+	* added function vlistDefVarParam/vlistInqVarParam
+
+2009-11-17  Ralf Mueller
+
+	* Added ruby and python interfaces
+	  --enable-ruby  --enable-python 
+	
+2009-11-13  Uwe Schulzweida
+
+	* cdi.h: added '_vec' to all int and double vector arguments
+	
+2009-11-12  Uwe Schulzweida
+
+	* set units to "Pa" if changing zaxis to "pressure" (bug fix) [report: Chao Li]
+
+2009-11-12  Ralf Mueller
+
+	* Added Fortran Interface via iso_c_bindings facility of F2003
+	  --enable-iso-c-interface
+	
+2009-11-01  Uwe Schulzweida
+
+	* added support for GRIB2 JPEG compression
+
+2009-10-28  Uwe Schulzweida
+
+	* grbWriteVar: bug fix
+	* Version 1.4.0.2 released
+
+2009-10-23  Uwe Schulzweida
+
+	* cdfDefXaxis: bug fix for multi generic grids [report: Uwe Mikolajewicz]
+	* streamCopyRecord: check byteorder (bug fix) [report: Claas Teichmann]
+	
+2009-10-15  Uwe Schulzweida
+
+	* using GRIB library version 1.4.0.1
+	* IEG format: bug fix for lonlat grids [report: Philip Lorenz]
+	* Version 1.4.0.1 released
+
+2009-10-06  Uwe Schulzweida
+
+	* cdtInqContents: check attribute type
+	* cdtInqContents: set default time units to DAYS
+	
+2009-10-05  Uwe Schulzweida
+	
+	* using GRIB library version 1.4.0
+	* added GRIB2 support (testversion) via grib_api(1.8.0)
+	* changed C compiler to ANSI C99
+	* changed time format from hhmm to hhmmss
+	* changed encode/decode_time to seconds
+	* ieg: added support for Gaussian grids [request: Ralf Podzun]
+	* cdfDefLonLat2D: added attributes for Panoply
+	* added support for netCDF timeseries without grid
+	* added support for netCDF timeseries with only one grid axis
+	* gribDefLevel: bug fix for pressure level units millibar
+	* julday_add_seconds: bug fix for adjusting negative seconds
+	* stream_cdf:cdfReadVarSliceDP: bug fix for swapxy
+	* Version 1.4.0 released
+
+2009-06-15  Uwe Schulzweida
+
+	* netCDF: reduced number of nc_enddef
+	* added env CDI_SORTNAME to sort netCDF names
+	* added support for rotated grids on south pole [request: Beate Geyer]
+	* timeval2vtime: bug fix for timeunit TUNIT_MONTH
+	* streamSync: extent to non netCDF files
+	* Version 1.3.2 released
+	
+2009-04-16  Uwe Schulzweida
+
+	* using GRIB library version 1.3.0
+	* added support for NaN in DBL_IS_EQUAL
+	* added support for GRID type LCC2 (LCC PROJ.4 version)
+	* added support for TUNIT_QUARTER (15 minutes)
+	* use env GRIB_INVENTORY_MODE=timestep to skip double entries
+	* grbDefTime: define tunit also for absolute time [report: Pruek Pongprueksa]
+	* set default calendar with env CDI_DEFAULT_CALENDAR
+	* change default calendar to CALENDAR_PROLEPTIC
+	* gridInqXinc: bug fix
+	* grid_check_cyclic: support for curvilinear grids without bounds
+	* cdfInqContents: check dimension of curvilinear grids
+	* streamOpenAppen: set ncmode to 2 (bug fix)
+	* replaced strncpy/strncmp by memcpy/memcmp
+	* Version 1.3.1 released
+
+2009-01-15  Uwe Schulzweida
+
+	* add support for GRID type SINUSOIDAL
+	* add support for GRID type LAEA
+	* add support of GRIB level type MEANSEA
+	* gridCreate: CF stdname and units for curvilinear grids [report: Stephanie Legutke]
+	* cdf_create: don't set chunksizehint (bug fix) [report: Luis Kornblueh]
+	* change vlistFlagVar to vlistMergedVar
+	* set default missval of INT8/16/32 to SCHAR_MIN/SHRT_MIN/INT_MIN
+	* move grid_lcc, grid_gme, grid_rot code to CDO
+	* move gridToCurvilinear and gridToCell code to CDO
+	* cdf_inq_contents: check zaxis type "depth_blow_sea/land" (bug fix)
+	* Version 1.3.0 released
+
+2008-11-13  Uwe Schulzweida
+
+	* add new function: streamSync
+	* add new taxis functions: taxisXXXVdateBounds and taxisXXXVtimeBounds
+	* cdfReadVarSliceDP: add swapxy support
+	* stream_cdf: check var and axis names
+	* cdfInqContents: support of grid stdname 'longitude' and 'latitude'
+	* lambert grid: support of projection flag (bug fix) [report: Andrew Digby]
+	* streamFilesuffix: bug fix for IEG [report: Class Teichmann]
+	* gridCompare: bug fix for lonlat grids and type = 1 (cdfInqContents)
+	* netcdf: support of timeunit 'year'
+	* Version 1.2.1 released
+
+2008-08-13  Uwe Schulzweida
+
+        * using GRIB library version 1.2.0
+	* add support for netCDF4 classic with deflate option
+	* add datatype UINT8
+	* streamClose: use taxisDestroy to release memory
+	* cdfInqContents: skip time variable with type = NC_CHAR
+	* grbDefGrid: add warning for curvilinear grids
+	* grbDefGrid: set increment for zonal means [request: Helmut P. Frank]
+	* ptaxisCopy: don't overwrite item 'self' (bug fix)
+	* add function vlistXXXVarTimaccu
+	* DBL_IS_EQUAL: check NaN with isnan
+	* Version 1.2.0 released
+	
+2008-04-08  Uwe Schulzweida
+
+        * using GRIB library version 1.1.1
+	* configure: --with-szlib=<directory>
+	* configure: check stat.st_blksize [report: Klaus Wyser]
+	* update: echam5 code table
+	* fileOpen: add O_BINARY if available [report: Klaus Wyser]
+	* file.c: _WIN32 support
+	* taxis.c: add support for non integer timevalues (TUNIT_MONTH/CALENDAR_360DAYS)
+	* stream_cdf: add ICON grid support
+	* stream_srv: add support for GRID_CELL (bug fix)
+	* cdfInqContents: support of lon/lat units radian
+	* cdfInqContents: bug fix for gridtype cell
+	* cdfInqContents: bug fix for inconsistent curvilinear grid [report: Holger Goettel]
+	* cdfInqContents: bug fix for unsupported grids (dims > 2) [report: Wolfgang Langhans]
+	* cdfInqContents: check type of _FillValue
+	* gridCompare: compare grid.yinc only if set
+	* vlist_att.find_att: allocate attribute only if size > 0
+	* grid_gme.c: add function areas to compute grid cell areas [Luis Kornblueh]
+	* grid_check_cyclic: bug fix
+	* Version 1.1.1 released
+
+2008-01-24  Uwe Schulzweida
+
+        * using GRIB library version 1.1.0
+	* using FILE library version 1.6.0
+	* new attribute routines: vlistInqNatts, vlistDefAttr and vlistInqAttr
+	  for Int, Flt and Txt
+	* Add support for Lambert grids [request: Patrick Samuelsson]
+	* Change cdiDefCompress to streamDefZtype/streamDefZlevel
+	* decode_timevalue: bug fix for rounding error [report: Veronika Gayler]
+	* grbDefTime: add support for century < 0
+	* Version 1.1.0 released
+	
+2007-10-22  Uwe Schulzweida
+
+        * using GRIB library version 1.0.6
+	* stream_grb:grbDefGrid use ISEC2_ScanFlag [request: Alex Kann]
+	* replace calendar module by a new one because of date/time problems
+	  with years < 0 [report: Veronika Gayler]
+	* add module timebase
+	* taxis: add support for years less than zero
+	* use always decode_date and encode_date to decode/encode date
+	* Version 1.0.8 released
+
+2007-06-15  Uwe Schulzweida
+
+	* using EXSE library version 1.0.2
+	* new ECHAM5 code table [Renate Brokopf]
+	* stream_ieg: bug fix memory leak [report: Philip Lorenz]
+	* add function gridIsCyclic
+	* zaxisDuplicate: bug fix
+	* varscan: add full vct support
+	* cdfInqContents: print warning if cell_measures is missing
+	* cdfInqContents: check also x/yvarid to compare curvilinear grids
+	* Version 1.0.7 released
+
+2007-03-06  Uwe Schulzweida
+
+        * using GRIB library version 1.0.5
+	* use GRIB ltype to define GENERIC zaxis
+	* taxisCopyTimestep: copy rdate and rtime [report: Harald Anlauf]
+	* grbDefGrid: write absolute value of y-inc [report: Paul Dando]
+	* grbDefTime: change to absolute time axis if value < 0 [report: Frank Toussaint]
+	* grbDefGrid: change generic grid to lonlat grid
+	* grbScanTimestep: bug fix for unsorted codes
+	* LOCK/UNLOCK around _init_pointer
+	* Version 1.0.6 released
+
+2006-12-14  Uwe Schulzweida
+
+	* stream: mt safe version
+	* zaxis: mt safe version
+	* taxis: mt safe version
+	* model: mt safe version
+	* remove H5 test version
+	* stream_srv/ext/ieg: bug fix for codes > 999 [report: Simon Blessing]
+	* cdi_limits: define MAX_STREAMS, MAX_VLISTS, MAX_GRIDS, MAX_ZAXIS
+	* Version 1.0.5 released
+
+2006-11-30  Uwe Schulzweida
+
+        * using GRIB library version 1.0.4
+	* cdfInqContents: use grid_mapping not for curvilinear grids
+	* add env IGNORE_ATT_COORDINATES to ignore attribute coordinates
+	* splitBasetime: convert timeunit string to lower case
+	* usvs_to_uv: update for zbeta [from: Klaus Wyser]
+	* new function: vlistInqVarSzip
+	* new function: streamNvals
+	* Version 1.0.4 released
+
+2006-11-03  Uwe Schulzweida
+
+        * using GRIB library version 1.0.3
+	* using EXSE library version 1.0.1
+	* add SIGMA level support
+	* gridPrint: extented
+	* Version 1.0.3 released
+
+2006-09-18  Uwe Schulzweida
+
+	* using GRIB library version 1.0.2
+	* grbCopyRecord: add SZIP support
+	* vlistChangeVarGrid: bug fix
+	* cdfDefVar: set default datatype for addoffset and scalefactor to double
+	* cdfWriteVar*: round integer fields with NINT [report: Etienne Tourigny]
+	* Version 1.0.2 released
+
+2006-08-01  Uwe Schulzweida
+
+	* using GRIB library version 1.0.1
+	* add test version of SZIP for GRIB data
+	* add DATATYPE PACK1 to PACK32
+	* change DATATYPE from byte to bit
+	* split GRIB level type 105 with env var SPLIT_LTYPE_105
+	* file.c: remove declaration of getpagesize [report: Mark Hadfield]
+	* tableWrite: bug fix for undefined strings
+	* Version 1.0.1 released
+
+2006-06-15  Uwe Schulzweida
+
+	* using GRIB library version 1.0.0
+	* rename *New functions to *Create
+	* stream_grb: update level type ISENTROPIC (report: Ag Stephens)
+	* stream_ieg: multiply pressure levels with 100 (report: Holger Goettel)
+	* gridPrint: GME support
+	* cdi_error: change return type to char*
+	* move byte order types to cdi.h
+        * add dummy functions gridDestroy, zaxisDestroy, taxisDestroy
+	* Version 1.0.0 released
+
+2006-05-04  Uwe Schulzweida
+
+	* using GRIB library version 0.6.6
+	* cdfInqContents: check attlen for attname "axis"
+	* cdfInqContents: use coord vars from attr coordinates (bug report: Alberto Maurizi)
+	* gridPrint: print xfirst and xinc if xinc is constant
+	* gridGenYvals: try to calculate non global gaussian latitides
+	* add global int attr support
+	* streamOpenRead: fix bug if open failed
+	* add function tableInqParCode
+	* Version 0.9.7 released
+
+2006-03-08  Uwe Schulzweida
+
+	* using GRIB library version 0.6.5
+	* vlist_var: Add function vlistChangeVarGrid
+	* program cdi: add option -s for short info
+	* cdfInqContents: improve GRID_CELL support
+	* cdfDefTime: attr text bounds for time axis (bug report: Veronika)
+	* gridToZonal: add support for GRID_GENERIC if ny > 1
+	* Version 0.9.6 released
+	
+2006-02-01  Uwe Schulzweida
+
+	* using GRIB library version 0.6.4
+	* update ECHAM5 parameter table
+	* taxis: new function taxisCopyTimestep
+	* stream_grb: check status of grib encoding
+	* stream_cdf: use addoffset and scalefactor for all datatypes
+	* stream_cdf: set "height above the surface" to ZAXIS_HEIGHT
+	* grid.c: GME grid support
+	* add support of time bounds
+	* Version 0.9.5 released
+
+2006-01-20  Luis Kornblueh
+
+	* grid_gme.c: compute boundaries of GME grid
+
+2005-12-14  Uwe Schulzweida
+
+	* using GRIB library version 0.6.3
+	* using EXSE library version 0.9.3
+	* stream_srv: changes for new EXSE version
+	* stream_ext: changes for new EXSE version
+	* add IEG support
+	* bug fix for GRIB files with unusable VCT
+	* Version 0.9.4 released
+
+2005-11-21  Uwe Schulzweida
+
+	* using GRIB library version 0.6.2
+	* using FILE library version 1.5.1
+	* gribCopyRecord: round recsize to 8
+	* grbDefGrid: safe curvilinear as lonlat grid
+	* grbInqTimestep: bug fix for constant fields
+	* timeval2vtime: bug fix for time unit MONTH and YEAR
+	* Version 0.9.3 released
+
+2005-10-23  Uwe Schulzweida
+
+	* OPeNDAP support for netCDF (nc_dap)
+	  use configure option --enable-dap
+
+2005-10-18  Uwe Schulzweida
+
+	* cdfInqContents: support of CLM grid
+	* grbDefTime: prevent overflow of forcast timesteps
+	* cdfDefPole: check var name
+	* use standard name for variables
+	* zaxis: define bounds
+	* grid.c: mt safe
+	* vlist.c: mt safe
+	* stream_cdf: bug fix curvilinear grid
+	* cdfCopyRecord: buf fix for constant fields
+	* cdfCreateRecords: Bug fix (allocation of 0 bytes)
+	* grbScanTimestep: Bug fix (check all records)
+	* Version 0.9.2 released
+
+2005-07-17  Uwe Schulzweida
+
+	* New function: vlistChangeVarZaxis
+	* grbDefGrid: change NINT to INT
+	* gridGenYvals: check gaussian grids
+	* gridCompare: check gaussian grids
+	* stream_grb: correct xinc if necessary
+	* Version 0.9.1 released
+	
+2005-05-17  Uwe Schulzweida
+
+	* griblib: version 0.6.1
+	* exselib: version 0.9.2
+	* stream_cdf: change cdf_get_att_* to cdfGetAtt*
+	* cdfReadVarSliceDP: implementation of swapyz
+	* zaxis: new zaxis type ZAXIS_ALTITUDE
+	* cdiGenVars: set only generic zaxis with 1 level on 0.0 to surface
+	* codeNewEntry: bug fix for code 0
+	* Version 0.9.0 released
+
+2005-04-03  Uwe Schulzweida
+
+	* griblib: version 0.6.0
+	* add function zaxisDuplicate
+	* grbScanTimestep1: check level1 and level2
+	* stream_grb: bug fix in grbInqTimestep to return after error
+	* stream_grb: support for rotated grids
+	* stream_cdf: support for rotated grids
+	* vtime2timeval: bug fix for TUNIT_MONTH and TUNIT_YEAR
+	* Program cdi: change level from int to double
+	* Version 0.8.9 released
+
+2005-02-11  Uwe Schulzweida
+
+	* griblib: version 0.5.7
+	* gridDuplicate: update
+	* cdfInqContents: check gaussian grid S->N
+	* rename zaxisInqLevelDP to zaxisInqLevel
+	* Version 0.8.8 released
+
+2005-01-03  Uwe Schulzweida
+
+	* implementation of 360, 365 and 366 days calendar
+	* gridGenXvals: bug fix (xfirst == xlast)
+	* Version 0.8.7 released
+
+2004-12-17  Uwe Schulzweida
+
+	* define ECHAM5.3 table
+	* add missing value support for 4 Byte SRV and EXT data
+	* gridGenXvals: bug fix (set xinc > 0)
+	* Version 0.8.6 released
+
+2004-11-17  Uwe Schulzweida
+
+	* cdfInqContents: check gaussian grid
+	* gridToCurvilinear: add bounds
+	* gridToCell: add bounds
+	* gridInqXinc: return 0 if increment is not equidistant
+	* gridInqYinc: return 0 if increment is not equidistant
+	* random record structure support (for parallel GRIB output)
+	    	grbScanTimestep, varscan, stream_var, stream_record
+	* vlist: initialize ntsteps
+	* Version 0.8.5 released
+	
+2004-10-12  Uwe Schulzweida
+
+        * netCDF2 support
+	* cdfDefVars: Bug fix (vlistInqNgrids)
+	* stream_grb: check also leveltype to find different variables
+	* Version 0.8.4 released
+	
+2004-09-08  Uwe Schulzweida
+
+	* griblib: version 0.5.6
+	* grid: use bounds for gaussian and lonlat grids
+	* cdf_create: set initialsz to 0
+	* vlistChangeZaxis and vlistChangeZaxisIndex extent levinfo
+	* new function cdiInqMissval
+	* timeval2vtime: set an offset of 1 second in the call to InvCalendar
+	                 to prevent rounding errors
+        * Version 0.8.3 released
+
+2004-07-04  Uwe Schulzweida
+
+	* cdiInqContents: read all global text attributes
+	* cdf_create and cdf_open: set min chunksize to 128k
+	* cdfDefTime: set 0 before month and day if less than 10
+	* new function in vlist.c: vlistChangeZaxisIndex, vlistChangeZaxis
+        * Version 0.8.2 released
+
+2004-05-21  Uwe Schulzweida
+
+	* griblib: version 0.5.4
+	* file.c: set min I/O buffersize to 128k
+	* grib, service, extra: bug fix for variables with TIME_CONSTANT
+	* grb, srv, extCopyRecord: bug fix for variables with TIME_CONSTANT
+	* Error handling for streamOpen*
+	* New function cdiStringError for error handling
+	* change FILETYPE_CDF to FILETYPE_NC
+	* c++ compatible
+	* vlistDefVarName: overwrite old name if exist
+	* set size of dummy longname and units from 128 to 256
+	* splitBasetime: bug fix
+        * Version 0.8.1 released
+
+2004-04-12  Uwe Schulzweida
+
+	* stream_cdf: replace cdfDefLon and cdfDefLonRot by cdfDefXaxis
+	              replace cdfDefLat and cdfDefLatRot by cdfDefYaxis
+	* stream_cdf: new function cdfDefVars
+	* cdfInqContents: support for attribute associate
+	* new function: grid*name, grid*longname, grid*units
+	* new function: gridDefPrec, gridInqPrec
+	* new function: zaxisDefPrec, zaxisInqPrec
+	* remove: gridDefXfirst, gridDefYfirst, gridDefXlast, gridDefYlast
+	          gridDefXinc, gridDefYinc
+        * Version 0.8.0 released
+	
+2004-03-14  Uwe Schulzweida
+
+	* new GRID type: CURVILINEAR
+	* add MPIOM1 table
+	* stream_grb.c: check var with table number
+	* srvReadRecord: bug fix
+	* cdfInqContents: set main coordinate variables to isvar=FALSE
+	* grid.c: add gridGenZonal, gridGenMeridional
+	* zaxis.c: add zaxisDefName, zaxisDefLongname, zaxisDefUnits
+	               zaxisInqName, zaxisInqLongname, zaxisInqUnits
+	* grbDefLevel: change pressure level packing
+	* cdfInqContent: change pressure level handling
+        * Version 0.7.9 released
+
+2004-01-05  Uwe Schulzweida
+
+	* New function: cdiOpenAppend
+	* zaxisDefLevels: move allocation of levels to zaxisNew
+	* cdfDefZaxis: bug fix zaxisID -> zaxisindex
+        * Version 0.7.8 released
+
+2003-12-8  Uwe Schulzweida
+
+	* griblib: version 0.5.3
+	* dtypes.h:   redefinition of INT64
+	* stream_cdf: use attribute missing_value
+	              warning if bounds var not found
+        * Version 0.7.7 released
+
+2003-11-5  Uwe Schulzweida
+
+	* dmemory: create memory list only if MEMORY_DEBUG is set
+	* memTotal: get total memory size from mallinfo
+	* tstepsNewEntry: change to add tsteps only (speedup)
+        * Version 0.7.6 released
+
+2003-10-31  Uwe Schulzweida
+	
+	* redesign of the internal record stucture
+	* implementation of TUNIT_MONTH and TUNIT_YEAR
+	* cdf read and write var with nmiss for addoffset and scalefactor
+	* grbDefLevel: check that vct size is less than 256
+        * Version 0.7.5 released
+
+2003-10-12  Uwe Schulzweida
+
+	* environment variable CD_MISSVAL
+	* missing values for SERVICE and EXTRA
+	* griblib: version 0.5.2
+	* tableRead: update
+        * Version 0.7.4 released
+
+2003-10-5  Uwe Schulzweida
+
+	* streamInqVlist: return vlist
+	* replace streamVar to vlist
+	* remove streamVar
+	* change *funcID to *func
+        * Version 0.7.3 released
+	
+2003-10-3  Uwe Schulzweida
+
+	* change configuration for netCDF and HDF5 library to --with
+	* HDF5 test interface
+        * Version 0.7.2 released
+	
+2003-09-22  Uwe Schulzweida
+
+	* missing values for cdiReadVar*, cdiWriteVar*
+        * Version 0.7.1 released
+	
+2003-09-10  Uwe Schulzweida
+
+	* rename library to CDI (Climate Date Interface)
+	* fortran interface
+        * cdfInqContents: new implementation
+        * redesign with vlist
+        * implementation of cell grid
+	* cdfWriteVar*: bug fix for non regular grid
+        * Version 0.7.0 released
+	
+2003-07-28  Uwe Schulzweida
+
+        * handle missing values
+        * Version 0.6.0 released
+	
+2003-06-25  Uwe Schulzweida
+
+	* implementation of trajectory grid
+        * Version 0.5.11 released
+	
+2003-06-23  Uwe Schulzweida
+
+	* gdi_cdf: update for mozart initial files
+        * Version 0.5.10 released
+
+2003-06-17  Uwe Schulzweida
+
+	* gdi_cdf: skip bound vars
+
+2003-06-17  Uwe Schulzweida
+
+        * Version 0.5.9 released
+
+2003-06-11  Uwe Schulzweida
+
+        * reimplementation of time axis
+	* timesteps accesssable with timeID
+
+2003-05-20  Uwe Schulzweida
+
+	* configuration with automake
+        * Version 0.5.8 released
+	

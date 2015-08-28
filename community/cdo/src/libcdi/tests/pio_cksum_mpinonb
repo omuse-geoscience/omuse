@@ -1,0 +1,14 @@
+#! /bin/bash
+pio_write_args="-p PIO_MPI -w 2"
+mpi_task_num=4
+LOG=pio_cksum_mpinonb.log
+if [ "" = yes ]; then
+  . ./pio_write_run
+else
+  exit 77
+fi
+#
+# Local Variables:
+# mode: sh
+# End:
+#

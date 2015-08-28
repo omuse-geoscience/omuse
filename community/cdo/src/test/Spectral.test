@@ -1,0 +1,103 @@
+#! /bin/bash
+echo 1..4 # Number of tests to be executed.
+#
+test -n "$CDO"      || CDO=cdo
+test -n "$DATAPATH" || DATAPATH=./data
+#
+CDOOUT=cout
+CDOERR=cerr
+FORMAT=""
+NTEST=1
+#####################################################
+IFILE=$DATAPATH/t21_geosp_tsurf.grb
+RFILE=$DATAPATH/gp2sp_ref
+OFILE=gp2sp_res
+#
+RSTAT=0
+CDOTEST="gp2sp"
+CDOCOMMAND="$CDO $FORMAT gp2sp $IFILE $OFILE"
+echo "$CDOCOMMAND"
+$CDOCOMMAND
+test $? -eq 0 || let RSTAT+=1
+#
+# result of cgribex and GRIBAPI differ for complexed packed spectral data
+$CDO diff,.008 $OFILE $RFILE > $CDOOUT 2> $CDOERR
+test $? -eq 0 || let RSTAT+=1
+test -s $CDOOUT && let RSTAT+=1
+cat $CDOOUT $CDOERR
+#
+test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+#
+let NTEST+=1
+rm -f $OFILE
+rm -f $CDOOUT $CDOERR
+######################################################
+IFILE=$DATAPATH/gp2sp_ref
+RFILE=$DATAPATH/sp2gp_ref
+OFILE=sp2gp_res
+#
+RSTAT=0
+CDOTEST="sp2gp"
+CDOCOMMAND="$CDO $FORMAT sp2gp $IFILE $OFILE"
+echo "$CDOCOMMAND"
+$CDOCOMMAND
+test $? -eq 0 || let RSTAT+=1
+#
+$CDO diff $OFILE $RFILE > $CDOOUT 2> $CDOERR
+test $? -eq 0 || let RSTAT+=1
+test -s $CDOOUT && let RSTAT+=1
+cat $CDOOUT $CDOERR
+#
+test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+#
+let NTEST+=1
+rm -f $OFILE
+rm -f $CDOOUT $CDOERR
+######################################################
+IFILE=$DATAPATH/t21_geosp_tsurf.grb
+RFILE=$DATAPATH/gp2spl_ref
+OFILE=gp2spl_res
+RSTAT=0
+CDOTEST="gp2spl"
+CDOCOMMAND="$CDO $FORMAT gp2spl $IFILE $OFILE"
+echo "$CDOCOMMAND"
+$CDOCOMMAND
+test $? -eq 0 || let RSTAT+=1
+#
+$CDO diff,.008 $OFILE $RFILE > $CDOOUT 2> $CDOERR
+test $? -eq 0 || let RSTAT+=1
+test -s $CDOOUT && let RSTAT+=1
+cat $CDOOUT $CDOERR
+#
+test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+#
+let NTEST+=1
+rm -f $OFILE
+rm -f $CDOOUT $CDOERR
+######################################################
+IFILE=$DATAPATH/gp2spl_ref
+RFILE=$DATAPATH/sp2gpl_ref
+OFILE=sp2gpl_res
+RSTAT=0
+CDOTEST="sp2gpl"
+CDOCOMMAND="$CDO $FORMAT sp2gpl $IFILE $OFILE"
+echo "$CDOCOMMAND"
+$CDOCOMMAND
+test $? -eq 0 || let RSTAT+=1
+#
+$CDO diff $OFILE $RFILE > $CDOOUT 2> $CDOERR
+test $? -eq 0 || let RSTAT+=1
+test -s $CDOOUT && let RSTAT+=1
+cat $CDOOUT $CDOERR
+#
+test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+#
+let NTEST+=1
+rm -f $OFILE
+rm -f $CDOOUT $CDOERR
+#
+exit 0

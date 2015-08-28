@@ -1,0 +1,76 @@
+{
+  "build" : {
+    "tools" : {
+      "CC"       : "@CC@",
+      "CPP"      : "@CPP@",
+      "CPPFLAGS" : "@CPPFLAGS@",
+      "CFLAGS"   : "@CFLAGS@",
+      "LDFLAGS"  : "@LDFLAGS@",
+      "LIBS"     : "@LIBS@",
+      "FC"       : "@FC@",
+      "F77"      : "@F77@",
+      "FCFLAGS"  : "@FCFLAGS@",
+      "LD"       : "@LD@",
+      "NM"       : "@NM@",
+      "AR"       : "@AR@",
+      "AS"       : "@AS@",
+      "DLLTOOL"  : "@DLLTOOL@",
+      "OBJDUMP"  : "@OBJDUMP@",
+      "STRIP"    : "@STRIP@",
+      "RANLIB"   : "@RANLIB@",
+      "INSTALL"  : "@INSTALL@"
+    },
+    "platform" : {
+      "USER_NAME"   : "@USER_NAME@",
+      "HOST_NAME"   : "@HOST_NAME@",
+      "SYSTEM_TYPE" : "@SYSTEM_TYPE@"
+    },
+    "libraries" : {
+      "threads"    : {
+        "lib"      : "@THREADS_LIBS@",
+        "include"  : "@THREADS_INCLUDE@"
+      },
+      "mpi"        : {
+        "libs"     : "@MPI_C_LIB@",
+        "cflags"   : "@MPI_C_INCLUDE@",
+        "fclibs"   : "@MPI_FC_LIB@",
+        "fcflags"  : "@MPI_FC_INCLUDE@"
+      },
+      "zlib"     : {
+        "lib"      : "@ZLIB_LIBS@",
+        "include"  : "@ZLIB_INCLUDE@"
+      },
+      "szlib"    : {
+        "lib"      : "@SZLIB_LIBS@",
+        "include"  : "@SZLIB_INCLUDE@"
+      },
+      "hdf5"     : {
+        "lib"      : "@HDF5_LIBS@",
+        "include"  : "@HDF5_INCLUDE@"
+      },
+      "netcdf"   : {
+        "lib"      : "@NETCDF_LIBS@",
+        "include"  : "@NETCDF_INCLUDE@"
+      },
+      "grib_api" : {
+        "lib"      : "@GRIB_API_LIBS@",
+        "include"  : "@GRIB_API_INCLUDE@"
+      },
+      "jasper" : {
+        "lib"      : "@JASPER_LIBS@"
+      }
+    }
+  },
+  "features" : {
+    "enable_cdi_lib" : @ENABLE_CDI_LIB@,
+    "grib"           : "@ENABLE_GRIB@",
+    "cgribex"        : "@ENABLE_CGRIBEX@",
+    "service"        : "@ENABLE_SERVICE@",
+    "extra"          : "@ENABLE_EXTRA@",
+    "ieg"            : "@ENABLE_IEG@",
+    "enable_mpi"    : @ENABLE_MPI@,
+    "parallel_nc4"  : @HAVE_PARALLEL_NC4@,
+    "enable_python" : @ENABLE_PYTHON@,
+    "enable_ruby"   : @ENABLE_RUBY@
+  }
+}
