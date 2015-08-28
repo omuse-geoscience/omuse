@@ -26,7 +26,7 @@ POPDIR=$(CURDIR)/eSalsa-POP
 
 #-------------- NETCDF inserts
 #NETCDFPATH = /cm/shared/apps/netcdf/open64/64/4.3.1.1/
-NETCDFPATH = /home/bwn200/amuse/prerequisites
+NETCDFPATH = /home/ben
 NETCDFINC = -I$(NETCDFPATH)/include
 NETCDFLIB = -L/cm/shared/apps/netcdf/open64/64/4.3.1.1/lib
 LDFLAGS := $(LDFLAGS) $(NETCDFINC) $(NETCDFLIB)

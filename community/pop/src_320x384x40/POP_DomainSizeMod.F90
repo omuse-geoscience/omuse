@@ -50,8 +50,8 @@
    !***         num_procs
  
    integer (POP_i4), parameter, public :: &
-      POP_maxBlocksClinic = 4,  &! max number of blocks per processor
-      POP_maxBlocksTropic = 4    !   in each distribution
+      POP_maxBlocksClinic = 8,  &! max number of blocks per processor
+      POP_maxBlocksTropic = 8    !   in each distribution
 
 !EOP
 !BOC
