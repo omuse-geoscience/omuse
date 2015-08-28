@@ -64,6 +64,9 @@ class AdcircInterface(CodeInterface,
     @remote_function(can_handle_array=True)
     def get_node_position(index='i'):
         returns (x=0.| units.m,y=0. | units.m)
+    @remote_function(can_handle_array=True)
+    def get_node_coordinates(index='i'):
+        returns (lon=0.| units.rad,lat=0. | units.rad)
 
     @remote_function(can_handle_array=True)
     def get_node_depth(index='i'):
@@ -76,6 +79,9 @@ class AdcircInterface(CodeInterface,
     @remote_function(can_handle_array=True)
     def get_element_position(index='i'):
         returns (x=0.| units.m,y=0. | units.m)
+    @remote_function(can_handle_array=True)
+    def get_element_coordinates(index='i'):
+        returns (lon=0.| units.rad,lat=0. | units.rad)
 
     @remote_function(can_handle_array=True)
     def get_node_velocities_3d(index='i',zindex='i'):
@@ -151,10 +157,10 @@ class Adcirc(CommonCode):
   
     MODE_2D = "2D"
     MODE_3D = "3D"
-  
-    def __init__(self, mode=MODE_2D, **options):
+    
+    def __init__(self, mode=MODE_2D, coordinates="cartesian", **options):
         self.mode=mode
-        # option for carthesian/ spherical coordinates?
+        self.coordinates=coordinates
         CommonCode.__init__(self,  AdcircInterface(**options), **options)
         self._nodes=None
         self._elements=None
@@ -170,16 +176,21 @@ class Adcirc(CommonCode):
 
     def commit_parameters(self):        
         if self.parameters.use_interface_parameters:
+          SLAM0=self.parameters.central_longitude
+          SFEA0=self.parameters.central_latitude
           A_H=self.parameters.A_H
           dt=self.parameters.timestep
           use_precor=self.parameters.use_predictor_corrector
           param=adcirc_parameter_writer()
           if self._parameters is not None:
             param.parameters=self._parameters
-          param.set_non_default(A_H, dt, use_precor)
+          else:
+            self._parameters=param.parameters
+          ics=1 if self.coordinates=="cartesian" else 2
+          param.set_non_default(A_H, dt, use_precor,ics, SLAM0,SFEA0)
           param.write()
         if self.parameters.use_interface_grid:
-          adcirc_grid_writer().write_grid(self._nodes,self._elements, 
+          adcirc_grid_writer(coordinates=self.coordinates).write_grid(self._nodes,self._elements, 
             self._elev_boundary,self._flow_boundary)
         self.overridden().commit_parameters()
 
@@ -196,11 +207,10 @@ class Adcirc(CommonCode):
     def get_firstlast_grid3d(self):
         return 1,self.get_number_of_nodes(),1,self.get_number_of_vertical_nodes()
 
-    def get_node_position_3d(self,index,zindex):
-        sigma,z=self.get_node_sigma(index,zindex)
-        x,y=self.get_node_position(index)
-        return x,y,z
-
+    #~ def get_node_position_3d(self,index,zindex):
+        #~ sigma,z=self.get_node_sigma(index,zindex)
+        #~ x,y=self.get_node_position(index)
+        #~ return x,y,z
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
@@ -249,6 +259,18 @@ class Adcirc(CommonCode):
             False,
             "before_set_interface_parameter"
         )
+        object.add_interface_parameter(
+            "central_latitude",
+            "central latitude used for CPP projection between x,y and lon,lat",
+            0. | units.deg,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "central_longitude",
+            "central longitude used for CPP projection between x,y and lon,lat",
+            0. | units.deg,
+            "before_set_interface_parameter"
+        )
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -258,6 +280,7 @@ class Adcirc(CommonCode):
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_state', names=('eta','vx','vy'))
         object.add_getter('nodes', 'get_node_position', names=('x','y'))
+        object.add_getter('nodes', 'get_node_coordinates', names=('lon','lat'))          
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
         
         if self.mode in [self.MODE_3D]:
@@ -265,9 +288,9 @@ class Adcirc(CommonCode):
             object.set_grid_range('grid3d', 'get_firstlast_grid3d')
             object.add_getter('grid3d', 'get_node_sigma', names = ('sigma','z'))
             object.add_getter('grid3d', 'get_node_velocities_3d', names = ('wx','wy','wz'))
-            object.add_getter('grid3d', 'get_node_position_3d', names = ('x','y'))
-            
-            
+            object.add_getter('grid3d', 'get_node_position', names = ('x','y'))
+            object.add_getter('grid3d', 'get_node_coordinates', names = ('lon','lat'))
+
             object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
             object.add_gridded_getter('nodes', 'get_node_velocities_3d','get_firstlast_vertical_index', names = ('wx','wy','wz'))
 
@@ -278,11 +301,14 @@ class Adcirc(CommonCode):
         object.add_getter('forcings', 'get_node_wind_stress', names=('tau_x','tau_y'))
         object.add_setter('forcings', 'set_node_wind_stress', names=('tau_x','tau_y'))
         object.add_getter('forcings', 'get_node_position', names=('x','y'))
+        object.add_getter('forcings', 'get_node_coordinates', names=('lon','lat'))
 
         object.define_grid('elements',axes_names = ['x','y'])
         object.set_grid_range('elements', 'get_firstlast_element')    
         object.add_getter('elements', 'get_element_nodes', names=('n1','n2','n3'))
         object.add_getter('elements', 'get_element_position', names=('x','y'))
+        object.add_getter('elements', 'get_element_coordinates', names=('lon','lat'))
+
           
     def elevation_boundaries(self):
         n=self.get_number_of_elevation_boundary_segments()

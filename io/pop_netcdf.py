@@ -15,6 +15,7 @@ units_lookup={
     "dyne/cm3" : units.dyn/units.cm**3,
     "deg C" : celsius, 
     "msu (g/g)" : units.g/units.g,
+    "cm2/s" : units.cm**2/units.s
       }
 
 class POPNetCDFFileFormatProcessor(base.FileFormatProcessor):

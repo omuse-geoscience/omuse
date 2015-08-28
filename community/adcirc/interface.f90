@@ -120,6 +120,18 @@ function get_node_position(ind,x_,y_) result(ret)
   y_=Y(ind)
   ret=0
 end function
+function get_node_coordinates(ind,lon_,lat_) result(ret)
+  integer :: ind,ret
+  real*8 :: lon_,lat_
+  if(ind.LT.1.OR.ind.GT.NP) then
+    ret=-1
+    return
+  endif
+  lon_=SLAM(ind)
+  lat_=SFEA(ind)
+  ret=0
+end function
+
 
 function get_node_depth(ind,dp_) result(ret)
   integer :: ind,ret
@@ -223,6 +235,23 @@ function get_element_position(ind,x_,y_) result(ret)
   y_=(Y(n1)+Y(n2)+Y(n3))/3
   ret=0
 end function
+function get_element_coordinates(ind,lon_,lat_) result(ret)
+  integer :: ind,n1,n2,n3,ret
+  real*8 :: lon_,lat_
+
+  if(ind.LT.1.OR.ind.GT.NE) then
+    ret=-1
+    return
+  endif
+  n1=NM(ind,1)
+  n2=NM(ind,2)
+  n3=NM(ind,3)  
+  lon_=(SLAM(n1)+SLAM(n2)+SLAM(n3))/3
+  lat_=(SFEA(n1)+SFEA(n2)+SFEA(n3))/3
+  ret=0
+end function
+
+
   
 function get_number_of_nodes(nout) result(ret)
   integer :: ret,nout
