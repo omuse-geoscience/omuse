@@ -1,0 +1,69 @@
+#! @SHELL@
+
+set -e
+format=nc
+if [ @ENABLE_NETCDF@ = yes -a @ENABLE_F2003_ISOC@ = yes ]; then
+  exec >test_f2003_$format.log 2>&1
+  @abs_top_builddir@/examples/cdi_write_f2003
+  @abs_top_builddir@/examples/cdi_read_f2003 \
+    >cdi_read_f2003.$$.stdout \
+    2>cdi_read_f2003.$$.stderr
+  echo "$0"
+  exec 5<cdi_read_f2003.$$.stdout 6<cdi_read_f2003.$$.stderr 7<"$0"
+  while read pattern <&7 ; do
+    [ "$pattern" != "#PATTERNS" ] || break
+  done
+  saved_IFS=$IFS
+  IFS=''
+  while read line <&6 ; do
+    read pattern <&7
+    pattern=`echo "$pattern" | sed -e 's/^#//'`
+    echo "$line" | grep "$pattern"
+  done
+  while read line <&5 ; do
+    read pattern <&7
+    pattern=`echo "$pattern" | sed -e 's/^#//'`
+    echo "$line" | grep "$pattern"
+  done
+  read pattern <&7
+  [ "$pattern" = '#END PATTERNS' ]
+  exec 5<&- 6<&-
+  \rm cdi_read_f2003.$$.stdout cdi_read_f2003.$$.stderr
+  \rm test_f2003_$format.log
+else
+  # skip tests for unsupported formats
+  exit 77
+fi
+
+#PATTERNS
+#^cdi version: @VERSION@ of [A-Z][a-z][a-z]  *[0-9][0-9]*  *[0-9][0-9]*  *[0-9][0-9]\\{0,1\\}:[0-9][0-9]\\{0,1\\}:[0-9][0-9]\\{0,1\\}$
+#^Parameter:  *1  *-1  *varname1  *\\|$
+#^Parameter:  *2  *-2  *varname2  *\\|$
+#^Timestep:  *1  *19850101  *120000$
+#^  *var=  *1  *level=  *1:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *1:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *2:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *3:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *4:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *5:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^Timestep:  *2  *19850102  *120000$
+#^  *var=  *1  *level=  *1:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *1:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *2:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *3:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *4:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *5:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^Timestep:  *3  *19850103  *120000$
+#^  *var=  *1  *level=  *1:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *1:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *2:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *3:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *4:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#^  *var=  *2  *level=  *5:  *[0-9]*.[0-9]*  *[0-9]*.[0-9]*
+#END PATTERNS
+
+#
+# Local Variables:
+# mode: sh
+# End:
+#

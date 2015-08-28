@@ -1,0 +1,48 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+cflags=-I${prefix}/include
+fcflags=${prefix}/include 
+libs=-L${exec_prefix}/lib -lcdipio   -lcdi    -lnetcdf    -lz 
+threads_libs=
+threads_cflags=
+zlib_cflags=
+zlib_libs= -lz
+szlib_cflags=
+szlib_libs=
+hdf5_root=
+hdf5_cflags=
+hdf5_libs=
+netcdf_root=
+netcdf_cflags=
+netcdf_libs= -lnetcdf
+jasper_libs=
+grib_api_cflags=
+grib_api_libs=
+cdipio_build_cc=gcc -std=gnu99
+cdipio_build_cflags=-g -O2 -pthread
+cdipio_build_cppflags=-DgFortran
+cdipio_build_ldflags=
+cdipio_build_libs=-lnetcdf -lz  -lm 
+cdipio_build_fc=no
+cdipio_build_fcflags=
+cdipio_build_f77=gfortran
+cdipio_build_fflags=-g -O2
+cdipio_build_cxx=g++
+cdipio_build_cxxflags=-g -O2
+cdipio_build_enable_grib=yes
+cdipio_build_enable_cgribex=yes
+cdipio_build_enable_service=yes
+cdipio_build_enable_extra=yes
+cdipio_build_enable_ieg=yes
+
+Name: cdipio
+Description: CDI-PIO is the MPI-parallel layer of CDI
+URL: 
+Version: 1.7.0rc3
+Requires: 
+Libs: ${libs}
+Cflags: ${cflags}
+FCflags: ${fcflags}
+

@@ -1,0 +1,24 @@
+#! @SHELL@
+set -e
+LOG="${LOG-pio_write_deco2d.log}"
+if [ @ENABLE_GRIB@ = yes ]; then
+  mpi_task_num="${mpi_task_num-6}"
+  suffix="${suffix-grb}"
+  exec 5>&1 6>&2 >"$LOG" 2>&1
+  ../libtool --mode=execute @MPI_LAUNCH@ -n ${mpi_task_num} \
+    ${tool_wrap} ./pio_write_deco2d ${pio_write_args}
+  exec 2>&6 1>&5 5>&- 6>&-
+  ../libtool --mode=execute \
+    ${tool_wrap} ./cksum_read example_0.${suffix} example_0.cksum
+  ../libtool --mode=execute \
+    ${tool_wrap} ./cksum_read example_1.${suffix} example_1.cksum
+  \rm "$LOG"
+else
+  # skip tests for unsupported formats
+  exit 77
+fi
+#
+# Local Variables:
+# mode: sh
+# End:
+#

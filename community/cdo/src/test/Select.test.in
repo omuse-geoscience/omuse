@@ -1,0 +1,53 @@
+#! @SHELL@
+echo 1..8 # Number of tests to be executed.
+#
+test -n "$CDO"      || CDO=cdo
+test -n "$DATAPATH" || DATAPATH=./data
+#
+CDOOUT=cout
+CDOERR=cerr
+FORMAT="-f srv -b 32"
+RSTAT=0;
+#
+IFILE=$DATAPATH/pl_data.grb
+#
+NTEST=1
+#
+for OPERATOR in select delete; do
+if [ "$OPERATOR" = "select" ] ; then
+  SELARGS='code=130,152 code=130,152,level=9000,90 code=130,152,level=9000,90,timestep=2,3,5 code=130 level=90000'
+else
+  SELARGS='code=129 code=129,130,level=90000,900 code=129,130,level=90000,900,timestep=1,4'
+fi
+TNUM=0
+for SELECT in $SELARGS; do
+  let TNUM+=1
+
+  RFILE=$DATAPATH/select${TNUM}_ref
+  OFILE=${OPERATOR}${TNUM}_res
+
+  CDOTEST="${OPERATOR}"
+  CDOCOMMAND="$CDO ${OPERATOR},${SELECT} $IFILE $OFILE"
+
+  echo "Running test: $NTEST"
+  echo "$CDOCOMMAND"
+
+  $CDOCOMMAND
+  test $? -eq 0 || let RSTAT+=1
+
+  $CDO diff $OFILE $RFILE > $CDOOUT 2> $CDOERR
+  test $? -eq 0 || let RSTAT+=1
+  test -s $CDOOUT && let RSTAT+=1
+  cat $CDOOUT $CDOERR
+
+  test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+  test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+
+  let NTEST+=1
+  rm -f $OFILE
+done
+done
+#
+rm -f $CDOOUT $CDOERR
+#
+exit 0

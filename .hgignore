@@ -14,3 +14,4 @@ community/pop/eSalsa-POP/*
 community/pop/old/*
 community/pop/data/*
 community/pop/slurm-*.out
+community/cdo/grids/tripole-3600x2400.nc

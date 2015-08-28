@@ -1,0 +1,52 @@
+#! /bin/bash
+echo 1..1 # Number of tests to be executed.
+#
+test -n "$CDO"      || CDO=cdo
+test -n "$DATAPATH" || DATAPATH=./data
+#
+CDOOUT=cout
+CDOERR=cerr
+#
+IFILE=$DATAPATH/pl_data.grb
+OFILE=pl_data.grb
+RFILE1=pl_data.ctl
+RFILE2=pl_data.gmp
+cp $IFILE $OFILE
+#
+NTEST=1
+#
+RSTAT=0
+#
+CDOTEST="gradsdes GRIB1"
+CDOCOMMAND="$CDO gradsdes $OFILE"
+
+echo "Running test: $NTEST - $CDOTEST"
+echo "$CDOCOMMAND"
+
+$CDOCOMMAND
+test $? -eq 0 || let RSTAT+=1
+#cp $DATAPATH/pl_data.ctl pl_data.ctl
+#cp $DATAPATH/pl_data.gmp pl_data.gmp
+
+head -12 $DATAPATH/$RFILE1 > h1
+head -12 $RFILE1 > h2
+#diff $DATAPATH/$RFILE1  $RFILE1 > $CDOOUT 2> $CDOERR
+diff h1  h2 > $CDOOUT 2> $CDOERR
+test $? -eq 0 || let RSTAT+=1
+rm -f h1 h2
+
+test -s $CDOOUT && let RSTAT+=1
+test -s $CDOERR && let RSTAT+=1
+cat $CDOOUT $CDOERR
+
+cmp -s $DATAPATH/$RFILE2  $RFILE2
+test $? -eq 0 || let RSTAT+=1
+
+rm -f $OFILE $RFILE1 $RFILE2
+
+test $RSTAT -eq 0 && echo "ok $NTEST - $CDOTEST"
+test $RSTAT -eq 0 || echo "not ok $NTEST - $CDOTEST"
+#
+rm -f $CDOOUT $CDOERR
+#
+exit 0

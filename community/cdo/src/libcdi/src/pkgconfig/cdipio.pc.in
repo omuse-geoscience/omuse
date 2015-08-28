@@ -1,0 +1,48 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+cflags=-I@includedir@
+fcflags=@FPP_INCOPT@@includedir@ @CDI_F90_INTERFACE_FCFLAGS@
+libs=-L@libdir@ -lcdipio @PPM_CORE_LIBS@ @YAXT_LIBS@ -lcdi @GRIB_API_LIBS@ @JASPER_LIBS@ @NETCDF_LIBS@ @HDF5_LIBS@ @SZLIB_LIBS@ @ZLIB_LIBS@ @THREADS_LIBS@
+threads_libs=@THREADS_LIBS@
+threads_cflags=@THREADS_INCLUDE@
+zlib_cflags=@ZLIB_INCLUDE@
+zlib_libs=@ZLIB_LIBS@
+szlib_cflags=@SZLIB_INCLUDE@
+szlib_libs=@SZLIB_LIBS@
+hdf5_root=@HDF5_ROOT@
+hdf5_cflags=@HDF5_INCLUDE@
+hdf5_libs=@HDF5_LIBS@
+netcdf_root=@NETCDF_ROOT@
+netcdf_cflags=@NETCDF_INCLUDE@
+netcdf_libs=@NETCDF_LIBS@
+jasper_libs=@JASPER_LIBS@
+grib_api_cflags=@GRIB_API_INCLUDE@
+grib_api_libs=@GRIB_API_LIBS@
+cdipio_build_cc=@CC@
+cdipio_build_cflags=@CFLAGS@
+cdipio_build_cppflags=@CPPFLAGS@
+cdipio_build_ldflags=@LDFLAGS@
+cdipio_build_libs=@LIBS@
+cdipio_build_fc=@FC@
+cdipio_build_fcflags=@FCFLAGS@
+cdipio_build_f77=@F77@
+cdipio_build_fflags=@FFLAGS@
+cdipio_build_cxx=@CXX@
+cdipio_build_cxxflags=@CXXFLAGS@
+cdipio_build_enable_grib=@ENABLE_GRIB@
+cdipio_build_enable_cgribex=@ENABLE_CGRIBEX@
+cdipio_build_enable_service=@ENABLE_SERVICE@
+cdipio_build_enable_extra=@ENABLE_EXTRA@
+cdipio_build_enable_ieg=@ENABLE_IEG@
+
+Name: @PACKAGE_NAME@pio
+Description: CDI-PIO is the MPI-parallel layer of CDI
+URL: @PACKAGE_URL@
+Version: @VERSION@
+Requires: 
+Libs: ${libs}
+Cflags: ${cflags}
+FCflags: ${fcflags}
+

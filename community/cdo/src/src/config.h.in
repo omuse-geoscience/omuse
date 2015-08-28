@@ -1,0 +1,282 @@
+/* src/config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* CDO version */
+#undef CDO
+
+/* Compiler */
+#undef COMPILER
+
+/* Compiler version */
+#undef COMP_VERSION
+
+/* Define to 1 for DATA support */
+#undef ENABLE_DATA
+
+/* Define to 1 if you have the <cmor.h> header file. */
+#undef HAVE_CMOR_H
+
+/* Define to 1 if you have the <curl/curl.h> header file. */
+#undef HAVE_CURL_CURL_H
+
+/* Define to 1 if you have the declaration of `isnan', and to 0 if you don't.
+   */
+#undef HAVE_DECL_ISNAN
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <fftw3.h> header file. */
+#undef HAVE_FFTW3_H
+
+/* Define to 1 if you have the <fnmatch.h> header file. */
+#undef HAVE_FNMATCH_H
+
+/* Define to 1 if you have the `gethostname' function. */
+#undef HAVE_GETHOSTNAME
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define to 1 if you have the `getrlimit' function. */
+#undef HAVE_GETRLIMIT
+
+/* Define to 1 if you have the <glob.h> header file. */
+#undef HAVE_GLOB_H
+
+/* Define to 1 if you have the <grib_api.h> header file. */
+#undef HAVE_GRIB_API_H
+
+/* Define to 1 if you have the <hdf5.h> header file. */
+#undef HAVE_HDF5_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <jasper.h> header file. */
+#undef HAVE_JASPER_H
+
+/* Define to 1 for GRIB1 decoding/encoding with cgribex */
+#undef HAVE_LIBCGRIBEX
+
+/* Define to 1 for CMOR support */
+#undef HAVE_LIBCMOR
+
+/* Define to 1 for CURL support */
+#undef HAVE_LIBCURL
+
+/* Define to 1 for EXTRA interface */
+#undef HAVE_LIBEXTRA
+
+/* FFTW3 library is present if defined to 1 */
+#undef HAVE_LIBFFTW3
+
+/* Define to 1 for GRIB support */
+#undef HAVE_LIBGRIB
+
+/* GRIB_API library is present if defined to 1 */
+#undef HAVE_LIBGRIB_API
+
+/* Define to 1 for HDF5 support */
+#undef HAVE_LIBHDF5
+
+/* Define to 1 for IEG interface */
+#undef HAVE_LIBIEG
+
+/* Define to 1 for JPEG compression for GRIB2 */
+#undef HAVE_LIBJASPER
+
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 for MAGICS support */
+#undef HAVE_LIBMAGICS
+
+/* Define to 1 if you have the `malloc' library (-lmalloc). */
+#undef HAVE_LIBMALLOC
+
+/* Define to 1 for NETCDF OpenDAP */
+#undef HAVE_LIBNC_DAP
+
+/* Define to 1 for NETCDF support */
+#undef HAVE_LIBNETCDF
+
+/* Define to 1 for PROJ support */
+#undef HAVE_LIBPROJ
+
+/* Define to 1 if you have the `pthread' library (-lpthread). */
+#undef HAVE_LIBPTHREAD
+
+/* Define to 1 for SERVICE interface */
+#undef HAVE_LIBSERVICE
+
+/* Define to 1 for SZIP support */
+#undef HAVE_LIBSZ
+
+/* Define to 1 for UDUNITS2 support */
+#undef HAVE_LIBUDUNITS2
+
+/* Define to 1 for XML2 support */
+#undef HAVE_LIBXML2
+
+/* Define to 1 if you have the <libxml/parser.h> header file. */
+#undef HAVE_LIBXML_PARSER_H
+
+/* Define to 1 if you have the <libxml/tree.h> header file. */
+#undef HAVE_LIBXML_TREE_H
+
+/* Define 1 for ZLIB support */
+#undef HAVE_LIBZ
+
+/* Define to 1 if you have the <magics_api.h> header file. */
+#undef HAVE_MAGICS_API_H
+
+/* Define to 1 if you have the `mallinfo' function. */
+#undef HAVE_MALLINFO
+
+/* Define to 1 if you have the <malloc.h> header file. */
+#undef HAVE_MALLOC_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have a working `mmap' system call. */
+#undef HAVE_MMAP
+
+/* Define to 1 for NETCDF4/HDF5 support */
+#undef HAVE_NC4HDF5
+
+/* Define to 1 for NETCDF4/HDF5 threadsafe support */
+#undef HAVE_NC4HDF5_THREADSAFE
+
+/* Define to 1 for NETCDF2 support */
+#undef HAVE_NETCDF2
+
+/* Define to 1 for NETCDF4 support */
+#undef HAVE_NETCDF4
+
+/* Define to 1 if you have the <netcdf.h> header file. */
+#undef HAVE_NETCDF_H
+
+/* Define to 1 if you have the <proj_api.h> header file. */
+#undef HAVE_PROJ_API_H
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
+
+/* Have PTHREAD_PRIO_INHERIT. */
+#undef HAVE_PTHREAD_PRIO_INHERIT
+
+/* Define to 1 if you have the `sqrtl' function. */
+#undef HAVE_SQRTL
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if `st_blksize' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BLKSIZE
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/times.h> header file. */
+#undef HAVE_SYS_TIMES_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <szlib.h> header file. */
+#undef HAVE_SZLIB_H
+
+/* Define to 1 if you have the <udunits2.h> header file. */
+#undef HAVE_UDUNITS2_H
+
+/* Define to 1 if you have the <udunits2/udunits2.h> header file. */
+#undef HAVE_UDUNITS2_UDUNITS2_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <wordexp.h> header file. */
+#undef HAVE_WORDEXP_H
+
+/* Define to 1 if you have the <zlib.h> header file. */
+#undef HAVE_ZLIB_H
+
+/* Host name */
+#undef HOST_NAME
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to necessary symbol if this constant uses a non-standard name on
+   your system. */
+#undef PTHREAD_CREATE_JOINABLE
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* System type */
+#undef SYSTEM_TYPE
+
+/* User name */
+#undef USER_NAME
+
+/* Version number of package */
+#undef VERSION
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
+/* Define to the equivalent of the C99 'restrict' keyword, or to
+   nothing if this is not supported.  Do not define if restrict is
+   supported directly.  */
+#undef restrict
+/* Work around a bug in Sun C++: it does not support _Restrict or
+   __restrict__, even though the corresponding Sun C compiler ends up with
+   "#define restrict _Restrict" or "#define restrict __restrict__" in the
+   previous line.  Perhaps some future version of Sun C++ will work with
+   restrict; if so, hopefully it defines __RESTRICT like Sun C does.  */
+#if defined __SUNPRO_CC && !defined __RESTRICT
+# define _Restrict
+# define __restrict__
+#endif

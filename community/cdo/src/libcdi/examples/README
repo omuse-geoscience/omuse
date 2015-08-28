@@ -1,0 +1,9 @@
+The following C Source files
+
+cdi_read.c
+cdi_write.c
+cdi_copy.c
+
+are directly used in the documentation.
+
+!!! Please do not change these files !!!

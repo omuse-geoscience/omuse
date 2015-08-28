@@ -1,0 +1,48 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+cflags=-I@includedir@
+fcflags=@FPP_INCOPT@@includedir@ @CDI_F90_INTERFACE_FCFLAGS@
+libs=-L@libdir@ -lcdi @GRIB_API_LIBS@ @JASPER_LIBS@ @NETCDF_LIBS@ @HDF5_LIBS@ @SZLIB_LIBS@ @ZLIB_LIBS@ @THREADS_LIBS@
+threads_libs=@THREADS_LIBS@
+threads_cflags=@THREADS_INCLUDE@
+zlib_cflags=@ZLIB_INCLUDE@
+zlib_libs=@ZLIB_LIBS@
+szlib_cflags=@SZLIB_INCLUDE@
+szlib_libs=@SZLIB_LIBS@
+hdf5_root=@HDF5_ROOT@
+hdf5_cflags=@HDF5_INCLUDE@
+hdf5_libs=@HDF5_LIBS@
+netcdf_root=@NETCDF_ROOT@
+netcdf_cflags=@NETCDF_INCLUDE@
+netcdf_libs=@NETCDF_LIBS@
+jasper_libs=@JASPER_LIBS@
+grib_api_cflags=@GRIB_API_INCLUDE@
+grib_api_libs=@GRIB_API_LIBS@
+cdi_build_cc=@CC@
+cdi_build_cflags=@CFLAGS@
+cdi_build_cppflags=@CPPFLAGS@
+cdi_build_ldflags=@LDFLAGS@
+cdi_build_libs=@LIBS@
+cdi_build_fc=@FC@
+cdi_build_fcflags=@FCFLAGS@
+cdi_build_f77=@F77@
+cdi_build_fflags=@FFLAGS@
+cdi_build_cxx=@CXX@
+cdi_build_cxxflags=@CXXFLAGS@
+cdi_build_enable_grib=@ENABLE_GRIB@
+cdi_build_enable_cgribex=@ENABLE_CGRIBEX@
+cdi_build_enable_service=@ENABLE_SERVICE@
+cdi_build_enable_extra=@ENABLE_EXTRA@
+cdi_build_enable_ieg=@ENABLE_IEG@
+
+Name: @PACKAGE_NAME@
+Description: CDI is an Interface to access Climate and NWP model Data.
+URL: @PACKAGE_URL@
+Version: @VERSION@
+Requires: 
+Libs: ${libs}
+Cflags: ${cflags}
+FCflags: ${fcflags}
+

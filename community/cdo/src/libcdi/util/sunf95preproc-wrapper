@@ -1,0 +1,132 @@
+#! /bin/sh
+#
+# sunf95preproc-wrapper --- wrapper to produce Sun F95 style front-end
+#                           preprocessor output on stdout
+#
+# Copyright  (C)  2010, 2012  Thomas Jahns <jahns@dkrz.de>
+#
+# Version: 1.0
+# Keywords:
+# Author: Thomas Jahns <jahns@dkrz.de>
+# Maintainer: Thomas Jahns <jahns@dkrz.de>
+# URL: https://www.dkrz.de/redmine/projects/scales-ppm
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are  permitted provided that the following conditions are
+# met:
+#
+# Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+#
+# Neither the name of the DKRZ GmbH nor the names of its contributors
+# may be used to endorse or promote products derived from this software
+# without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+# OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Commentary:
+#
+#
+#
+# Code:
+#
+if [ "${DEBUG+set}" = set ]; then
+  set -x
+  outputRedir=">&2"
+else
+  outputRedir=">/dev/null 2>&1"
+fi
+while echo "$1" | grep '^-' >/dev/null 2>&1; do
+  FPPFLAGS="${FPPFLAGS+${FPPFLAGS} }\"$1\""
+  shift
+done
+TRAPCMD=':'
+trap 'eval $TRAPCMD' 0
+set -e
+test "${DEBUG+set}" = set && echo "$FPPFLAGS" >&2
+if [ "${FC+set}" != set ]; then
+  for F90C in sunf95 '' ; do
+    test -n "$F90C" || exit 1
+    set +e
+    F90BIN=`which $F90C 2>/dev/null`
+    set -e
+    test ! -x "$F90BIN" || break
+  done
+fi
+FC=${FC-$F90C}
+# nagfor 5.3 up chokes on -EP flag
+nag=`$FC -V 2>&1 | sed -n '/^NAG/s/NAG Fortran Compiler.*/NAG/
+t print
+b
+: print
+p'`
+[ x"$nag" = xNAG ] || FCFLAGS=${FCFLAGS--EP}
+# append -fpp if necessary
+IFStr=`echo "$IFS" | sed -n '$!s/$/\\\\n/
+H
+$x
+$s/\n//g
+$P'`
+if echo "$FCFLAGS" \
+  | grep -v '\('"[$IFStr]\\|^\\)-[cf]pp\\([$IFStr]\\|\$\\)" >/dev/null
+then
+  FCFLAGS="${FCFLAGS+$FCFLAGS }-fpp"
+fi
+TMPDIR="${TMPDIR-/tmp}"
+{
+  tmp=`
+  (umask 077 && mktemp -d "$TMPDIR/fooXXXXXX") 2>/dev/null
+  ` &&
+  test -n "$tmp" && test -d "$tmp"
+} || {
+  tmp="$TMPDIR/foo$$-$RANDOM"
+  (umask 077 && mkdir "$tmp")
+} || exit $?
+TRAPCMD="$TRAPCMD ; rm -rf \"$tmp\""
+#echo \"$FCFLAGS\"
+for FortranFile in "$@" ; do
+  fppInput=`echo "$FortranFile" | sed 's:.*/::
+s:\.[^./]*:.F90:'`
+  cp "$FortranFile" "$tmp/$fppInput"
+  fppOutput=`echo "$fppInput" | sed 's:.*/::
+s:\.F90:.f90:'`
+  for i in fppOutput ; do
+    if eval test -e \$$i ; then
+      eval backup$i=true
+      eval mv \"\$$i\" \"\$$i.bak\"
+      eval TRAPCMD${i}Save=\"$TRAPCMD\"
+      TRAPCMD="$TRAPCMD ; "`eval echo mv \"\\$$i.bak\" \"\\$$i\"`
+    fi
+  done
+  set +e
+  eval \$FC \$FCFLAGS -F $FPPFLAGS \"\$tmp/\$fppInput\" $outputRedir
+  set -e
+  grep -v '^#' "$fppOutput"
+  test "${DEBUG+set}" = set && cat "$fppOutput" >&2
+  rm "$fppOutput" "$tmp/$fppInput"
+  for i in fppOutput ; do
+    if eval test \"\$backup$i\" = true ; then
+      eval mv \"\$$i.bak\" \"\$$i\"
+      TRAPCMD=`eval echo \\$TRAPCMD\${i}Save`
+    fi
+  done
+done
+#
+# Local Variables:
+# license-project-url: "https://www.dkrz.de/redmine/projects/scales-ppm"
+# license-default: "bsd"
+# End:
