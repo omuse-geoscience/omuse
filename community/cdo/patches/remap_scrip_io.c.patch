@@ -1,0 +1,20 @@
+--- cdo-1.7.0rc5/src/remap_scrip_io.c	2015-06-19 14:46:34.000000000 +0200
++++ src/src/remap_scrip_io.c	2015-08-25 16:44:07.651910585 +0200
+@@ -628,7 +628,7 @@
+   src_grid->gridID = gridID1;
+   tgt_grid->gridID = gridID2;
+ 
+-  if ( gridInqType(gridID1) == GRID_GME )
++  if ( gridID1 != -1 && gridInqType(gridID1) == GRID_GME )
+     {
+       src_grid->nvgp = gridInqSize(gridID1);
+       gridID1_gme_c = gridToUnstructured(gridID1, 1);
+@@ -637,7 +637,7 @@
+   remapGridRealloc(rv->map_type, src_grid);
+   remapGridRealloc(rv->map_type, tgt_grid);
+ 
+-  if ( gridInqType(gridID1) == GRID_GME ) gridInqMaskGME(gridID1_gme_c, src_grid->vgpm);    
++  if ( gridID1 != -1 && gridInqType(gridID1) == GRID_GME ) gridInqMaskGME(gridID1_gme_c, src_grid->vgpm);    
+ 
+   rv->pinit = TRUE;
+   rv->wts = NULL;
