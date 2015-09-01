@@ -1,22 +1,6 @@
---- cdo-1.7.0rc5/src/Makefile	2015-09-01 11:39:59.910086219 +0200
-+++ src/src/Makefile	2015-09-01 11:21:51.463805003 +0200
-@@ -369,19 +369,19 @@
- ETAGS = etags
- CTAGS = ctags
- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
--ACLOCAL = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/config/missing aclocal-1.14
-+ACLOCAL = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src/config/missing aclocal-1.14
- AMTAR = $${TAR-tar}
- AM_CPPFLAGS = 
- AM_DEFAULT_VERBOSITY = 1
- AR = ar
- AS = as
--AUTOCONF = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/config/missing autoconf
--AUTOHEADER = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/config/missing autoheader
--AUTOMAKE = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/config/missing automake-1.14
-+AUTOCONF = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src/config/missing autoconf
-+AUTOHEADER = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src/config/missing autoheader
-+AUTOMAKE = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src/config/missing automake-1.14
+--- cdo-1.7.0rc5/src/Makefile	2015-09-01 22:59:08.907092775 +0200
++++ src/src/Makefile	2015-09-01 12:14:43.569226167 +0200
+@@ -381,7 +381,7 @@
  AWK = gawk
  CC = gcc -std=gnu99
  CCDEPMODE = depmode=gcc3
@@ -43,15 +27,6 @@
  FGREP = /bin/grep -F
  GREP = /bin/grep
  GRIB_API_INCLUDE = 
-@@ -443,7 +443,7 @@
- MAGICS_LIBS = 
- MAGICS_ROOT = 
- MAINT = #
--MAKEINFO = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/config/missing makeinfo
-+MAKEINFO = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src/config/missing makeinfo
- MANIFEST_TOOL = :
- MKDIR_P = /bin/mkdir -p
- NC_CONFIG = nc-config
 @@ -487,13 +487,13 @@
  XML2_LIBS = 
  ZLIB_INCLUDE = 
@@ -60,10 +35,10 @@
 -abs_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/src
 -abs_top_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5
 -abs_top_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5
-+abs_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src/src
-+abs_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src/src
-+abs_top_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src
-+abs_top_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src
++abs_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/src/src
++abs_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/src/src
++abs_top_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/src
++abs_top_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/src
  ac_ct_AR = ar
  ac_ct_CC = gcc
 -ac_ct_CXX = 
@@ -71,20 +46,10 @@
  ac_ct_DUMPBIN = 
  am__include = include
  am__leading_dot = .
-@@ -521,7 +521,7 @@
- htmldir = ${docdir}
- includedir = ${prefix}/include
- infodir = ${datarootdir}/info
--install_sh = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/config/install-sh
-+install_sh = ${SHELL} /home/ben/amuse/amuse-svn/src/omuse/community/remapper/src/config/install-sh
- libdir = ${exec_prefix}/lib
- libexecdir = ${exec_prefix}/libexec
- localedir = ${datarootdir}/locale
-@@ -774,6 +774,23 @@
+@@ -774,6 +774,22 @@
  	@rm -f cdo$(EXEEXT)
  	$(AM_V_CCLD)$(cdo_LINK) $(cdo_OBJECTS) $(cdo_LDADD) $(LIBS)
  
-+
 +#############################################################
 +#inserts by Ben van Werkhoven
 +#############################################################
@@ -92,9 +57,9 @@
 +AMUSE_OBJS = $(filter-out $(MAIN_OBJ),$(cdo_OBJECTS))
 +
 +libcdo-cdolib.a:
-+	echo "Building CDO library for AMUSE"
-+	ar ruv libcdo-cdolib.a $(AMUSE_OBJS)
-+	ranlib libcdo-cdolib.a
++    echo "Building CDO library for AMUSE"
++    ar ruv libcdo-cdolib.a $(AMUSE_OBJS)
++    ranlib libcdo-cdolib.a
 +
 +
 +#############################################################
@@ -104,12 +69,3 @@
  cdotest$(EXEEXT): $(cdotest_OBJECTS) $(cdotest_DEPENDENCIES) $(EXTRA_cdotest_DEPENDENCIES) 
  	@rm -f cdotest$(EXEEXT)
  	$(AM_V_CCLD)$(cdotest_LINK) $(cdotest_OBJECTS) $(cdotest_LDADD) $(LIBS)
-@@ -4558,7 +4575,7 @@
- 	maintainer-clean maintainer-clean-generic mostlyclean \
- 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
- 	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
--	uninstall-binPROGRAMS
-+	uninstall-binPROGRAMS libcdo-amuse.a
- 
- 
- # Tell versions [3.59,3.63) of GNU make to not export all variables.
