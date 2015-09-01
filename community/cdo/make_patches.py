@@ -26,7 +26,8 @@ def make_patches(filename):
 #    returncode = subprocess.call(arguments)
 #    if not returncode == 0:
 #        raise Exception("could not create patch for file {0}".format(filename))
-    command = 'diff' + ' -u ' + target_dir + filename + " " + source_dir + filename + ' > ' + patch_dir + filename + ".patch"
+    command = 'diff' + " -I 'community'" + ' -u ' + target_dir + filename + " " + source_dir + filename + ' > ' + patch_dir + filename + ".patch"
+    print command
     os.system(command)
 
 
