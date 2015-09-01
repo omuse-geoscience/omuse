@@ -13,15 +13,22 @@ OBJS = interface.o
 
 CODE = cdo-1.7.0rc5
 
-CODELIB = src/src/cdo-biglib.a
+CODELIB = $(CODE)/src/libcdo-amuse.a
 #CODELIB = src/src/libcdo-amuse.a
 
-CDOLIB = src/src/.libs/libcdo.a
-CDILIB = src/libcdi/src/.libs/libcdi.a
+CDOLIB = $(CODE)/src/.libs/libcdo.a
+CDILIB = $(CODE)/libcdi/src/.libs/libcdi.a
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 all: remapper_worker
+
+patches:
+	$(RM) -rf $(CODE)
+	tar zxf cdo-current.tar.gz
+	cd $(CODE); ./configure --with-netcdf
+	cd .; ./make_patches.py diff
+	$(RM) -rf $(CODE)
 
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h
@@ -30,13 +37,15 @@ clean:
 
 $(CODE):
 	tar zxf cdo-current.tar.gz
-	cd $(CODE)
-	./configure
-	cd -
+	cd $(CODE); ./configure --with-netcdf
+	cd .; ./make_patches.py patch
+	cp script.ar $(CODE)/src/script.ar
 
-$(CODELIB):
+$(CODELIB): $(CODE)
 	make -C $(CODE) 
-	make -C $(CODE)/src libcdo-amuse.a
+	make -C $(CODE)/src libcdo-cdolib.a
+	cd $(CODE)/src/; ar -M < script.ar
+	cd $(CODE)/src/; ranlib libcdo-amuse.a
 
 worker_code.cc: interface.py worker_code.h
 	$(CODE_GENERATOR) --type=c interface.py CDOInterface -o $@
@@ -51,3 +60,4 @@ remapper_worker: worker_code.o $(CODELIB) $(OBJS)
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<
 
+.PHONY: patches

@@ -1,0 +1,5 @@
+CREATE libcdo-amuse.a
+ADDLIB libcdo-cdolib.a
+ADDLIB .libs/libcdo.a
+SAVE
+END
