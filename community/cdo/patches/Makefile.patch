@@ -1,5 +1,5 @@
---- cdo-1.7.0rc5/src/Makefile	2015-09-01 22:59:08.907092775 +0200
-+++ src/src/Makefile	2015-09-01 12:14:43.569226167 +0200
+--- cdo-1.7.0rc5/src/Makefile	2015-09-01 23:03:40.167682568 +0200
++++ src/src/Makefile	2015-09-01 23:03:24.675877326 +0200
 @@ -381,7 +381,7 @@
  AWK = gawk
  CC = gcc -std=gnu99
@@ -57,9 +57,9 @@
 +AMUSE_OBJS = $(filter-out $(MAIN_OBJ),$(cdo_OBJECTS))
 +
 +libcdo-cdolib.a:
-+    echo "Building CDO library for AMUSE"
-+    ar ruv libcdo-cdolib.a $(AMUSE_OBJS)
-+    ranlib libcdo-cdolib.a
++	echo "Building CDO library for AMUSE"
++	ar ruv libcdo-cdolib.a $(AMUSE_OBJS)
++	ranlib libcdo-cdolib.a
 +
 +
 +#############################################################
