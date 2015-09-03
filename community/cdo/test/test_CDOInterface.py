@@ -1,7 +1,7 @@
 from amuse.community import *
 from amuse.test.amusetest import TestWithMPI
 
-from omuse.community.remapper.interface import CDOInterface
+from omuse.community.cdo.interface import CDOInterface
 
 from amuse.units import units
 
