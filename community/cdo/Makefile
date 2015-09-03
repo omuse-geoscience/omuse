@@ -26,7 +26,7 @@ all: remapper_worker
 patches:
 	$(RM) -rf $(CODE)
 	tar zxf cdo-current.tar.gz
-	cd $(CODE); ./configure --with-netcdf=$(PREFIX)
+	cd $(CODE); ./configure --with-netcdf=$(NETCDF_PREFIX)
 	cd .; ./make_patches.py diff
 	$(RM) -rf $(CODE)
 
@@ -41,7 +41,7 @@ distclean: clean
 $(CODE):
 	tar zxf cdo-current.tar.gz
 	ln -s `tar --exclude="*/*" -tf cdo-current.tar.gz` src
-	cd $(CODE); ./configure --with-netcdf=$(PREFIX)
+	cd $(CODE); ./configure --with-netcdf=$(NETCDF_PREFIX)
 	cd .; ./make_patches.py patch
 	cp script.ar $(CODE)/src/script.ar
 
