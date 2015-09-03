@@ -26,7 +26,7 @@ all: remapper_worker
 patches:
 	$(RM) -rf $(CODE)
 	tar zxf cdo-current.tar.gz
-	cd $(CODE); ./configure --with-netcdf
+	cd $(CODE); ./configure --with-netcdf=$(PREFIX)
 	cd .; ./make_patches.py diff
 	$(RM) -rf $(CODE)
 
@@ -35,9 +35,13 @@ clean:
 	$(RM) *~ remapper_worker worker_code.cc
 #	make -C $(CODE) clean
 
+distclean: clean
+	rm -rf $(CODE) src
+
 $(CODE):
 	tar zxf cdo-current.tar.gz
-	cd $(CODE); ./configure --with-netcdf
+	ln -s `tar --exclude="*/*" -tf cdo-current.tar.gz` src
+	cd $(CODE); ./configure --with-netcdf=$(PREFIX)
 	cd .; ./make_patches.py patch
 	cp script.ar $(CODE)/src/script.ar
 
@@ -55,7 +59,7 @@ worker_code.h: interface.py
 
 remapper_worker: worker_code.o $(CODELIB) $(OBJS)
 #	$(LD) $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -o $@
-	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -fopenmp -o $@
+	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -luuid -fopenmp -o $@
 
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<
