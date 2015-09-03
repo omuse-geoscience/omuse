@@ -17,6 +17,8 @@ class POPInterface(CodeInterface):
     
     MODE_NORMAL = '320x384x40'
     MODE_HIGH = '3600x2400x42'
+    MODE_320x384x40='320x384x40'
+    MODE_3600x2400x42='3600x2400x42'
 
     def __init__(self, mode = MODE_NORMAL, **keyword_arguments):
         self.mode = mode
@@ -24,9 +26,9 @@ class POPInterface(CodeInterface):
         keyword_arguments.setdefault('number_of_workers', 8)
         CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **keyword_arguments)
 
-        if mode == self.MODE_NORMAL:
+        if mode in [self.MODE_NORMAL,self.MODE_320x384x40]:
             self.set_namelist_filename('pop_in_lowres')
-        elif mode == self.MODE_HIGH:
+        elif mode in [self.MODE_HIGH,self.MODE_3600x2400x42]:
             self.set_namelist_filename('pop_in_highres')
         else:
             raise Exception('Unknown mode')
