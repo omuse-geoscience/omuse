@@ -7,6 +7,7 @@ from write_grid import adcirc_grid_writer,adcirc_parameter_writer
 
 class AdcircInterface(CodeInterface, 
                       CommonCodeInterface,
+                      StoppingConditionInterface,
                       LiteratureReferencesMixIn):
     """
     
@@ -167,6 +168,7 @@ class Adcirc(CommonCode):
         self._elev_boundary=None
         self._flow_boundary=None
         self._parameters=None
+        self.stopping_conditions = StoppingConditions(self)
        
     def assign_grid_and_boundary(self,nodes,elements,elev_boundary, flow_boundary):
         self._nodes=nodes
@@ -357,6 +359,8 @@ class Adcirc(CommonCode):
         object.add_method('INITIALIZED', 'set_rootdir')
 
         for state in ["RUN","EDIT"]:
+          object.add_method(state,"get_model_time")
+          object.add_method(state,"get_timestep")          
           object.add_method(state,"get_number_of_nodes")
           object.add_method(state,"get_number_of_elements")
           object.add_method(state,"get_number_of_nodes_in_elevation_boundary_segment")
