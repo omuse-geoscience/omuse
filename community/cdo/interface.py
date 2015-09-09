@@ -39,12 +39,34 @@ class CDOInterface(CodeInterface):
         returns (size=0)
 
     @remote_function()
+    def get_src_grid_dims():
+        returns (x=0, y=0)
+    @remote_function()
+    def get_dst_grid_dims():
+        returns (x=0, y=0)
+
+    @remote_function()
     def get_remap_file():
         returns (filename='s')
     @remote_function()
     def set_remap_file(filename='s'):
         returns ()
 
+
+
+    @remote_function(must_handle_array=True)
+    def perform_remap(i=0,src=0.):   #units are of course unknown at this point
+        returns (dst=0.)
+
+    
+
+
+
+
+
+    @remote_function(must_handle_array=True)
+    def get_src_grid_mask(i=0, j=0):
+        returns (mask=0)
 
     
 
