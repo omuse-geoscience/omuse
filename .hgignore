@@ -16,3 +16,4 @@ community/pop/data/*
 community/pop/slurm-*.out
 community/cdo/grids/tripole-3600x2400.nc
 community/cdo/src/*
+community/cdo/cdo-1.7.0rc/*
