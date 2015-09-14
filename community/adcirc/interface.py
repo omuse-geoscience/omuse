@@ -185,7 +185,7 @@ class Adcirc(CommonCode):
             param.parameters=self._parameters
           else:
             self._parameters=param.parameters
-          if self.parameters.bottom_friction_law not in ["linear","quadratic"]:
+          if self.parameters.bottom_friction_law not in ["linear","quadratic","hybrid"]:
             raise Exception("invalid/ unimplemented bottom friction law: %s"%bottom_friction_law)
           param.update( ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
                         SLAM0=trigo.in_deg(self.parameters.central_longitude),
