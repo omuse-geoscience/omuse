@@ -9,8 +9,8 @@ from amuse.datamodel import Particles
 
 from amuse.io import read_set_from_file
 
-#default_options={}
-default_options = dict(redirection="none")
+default_options={}
+#default_options = dict(redirection="none")
 #default_options=dict(debugger="gdb")
 
 import logging
@@ -95,6 +95,11 @@ class TestAdcirc(TestWithMPI):
 
         self.assertEqual(instance.parameters.use_interface_elevation_boundary, True)
         self.assertEqual(instance.parameters.use_interface_met_forcing, True)
+
+        self.assertEqual(instance.parameters.bottom_friction_law, "linear")
+        self.assertEqual(instance.parameters.linear_bottom_friction_coeff, 0. | units.s**-1)
+        self.assertEqual(instance.parameters.quadratic_bottom_friction_coeff, 0. )
+        self.assertEqual(instance.parameters.GWCE_weighting_factor, 0.005 )        
 
         instance.cleanup_code()
         instance.stop()

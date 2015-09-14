@@ -35,7 +35,7 @@ default_parameters={
  "H0": dict(dtype=float , value=1.0, description="MIMINMUM CUTOFF DEPTH"),
  "SLAM0": dict(dtype=float , value=0.0, description="CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)"),
  "SFEA0": dict(dtype=float , value=0.0, description="CENTER OF CPP PROJECTION (NOT USED IF ICS=1, NTIP=0, NCOR=0)"),
- "TAU": dict(dtype=float , value=0.00, description="HOMOGENEOUS LINEAR  BOTTOM FRICTION COEFFICIENT"),
+ "TAU": dict(dtype=float , value=0.0, description="HOMOGENEOUS LINEAR  BOTTOM FRICTION COEFFICIENT"),
  "CF": dict(dtype=float , value=0.00, description="HOMOGENEOUS QUADRATIC BOTTOM FRICTION COEFFICIENT"),
  "ESLM": dict(dtype=float , value=1000.0, description="LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1"),
  "CORI": dict(dtype=float , value=0.0, description="CORIOLIS PARAMETER: IGNORED IF NCOR = 1"),
@@ -187,17 +187,8 @@ class adcirc_parameter_writer(object):
           f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
           raise Exception("tbd: 3D baroclinic input")
       
-
-  def set_non_default(self,A_H=100. | units.m**2/units.s, timestep=360. | units.s, 
-         use_predictor_corrector=True, ICS=1,SLAM0=0.,SFEA0=0.):
-    self.parameters["ESLM"]=A_H.value_in(units.m**2/units.s)
-    if use_predictor_corrector:
-      self.parameters["DTDP"]=-timestep.value_in(units.s)
-    else:
-      self.parameters["DTDP"]=timestep.value_in(units.s)
-    self.parameters["ICS"]=ICS
-    self.parameters["SLAM0"]=trigo.in_deg(SLAM0)
-    self.parameters["SFEA0"]=trigo.in_deg(SFEA0)
+  def update(self, **kwargs):
+    self.parameters.update(kwargs)
 
 class adcirc_grid_writer(object):
   
