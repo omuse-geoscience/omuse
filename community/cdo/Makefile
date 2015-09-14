@@ -56,7 +56,6 @@ worker_code.h: interface.py
 	$(CODE_GENERATOR) --type=H interface.py CDOInterface -o $@
 
 remapper_worker: worker_code.o $(CODELIB) $(OBJS)
-	grep '\-luuid' cdo-1.7.0rc5/libcdi/Makefile
 	$(eval $(shell grep '\-luuid' cdo-1.7.0rc5/libcdi/Makefile))
 	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CODELIB) $(CDILIB)  -lm -lz -lnetcdf $(UUID_C_LIB) -fopenmp -o $@
 
