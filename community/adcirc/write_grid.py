@@ -58,6 +58,9 @@ default_parameters={
  "IEVC": dict(dtype=int, value=1, description="vertical eddy viscosity code"),
  "EVMIN": dict(dtype=float, value=1.e-6, description="minimal vertical eddy viscosity"),
  "EVCON": dict(dtype=float, value=0.05, description="vertical eddy viscosity constant"),
+ "HBREAK": dict(dtype=float, value=1., description="hybrid bottom friction break depth"),
+ "FTHETA": dict(dtype=float, value=10., description="dimensionless shallow/deep water bottom friction law transition parameter"),
+ "FGAMMA": dict(dtype=float, value=0.33333333, description="friction factor parameter"),
  }
 
 def get_default_parameter_set():
