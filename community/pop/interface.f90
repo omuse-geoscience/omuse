@@ -30,7 +30,7 @@ module pop_interface
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
   use operators, only: wcalc
-  use prognostic, only: TRACER, PSURF, UVEL, VVEL, RHO, curtime
+  use prognostic, only: TRACER, PSURF, UVEL, VVEL, UBTROP, VBTROP, RHO, curtime
   use restart, only: restart_freq_opt, restart_freq, restart_outfile
   use tavg, only: tavg_freq_opt, tavg_freq, tavg_outfile
   use movie, only: movie_freq_opt, movie_freq, movie_outfile
@@ -780,6 +780,22 @@ end function
 !  Getters for node and element surface state
 !
 !-----------------------------------------------------------------------
+function get_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: uvel_, vvel_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
+    call get_gridded_variable_vector(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
+  else
+    call get_gather(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
+    call get_gather(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
+  endif
+
+  ret=0
+end function
 function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n

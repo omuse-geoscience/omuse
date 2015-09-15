@@ -59,6 +59,10 @@ class POPInterface(CodeInterface):
         returns (ssh=0. | units.cm, vx=0. | units.cm / units.s, vy=0. | units.cm / units.s)
 
     @remote_function(must_handle_array=True)
+    def get_node_barotropic_vel(i=0,j=0):
+        returns (vx_barotropic=0. | units.cm / units.s, vy_barotropic=0. | units.cm / units.s)
+
+    @remote_function(must_handle_array=True)
     def get_element_surface_state(i=0,j=0):
         returns (temp=0. | units.C, salt=0. | units.g/units.kg) #salinity in gram per kg 
 
@@ -523,6 +527,7 @@ class POP(CommonCode):
             object.add_method(state, 'get_element_surface_state')
             object.add_method(state, 'get_element_surface_heat_flux')
             object.add_method(state, 'get_node_surface_state')
+            object.add_method(state, 'get_node_barotropic_vel')
             object.add_method(state, 'get_node3d_velocity_xvel')
             object.add_method(state, 'get_node3d_velocity_yvel')
             object.add_method(state, 'get_node3d_velocity_zvel')
@@ -598,6 +603,7 @@ class POP(CommonCode):
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
         object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy'))
+        object.add_getter('nodes', 'get_node_barotropic_vel', names=('vx_barotropic','vy_barotropic'))
 
         object.define_grid('nodes3d')
         object.set_grid_range('nodes3d', 'get_firstlast_grid3d')
