@@ -59,7 +59,8 @@ worker_code.h: interface.py
 
 remapper_worker: worker_code.o $(CODELIB) $(OBJS)
 #	$(LD) $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -o $@
-	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -luuid -fopenmp -o $@
+#	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -luuid -fopenmp -o $@
+	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -fopenmp -o $@
 
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<

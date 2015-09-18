@@ -1,5 +1,5 @@
 --- cdo-1.7.0rc5/src/remap_scrip_io.c	2015-06-19 14:46:34.000000000 +0200
-+++ src/src/remap_scrip_io.c	2015-08-25 16:44:07.651910585 +0200
++++ src_original/src/remap_scrip_io.c	2015-09-09 11:44:48.738626758 +0200
 @@ -628,7 +628,7 @@
    src_grid->gridID = gridID1;
    tgt_grid->gridID = gridID2;
