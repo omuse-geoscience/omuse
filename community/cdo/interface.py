@@ -46,6 +46,14 @@ class CDOInterface(CodeInterface):
         returns (x=0, y=0)
 
     @remote_function()
+    def get_num_links():
+        returns (num_links=0)
+    @remote_function(must_handle_array=True)
+    def get_remap_links(i=0):
+        returns (src_address=0, dst_address=0, remap_weights=0.)
+
+
+    @remote_function()
     def get_remap_file():
         returns (filename='s')
     @remote_function()
@@ -54,12 +62,23 @@ class CDOInterface(CodeInterface):
 
 
 
-    @remote_function(must_handle_array=True)
-    def perform_remap(i=0,src=0.):   #units are of course unknown at this point
-        returns (dst=0.)
+    @remote_function()
+    def perform_remap():
+        returns ()
 
     
-
+    @remote_function(must_handle_array=True)
+    def set_src_grid_values(i=0, src=0.):
+        returns ()
+    @remote_function(must_handle_array=True)
+    def set_dst_grid_values(i=0, dst=0.):
+        returns ()
+    @remote_function(must_handle_array=True)
+    def get_src_grid_values(i=0):
+        returns (src=0.)
+    @remote_function(must_handle_array=True)
+    def get_dst_grid_values(i=0):
+        returns (dst=0.)
 
 
 
