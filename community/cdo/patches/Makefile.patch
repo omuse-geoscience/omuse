@@ -1,51 +1,5 @@
---- cdo-1.7.0rc5/src/Makefile	2015-09-01 23:03:40.167682568 +0200
-+++ src/src/Makefile	2015-09-01 23:03:24.675877326 +0200
-@@ -381,7 +381,7 @@
- AWK = gawk
- CC = gcc -std=gnu99
- CCDEPMODE = depmode=gcc3
--CFLAGS = -g -O2 -Wall -g -fopenmp 
-+CFLAGS = -g -O2 -fopenmp 
- CLDFLAGS = 
- CLIBS = 
- CMOR_LIBS = 
-@@ -392,7 +392,7 @@
- CXX = g++
- CXXCPP = g++ -E
- CXXDEPMODE = depmode=gcc3
--CXXFLAGS = -g -O2 -g -O2 -Wall -g
-+CXXFLAGS = -g -O2
- CYGPATH_W = echo
- DEFS = -DHAVE_CONFIG_H
- DEPDIR = .deps
-@@ -416,7 +416,7 @@
- ENABLE_NETCDF = yes
- ENABLE_SERVICE = yes
- EXEEXT = 
--FCFLAGS = -g -O2
-+FCFLAGS = 
- FGREP = /bin/grep -F
- GREP = /bin/grep
- GRIB_API_INCLUDE = 
-@@ -487,13 +487,13 @@
- XML2_LIBS = 
- ZLIB_INCLUDE = 
- ZLIB_LIBS =  -lz
--abs_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/src
--abs_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5/src
--abs_top_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5
--abs_top_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/cdo-1.7.0rc5
-+abs_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/src/src
-+abs_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/src/src
-+abs_top_builddir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/src
-+abs_top_srcdir = /home/ben/amuse/amuse-svn/src/omuse/community/cdo/src
- ac_ct_AR = ar
- ac_ct_CC = gcc
--ac_ct_CXX = 
-+ac_ct_CXX = g++
- ac_ct_DUMPBIN = 
- am__include = include
- am__leading_dot = .
+--- cdo-1.7.0rc5/src/Makefile	2015-09-09 11:59:34.958385035 +0200
++++ src_original/src/Makefile	2015-09-09 11:57:00.931344449 +0200
 @@ -774,6 +774,22 @@
  	@rm -f cdo$(EXEEXT)
  	$(AM_V_CCLD)$(cdo_LINK) $(cdo_OBJECTS) $(cdo_LDADD) $(LIBS)
