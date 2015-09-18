@@ -14,9 +14,7 @@ OBJS = interface.o
 CODE = cdo-1.7.0rc5
 
 CODELIB = $(CODE)/src/libcdo-amuse.a
-#CODELIB = src/src/libcdo-amuse.a
 
-CDOLIB = $(CODE)/src/.libs/libcdo.a
 CDILIB = $(CODE)/libcdi/src/.libs/libcdi.a
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
@@ -41,7 +39,7 @@ distclean: clean
 $(CODE):
 	tar zxf cdo-current.tar.gz
 	ln -s `tar --exclude="*/*" -tf cdo-current.tar.gz` src
-	cd $(CODE); ./configure --with-netcdf=$(NETCDF_PREFIX)
+	cd $(CODE); ./configure --with-netcdf=$(NETCDF_PREFIX) FC="$(FC)" FCFLAGS="$(FCFLAGS)"
 	cd .; ./make_patches.py patch
 	cp script.ar $(CODE)/src/script.ar
 
@@ -58,9 +56,8 @@ worker_code.h: interface.py
 	$(CODE_GENERATOR) --type=H interface.py CDOInterface -o $@
 
 remapper_worker: worker_code.o $(CODELIB) $(OBJS)
-#	$(LD) $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -o $@
-#	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -luuid -fopenmp -o $@
-	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CDOLIB) $(CODELIB) $(CDILIB) -lm -lz -lnetcdf -fopenmp -o $@
+	$(eval $(shell grep '\-luuid' cdo-1.7.0rc5/libcdi/Makefile))
+	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CODELIB) $(CDILIB)  -lm -lz -lnetcdf $(UUID_C_LIB) -fopenmp -o $@
 
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<

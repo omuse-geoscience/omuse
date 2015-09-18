@@ -3,10 +3,13 @@ from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.community import *
 from amuse.support.options import option
 
+from amuse.units import trigo
+
 from write_grid import adcirc_grid_writer,adcirc_parameter_writer
 
 class AdcircInterface(CodeInterface, 
                       CommonCodeInterface,
+                      StoppingConditionInterface,
                       LiteratureReferencesMixIn):
     """
     
@@ -167,6 +170,7 @@ class Adcirc(CommonCode):
         self._elev_boundary=None
         self._flow_boundary=None
         self._parameters=None
+        self.stopping_conditions = StoppingConditions(self)
        
     def assign_grid_and_boundary(self,nodes,elements,elev_boundary, flow_boundary):
         self._nodes=nodes
@@ -176,18 +180,22 @@ class Adcirc(CommonCode):
 
     def commit_parameters(self):        
         if self.parameters.use_interface_parameters:
-          SLAM0=self.parameters.central_longitude
-          SFEA0=self.parameters.central_latitude
-          A_H=self.parameters.A_H
-          dt=self.parameters.timestep
-          use_precor=self.parameters.use_predictor_corrector
           param=adcirc_parameter_writer()
           if self._parameters is not None:
             param.parameters=self._parameters
           else:
             self._parameters=param.parameters
-          ics=1 if self.coordinates=="cartesian" else 2
-          param.set_non_default(A_H, dt, use_precor,ics, SLAM0,SFEA0)
+          if self.parameters.bottom_friction_law not in ["linear","quadratic","hybrid"]:
+            raise Exception("invalid/ unimplemented bottom friction law: %s"%bottom_friction_law)
+          param.update( ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
+                        SLAM0=trigo.in_deg(self.parameters.central_longitude),
+                        SFEA0=trigo.in_deg(self.parameters.central_latitude),
+                        ICS=1 if self.coordinates=="cartesian" else 2,
+                        DTDP=(-1 if self.parameters.use_predictor_corrector else 1)*self.parameters.timestep.value_in(units.s),
+                        NOLIBF=["linear","quadratic","hybrid"].index(self.parameters.bottom_friction_law),
+                        TAU0=self.parameters.GWCE_weighting_factor,
+                        TAU=self.parameters.linear_bottom_friction_coeff.value_in(units.s**-1),
+                        CF=self.parameters.quadratic_bottom_friction_coeff )
           param.write()
         if self.parameters.use_interface_grid:
           adcirc_grid_writer(coordinates=self.coordinates).write_grid(self._nodes,self._elements, 
@@ -271,7 +279,31 @@ class Adcirc(CommonCode):
             0. | units.deg,
             "before_set_interface_parameter"
         )
-
+        object.add_interface_parameter(
+            "bottom_friction_law",
+            "type of bottom friction law [linear,quadratic, hybrid]",
+            "linear",
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "GWCE_weighting_factor",
+            "factor in GWCE Weighting primitive and wave contributions [-5,-4,-3,-2,-1, or >0 suggested: 0.005-0.1]",
+            0.005,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "linear_bottom_friction_coeff",
+            "linear bottom friction coefficient [1/s], only used for linear bottom friction law",
+            0. | units.s**-1,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "quadratic_bottom_friction_coeff",
+            "quadratic bottom friction coefficient [dimensionless], only used for quadratic bottom friction law",
+            0.,
+            "before_set_interface_parameter"
+        )     
+           
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
 
@@ -357,6 +389,8 @@ class Adcirc(CommonCode):
         object.add_method('INITIALIZED', 'set_rootdir')
 
         for state in ["RUN","EDIT"]:
+          object.add_method(state,"get_model_time")
+          object.add_method(state,"get_timestep")          
           object.add_method(state,"get_number_of_nodes")
           object.add_method(state,"get_number_of_elements")
           object.add_method(state,"get_number_of_nodes_in_elevation_boundary_segment")
