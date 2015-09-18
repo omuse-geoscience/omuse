@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 using namespace std;
 
 
@@ -17,7 +18,8 @@ extern "C" {
 
 }
 
-
+#undef malloc
+#undef free
 
 #define MAX_LENGTH 256
 
@@ -41,6 +43,20 @@ int get_remap_file(char** filename) {
 
 }
 
+
+#ifdef NULL
+  #undef NULL
+#endif
+#define NULL (double*)0
+
+double *src_grid_values = NULL;
+double *dst_grid_values = NULL;
+
+//gradients used for second order and bicubic remappings
+//to be computed when the weights are read in or computed
+double *src_grad1 = NULL;
+double *src_grad2 = NULL;
+double *src_grad3 = NULL;
 
 int set_remap_file(char* filename) {
 //    strncpy(remap_file_name, filename, MAX_LENGTH);
@@ -66,25 +82,116 @@ int set_remap_file(char* filename) {
     printf("source grid:\n");
     print_remap_grid_info(&src_grid);
 
+    src_grid_values = (double *)malloc(src_grid.size * sizeof(double));
+
     printf("destination grid:\n");
     print_remap_grid_info(&dst_grid);
 
+    dst_grid_values = (double *)malloc(dst_grid.size * sizeof(double));
+
     printf("remap info:\n");
     print_remap_info(&rv);
-
 
     return 0;
 }
 
 
+int initialize_code() {
 
-int get_src_grid_size(int * size) {
-  *size = src_grid.size;
+    src_grid_values = (double *)malloc(src_grid.size * sizeof(double));
+    dst_grid_values = (double *)malloc(dst_grid.size * sizeof(double));
+
+
+
+
+}
+
+
+
+int cleanup_code() {
+
+  if (src_grid_values) { free(src_grid_values); }
+  if (dst_grid_values) { free(dst_grid_values); }
+
+
+  if (src_grad1) { free(src_grad1); }
+  if (src_grad2) { free(src_grad2); }
+  if (src_grad3) { free(src_grad3); }
+
+
   return 0;
 }
 
-int get_dst_grid_size(int * size) {
+
+int set_src_grid_values(int *index_i, double *src_values, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+    src_grid_values[i] = src_values[index_i[i]];
+  }
+  return 0;
+}
+int set_dst_grid_values(int *index_i, double *dst_values, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+    dst_grid_values[i] = dst_values[index_i[i]];
+  }
+  return 0;
+}
+int get_src_grid_values(int *index_i, double *src_values, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+    src_values[i] = src_grid_values[index_i[i]];
+  }
+  return 0;
+}
+int get_dst_grid_values(int *index_i, double *dst_values, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+    if (index_i[i] > dst_grid.size-1 || index_i[i] < 0) {
+      printf("error: retrieving dst grid value i=%d for index=%d\n", i, index_i[i]);
+    } else {
+      dst_values[i] = dst_grid_values[index_i[i]];
+    }
+  }
+  return 0;
+}
+
+
+
+
+int get_num_links(int *num_links) {
+  *num_links = rv.num_links;
+  return 0;
+}
+
+int get_remap_links(int *index_i, int *src_address, int *dst_address, double *weights, int n) {
+  int i;
+  for (i=0; i<n; i++) {
+    src_address[i] = rv.src_cell_add[index_i[i]];
+    dst_address[i] = rv.tgt_cell_add[index_i[i]];
+    weights[i] = rv.wts[index_i[i]];
+  }
+  return 0;
+}
+
+
+
+
+int get_src_grid_size(int *size) {
+  *size = src_grid.size;
+  return 0;
+}
+int get_dst_grid_size(int *size) {
   *size = dst_grid.size;
+  return 0;
+}
+
+int set_src_grid_size(int *size) {
+  src_grid.size = *size;
+  return 0;
+}
+int set_dst_grid_size(int *size) {
+  dst_grid.size = *size;
   return 0;
 }
 
@@ -114,7 +221,7 @@ int get_src_grid_mask(int *index_i, int *index_j, int *imask, int n) {
   printf("nx=%d, ny=%d, n=%d",nx, ny, n);
 
   for (i=0; i<n; i++) {
-      imask[index_i[i]*nx+index_j[i]] = src_grid.vgpm[index_i[i]*nx+index_j[i]];
+      imask[i] = src_grid.vgpm[index_i[i]*nx+index_j[i]];
   }
 
   return 0;
@@ -124,14 +231,11 @@ int get_src_grid_mask(int *index_i, int *index_j, int *imask, int n) {
 
 
 
-//gradients used for second order and bicubic remappings
-//to be computed when the weights are read in or computed
-double *src_grad1 = NULL;
-double *src_grad2 = NULL;
-double *src_grad3 = NULL;
 
 
-int perform_remap(int *index_i, double *dst, double *src, int n) {
+
+
+int perform_remap() {
 
   /*
     This function calls the remapping function in CDO, it also performs some preprocessing and checks that
@@ -165,10 +269,10 @@ int perform_remap(int *index_i, double *dst, double *src, int n) {
     double *dst_array    ! array for remapped field on destination grid
   */
 
-  double missval = 0.0; //have to find out what this is exactly
+  double missval = -1.0; //this value is used if no links exist that contribute to the gridpoint in the remapping
 
-  remap(dst, missval, dst_grid.size, rv.num_links, rv.wts,
-       rv.num_wts, rv.tgt_cell_add, rv.src_cell_add, src,
+  remap(dst_grid_values, missval, dst_grid.size, rv.num_links, rv.wts,
+       rv.num_wts, rv.tgt_cell_add, rv.src_cell_add, src_grid_values,
        src_grad1, src_grad2, src_grad3,
        rv.links);
 
@@ -257,6 +361,19 @@ void print_remap_info(remapvars_t *rv) {
 
 //  int*     tgt_cell_add;     // target grid address for each link        
   printf("rv->tgt_cell_add %p\n", rv->tgt_cell_add);
+
+  int i;
+  int min_i=dst_grid.size;
+  int max_i=0;
+  for (i=0; i < rv->num_links; i++) {
+    int dst_i = rv->tgt_cell_add[i];
+    if (dst_i < min_i) min_i = dst_i;
+    if (dst_i > max_i) max_i = dst_i;
+    if (dst_i > dst_grid.size-1) { 
+      printf("error: destination address %d=%d out of bounds\n", i, dst_i);
+    }
+  }
+  printf("min destination address = %d, max destination address = %d\n", min_i, max_i);
 
 //  double*  wts;              // map weights for each link [max_links*num_wts] 
   printf("rv->wts %p\n", rv->wts);
