@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import numpy
 import sys
 import os.path
 
@@ -28,10 +29,11 @@ mask = imask.__array__().reshape(nx,ny)
 
 import matplotlib.pyplot as pyplot
 
-f, (ax1, ax2, ax3) = pyplot.subplots(3, sharex=True, sharey=True)
+f, ((ax1, ax2), (ax3, ax4)) = pyplot.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
 ax1.set_adjustable('box-forced')
 ax2.set_adjustable('box-forced')
 ax3.set_adjustable('box-forced')
+ax4.set_adjustable('box-forced')
 
 #print lats[::-1,:]
 ax1.imshow(lats[::-1,:], cmap=pyplot.cm.jet)
@@ -41,6 +43,11 @@ ax2.imshow(lons[::-1,:], cmap=pyplot.cm.jet)
 
 #print mask[::-1,:]
 ax3.imshow(mask[::-1,:], cmap=pyplot.cm.bone)
+
+if 'grid_area' in fh.variables:
+    ax4.imshow(fh.variables['grid_area'][:].reshape(nx,ny)[::-1,:], cmap=pyplot.cm.jet)
+else:
+    ax4.imshow((numpy.zeros(nx*ny)).reshape(nx,ny), cmap=pyplot.cm.bone)
 
 
 

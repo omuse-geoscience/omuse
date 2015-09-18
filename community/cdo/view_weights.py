@@ -1,70 +1,133 @@
 #!/usr/bin/python
 
-import sys
-import os.path
-
-total = len(sys.argv)
-if len(sys.argv) != 2:
-    sys.exit("Usage: view_grid.py filename")
-
-filename = sys.argv[1]
-if not os.path.isfile(filename):
-    sys.exit("Error: No such file " + filename)
-
-
-from netCDF4 import Dataset
-fh = Dataset(filename, mode='r')
-
-src_nx = fh.variables['src_grid_dims'][0]
-src_ny = fh.variables['src_grid_dims'][1]
-dst_nx = fh.variables['dst_grid_dims'][0]
-dst_ny = fh.variables['dst_grid_dims'][1]
-num_links = fh.dimensions['num_links']
-remap_matrix = fh.variables['remap_matrix'][:]
-
-#print min(fh.variables['src_address']), max(fh.variables['src_address'])
-#print min(fh.variables['dst_address']), max(fh.variables['dst_address'])
-#print 'src_ny=', src_ny, ' src_nx=', src_nx
-
 import numpy
-src_weights = numpy.zeros(src_nx*src_ny).reshape(src_ny, src_nx)
-dst_weights = numpy.zeros(dst_nx*dst_ny).reshape(dst_ny, dst_nx)
-for (i,j), weight in numpy.ndenumerate(remap_matrix):
-    src_i = fh.variables['src_address'][i] -1 #correct for Fortran indexing starting at 1
-    src_y = src_i/src_nx
-    src_x = src_i-(src_y*src_nx)
-#    print src_y,src_x,src_i,j,i
-    src_weights[src_y,src_x] += remap_matrix[i,j]
-    dst_i = fh.variables['dst_address'][i] -1 #correct for Fortran indexing starting at 1
-    dst_y = dst_i/dst_nx
-    dst_x = dst_i-(dst_y*dst_nx)
-#    print dst_y,dst_x,dst_i,j,i
-    dst_weights[dst_y,dst_x] += remap_matrix[i,j]
-
-src_imask = fh.variables['src_grid_imask'][:]
-dst_imask = fh.variables['dst_grid_imask'][:]
-
-src_mask = src_imask.__array__().reshape(src_ny, src_nx)
-dst_mask = dst_imask.__array__().reshape(dst_ny, dst_nx)
-
 
 import matplotlib.pyplot as pyplot
+from netCDF4 import Dataset
 
-f, (ax1, ax2) = pyplot.subplots(2, sharex=True, sharey=True)
-ax1.set_adjustable('box-forced')
-ax2.set_adjustable('box-forced')
-f, (ax3, ax4) = pyplot.subplots(2, sharex=True, sharey=True)
-ax3.set_adjustable('box-forced')
-ax4.set_adjustable('box-forced')
-ax1.imshow(src_mask[::-1,:], cmap=pyplot.cm.bone)
-ax2.imshow(src_weights[::-1,:], cmap=pyplot.cm.jet)
+class weights_file_reader():
 
-ax3.imshow(dst_mask[::-1,:], cmap=pyplot.cm.bone)
-ax4.imshow(dst_weights[::-1,:], cmap=pyplot.cm.jet)
+    def __init__(self,filename):
+
+        fh = Dataset(filename, mode='r')
+
+        self.src_dims = src_dims = fh.variables['src_grid_dims'][::-1]
+        self.dst_dims = dst_dims = fh.variables['dst_grid_dims'][::-1]
+
+        num_links = fh.dimensions['num_links']
+        remap_matrix = fh.variables['remap_matrix'][:]
+
+        #print min(fh.variables['src_address']), max(fh.variables['src_address'])
+        #print min(fh.variables['dst_address']), max(fh.variables['dst_address'])
+        #print 'src_ny=', src_ny, ' src_nx=', src_nx
+
+        src_weights = numpy.zeros(len(fh.dimensions['src_grid_size']))
+        dst_weights = numpy.zeros(len(fh.dimensions['dst_grid_size']))
+        src_address = fh.variables['src_address'][:]
+        dst_address = fh.variables['dst_address'][:]
+
+        for (i,j), weight in numpy.ndenumerate(remap_matrix):
+            src_i = src_address[i] -1 #correct for Fortran indexing starting at 1
+            src_weights[src_i] += weight
+            dst_i = dst_address[i] -1 #correct for Fortran indexing starting at 1
+            dst_weights[dst_i] += weight
+
+        self.src_weights = src_weights.reshape(src_dims)
+        self.dst_weights = dst_weights.reshape(dst_dims)
+
+        src_imask = fh.variables['src_grid_imask'][:]
+        dst_imask = fh.variables['dst_grid_imask'][:]
+
+        self.src_mask = src_mask = src_imask.__array__().reshape(src_dims)
+        self.dst_mask = dst_mask = dst_imask.__array__().reshape(dst_dims)
 
 
-pyplot.ion()
-pyplot.show()
+def create_window():
+    f, (ax1, ax2) = pyplot.subplots(2, sharex=True, sharey=True)
+    ax1.set_adjustable('box-forced')
+    ax2.set_adjustable('box-forced')
+    return ax1, ax2
 
 
-raw_input()
+def view_weights_scrip(gridfile, weights):
+    fh = Dataset(gridfile, mode='r')
+
+    dims = fh.variables['grid_dims'][::-1]
+    imask = fh.variables['grid_imask'][:]
+    mask = imask.__array__().reshape(dims)
+
+    ax1, ax2 = create_window()
+    ax1.imshow(mask[::-1,:], cmap=pyplot.cm.bone)
+    ax2.imshow(weights.reshape(dims)[::-1,:], cmap=pyplot.cm.jet)
+    pyplot.show()
+
+
+def view_weights_adcirc(gridfile, weights):
+
+    from omuse.community.cdo.view_adcirc_grid import adcirc_grid_viewer
+    v = adcirc_grid_viewer(filename=gridfile, coordinates='spherical')
+
+    ax3, ax4 = create_window()
+    ax3.triplot(v.x, v.y, v.triangles)
+    ax4.tripcolor(v.x, v.y, v.triangles, weights)
+    pyplot.show()
+
+
+
+if __name__ == "__main__":
+
+    import sys
+    import os.path
+
+    total = len(sys.argv)
+    if not len(sys.argv) in [2, 6]:
+        sys.exit("Usage: view_weights.py weightsfile [src_grid_file [scrip|adcirc] dst_grid_file [scrip|adcirc]]")
+
+    use_mask_from_weightsfile = False
+    if len(sys.argv) == 2:
+        use_mask_from_weightsfile = True
+
+    weightsfile = sys.argv[1]
+    files = []
+    files.append(weightsfile)
+
+    if not use_mask_from_weightsfile:
+        src_grid_file = sys.argv[2]
+        files.append(src_grid_file)
+        dst_grid_file = sys.argv[4]
+        files.append(dst_grid_file)
+
+    for filename in files:
+        if not os.path.isfile(filename):
+            sys.exit("Error: No such file " + filename)
+
+    pyplot.ion()
+
+    r=weights_file_reader(weightsfile)
+
+    if use_mask_from_weightsfile:
+        ax1, ax2 = create_window()
+        ax1.imshow(r.src_mask[::-1,:], cmap=pyplot.cm.bone)
+        ax2.imshow(r.src_weights.reshape(r.src_dims)[::-1,:], cmap=pyplot.cm.jet)
+
+        ax3, ax4 = create_window()
+        ax3.imshow(r.dst_mask[::-1,:], cmap=pyplot.cm.bone)
+        ax4.imshow(r.dst_weights.reshape(r.dst_dims)[::-1,:], cmap=pyplot.cm.jet)
+
+        pyplot.show()
+    
+    else:
+        if sys.argv[3] == "scrip":
+            view_weights_scrip(src_grid_file, r.src_weights)
+        elif sys.argv[3] == "adcirc":
+            view_weights_adcirc(src_grid_file, r.src_weights)
+
+        if sys.argv[5] == "scrip":
+            view_weights_scrip(dst_grid_file, r.dst_weights)
+        elif sys.argv[5] == "adcirc":
+            view_weights_adcirc(dst_grid_file, r.dst_weights)
+    
+
+
+    raw_input()
+
