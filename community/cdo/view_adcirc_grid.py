@@ -3,7 +3,7 @@
 
 from omuse.community.adcirc.read_grid import adcirc_grid_reader
 import numpy
-
+from matplotlib import pyplot
 
 class adcirc_grid_viewer():
 
@@ -17,6 +17,10 @@ class adcirc_grid_viewer():
 
         # r.t contains the connectivity of nodes to form triangles, strip fist column
         self.triangles = r.t[:,1:] -1 
+
+    def plot(self):
+        pyplot.triplot(self.x, self.y, self.triangles)
+        pyplot.show()
 
 
 if __name__ == "__main__":
@@ -39,9 +43,7 @@ if __name__ == "__main__":
 
     v = adcirc_grid_viewer(filename, coordinates)
 
-    from matplotlib import pyplot
-    pyplot.triplot(v.x, v.y, v.triangles)
-    pyplot.show()
+    v.plot()
 
     raw_input()
 
