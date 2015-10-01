@@ -45,21 +45,36 @@ class CDOInterface(CodeInterface):
     def get_dst_grid_dims():
         returns (x=0, y=0)
 
-    @remote_function()
-    def get_num_links():
-        returns (num_links=0)
-    @remote_function(must_handle_array=True)
-    def get_remap_links(i=0):
-        returns (src_address=0, dst_address=0, remap_weights=0.)
-
 
     @remote_function()
-    def get_remap_file():
+    def set_weights_file(filename='s'):
+        returns ()
+    @remote_function()
+    def set_src_grid_file(filename='s'):
+        returns ()
+    @remote_function()
+    def set_dst_grid_file(filename='s'):
+        returns ()
+    @remote_function()
+    def get_weights_file():
         returns (filename='s')
     @remote_function()
-    def set_remap_file(filename='s'):
-        returns ()
+    def get_src_grid_file():
+        returns (filename='s')
+    @remote_function()
+    def get_dst_grid_file():
+        returns (filename='s')
 
+
+    @remote_function()
+    def initialize_code():
+        returns ()
+    @remote_function()
+    def commit_parameters():
+        returns ()
+    @remote_function()
+    def cleanup_code():
+        returns ()
 
 
     @remote_function()
@@ -83,10 +98,17 @@ class CDOInterface(CodeInterface):
 
 
 
-    @remote_function(must_handle_array=True)
-    def get_src_grid_mask(i=0, j=0):
-        returns (mask=0)
+    # debug functions
 
+    @remote_function()
+    def get_num_links():
+        returns (num_links=0)
+    @remote_function(must_handle_array=True)
+    def get_remap_links(i=0):
+        returns (src_address=0, dst_address=0, remap_weights=0.)
+    @remote_function()
+    def print_info():
+        returns ()
     
 
 
@@ -101,10 +123,58 @@ class CDORemapper(CommonCode):
 
     def define_parameters(self, object):
         object.add_method_parameter(
-            "get_remap_file",
-            "set_remap_file",
-            "remap_file",
+            "get_weights_file",
+            "set_weights_file",
+            "weights_file",
             "Specify the filename of weigths file to be used for remapping",
             default_value = ''
         )
- 
+        object.add_method_parameter(
+            "get_src_grid_file",
+            "set_src_grid_file",
+            "src_grid_file",
+            "Specify the filename of src grid file to be used for remapping",
+            default_value = ''
+        )
+        object.add_method_parameter(
+            "get_dst_grid_file",
+            "set_dst_grid_file",
+            "dst_grid_file",
+            "Specify the filename of dst grid file to be used for remapping",
+            default_value = ''
+        )
+
+
+    def define_state(self, object):
+        object.set_initial_state('UNINITIALIZED')
+        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+
+        object.add_transition('!UNINITIALIZED!INITIALIZED!STOPPED', 'END', 'cleanup_code')
+        object.add_transition('END', 'STOPPED', 'stop', False)
+        object.add_method('STOPPED', 'stop')
+
+        object.add_method('INITIALIZED', 'set_weights_file')
+        object.add_method('INITIALIZED', 'set_src_grid_file')
+        object.add_method('INITIALIZED', 'set_dst_grid_file')
+
+        object.add_transition('INITIALIZED', 'RUN', 'commit_parameters')
+
+
+        for state in ["INITIALIZED","RUN"]:
+            object.add_method(state, 'get_weights_file')
+            object.add_method(state, 'get_src_grid_file')
+            object.add_method(state, 'get_dst_grid_file')
+
+        
+        object.add_method("RUN", 'set_src_grid_values')
+        object.add_method("RUN", 'get_src_grid_values')
+        object.add_method("RUN", 'set_dst_grid_values')
+        object.add_method("RUN", 'get_dst_grid_values')
+        object.add_method("RUN", 'perform_remap')
+
+        object.add_method("RUN", 'get_src_grid_size')
+        object.add_method("RUN", 'get_src_grid_dims')
+        object.add_method("RUN", 'get_dst_grid_size')
+        object.add_method("RUN", 'get_dst_grid_dims')
+
+
