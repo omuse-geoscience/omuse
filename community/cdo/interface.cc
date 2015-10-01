@@ -1,5 +1,4 @@
 
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -25,23 +24,27 @@ extern "C" {
 
 
 
-char remap_file_name[MAX_LENGTH];
+char weights_file[MAX_LENGTH];
+char src_grid_file[MAX_LENGTH];
+char dst_grid_file[MAX_LENGTH];
+
+int gridID1;
+int gridID2;
+
 
 remapgrid_t src_grid;
 remapgrid_t dst_grid;
 remapvars_t rv;
+
 void print_remap_grid_info(remapgrid_t *grid);
 void print_remap_info(remapvars_t *rv);
+
+int remap_order = 0;
 
 //for printing the map type as string
 const char *map_type_string[] = { "unknown", "conservative", "bilinear", "bicubic", "distwgt", "conserv_yac" };
 
 
-int get_remap_file(char** filename) {
-    *filename = remap_file_name;
-    return 0;
-
-}
 
 
 #ifdef NULL
@@ -58,53 +61,138 @@ double *src_grad1 = NULL;
 double *src_grad2 = NULL;
 double *src_grad3 = NULL;
 
-int set_remap_file(char* filename) {
-//    strncpy(remap_file_name, filename, MAX_LENGTH);
-//    remap_file_name = filename;
+int init_method = 0;
+#define INIT_WEIGHTS_FILE 1
+#define INIT_GRID_FILES 2
 
-    //read_remap_scrip(const char *interp_file, int gridID1, int gridID2, int *map_type, int *submap_type, int *num_neighbors,
-    //          int *remap_order, remapgrid_t *src_grid, remapgrid_t *tgt_grid, remapvars_t *rv);
 
-    int map_type;
-    int submap_type;
-    int num_neighbors;
-    int remap_order;
+//for now I'm assuming conservative remapping is what we'll use
+//other methods are supported when using weights files
+int map_type = MAP_TYPE_CONSERV;
 
-    cdoVerbose = 1;
 
-    printf("going to call CDO\n");
-
-    read_remap_scrip(filename, -1, -1, &map_type, &submap_type, &num_neighbors,
-              &remap_order, &src_grid, &dst_grid, &rv);
-
-    printf("finished calling CDO\n");
-
-    printf("source grid:\n");
-    print_remap_grid_info(&src_grid);
-
-    src_grid_values = (double *)malloc(src_grid.size * sizeof(double));
-
-    printf("destination grid:\n");
-    print_remap_grid_info(&dst_grid);
-
-    dst_grid_values = (double *)malloc(dst_grid.size * sizeof(double));
-
-    printf("remap info:\n");
-    print_remap_info(&rv);
-
+int set_weights_file(char* filename) {
+    strncpy(weights_file, filename, MAX_LENGTH);
+    init_method = INIT_WEIGHTS_FILE;
+    return 0;
+}
+int set_src_grid_file(char* filename) {
+    strncpy(src_grid_file, filename, MAX_LENGTH);
+    init_method = INIT_GRID_FILES;
+    return 0;
+}
+int set_dst_grid_file(char* filename) {
+    strncpy(dst_grid_file, filename, MAX_LENGTH);
+    init_method = INIT_GRID_FILES;
+    return 0;
+}
+int get_weights_file(char** filename) {
+    *filename = weights_file;
+    return 0;
+}
+int get_src_grid_file(char** filename) {
+    *filename = src_grid_file;
+    return 0;
+}
+int get_dst_grid_file(char** filename) {
+    *filename = dst_grid_file;
     return 0;
 }
 
 
-int initialize_code() {
 
-    src_grid_values = (double *)malloc(src_grid.size * sizeof(double));
-    dst_grid_values = (double *)malloc(dst_grid.size * sizeof(double));
+void read_weights_file() {
+    int submap_type;
+    int num_neighbors;
 
+    read_remap_scrip(weights_file, -1, -1, &map_type, &submap_type, &num_neighbors,
+              &remap_order, &src_grid, &dst_grid, &rv);
+}
 
+void read_grid_files() {
 
+  gridID1 = cdoDefineGrid(src_grid_file);
+  gridID2 = cdoDefineGrid(dst_grid_file);
+
+  remap_set_int(REMAP_NUM_SRCH_BINS, 720); //this is a setting that CDO also sets by default
+  int remap_extrapolate = FALSE;
+  rv.pinit = FALSE;
+  remap_grids_init(map_type, remap_extrapolate, gridID1, &src_grid, gridID2, &dst_grid);
 
 }
+
+void compute_weights() {
+
+  if (map_type == MAP_TYPE_CONSERV) {
+    remap_order = 2;
+  }
+
+  //by default CDO ignores the grid mask, we're doing this to reproduce the same results as CDO
+  int i=0;
+  if (src_grid.mask) {
+    for (i=0; i<src_grid.size; i++) {
+      src_grid.mask[i] = 1;
+    }
+  }
+
+  src_grid.store_link_fast = FALSE;
+  src_grid.lextrapolate = FALSE;
+  src_grid.non_global = FALSE;
+  src_grid.lwrite_remap = FALSE;
+
+  dst_grid.store_link_fast = FALSE;
+  dst_grid.lextrapolate = FALSE;
+  dst_grid.non_global = FALSE;
+  dst_grid.lwrite_remap = FALSE;
+
+  remap_vars_init(map_type, src_grid.size, dst_grid.size, &rv);
+
+  rv.map_type = map_type;
+  rv.norm_opt = NORM_OPT_FRACAREA;
+
+  //calling CDO to compute the weights
+  scrip_remap_weights_conserv(&src_grid, &dst_grid, &rv);
+
+  //reduce the allocated space for storing the links
+  if ( map_type == MAP_TYPE_CONSERV && rv.num_links != rv.max_links) {
+    resize_remap_vars(&rv, rv.num_links-rv.max_links);
+  }
+
+}
+
+
+
+
+
+
+int initialize_code() {
+  cdoVerbose = TRUE;
+
+  return 0;
+}
+
+
+
+int commit_parameters() {
+
+  //read either a weights file or grid files
+  if (init_method == INIT_WEIGHTS_FILE) {
+    read_weights_file();
+  } else if (init_method == INIT_GRID_FILES) {
+    read_grid_files();
+    compute_weights();
+  } else {
+    fprintf(stderr, "Remapper not properbly initialized, set either a weights file or source and destination grid files\n");
+    return 1;
+  }
+
+  //can not do this earlier since the grid sizes are not yet known
+  src_grid_values = (double *)malloc(src_grid.size * sizeof(double));
+  dst_grid_values = (double *)malloc(dst_grid.size * sizeof(double));
+
+  return 0;
+}
+
 
 
 
@@ -112,7 +200,6 @@ int cleanup_code() {
 
   if (src_grid_values) { free(src_grid_values); }
   if (dst_grid_values) { free(dst_grid_values); }
-
 
   if (src_grad1) { free(src_grad1); }
   if (src_grad2) { free(src_grad2); }
@@ -126,14 +213,14 @@ int cleanup_code() {
 int set_src_grid_values(int *index_i, double *src_values, int n) {
   int i=0;
   for (i=0; i < n; i++) {
-    src_grid_values[i] = src_values[index_i[i]];
+    src_grid_values[index_i[i]] = src_values[i];
   }
   return 0;
 }
 int set_dst_grid_values(int *index_i, double *dst_values, int n) {
   int i=0;
   for (i=0; i < n; i++) {
-    dst_grid_values[i] = dst_values[index_i[i]];
+    dst_grid_values[index_i[i]] = dst_values[i];
   }
   return 0;
 }
@@ -147,32 +234,12 @@ int get_src_grid_values(int *index_i, double *src_values, int n) {
 int get_dst_grid_values(int *index_i, double *dst_values, int n) {
   int i=0;
   for (i=0; i < n; i++) {
-    if (index_i[i] > dst_grid.size-1 || index_i[i] < 0) {
-      printf("error: retrieving dst grid value i=%d for index=%d\n", i, index_i[i]);
-    } else {
       dst_values[i] = dst_grid_values[index_i[i]];
-    }
   }
   return 0;
 }
 
 
-
-
-int get_num_links(int *num_links) {
-  *num_links = rv.num_links;
-  return 0;
-}
-
-int get_remap_links(int *index_i, int *src_address, int *dst_address, double *weights, int n) {
-  int i;
-  for (i=0; i<n; i++) {
-    src_address[i] = rv.src_cell_add[index_i[i]];
-    dst_address[i] = rv.tgt_cell_add[index_i[i]];
-    weights[i] = rv.wts[index_i[i]];
-  }
-  return 0;
-}
 
 
 
@@ -195,6 +262,9 @@ int set_dst_grid_size(int *size) {
   return 0;
 }
 
+/*
+ * In CDO there are always 2 dimensions
+ */
 int get_src_grid_dims(int *x, int *y) {
   *x = src_grid.dims[0];
   *y = src_grid.dims[1];
@@ -208,28 +278,6 @@ int get_dst_grid_dims(int *x, int *y) {
 
 
 
-/*
- * It would appear that CDO leaves the grid masks empty in the weights
- * file, even if they are supplied when the weights were generated.
- */
-int get_src_grid_mask(int *index_i, int *index_j, int *imask, int n) {
-  int i;
-  int nx = src_grid.dims[0];
-  int ny = src_grid.dims[1];
-
-  printf("get_src_grid_mask() called\n");
-  printf("nx=%d, ny=%d, n=%d",nx, ny, n);
-
-  for (i=0; i<n; i++) {
-      imask[i] = src_grid.vgpm[index_i[i]*nx+index_j[i]];
-  }
-
-  return 0;
-}
-
-
-
-
 
 
 
@@ -237,18 +285,9 @@ int get_src_grid_mask(int *index_i, int *index_j, int *imask, int n) {
 
 int perform_remap() {
 
-  /*
+    /*
     This function calls the remapping function in CDO, it also performs some preprocessing and checks that
     would otherwise be performed by the Remap() function that implements the operator
-
-    Arguments: 
-        index_i is a list of indexes in the destination grid for which a remapped value from the source grid is requested
-        dst is the array that contains the result of this remapping
-        src is the array that contains the source grid to be remapped
-        n is the number of grid points to be remapped, which should be equal to the number of grid points in the destination grid
-
-    For now partial remappings are not supported n must equal dst grid size.
-
 
     void remap(double *restrict dst_array, double missval, long dst_size, long num_links, double *restrict map_wts,
        long num_wts, const int *restrict dst_add, const int *restrict src_add, const double *restrict src_array,
@@ -267,9 +306,26 @@ int perform_remap() {
     output variables:
     Output:
     double *dst_array    ! array for remapped field on destination grid
-  */
+    */
 
-  double missval = -1.0; //this value is used if no links exist that contribute to the gridpoint in the remapping
+    // if remap order is 2 we also need the gradiants of the src field
+    if (remap_order == 2) {
+
+        if (!src_grad1) {
+            src_grad1 = (double *)malloc(src_grid.size * sizeof(double));
+        }
+        if (!src_grad2) {
+            src_grad2 = (double *)malloc(src_grid.size * sizeof(double));
+        }
+        if (!src_grad3) {
+            src_grad3 = (double *)malloc(src_grid.size * sizeof(double));
+        }
+
+        remap_gradients(src_grid, src_grid_values, src_grad1, src_grad2, src_grad3);
+    }
+
+  //this value is used if no links exist that contribute to the destination gridpoint in the remapping
+  double missval = -1.0;
 
   remap(dst_grid_values, missval, dst_grid.size, rv.num_links, rv.wts,
        rv.num_wts, rv.tgt_cell_add, rv.src_cell_add, src_grid_values,
@@ -285,6 +341,61 @@ int perform_remap() {
 
 
 
+/* ------------- functions below this line are mainly for debugging purposes ----------- */
+
+
+
+int get_num_links(int *num_links) {
+  *num_links = rv.num_links;
+  return 0;
+}
+int get_remap_links(int *index_i, int *src_address, int *dst_address, double *weights, int n) {
+  int i;
+  printf("get_remap_links() called n=%d\n", n);
+
+  for (i=0; i<n; i++) {
+    src_address[i] = rv.src_cell_add[index_i[i]];
+    dst_address[i] = rv.tgt_cell_add[index_i[i]];
+    weights[i] = rv.wts[index_i[i] * rv.num_wts];
+  }
+
+  for (i=0; i<dst_grid.size; i++) {
+    dst_grid_values[i] = 2.0;
+  }
+  for (i=0; i<n; i++) {
+    dst_grid_values[dst_address[i]] = 0.0;
+  }
+
+  int error = 0;
+  for (i=0; i<dst_grid.size; i++) {
+    if (dst_grid_values[i] == 2.0) {
+      error++;
+    }
+  }
+  printf("number of missing destination grid cells in remapping = %d\n", error);
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+int print_info() {
+  printf("source grid:\n");
+  print_remap_grid_info(&src_grid);
+
+  printf("destination grid:\n");
+  print_remap_grid_info(&dst_grid);
+
+  printf("remap info:\n");
+  print_remap_info(&rv);
+  
+  return 0;
+}
 
 
 void print_remap_grid_info(remapgrid_t *grid) {
@@ -309,7 +420,7 @@ void print_remap_grid_info(remapgrid_t *grid) {
 
 //  printf("vgpm %d\n",*     vgpm;                  /* flag which cells are valid   */
 
-//  printf("mask %d\n",*     mask;                  /* flag which cells participate */
+  printf("mask %p\n",    grid->mask);                  /* flag which cells participate */
 
 /*
   double*  reg2d_center_lon;      // reg2d lon/lat coordinates for 
@@ -332,8 +443,10 @@ void print_remap_grid_info(remapgrid_t *grid) {
   printf("luse_cell_corners %d\n", grid->luse_cell_corners);     /* use corners for bounding boxes  */
 
 //  restr_t *cell_bound_box;        /* lon/lat bounding box for use    */
+  printf("cell_bound_box = %p\n", grid->cell_bound_box);
 
   printf("num_srch_bins %d\n", grid->num_srch_bins);         /* num of bins for restricted srch */
+
 
 //  printf("bin_addr %d", *bin_addr);              /* min,max adds for grid cells in this lat bin  */
 
@@ -369,14 +482,22 @@ void print_remap_info(remapvars_t *rv) {
     int dst_i = rv->tgt_cell_add[i];
     if (dst_i < min_i) min_i = dst_i;
     if (dst_i > max_i) max_i = dst_i;
-    if (dst_i > dst_grid.size-1) { 
-      printf("error: destination address %d=%d out of bounds\n", i, dst_i);
-    }
   }
   printf("min destination address = %d, max destination address = %d\n", min_i, max_i);
 
 //  double*  wts;              // map weights for each link [max_links*num_wts] 
   printf("rv->wts %p\n", rv->wts);
+
+/*
+  int j;
+  printf("first 10 weights (assuming array of structs):\n");
+  for (i=0; i < 10 ; i++) {
+    for (j=0; j < rv->num_wts; j++) {
+      printf("%f ", rv->wts[i*3+j]);
+    }
+    printf("\n");
+  }
+*/
 
   //remaplinks_t links
   printf("links.option %d\n",      rv->links.option);

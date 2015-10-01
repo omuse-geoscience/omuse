@@ -39,7 +39,7 @@ distclean: clean
 $(CODE):
 	tar zxf cdo-current.tar.gz
 	ln -s `tar --exclude="*/*" -tf cdo-current.tar.gz` src
-	cd $(CODE); ./configure --with-netcdf=$(NETCDF_PREFIX) FC="$(FC)" FCFLAGS="$(FCFLAGS)"
+	cd $(CODE); ./configure --disable-openmp --with-netcdf=$(NETCDF_PREFIX) FC="$(FC)" FCFLAGS="$(FCFLAGS)"
 	cd .; ./make_patches.py patch
 	cp script.ar $(CODE)/src/script.ar
 
@@ -62,4 +62,4 @@ remapper_worker: worker_code.o $(CODELIB) $(OBJS)
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<
 
-.PHONY: patches $(CODELIB)
+.PHONY: patches $(CODELIB) 
