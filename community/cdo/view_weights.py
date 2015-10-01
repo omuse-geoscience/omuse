@@ -14,7 +14,7 @@ class weights_file_reader():
         self.src_dims = src_dims = fh.variables['src_grid_dims'][::-1]
         self.dst_dims = dst_dims = fh.variables['dst_grid_dims'][::-1]
 
-        num_links = fh.dimensions['num_links']
+        num_links = len(fh.dimensions['num_links'])
         remap_matrix = fh.variables['remap_matrix'][:]
 
         #print min(fh.variables['src_address']), max(fh.variables['src_address'])
@@ -26,11 +26,17 @@ class weights_file_reader():
         src_address = fh.variables['src_address'][:]
         dst_address = fh.variables['dst_address'][:]
 
-        for (i,j), weight in numpy.ndenumerate(remap_matrix):
-            src_i = src_address[i] -1 #correct for Fortran indexing starting at 1
-            src_weights[src_i] += weight
-            dst_i = dst_address[i] -1 #correct for Fortran indexing starting at 1
-            dst_weights[dst_i] += weight
+        num_wts = len(fh.dimensions['num_wgts'])
+        remap_links = remap_matrix.flatten()
+        for i in range(num_links):
+            src_weights[src_address[i] -1] += remap_links[i*num_wts] #correct for Fortran indexing starting at 1
+            dst_weights[dst_address[i] -1] += remap_links[i*num_wts] #correct for Fortran indexing starting at 1
+
+#        for (i,j), weight in numpy.ndenumerate(remap_matrix):
+#            src_i = src_address[i] -1 #correct for Fortran indexing starting at 1
+#            src_weights[src_i] += weight
+#            dst_i = dst_address[i] -1 #correct for Fortran indexing starting at 1
+#            dst_weights[dst_i] += weight
 
         self.src_weights = src_weights.reshape(src_dims)
         self.dst_weights = dst_weights.reshape(dst_dims)
@@ -44,6 +50,7 @@ class weights_file_reader():
 
 def create_window():
     f, (ax1, ax2) = pyplot.subplots(2, sharex=True, sharey=True)
+    f.tight_layout()
     ax1.set_adjustable('box-forced')
     ax2.set_adjustable('box-forced')
     return ax1, ax2
@@ -59,7 +66,6 @@ def view_weights_scrip(gridfile, weights):
     ax1, ax2 = create_window()
     ax1.imshow(mask[::-1,:], cmap=pyplot.cm.bone)
     ax2.imshow(weights.reshape(dims)[::-1,:], cmap=pyplot.cm.jet)
-    pyplot.show()
 
 
 def view_weights_adcirc(gridfile, weights):
@@ -70,7 +76,6 @@ def view_weights_adcirc(gridfile, weights):
     ax3, ax4 = create_window()
     ax3.triplot(v.x, v.y, v.triangles)
     ax4.tripcolor(v.x, v.y, v.triangles, weights)
-    pyplot.show()
 
 
 
@@ -114,7 +119,6 @@ if __name__ == "__main__":
         ax3.imshow(r.dst_mask[::-1,:], cmap=pyplot.cm.bone)
         ax4.imshow(r.dst_weights.reshape(r.dst_dims)[::-1,:], cmap=pyplot.cm.jet)
 
-        pyplot.show()
     
     else:
         if sys.argv[3] == "scrip":
@@ -128,6 +132,7 @@ if __name__ == "__main__":
             view_weights_adcirc(dst_grid_file, r.dst_weights)
     
 
+    pyplot.show()
 
     raw_input()
 
