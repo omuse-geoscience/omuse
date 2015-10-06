@@ -69,6 +69,8 @@ int init_method = 0;
 //for now I'm assuming conservative remapping is what we'll use
 //other methods are supported when using weights files
 int map_type = MAP_TYPE_CONSERV;
+//int map_type = MAP_TYPE_BILINEAR;
+
 
 
 int set_weights_file(char* filename) {
@@ -151,7 +153,11 @@ void compute_weights() {
   rv.norm_opt = NORM_OPT_FRACAREA;
 
   //calling CDO to compute the weights
-  scrip_remap_weights_conserv(&src_grid, &dst_grid, &rv);
+  if (map_type == MAP_TYPE_CONSERV) {
+    scrip_remap_weights_conserv(&src_grid, &dst_grid, &rv);
+  } else if (map_type == MAP_TYPE_BILINEAR) {
+    scrip_remap_weights_bilinear(&src_grid, &dst_grid, &rv);
+  }
 
   //reduce the allocated space for storing the links
   if ( map_type == MAP_TYPE_CONSERV && rv.num_links != rv.max_links) {
@@ -325,7 +331,7 @@ int perform_remap() {
     }
 
   //this value is used if no links exist that contribute to the destination gridpoint in the remapping
-  double missval = -1.0;
+  double missval = 0.0;
 
   remap(dst_grid_values, missval, dst_grid.size, rv.num_links, rv.wts,
        rv.num_wts, rv.tgt_cell_add, rv.src_cell_add, src_grid_values,

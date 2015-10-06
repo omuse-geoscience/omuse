@@ -62,4 +62,4 @@ remapper_worker: worker_code.o $(CODELIB) $(OBJS)
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<
 
-.PHONY: patches $(CODELIB) 
+.PHONY: patches 

@@ -46,6 +46,7 @@ def myplot(lats, lons, xs, ys, sst):
     pyplot.draw()
 
 
+
 from omuse.community.pop.interface import POP
 from amuse.units import units
 
@@ -67,14 +68,14 @@ pyplot.ion()
 lats,lons = get_lats_lons(p)
 xs,ys = get_xy()
 sst = p.elements.temp.value_in(units.C)
-print sst[100,120]
-print sst.min(),sst.max()
-myplot(lats, lons, xs, ys, sst)
 
+myplot(lats, lons, xs, ys, sst)
+#pyplot.imshow(numpy.swapaxes(sst,0,1)[::-1,:], cmap=pyplot.cm.jet)
 
 raw_input()
 
 
+"""
 #run the model for 30 days
 time = p.get_model_time()
 index = 0
@@ -90,7 +91,7 @@ while index<30:
 
 
 
-
+"""
 
 
 
