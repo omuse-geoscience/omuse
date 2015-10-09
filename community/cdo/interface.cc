@@ -167,11 +167,7 @@ void init_cdo_griddata(int *gridID, griddes_t griddes, remapgrid_t grid) {
   grid.lneed_cell_corners = TRUE;
   grid.luse_cell_corners = TRUE;
 
-
 }
-
-
-
 
 
 void compute_weights() {
@@ -182,17 +178,6 @@ void compute_weights() {
   remap_grids_init(map_type, remap_extrapolate, gridID1, &src_grid, gridID2, &dst_grid);
 
   int i=0;
-  for (i=0; i<10; i++) {
-    printf("i=%d lat=%f lon=%f c1=%f,%f c2=%f,%f c3=%f,%f c4=%f,%f\n", i, src_grid.cell_center_lat[i], src_grid.cell_center_lon[i], 
-src_grid.cell_corner_lat[4*i+0], src_grid.cell_corner_lon[4*i+0],
-src_grid.cell_corner_lat[4*i+1], src_grid.cell_corner_lon[4*i+1],
-src_grid.cell_corner_lat[4*i+2], src_grid.cell_corner_lon[4*i+2],
-src_grid.cell_corner_lat[4*i+3], src_grid.cell_corner_lon[4*i+3] );
-  }
-
-  print_remap_grid_info(&src_grid);
-  print_remap_grid_info(&dst_grid);
-
 
   if (map_type == MAP_TYPE_CONSERV) {
     remap_order = 2;
@@ -235,13 +220,8 @@ src_grid.cell_corner_lat[4*i+3], src_grid.cell_corner_lon[4*i+3] );
 }
 
 
-
-
-
-
 int initialize_code() {
   cdoVerbose = TRUE;
-
 
   gridID1 = -1;
   src_grid.size = 0;
@@ -288,12 +268,6 @@ int commit_parameters() {
   src_grid_values = (double *)malloc(src_grid.size * sizeof(double));
   dst_grid_values = (double *)malloc(dst_grid.size * sizeof(double));
 
-
-
-
-print_remap_info(&rv);
-
-
   return 0;
 }
 
@@ -308,7 +282,6 @@ int cleanup_code() {
   if (src_grad1) { free(src_grad1); }
   if (src_grad2) { free(src_grad2); }
   if (src_grad3) { free(src_grad3); }
-
 
   return 0;
 }

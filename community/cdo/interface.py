@@ -20,16 +20,6 @@ class CDOInterface(CodeInterface):
     def name_of_the_worker(self):
         return 'remapper_worker'
 
-    #example of must_handle_array
-    #@remote_function(must_handle_array=True)
-    #def get_node_wind_stress(i=0,j=0):
-    #    returns (tau_x=0. | units.Pa,tau_y=0. | units.Pa)
-
-    #example without must_handle_array
-    #@remote_function
-    #def get_number_of_nodes():
-    #    returns (n_nodes=0)
-
     @remote_function()
     def get_src_grid_size():
         returns (size=0)
