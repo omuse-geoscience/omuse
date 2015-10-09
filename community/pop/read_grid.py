@@ -12,6 +12,7 @@ class pop_grid_reader(object):
     self.filename=filename
 
     import os.path
+    import sys
     if not os.path.isfile(filename):
         sys.exit("Error: No such file " + filename)
 
@@ -21,14 +22,14 @@ class pop_grid_reader(object):
 
 #    lats=grid[0,:,:]/numpy.pi*180
 #    lons=grid[1,:,:]/numpy.pi*180
-    lats=grid[0,:,:]
-    lons=grid[1,:,:]
+    self.lat = lats = grid[0,:,:]
+    self.lon = lons = grid[1,:,:]
 
-    htn  = grid[2,:,:]
-    hte  = grid[3,:,:]
-    hus  = grid[4,:,:]
-    huw  = grid[5,:,:]
-    angle= grid[6,:,:]
+    self.htn = htn = grid[2,:,:]
+    self.hte = hte = grid[3,:,:]
+    self.hus = hus = grid[4,:,:]
+    self.huw = huw = grid[5,:,:]
+    self.angle = angle = grid[6,:,:]
 
     #nodes is the U-grid
     self.nodes = nodes=Grid(ny*nx)
@@ -45,11 +46,10 @@ if __name__=="__main__":
     import sys
     total = len(sys.argv)
     if len(sys.argv) != 4:
-        sys.exit("Usage: view_grid.py filename nx ny")
+        sys.exit("Usage: read_grid.py filename nx ny")
     filename = sys.argv[1]
     nx = int(sys.argv[2])
     ny = int(sys.argv[3])
-
 
     r=pop_grid_reader(filename, nx, ny)
     nodes=r.get_sets()

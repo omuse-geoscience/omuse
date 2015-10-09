@@ -14,6 +14,7 @@ extern "C" {
 #include "src/src/cdo_int.h"
 #include "src/src/grid.h"
 #include "src/src/remap.h"
+#include "src/src/griddes.h"
 
 }
 
@@ -22,19 +23,26 @@ extern "C" {
 
 #define MAX_LENGTH 256
 
+#define max(a,b) ((a) > (b) ? (a) : (b))
+
 
 
 char weights_file[MAX_LENGTH];
 char src_grid_file[MAX_LENGTH];
 char dst_grid_file[MAX_LENGTH];
 
-int gridID1;
-int gridID2;
+int gridID1 = -1;
+int gridID2 = -1;
 
-
+//remap grid representation
 remapgrid_t src_grid;
 remapgrid_t dst_grid;
 remapvars_t rv;
+
+//CDO grid representation
+griddes_t src_griddes;
+griddes_t dst_griddes;
+
 
 void print_remap_grid_info(remapgrid_t *grid);
 void print_remap_info(remapvars_t *rv);
@@ -62,8 +70,12 @@ double *src_grad2 = NULL;
 double *src_grad3 = NULL;
 
 int init_method = 0;
+
 #define INIT_WEIGHTS_FILE 1
-#define INIT_GRID_FILES 2
+#define INIT_GRIDS 2
+
+
+
 
 
 //for now I'm assuming conservative remapping is what we'll use
@@ -80,12 +92,14 @@ int set_weights_file(char* filename) {
 }
 int set_src_grid_file(char* filename) {
     strncpy(src_grid_file, filename, MAX_LENGTH);
-    init_method = INIT_GRID_FILES;
+    init_method = INIT_GRIDS;
+    gridID1 = cdoDefineGrid(src_grid_file);
     return 0;
 }
 int set_dst_grid_file(char* filename) {
     strncpy(dst_grid_file, filename, MAX_LENGTH);
-    init_method = INIT_GRID_FILES;
+    init_method = INIT_GRIDS;
+    gridID2 = cdoDefineGrid(dst_grid_file);
     return 0;
 }
 int get_weights_file(char** filename) {
@@ -111,26 +125,80 @@ void read_weights_file() {
               &remap_order, &src_grid, &dst_grid, &rv);
 }
 
-void read_grid_files() {
+void init_cdo_griddata(int *gridID, griddes_t griddes, remapgrid_t grid) {
 
-  gridID1 = cdoDefineGrid(src_grid_file);
-  gridID2 = cdoDefineGrid(dst_grid_file);
+  gridInit(&griddes);
+
+  griddes.size = grid.size;
+  griddes.nvertex = grid.num_cell_corners;
+  if (grid.rank == 1)  {
+    griddes.type = GRID_UNSTRUCTURED;
+  } else {
+    griddes.type = GRID_CURVILINEAR;
+    if (griddes.nvertex != 4) {
+      fprintf(stderr, "curvilinear grid with %d corners unsupported",
+               griddes.nvertex);
+    }
+  }
+
+  griddes.xsize = grid.dims[0];
+  griddes.ysize = grid.dims[1];
+
+  griddes.prec = DATATYPE_FLT64;
+
+  griddes.xvals   = (double*) malloc(griddes.size*sizeof(double));
+  memcpy(griddes.xvals, grid.cell_center_lon, grid.size * sizeof(double));
+  griddes.yvals   = (double*) malloc(griddes.size*sizeof(double));
+  memcpy(griddes.yvals, grid.cell_center_lat, grid.size * sizeof(double));
+
+  griddes.xbounds = (double*) malloc(griddes.nvertex*griddes.size*sizeof(double));
+  memcpy(griddes.xbounds, grid.cell_corner_lon, grid.num_cell_corners*grid.size*sizeof(double));
+  griddes.ybounds = (double*) malloc(griddes.nvertex*griddes.size*sizeof(double));
+  memcpy(griddes.ybounds, grid.cell_corner_lat, grid.num_cell_corners*grid.size*sizeof(double));
+
+  strncpy(griddes.xunits, "radians", MAX_LENGTH);
+  strncpy(griddes.yunits, "radians", MAX_LENGTH);
+
+  griddes.area = NULL;
+  griddes.mask = (int *)0;
+
+  *gridID = gridDefine(griddes);
+
+  grid.lneed_cell_corners = TRUE;
+  grid.luse_cell_corners = TRUE;
+
+
+}
+
+
+
+
+
+void compute_weights() {
 
   remap_set_int(REMAP_NUM_SRCH_BINS, 720); //this is a setting that CDO also sets by default
   int remap_extrapolate = FALSE;
   rv.pinit = FALSE;
   remap_grids_init(map_type, remap_extrapolate, gridID1, &src_grid, gridID2, &dst_grid);
 
-}
+  int i=0;
+  for (i=0; i<10; i++) {
+    printf("i=%d lat=%f lon=%f c1=%f,%f c2=%f,%f c3=%f,%f c4=%f,%f\n", i, src_grid.cell_center_lat[i], src_grid.cell_center_lon[i], 
+src_grid.cell_corner_lat[4*i+0], src_grid.cell_corner_lon[4*i+0],
+src_grid.cell_corner_lat[4*i+1], src_grid.cell_corner_lon[4*i+1],
+src_grid.cell_corner_lat[4*i+2], src_grid.cell_corner_lon[4*i+2],
+src_grid.cell_corner_lat[4*i+3], src_grid.cell_corner_lon[4*i+3] );
+  }
 
-void compute_weights() {
+  print_remap_grid_info(&src_grid);
+  print_remap_grid_info(&dst_grid);
+
 
   if (map_type == MAP_TYPE_CONSERV) {
     remap_order = 2;
   }
 
   //by default CDO ignores the grid mask, we're doing this to reproduce the same results as CDO
-  int i=0;
   if (src_grid.mask) {
     for (i=0; i<src_grid.size; i++) {
       src_grid.mask[i] = 1;
@@ -174,6 +242,23 @@ void compute_weights() {
 int initialize_code() {
   cdoVerbose = TRUE;
 
+
+  gridID1 = -1;
+  src_grid.size = 0;
+  src_grid.num_cell_corners = 0;
+  src_grid.cell_center_lon = NULL;
+  src_grid.cell_center_lat = NULL;
+  src_grid.cell_corner_lon = NULL;
+  src_grid.cell_corner_lat = NULL;
+
+  gridID2 = -1;
+  dst_grid.size = 0;
+  dst_grid.num_cell_corners = 0;
+  dst_grid.cell_center_lon = NULL;
+  dst_grid.cell_center_lat = NULL;
+  dst_grid.cell_corner_lon = NULL;
+  dst_grid.cell_corner_lat = NULL;
+
   return 0;
 }
 
@@ -184,17 +269,30 @@ int commit_parameters() {
   //read either a weights file or grid files
   if (init_method == INIT_WEIGHTS_FILE) {
     read_weights_file();
-  } else if (init_method == INIT_GRID_FILES) {
-    read_grid_files();
+  } else if (init_method == INIT_GRIDS) {
+
+    if (gridID1 == -1) {
+      init_cdo_griddata(&gridID1, src_griddes, src_grid);
+    }
+    if (gridID2 == -1) {
+      init_cdo_griddata(&gridID2, dst_griddes, dst_grid);
+    }
+
     compute_weights();
   } else {
-    fprintf(stderr, "Remapper not properbly initialized, set either a weights file or source and destination grid files\n");
+    fprintf(stderr, "Remapper not properly initialized, set either a weights file or source and destination grid files\n");
     return 1;
   }
 
   //can not do this earlier since the grid sizes are not yet known
   src_grid_values = (double *)malloc(src_grid.size * sizeof(double));
   dst_grid_values = (double *)malloc(dst_grid.size * sizeof(double));
+
+
+
+
+print_remap_info(&rv);
+
 
   return 0;
 }
@@ -247,6 +345,183 @@ int get_dst_grid_values(int *index_i, double *dst_values, int n) {
 
 
 
+int set_src_grid_center_lat(int *index_i, double *src_center_lat, int n) {
+  int i=0;
+  if (src_grid.size == 0) {
+    fprintf(stderr, "Error: set src grid size first\n");
+  } else {
+    if (src_grid.cell_center_lat == NULL) {
+      src_grid.cell_center_lat = (double *)malloc(src_grid.size * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    src_grid.cell_center_lat[index_i[i]] = src_center_lat[i];
+  }
+  return 0;
+}
+int set_dst_grid_center_lat(int *index_i, double *dst_center_lat, int n) {
+  int i=0;
+  if (dst_grid.size == 0) {
+    fprintf(stderr, "Error: set dst grid size first\n");
+  } else {
+    if (dst_grid.cell_center_lat == NULL) {
+      dst_grid.cell_center_lat = (double *)malloc(dst_grid.size * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    dst_grid.cell_center_lat[index_i[i]] = dst_center_lat[i];
+  }
+  return 0;
+}
+int get_src_grid_center_lat(int *index_i, double *src_center_lat, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+    src_center_lat[i] = src_grid.cell_center_lat[index_i[i]];
+  }
+  return 0;
+}
+int get_dst_grid_center_lat(int *index_i, double *dst_center_lat, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+      dst_center_lat[i] = dst_grid.cell_center_lat[index_i[i]];
+  }
+  return 0;
+}
+
+int set_src_grid_center_lon(int *index_i, double *src_center_lon, int n) {
+  int i=0;
+  if (src_grid.size == 0) {
+    fprintf(stderr, "Error: set src grid size first\n");
+  } else {
+    if (src_grid.cell_center_lon == NULL) {
+      src_grid.cell_center_lon = (double *)malloc(src_grid.size * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    src_grid.cell_center_lon[index_i[i]] = src_center_lon[i];
+  }
+  return 0;
+}
+int set_dst_grid_center_lon(int *index_i, double *dst_center_lon, int n) {
+  int i=0;
+  if (dst_grid.size == 0) {
+    fprintf(stderr, "Error: set src grid size first\n");
+  } else {
+    if (dst_grid.cell_center_lon == NULL) {
+      dst_grid.cell_center_lon = (double *)malloc(dst_grid.size * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    dst_grid.cell_center_lon[index_i[i]] = dst_center_lon[i];
+  }
+  return 0;
+}
+int get_src_grid_center_lon(int *index_i, double *src_center_lon, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+    src_center_lon[i] = src_grid.cell_center_lon[index_i[i]];
+  }
+  return 0;
+}
+int get_dst_grid_center_lon(int *index_i, double *dst_center_lon, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+      dst_center_lon[i] = dst_grid.cell_center_lon[index_i[i]];
+  }
+  return 0;
+}
+
+
+
+
+int set_src_grid_corner_lat(int *index_i, double *src_corner_lat, int n) {
+  int i=0;
+  if (src_grid.size == 0 || src_grid.num_cell_corners == 0) {
+    fprintf(stderr, "Error: set src grid size and corners first\n");
+  } else {
+    if (src_grid.cell_corner_lat == NULL) {
+      src_grid.cell_corner_lat = (double *)malloc(src_grid.size * src_grid.num_cell_corners * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    src_grid.cell_corner_lat[index_i[i]] = src_corner_lat[i];
+  }
+  return 0;
+}
+int set_dst_grid_corner_lat(int *index_i, double *dst_corner_lat, int n) {
+  int i=0;
+  if (dst_grid.size == 0 || dst_grid.num_cell_corners == 0) {
+    fprintf(stderr, "Error: set dst grid size and corners first\n");
+  } else {
+    if (dst_grid.cell_corner_lat == NULL) {
+      dst_grid.cell_corner_lat = (double *)malloc(dst_grid.size * dst_grid.num_cell_corners * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    dst_grid.cell_corner_lat[index_i[i]] = dst_corner_lat[i];
+  }
+  return 0;
+}
+int get_src_grid_corner_lat(int *index_i, double *src_corner_lat, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+    src_corner_lat[i] = src_grid.cell_corner_lat[index_i[i]];
+  }
+  return 0;
+}
+int get_dst_grid_corner_lat(int *index_i, double *dst_corner_lat, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+      dst_corner_lat[i] = dst_grid.cell_corner_lat[index_i[i]];
+  }
+  return 0;
+}
+
+int set_src_grid_corner_lon(int *index_i, double *src_corner_lon, int n) {
+  int i=0;
+  if (src_grid.size == 0 || src_grid.num_cell_corners == 0) {
+    fprintf(stderr, "Error: set src grid size and corners first\n");
+  } else {
+    if (src_grid.cell_corner_lon == NULL) {
+      src_grid.cell_corner_lon = (double *)malloc(src_grid.size * src_grid.num_cell_corners * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    src_grid.cell_corner_lon[index_i[i]] = src_corner_lon[i];
+  }
+  return 0;
+}
+int set_dst_grid_corner_lon(int *index_i, double *dst_corner_lon, int n) {
+  int i=0;
+  if (dst_grid.size == 0 || dst_grid.num_cell_corners == 0) {
+    fprintf(stderr, "Error: set dst grid size and corners first\n");
+  } else {
+    if (dst_grid.cell_corner_lon == NULL) {
+      dst_grid.cell_corner_lon = (double *)malloc(dst_grid.size * dst_grid.num_cell_corners * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    dst_grid.cell_corner_lon[index_i[i]] = dst_corner_lon[i];
+  }
+  return 0;
+}
+int get_src_grid_corner_lon(int *index_i, double *src_corner_lon, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+    src_corner_lon[i] = src_grid.cell_corner_lon[index_i[i]];
+  }
+  return 0;
+}
+int get_dst_grid_corner_lon(int *index_i, double *dst_corner_lon, int n) {
+  int i=0;
+  for (i=0; i < n; i++) {
+      dst_corner_lon[i] = dst_grid.cell_corner_lon[index_i[i]];
+  }
+  return 0;
+}
+
+
+
 
 
 
@@ -259,17 +534,19 @@ int get_dst_grid_size(int *size) {
   return 0;
 }
 
-int set_src_grid_size(int *size) {
-  src_grid.size = *size;
+int set_src_grid_size(int size) {
+  init_method = INIT_GRIDS;
+  src_grid.size = size;
   return 0;
 }
-int set_dst_grid_size(int *size) {
-  dst_grid.size = *size;
+int set_dst_grid_size(int size) {
+  init_method = INIT_GRIDS;
+  dst_grid.size = size;
   return 0;
 }
 
 /*
- * In CDO there are always 2 dimensions
+ * In CDO there are always 2 dimensions, in case of unstructured grid y=0
  */
 int get_src_grid_dims(int *x, int *y) {
   *x = src_grid.dims[0];
@@ -282,7 +559,53 @@ int get_dst_grid_dims(int *x, int *y) {
   return 0;
 }
 
+int set_src_grid_dims(int x, int y) {
+  init_method = INIT_GRIDS;
+  src_grid.dims[0] = x;
+  src_grid.dims[1] = y;
+  if (y <= 1) {
+    src_grid.rank = 1;
+  } else {
+    src_grid.rank = 2;
+  }
+  int y1 = max(1,y); //y is zero when grid is unstructured
+  src_grid.size = x * y1;
+  return 0;
+}
+int set_dst_grid_dims(int x, int y) {
+  init_method = INIT_GRIDS;
+  dst_grid.dims[0] = x;
+  dst_grid.dims[1] = y;
+  if (y <= 1) {
+    dst_grid.rank = 1;
+  } else {
+    dst_grid.rank = 2;
+  }
+  int y1 = max(1,y); //y is zero when grid is unstructured
+  dst_grid.size = x * y1;
+  return 0;
+}
 
+
+
+
+int get_src_grid_corners(int *corners) {
+  *corners = src_grid.num_cell_corners;
+  return 0;
+}
+int get_dst_grid_corners(int *corners) {
+  *corners = dst_grid.num_cell_corners;
+  return 0;
+}
+
+int set_src_grid_corners(int corners) {
+  src_grid.num_cell_corners = corners;
+  return 0;
+}
+int set_dst_grid_corners(int corners) {
+  dst_grid.num_cell_corners = corners;
+  return 0;
+}
 
 
 

@@ -54,8 +54,8 @@ else:
 from mpl_toolkits.mplot3d import axes3d
 import numpy
 
-lon = lons[::-1,:]
-lat = lats[::-1,:]
+lon = lons
+lat = lats
 
 #print min(lon.flatten()), max(lon.flatten())
 
@@ -64,14 +64,10 @@ if (fh.variables['grid_center_lon'].units == "degrees"):
 if (fh.variables['grid_center_lat'].units == "degrees"):
     lat = lat/180*numpy.pi
 
-#print min(lon.flatten()), max(lon.flatten())
-
 #compute convenient strides, designed to go up for high resolution grids,
 #but not so fast that low resolution grids look poorly
 rstride = int(numpy.rint((2*nx/48 + numpy.sqrt(nx))/3))
 cstride = int(numpy.rint((2*ny/60 + numpy.sqrt(ny))/3))
-#print rstride, cstride
-
 
 f=pyplot.figure(2)
 ax = f.add_subplot(111, projection='3d')
