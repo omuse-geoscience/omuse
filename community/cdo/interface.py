@@ -2,6 +2,8 @@ from amuse.community import *
 
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 
+from amuse.datamodel.grids import *
+
 from omuse.units import units
 
 class CDOInterface(CodeInterface):
@@ -182,62 +184,11 @@ class CDOInterface(CodeInterface):
 
 class CDORemapper(CommonCode):
 
+    _src_grid = []
+    _dst_grid = []
+
     def __init__(self, **options):
         CommonCode.__init__(self, CDOInterface(), **options)
-
-
-    #while the grids may have rank > 1, their representation here is flat
-    def get_src_grid_firstlast_node(self):
-        size = self.parameters.src_grid_size
-        return 1,size,1,1
-    def get_dst_grid_firstlast_node(self):
-        size = self.parameters.dst_grid_size
-        return 1,size,1,1
-
-    def get_src_grid_corners_firstlast_node(self):
-        size = self.parameters.src_grid_size
-        corners = self.parameters.src_grid_corners
-        return 1,size*corners,1,1
-    def get_dst_grid_corners_firstlast_node(self):
-        size = self.parameters.dst_grid_size
-        corners = self.parameters.dst_grid_corners
-        return 1,size*corners,1,1
-
-
-    def define_particle_sets(self, object):
-
-        object.define_grid('src_grid')
-        object.set_grid_range('src_grid', 'get_src_grid_firstlast_node')
-        object.add_setter('src_grid', 'set_src_grid_center_lat', names=('lat',))
-        object.add_setter('src_grid', 'set_src_grid_center_lon', names=('lon',))
-        object.add_getter('src_grid', 'get_src_grid_center_lat', names=('lat',))
-        object.add_getter('src_grid', 'get_src_grid_center_lon', names=('lon',))
-
-        object.define_grid('src_grid_corners')
-        object.set_grid_range('src_grid_corners', 'get_src_grid_corners_firstlast_node')
-        object.add_setter('src_grid_corners', 'set_src_grid_corner_lat', names=('lat',))
-        object.add_setter('src_grid_corners', 'set_src_grid_corner_lon', names=('lon',))
-        object.add_getter('src_grid_corners', 'get_src_grid_corner_lat', names=('lat',))
-        object.add_getter('src_grid_corners', 'get_src_grid_corner_lon', names=('lon',))
-
-        object.define_grid('dst_grid')
-        object.set_grid_range('dst_grid', 'get_dst_grid_firstlast_node')
-        object.add_setter('dst_grid', 'set_dst_grid_center_lat', names=('lat',))
-        object.add_setter('dst_grid', 'set_dst_grid_center_lon', names=('lon',))
-        object.add_getter('dst_grid', 'get_dst_grid_center_lat', names=('lat',))
-        object.add_getter('dst_grid', 'get_dst_grid_center_lon', names=('lon',))
-
-        object.define_grid('dst_grid_corners')
-        object.set_grid_range('dst_grid_corners', 'get_dst_grid_corners_firstlast_node')
-        object.add_setter('dst_grid_corners', 'set_dst_grid_corner_lat', names=('lat',))
-        object.add_setter('dst_grid_corners', 'set_dst_grid_corner_lon', names=('lon',))
-        object.add_getter('dst_grid_corners', 'get_dst_grid_corner_lat', names=('lat',))
-        object.add_getter('dst_grid_corners', 'get_dst_grid_corner_lon', names=('lon',))
-
-
-
-
-
 
     def define_parameters(self, object):
         object.add_method_parameter(
@@ -262,110 +213,110 @@ class CDORemapper(CommonCode):
             default_value = ''
         )
 
-
-
         object.add_method_parameter(
-            "get_src_grid_size",
-            "set_src_grid_size",
-            "src_grid_size",
-            "Set source grid size",
-            default_value = 0
-        )
-        object.add_method_parameter(
-            "get_dst_grid_size",
-            "set_dst_grid_size",
-            "dst_grid_size",
-            "Set destination grid size",
-            default_value = 0
-        )
-        object.add_method_parameter(
-            "get_src_grid_corners",
-            "set_src_grid_corners",
-            "src_grid_corners",
-            "Set source grid number of corners per grid cell",
-            default_value = 0
-        )
-        object.add_method_parameter(
-            "get_dst_grid_corners",
-            "set_dst_grid_corners",
-            "dst_grid_corners",
-            "Set destination grid number of corners per grid cell",
-            default_value = 0
-        )
-
-        object.add_method_parameter(
-            "get_src_grid_dims",
-            "set_src_grid_dims",
-            "src_grid_dims",
-            "Set source grid dimensions, use y=0 for unstructured grids",
-            default_value = [0,0]
-        )
-        object.add_method_parameter(
-            "get_dst_grid_dims",
-            "set_dst_grid_dims",
-            "dst_grid_dims",
-            "Set destination grid dimensions, use y=0 for unstructured grids",
-            default_value = [0,0]
-        )
-
-
-        object.add_method_parameter(
-            "get_src_grid_center_lat",
-            "set_src_grid_center_lat",
-            "src_grid_center_lat",
-            "Set source grid cell center latitudes",
-            default_value = 0.0 | units.rad
-        )
-        object.add_method_parameter(
-            "get_dst_grid_center_lat",
-            "set_dst_grid_center_lat",
-            "dst_grid_center_lat",
-            "Set destination grid cell center latitudes",
+            "get_src_grid",
+            "set_src_grid",
+            "src_grid",
+            "Specify the source grid",
             default_value = []
         )
         object.add_method_parameter(
-            "get_src_grid_center_lon",
-            "set_src_grid_center_lon",
-            "src_grid_center_lon",
-            "Set source grid cell center longitudes",
-            default_value = 0.0 | units.rad
-        )
-        object.add_method_parameter(
-            "get_dst_grid_center_lon",
-            "set_dst_grid_center_lon",
-            "dst_grid_center_lon",
-            "Set destination grid cell center longitudes",
-            default_value = 0.0 | units.rad
+            "get_dst_grid",
+            "set_dst_grid",
+            "dst_grid",
+            "Specify the destination grid",
+            default_value = []
         )
 
-        object.add_method_parameter(
-            "get_src_grid_corner_lat",
-            "set_src_grid_corner_lat",
-            "src_grid_corner_lat",
-            "Set source grid cell corner latitudes",
-            default_value = 0.0 | units.rad
-        )
-        object.add_method_parameter(
-            "get_dst_grid_corner_lat",
-            "set_dst_grid_corner_lat",
-            "dst_grid_corner_lat",
-            "Set destination grid cell corner latitudes",
-            default_value = 0.0 | units.rad
-        )
-        object.add_method_parameter(
-            "get_src_grid_corner_lon",
-            "set_src_grid_corner_lon",
-            "src_grid_corner_lon",
-            "Set source grid cell corner longitudes",
-            default_value = 0.0 | units.rad
-        )
-        object.add_method_parameter(
-            "get_dst_grid_corner_lon",
-            "set_dst_grid_corner_lon",
-            "dst_grid_corner_lon",
-            "Set destination grid cell corner longitudes",
-            default_value = 0.0 | units.rad
-        )
+
+    def set_src_grid(self, grid):
+        if not ((type(grid) is UnstructuredGrid) or (type(grid) is StructuredGrid)):
+            raise Exception("expected grid type to be either UnstructuredGrid or StructuredGrid, received {0}".format(type(grid).__name__))
+
+        self._src_grid = grid
+
+        if type(grid) is UnstructuredGrid:
+            self.set_src_grid_dims(grid.size, 0)
+            self.set_src_grid_corners(grid._num_corners)
+            self.set_src_grid_center_lon(range(grid.size), grid.lon)
+            self.set_src_grid_center_lat(range(grid.size), grid.lat)
+            self.set_src_grid_corner_lon(range(grid.size * grid._num_corners), grid._cell_corners[0].flatten())
+            self.set_src_grid_corner_lat(range(grid.size * grid._num_corners), grid._cell_corners[1].flatten())
+
+        if type(grid) is StructuredGrid:
+            num_corners = 4 #structured grids have exactly 4 corners
+
+            if len(grid.shape) != 2:
+                raise Exception("structured grids with not exactly 2 dimensions are not supported, received {0}".format(grid.shape))
+
+            self.set_src_grid_dims(grid.shape)
+            self.set_src_grid_corners(num_corners)
+            self.set_src_grid_center_lon(range(grid.size), grid.lon.flatten())
+            self.set_src_grid_center_lat(range(grid.size), grid.lat.flatten())
+
+            #construct a cell_corners array that CDO understands
+            cell_corners = numpy.zeros((2, grid.size*num_corners), dtype=numpy.double)
+            for k in range(len(cell_corners)):
+                index = 0
+                for j in range(grid.shape[0]):
+                    for i in range(grid.shape[1]):
+                        cell_corners[k,index+0] = grid._cell_corners[k, j  , i  ] #sw
+                        cell_corners[k,index+1] = grid._cell_corners[k, j  , i+1] #se
+                        cell_corners[k,index+2] = grid._cell_corners[k, j+1, i+1] #ne
+                        cell_corners[k,index+3] = grid._cell_corners[k, j+1, i  ] #nw
+                        index += 4
+
+            self.set_src_grid_corner_lon(range(grid.size * num_corners), cell_corners[0])
+            self.set_src_grid_corner_lat(range(grid.size * num_corners), cell_corners[1])
+
+    def get_src_grid(self):
+        return _src_grid
+
+
+
+    def set_dst_grid(self, grid):
+        if not ((type(grid) is UnstructuredGrid) or (type(grid) is StructuredGrid)):
+            raise Exception("expected grid type to be either UnstructuredGrid or StructuredGrid, received {0}".format(type(grid).__name__))
+
+        self._dst_grid = grid
+
+        if type(grid) is UnstructuredGrid:
+            self.set_dst_grid_dims(grid.size, 0)
+            self.set_dst_grid_corners(grid._num_corners)
+            self.set_dst_grid_center_lon(range(grid.size), grid.lon)
+            self.set_dst_grid_center_lat(range(grid.size), grid.lat)
+            self.set_dst_grid_corner_lon(range(grid.size * grid._num_corners), grid._cell_corners[0].flatten())
+            self.set_dst_grid_corner_lat(range(grid.size * grid._num_corners), grid._cell_corners[1].flatten())
+
+        if type(grid) is StructuredGrid:
+            num_corners = 4 #structured grids have exactly 4 corners
+
+            if len(grid.shape) != 2:
+                raise Exception("structured grids with not exactly 2 dimensions are not supported, received {0}".format(grid.shape))
+
+            self.set_dst_grid_dims(grid.shape)
+            self.set_dst_grid_corners(num_corners)
+            self.set_dst_grid_center_lon(range(grid.size), grid.lon.flatten())
+            self.set_dst_grid_center_lat(range(grid.size), grid.lat.flatten())
+
+            #construct a cell_corners array that CDO understands
+            cell_corners = numpy.zeros((2, grid.size*num_corners), dtype=numpy.double)
+            for k in range(len(cell_corners)):
+                index = 0
+                for j in range(grid.shape[0]):
+                    for i in range(grid.shape[1]):
+                        cell_corners[k,index+0] = grid._cell_corners[k, j  , i  ] #sw
+                        cell_corners[k,index+1] = grid._cell_corners[k, j  , i+1] #se
+                        cell_corners[k,index+2] = grid._cell_corners[k, j+1, i+1] #ne
+                        cell_corners[k,index+3] = grid._cell_corners[k, j+1, i  ] #nw
+                        index += 4
+
+            self.set_dst_grid_corner_lon(range(grid.size * num_corners), cell_corners[0])
+            self.set_dst_grid_corner_lat(range(grid.size * num_corners), cell_corners[1])
+
+    def get_dst_grid(self):
+        return _dst_grid
+
 
 
 
