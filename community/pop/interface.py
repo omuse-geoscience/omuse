@@ -28,6 +28,12 @@ class POPInterface(CodeInterface):
         keyword_arguments.setdefault('number_of_workers', 8)
         CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **keyword_arguments)
 
+        import os
+        if 'AMUSE_DIR' in os.environ:
+            amuse_dir = os.environ['AMUSE_DIR']
+            path = amuse_dir + '/src/omuse/community/pop/'
+            self.change_directory(path)
+
         if mode in [self.MODE_NORMAL,self.MODE_320x384x40]:
             self.set_namelist_filename('pop_in_lowres')
         elif mode in [self.MODE_HIGH,self.MODE_3600x2400x42]:
