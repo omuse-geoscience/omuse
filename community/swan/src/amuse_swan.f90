@@ -14,8 +14,213 @@ module amuse_swan
   USE M_OBSTA                                                         
   USE M_PARALL                                                        
   USE SwanGriddata                                                    
+  implicit none
+
+! local variables from swmain
+  INTEGER, ALLOCATABLE :: CROSS(:)
+  INTEGER, ALLOCATABLE :: BGRIDP(:)
+  REAL   , ALLOCATABLE :: BSPECS(:,:,:,:)
+  REAL   , ALLOCATABLE :: AC1(:,:,:), COMPDA(:,:)
+  REAL   , ALLOCATABLE :: BLKND(:), BLKNDC(:)
+
 
 contains
+
+function swan_compute(COMPUT) result(ret)
+  integer :: ret, SAVITE, ILEN, ISTAT, IT, IT0
+  logical :: STPNOW
+  character*18 :: DTTIWR   
+  character*4 COMPUT
+  
+  IF (NUMOBS .GT. 0) THEN
+    IF (OPTG.NE.5) THEN
+      ILEN = 2*MCGRD
+    ELSE
+      ILEN = nfaces
+    ENDIF
+    IF (.NOT.ALLOCATED(CROSS)) ALLOCATE(CROSS(ILEN))
+  ELSE
+    IF (.NOT.ALLOCATED(CROSS)) ALLOCATE(CROSS(0))
+  ENDIF
+  IF (.NOT.ALLOCATED(BSPECS)) ALLOCATE(BSPECS(MDC,MSC,NBSPEC,2))
+  IF (.NOT.ALLOCATED(BGRIDP)) ALLOCATE(BGRIDP(6*NBGRPT))
+
+  CALL SWPREP ( BSPECS, BGRIDP, CROSS , XCGRID, YCGRID, KGRPNT, &
+     &                KGRBND, SPCDIR, SPCSIG )
+  IF (OPTG.EQ.5) CALL SwanPrepComp ( CROSS )
+  IF (STPNOW()) THEN 
+    ret=-1
+    RETURN
+  ENDIF
+  CALL ERRCHK
+  IF (STPNOW()) THEN 
+    ret=-2
+    RETURN
+  ENDIF
+
+  IF (ALOCMP.AND.ALLOCATED(COMPDA)) DEALLOCATE(COMPDA)
+  IF (.NOT.ALLOCATED(COMPDA)) THEN
+    ALLOCATE(COMPDA(MCGRD,MCMVAR),STAT=ISTAT)
+    ALOCMP = .FALSE.
+  END IF
+  IF ( ISTAT.NE.0 ) THEN
+    ret=-3
+    RETURN
+  END IF
+
+  CALL SWRBC(COMPDA)
+
+  IF ( NSTATM.EQ.1 .AND. MXITNS.GT.1 .OR. PROPSC.EQ.3 ) THEN
+    IF (.NOT.ALLOCATED(AC1)) THEN
+      ALLOCATE(AC1(MDC,MSC,MCGRD),STAT=ISTAT)
+    ELSE IF (SIZE(AC1).EQ.0) THEN
+      DEALLOCATE(AC1)
+      ALLOCATE(AC1(MDC,MSC,MCGRD),STAT=ISTAT)
+    END IF
+    IF ( ISTAT.NE.0 ) THEN
+      ret=-5
+      RETURN
+    END IF
+    AC1 = 0.
+  ELSE
+    IF(.NOT.ALLOCATED(AC1)) ALLOCATE(AC1(0,0,0))
+  ENDIF
+
+  IF (LEVERR.GT.MAXERR) THEN
+
+          WRITE (PRINTF, 6010) LEVERR
+          IF (LEVERR.LT.4) WRITE (PRINTF, 6011)
+ 6010     FORMAT(' ** No start of computation because of error level:' &
+     &      ,I3)
+ 6011     FORMAT(' ** To ignore this error, change [maxerr] with the', &
+     &           ' SET command')
+          ret=-5
+          RETURN
+
+  ENDIF
+!
+  IF (NSTATC.EQ.1) THEN
+    WRITE (PRINTF, '(" Type of computation: dynamic")')
+  ELSE
+    IF (ONED) THEN
+      WRITE (PRINTF, '(" Type of computation: static 1-D")')
+    ELSE
+      WRITE (PRINTF, '(" Type of computation: static 2-D")')
+    ENDIF
+  ENDIF
+!
+  IF (NSTATC.EQ.1) THEN
+    IT0 = 0
+    IF (ICOND.EQ.1) THEN
+      CALL SWINCO ( AC2   , COMPDA, XCGRID, YCGRID,  &
+     &                      KGRPNT, SPCDIR, SPCSIG, XYTST )
+      ICOND = 0
+
+    ENDIF
+  ELSE
+    IT0 = 1
+  ENDIF
+
+  CALL SWSYNC
+  IF (STPNOW()) THEN 
+    ret=-1
+    RETURN
+  ENDIF
+
+  DO IT = IT0, MTC
+!
+    IF (LEVERR.GT.MAXERR) THEN
+              WRITE (PRINTF, 6030) LEVERR
+              IF (LEVERR.LT.4) WRITE (PRINTF, 6011)
+ 6030         FORMAT(' ** No continuation of computation because ', &
+     &               'of error level:',I3)
+              ret=-6
+              RETURN
+    ENDIF
+
+            CALL SWSYNC
+    IF (STPNOW()) THEN 
+      ret=-1
+      RETURN
+    ENDIF
+
+    CALL SNEXTI ( BSPECS, BGRIDP, COMPDA, AC1   , AC2   ,   &
+     &                    SPCSIG, SPCDIR, XCGRID, YCGRID, KGRPNT, &
+     &                    XYTST , DEPTH , WLEVL , FRIC  , UXB   , &
+     &                    UYB   , NPLAF , TURBF , MUDLF , WXI   , &
+     &                    WYI   )
+    IF (STPNOW()) THEN 
+      ret=-1
+      RETURN
+    ENDIF
+
+    CALL SWSYNC
+    IF (STPNOW()) THEN 
+      ret=-7
+      RETURN
+    ENDIF
+    
+    IF (COMPUT.NE.'NOCO' .AND. IT.GT.0) THEN
+
+              SAVITE = ITEST
+              IF (ICOTES .GT. ITEST) ITEST = ICOTES
+
+              IF (OPTG.NE.5) THEN
+                 CALL SWCOMP( AC1   , AC2   , COMPDA, SPCDIR, SPCSIG, &
+     &                        XYTST , IT    , KGRPNT, XCGRID, YCGRID, &
+     &                        CROSS )
+              ELSE
+                 CALL SwanCompUnstruc ( AC2   , AC1   , COMPDA, &
+     &                                  SPCSIG, SPCDIR, XYTST , &
+     &                                  CROSS , IT    )
+              ENDIF
+              IF (STPNOW()) THEN 
+                ret=-8
+                RETURN
+              ENDIF
+!
+!             --- set ICOND=4 for stationary computation, for next
+!                 (stationary) COMPUTE command                            40.13
+              ICOND = 4
+!
+!             --- check whether computed significant wave height at       32.01
+!                 boundary differs from prescribed value given in         32.01
+!                 boundary command values of incident Hs                  32.01
+!
+              IF ( BNDCHK ) THEN
+                CALL HSOBND ( AC2, SPCSIG, COMPDA(1,JHSIBC), KGRPNT )
+              ENDIF
+!
+              ITEST = SAVITE
+
+    ENDIF
+!
+    SAVITE = ITEST
+    IF (IOUTES .GT. ITEST) ITEST = IOUTES
+
+    CALL SWSYNC
+    IF (STPNOW()) THEN 
+      ret=-9
+      RETURN
+    ENDIF
+
+    IF (NSTATC.EQ.1) THEN
+      IF (IT.LT.MTC) THEN
+        TIMCO = TIMCO + DT
+        CHTIME = DTTIWR(ITMOPT, TIMCO)
+        WRITE (PRINTF, 222) CHTIME, TIMCO
+      ENDIF
+ 222          FORMAT(' Time of computation ->  ',A,' in sec:', F12.0)
+    ENDIF
+  ENDDO
+
+  IF (LEVERR.GT.MAXERR) THEN
+    ret=-10
+    RETURN
+  ENDIF
+  ret=0
+  
+end function
 
 function swan_entry() result(ret)
   integer :: ret
@@ -32,10 +237,11 @@ function swan_cleanup() result(ret)
   integer :: ret
   CALL SWEXITMPI
 !PUN      CALL MSG_FINI()
+  ret=0
 end function
 
 function swan_init() result(ret)
-  integer :: ret
+  integer :: ret,INERR
   logical STPNOW 
   ret=0
   call SWINIT(INERR)
@@ -44,9 +250,623 @@ function swan_init() result(ret)
 !PUN!NADC         CALL MSG_TABLE()
 !PUN!NADC         CALL MSG_START()
 !PUN      ENDIF
-!TIMG      CALL SWTSTO(2)
   if(INERR.GT.0) ret=-1
   if(STPNOW()) ret=-2
 end function
+
+function swan_init_mode(mode, number_dimension) result(ret)
+  integer :: ret, number_dimension
+  character*12 :: mode
+  ret=0
+  if(mode.EQ."stationary") then
+    NSTATM = 0
+    NSTATC = 0
+  else if(mode.EQ."dynamic") then
+    NSTATM = 1
+    NSTATC = 1
+    ICOND = 1
+    PNUMS(30) = 0.
+  else 
+    ret=-1
+    return
+  endif
+
+  if(number_dimension.EQ.1) then
+    ONED = .TRUE.
+    IF (PARLL) THEN
+      CALL MSGERR(4,'1D mode is not supported in parallel run')
+      ret=-2
+    ENDIF
+  ELSE
+    ONED = .FALSE.
+  ENDIF
+  
+end function
+
+function swan_init_coord(coordinates,projection_method, wrap_x) result(ret)
+  integer :: ret
+  character*12 coordinates,projection_method
+  logical wrap_x
+
+  if(coordinates.EQ."cartesian") then
+    KSPHER=0
+  else
+    KSPHER=1
+    LENDEG = REARTH * PI / 180.
+    OVUNIT(1) = 'degr'
+    OVLLIM(1) = -200.
+    OVULIM(1) =  400.
+    OVLEXP(1) = -180.
+    OVHEXP(1) =  360.
+    OVEXCV(1) = -999.
+    OVUNIT(2) = 'degr'
+    OVLLIM(2) = -100.
+    OVULIM(2) =  100.
+    OVLEXP(2) = -90.
+    OVHEXP(2) =  90.
+    OVEXCV(2) = -999.
+    if(projection_method.EQ."quasi-cart.") then
+      PROJ_METHOD = 0
+    else
+      PROJ_METHOD = 1
+    endif
+    
+  endif
+  if(wrap_x) then    
+    KREPTX = 1
+  endif
+  ret=0  
+end function
+
+function swan_init_regular_grid(mxc_,myc_,xpc_,ypc_,xlenc_,ylenc_,alpc_) result(ret)
+  integer :: ret,mxc_,myc_,MXS,MYS,i,j
+  real :: ALTMP,xpc_,ypc_,xlenc_,ylenc_,alpc_,VALX,VALY
+
+  if(OPTG.NE.1) then
+    ret=-1
+    return
+  endif
+  
+  IF (KSPHER.EQ.0) THEN
+    XPC=xpc_
+    YPC=ypc_
+    ALPC=alpc_
+  ELSE
+    XPC=xpc_
+    YPC=ypc_
+    ALPC=alpc_
+  ENDIF
+  XCLEN=xlenc_
+  YCLEN=ylenc_
+  IF(ONED.AND.YCLEN.NE.0) THEN
+      CALL MSGERR (1, '1D-simulation: [ylenc] set to zero !')
+      ret=-2
+      return
+  ENDIF
+  ALTMP = ALPC / 360.
+  ALPC = PI2 * (ALTMP - NINT(ALTMP))
+  CVLEFT = .TRUE.
+!PUN!
+!PUN        IF (OPTG.NE.5) THEN                                               40.95
+!PUN           CALL MSGERR(4,
+!PUN     &               'Structured grid is not supported in parallel run')  40.95
+!PUN           RETURN                                                         40.95
+!PUN        ENDIF                                                             40.95
+!
+  MXS=mxc_
+  MYS=myc_
+  IF (ONED.AND.MYS.NE.0) THEN
+    CALL MSGERR (1, '1D-simulation: [myc] set to zero !')
+    ret=-3
+    return
+  ENDIF
+  IF (KREPTX.EQ.1) THEN
+    MXC = MXS
+  ELSE
+    MXC = MXS+1
+  ENDIF
+  MYC = MYS+1
+  MMCGR = MXC*MYC
+  DX  = XCLEN/MXS
+  IF (ONED) THEN
+    DY  = DX
+  ELSE
+    DY  = YCLEN/MYS
+  ENDIF
+
+  IF(ALLOCATED(XCGRID)) DEALLOCATE(XCGRID)
+  IF(ALLOCATED(YCGRID)) DEALLOCATE(YCGRID)
+  ALLOCATE(XCGRID(MXC,MYC))
+  ALLOCATE(YCGRID(MXC,MYC))
+  
+  COSPC = COS(ALPC)
+  SINPC = SIN(ALPC)
+  DO 200 J = 1,MYC
+    DO 205 I = 1, MXC
+              VALX = XPC + COSPC*(I-1)*DX - SINPC*(J-1)*DY
+              VALY = YPC + SINPC*(I-1)*DX + COSPC*(J-1)*DY
+              XCGRID(I,J)=VALX
+              YCGRID(I,J)=VALY
+ 205        CONTINUE
+ 200      CONTINUE
+ 
+  ret=0
+end function
+
+function swan_init_freq_grid() result(ret)
+  integer ret, IVAL
+  real GAMMA,TMPDIR
+
+! FULCIR, SPDIR1,SPDIR2, MDC, MSC, SLOW, SHIG are normal parameters
+
+  GAMMA = EXP(ALOG(SHIG/SLOW)/REAL(MSC-1)) - 1.
+  WRITE (PRINTF,'(A,(F7.4))') ' Resolution in sigma-space: df/f = ',GAMMA
+    
+  IF (FULCIR) THEN
+    DDIR  = PI2 / MDC
+    SPDIR1 = ALPC + 0.5 * DDIR
+  ELSE
+    IF (BNAUT) THEN
+      TMPDIR = SPDIR1
+      SPDIR1 = 180. + DNORTH - SPDIR2
+      SPDIR2 = 180. + DNORTH - TMPDIR
+    ENDIF
+    SPDIR1 = SPDIR1 * PI / 180.
+    SPDIR2 = SPDIR2 * PI / 180.
+    IF (SPDIR2.LT.SPDIR1) SPDIR2 = SPDIR2 + PI2
+    DDIR = (SPDIR2-SPDIR1) / REAL(MDC)
+    MDC = MDC + 1
+  ENDIF
+    
+  IF(ALLOCATED(SPCSIG)) DEALLOCATE(SPCSIG)
+  IF(ALLOCATED(SPCDIR)) DEALLOCATE(SPCDIR)
+  ALLOCATE(SPCSIG(MSC))
+  ALLOCATE(SPCDIR(MDC,6))
+  CALL SSFILL(SPCSIG,SPCDIR)
+
+  ret=0
+end function
+
+function swan_report_grids() result(ret)
+  integer :: ret
+          IF(OPTG .EQ. 1)WRITE (PRINTF,6048)
+          IF(OPTG .EQ. 3)WRITE (PRINTF,6049)
+          IF(OPTG .EQ. 5)WRITE (PRINTF,6050)
+          WRITE (PRINTF,6045) SLOW, SHIG, FRINTF
+          IF (OPTG.NE.5) WRITE (PRINTF,6046) MXC,MYC,MDC,MSC
+          IF (OPTG.NE.5) WRITE (PRINTF,6047) DX,DY,DDIR
+          IF (OPTG.EQ.5) WRITE (PRINTF,6051) MDC,MSC,DDIR
+ 6048     FORMAT ('GRID: REGULAR RECTANGULAR')
+ 6049     FORMAT ('GRID: CURVILINEAR')
+ 6050     FORMAT ('GRID: UNSTRUCTURED')
+ 6045     FORMAT (' S-low: ', F6.3,' S-hig: ', F6.3, ' frintf: ', F6.3)
+ 6046     FORMAT (' MXC: ',I6,' MYC: ',I6,' MDC: ',I6,' MSC: ',I6)
+ 6047     FORMAT (' DX: ',E12.4,' DY: ',E12.4, ' DDIR: ', F6.3)
+ 6051     FORMAT (' MDC: ',I6,' MSC: ',I6, ' DDIR: ', F6.3)
+
+  ret=0
+end function
+
+function swan_init_unstructured_grid() result(ret)
+  integer :: ret
+  ret=-2
+end function
+
+function swan_init_curvilinear_grid() result(ret)
+  integer :: ret
+  ret=-2
+end function
+
+function swan_init_regular_input_grid(i, mx_,my_,xp_,yp_,alp_,dx_,dy_) result(ret)
+  integer :: i,IGRID,IGRID1,mx_,my_,ret
+  real :: xp_,yp_,dx_,dy_,alp_,ALTMP
+  
+  IGRID1=i
+  IGTYPE(IGRID1) = 1
+  XPG(IGRID1)=xp_
+  YPG(IGRID1)=yp_
+  ALPG(IGRID1)=alp_
+  ALTMP = ALPG(IGRID1)/360.
+  ALPG(IGRID1)  = PI2 * (ALTMP - NINT(ALTMP))
+  COSPG(IGRID1) = COS(ALPG(IGRID1))
+  SINPG(IGRID1) = SIN(ALPG(IGRID1))
+  MXG(IGRID1) = mx_
+  MYG(IGRID1) = my_
+  IF(ONED.AND.MYG(IGRID1).NE.0) THEN
+    CALL MSGERR (1, '1D-simulation: [myinp] set to zero !')
+    MYG(IGRID1) = 0
+  ENDIF
+  MXG(IGRID1) = MXG(IGRID1) + 1
+  MYG(IGRID1) = MYG(IGRID1) + 1
+  DXG(IGRID1)=dx_
+  DYG(IGRID1)=dy_
+  LEDS(IGRID1) = 1
+
+! exception values
+! nonstationary values..
+
+  DO IGRID = IGRID1+1, NUMGRD
+    IF (LEDS(IGRID).EQ.0) THEN
+          XPG(IGRID)   = XPG(IGRID1)
+          YPG(IGRID)   = YPG(IGRID1)
+          ALPG(IGRID)  = ALPG(IGRID1)
+          COSPG(IGRID) = COSPG(IGRID1)
+          SINPG(IGRID) = SINPG(IGRID1)
+          DXG(IGRID)   = DXG(IGRID1)
+          DYG(IGRID)   = DYG(IGRID1)
+          MXG(IGRID)   = MXG(IGRID1)
+          MYG(IGRID)   = MYG(IGRID1)
+          IGTYPE(IGRID)= IGTYPE(IGRID1)
+          LEDS(IGRID)  = 1
+    ENDIF
+  ENDDO
+
+
+  ret=0
+end function
+
+function swan_init_unstructured_input_grids() result(ret)
+  integer :: ret
+  ret=-2  
+end function
+
+function swan_init_curvilinear_input_grids() result(ret)
+  integer :: ret
+  ret=-2  
+end function
+
+function swan_init_regular_comp_grid() result(ret)
+  integer :: ret
+  logical LOGCOM(6)
+  logical STPNOW 
+  ret=0
+  CALL CGINIT(LOGCOM)
+  IF (STPNOW()) ret=-1
+end function
+
+function swan_init_curvilinear_comp_grid() result(ret)
+  integer :: ret
+  ret=-2
+end function
+
+function swan_init_unstructured_comp_grid() result(ret)
+  integer :: ret
+  ret=-2
+end function
+
+function swan_physics_gen3() result(ret)
+  integer :: ret
+  IGEN = 3
+  IWIND = 3 ! note if there is no wind?? (determined by LWINDR, but...possibly make module variable (in fact good idea))
+  IWCAP = 1
+  IF (NSTATM.EQ.1 .AND. ICOND.EQ.0) ICOND = 1
+  ret=0
+end function
+
+function swan_physics_breaking() result(ret)
+  integer :: ret
+
+  ISURF = 1
+  PSURF(1)=1.0
+  PSURF(2)=0.73
+  
+  ret=0
+end function
+
+function swan_physics_friction() result(ret)
+  integer :: ret
+
+  IBOT = 1
+
+  ret=0
+end function
+
+function swan_physics_triads() result(ret)
+  integer :: ret
+
+  ITRIAD=1
+  PTRIAD(1)=0.65
+  PTRIAD(2)=2.5
+  PTRIAD(5)=0.01
+
+  ret=0
+end function
+
+
+function swan_regular_add_boundary_from_file( side, filename) result(ret)
+  USE M_BNDSPEC
+
+  integer :: ret
+  character*2 :: side
+  character*80 :: filename
+  logical :: STPNOW
+
+      INTEGER   IENT,KOUNTR,IX1,IY1,IX2,IY2
+      INTEGER   MM,IX,IY,ISIDM,ISIDE,KC,KC2,KC1,IX3,IY3,MP
+      INTEGER   IP,II,NBSPSS,NFSEQ,IKO,IKO2,IBSPC1,IBSPC2
+      INTEGER   VM
+
+      INTEGER, DIMENSION(:), ALLOCATABLE :: IARR1, IARR2
+
+      REAL      CRDP, CRDM, SOMX, SOMY
+      REAL      XP,YP,XC,YC,RR,DIRSI,COSDIR,SINDIR,DIRSID,DIRREF
+      REAL      RLEN1,RDIST,RLEN2,XC1,YC1,XC2,YC2,W1
+
+      LOGICAL   KEYWIS, LOCGRI, CCW, BPARF, BOUNPT,DONALL
+      LOGICAL   LFRST1, LFRST2, LFRST3
+
+      INTEGER   NUMP
+
+      LOGICAL, SAVE :: LBFILS = .FALSE.
+      LOGICAL, SAVE :: LBS    = .FALSE.
+      LOGICAL, SAVE :: LBGP   = .FALSE.
+
+      TYPE(BSPCDAT), POINTER :: BFLTMP
+      TYPE(BSPCDAT), SAVE, POINTER :: CUBFL
+
+      TYPE(BSDAT), POINTER :: BSTMP
+      TYPE(BSDAT), SAVE, POINTER :: CUBS
+
+      TYPE(BGPDAT), POINTER :: BGPTMP
+
+      TYPE XYPT
+        INTEGER             :: JX, JY
+        TYPE(XYPT), POINTER :: NEXTXY
+      END TYPE XYPT
+
+      TYPE(XYPT), TARGET  :: FRST
+      TYPE(XYPT), POINTER :: CURR, TMP
+
+      CHARACTER(80) :: MSGSTR  
+    
+  KOUNTR  = 0
+  FRST%JX = 0
+  FRST%JY = 0
+  NULLIFY(FRST%NEXTXY)
+  CURR => FRST
+  
+  IF (side.EQ.'NW') THEN
+    DIRSI = 45.
+  ELSE IF (side.eq.'SW') THEN
+    DIRSI = 135.
+  ELSE IF (side.eq.'SE') THEN
+    DIRSI = -135.
+  ELSE IF (side.eq.'NE') THEN
+    DIRSI = -45.
+  ELSE IF (side.eq.'N') THEN
+    DIRSI = 0.
+  ELSE IF (side.eq.'W') THEN
+    DIRSI = 90.
+  ELSE IF (side.eq.'S') THEN
+    DIRSI = 180.
+  ELSE IF (side.eq.'E') THEN
+    DIRSI = -90.
+  ENDIF
+  
+  CCW = .TRUE.
+
+  CRDM   = -1.E10
+  ISIDM  = 0
+  IF (ONED) THEN
+    COSDIR = COS(PI*(DNORTH+DIRSI)/180.)
+    SINDIR = SIN(PI*(DNORTH+DIRSI)/180.)
+    DO ISIDE = 1, 4
+      SOMX = 0.
+      SOMY = 0.
+      NUMP = 0
+      IF (ISIDE.EQ.2) THEN
+        KC = KGRPNT(MXC,1)
+        IF (KC.GT.1) THEN
+          SOMX = XCGRID(MXC,1)
+          SOMY = YCGRID(MXC,1)
+          NUMP = 1
+        ENDIF
+      ELSE IF (ISIDE.EQ.4) THEN
+        KC = KGRPNT(1,1)
+        IF (KC.GT.1) THEN
+          SOMX = XCGRID(1,1)
+          SOMY = YCGRID(1,1)
+          NUMP = 1
+        ENDIF
+      ENDIF
+      IF (NUMP.GT.0) THEN
+        CRDP = COSDIR*SOMX + SINDIR*SOMY
+        IF (CRDP.GT.CRDM) THEN
+          CRDM = CRDP
+          ISIDM = ISIDE
+        ENDIF
+      ENDIF
+    ENDDO
+  ELSE
+    DO ISIDE = 1, 4
+      SOMX = 0.
+      SOMY = 0.
+      NUMP = 0
+      IF (ISIDE.EQ.1) THEN
+        DO IX = 1, MXC
+          KC2 = KGRPNT(IX,1)
+          IF (IX.GT.1) THEN
+            IF (KC1.GT.1 .AND. KC2.GT.1) THEN
+  !                        if both grid points at ends of a step are valid, then
+  !                        take DX and DY into account when determining direction
+              SOMX = SOMX + XCGRID(IX,1)-XCGRID(IX-1,1)
+              SOMY = SOMY + YCGRID(IX,1)-YCGRID(IX-1,1)
+              NUMP = NUMP + 1
+            ENDIF
+          ENDIF
+          KC1 = KC2
+        ENDDO
+      ELSE IF (ISIDE.EQ.2) THEN
+        DO IY = 1, MYC
+          KC2 = KGRPNT(MXC,IY)
+          IF (IY.GT.1) THEN
+            IF (KC1.GT.1 .AND. KC2.GT.1) THEN
+              SOMX = SOMX + XCGRID(MXC,IY)-XCGRID(MXC,IY-1)
+              SOMY = SOMY + YCGRID(MXC,IY)-YCGRID(MXC,IY-1)
+              NUMP = NUMP + 1
+            ENDIF
+          ENDIF
+          KC1 = KC2
+        ENDDO
+      ELSE IF (ISIDE.EQ.3) THEN
+        DO IX = 1, MXC
+          KC2 = KGRPNT(IX,MYC)
+          IF (IX.GT.1) THEN
+            IF (KC1.GT.1 .AND. KC2.GT.1) THEN
+              SOMX = SOMX + XCGRID(IX-1,MYC)-XCGRID(IX,MYC)
+              SOMY = SOMY + YCGRID(IX-1,MYC)-YCGRID(IX,MYC)
+              NUMP = NUMP + 1
+            ENDIF
+          ENDIF
+          KC1 = KC2
+        ENDDO
+      ELSE IF (ISIDE.EQ.4) THEN
+        DO IY = 1, MYC
+          KC2 = KGRPNT(1,IY)
+          IF (IY.GT.1) THEN
+            IF (KC1.GT.1 .AND. KC2.GT.1) THEN
+              SOMX = SOMX + XCGRID(1,IY-1)-XCGRID(1,IY)
+              SOMY = SOMY + YCGRID(1,IY-1)-YCGRID(1,IY)
+              NUMP = NUMP + 1
+            ENDIF
+          ENDIF
+          KC1 = KC2
+        ENDDO
+      ENDIF
+      IF (NUMP.GT.0) THEN
+        DIRSID = ATAN2(SOMY,SOMX)
+        DIRREF = PI*(DNORTH+DIRSI)/180.
+        IF (CVLEFT) THEN
+          CRDP = COS(DIRSID - 0.5*PI - DIRREF)
+        ELSE
+          CRDP = COS(DIRSID + 0.5*PI - DIRREF)
+        ENDIF
+        IF (CRDP.GT.CRDM) THEN
+          CRDM = CRDP
+          ISIDM = ISIDE
+        ENDIF
+      ENDIF
+      WRITE (PRTEST, 151) ISIDE, NUMP, &
+     &           SOMX, SOMY, DIRSID*180/PI, DIRREF*180/PI, CRDP, CVLEFT
+ 151             FORMAT (' side ', 2I4, 2(1X,E11.4), 2(1X,F5.0), 2X, &
+     &                   F6.3, 2X, L1)
+    ENDDO
+  ENDIF
+  
+  IF (ISIDM.EQ.0) THEN
+    CALL MSGERR (2, 'No open boundary found')
+    ret=-2
+    return
+  ENDIF
+
+  IF (ISIDM.EQ.1) THEN
+    IX1 = 1
+    IY1 = 1
+    IX2 = MXC
+    IY2 = 1
+  ELSE IF (ISIDM.EQ.2) THEN
+    IX1 = MXC
+    IY1 = 1
+    IX2 = MXC
+    IY2 = MYC
+  ELSE IF (ISIDM.EQ.3) THEN
+    IX1 = MXC
+    IY1 = MYC
+    IX2 = 1
+    IY2 = MYC
+  ELSE IF (ISIDM.EQ.4) THEN
+    IX1 = 1
+    IY1 = MYC
+    IX2 = 1
+    IY2 = 1
+  ENDIF
+  IF (.NOT.CCW .EQV. CVLEFT) THEN
+    IX3 = IX1
+    IY3 = IY1
+    IX1 = IX2
+    IY1 = IY2
+    IX2 = IX3
+    IY2 = IY3
+  ENDIF
+  WRITE (PRINTF, 112) ISIDM, &
+     &       IX1-1, IY1-1, XCGRID(IX1,IY1)+XOFFS, YCGRID(IX1,IY1)+YOFFS, &
+     &       IX2-1, IY2-1, XCGRID(IX2,IY2)+XOFFS, YCGRID(IX2,IY2)+YOFFS
+ 112         FORMAT (' Selected side:', I2, ' from ', 2I4, 2F9.0, &
+     &       ' to ', 2I4, 2F9.0)
+
+  MP = MAX(ABS(IX2-IX1),ABS(IY2-IY1))
+  DO IP = 0, MP
+    IF (MP.EQ.0) THEN
+      RR = 0.
+    ELSE
+      RR = REAL(IP) / REAL(MP)
+    ENDIF
+    IX = IX1 + NINT(RR*REAL(IX2-IX1))
+    IY = IY1 + NINT(RR*REAL(IY2-IY1))
+    IF (KGRPNT(IX,IY) .GT. 1) THEN
+      KOUNTR = KOUNTR + 1
+      ALLOCATE(TMP)
+      TMP%JX = IX
+      TMP%JY = IY
+      NULLIFY(TMP%NEXTXY)
+      CURR%NEXTXY => TMP
+      CURR => TMP
+    ENDIF
+  ENDDO
+  
+  CURR => FRST%NEXTXY
+  
+  NBFILS = NBFILS + 1
+  
+  NBSPSS = NBSPEC
+  ALLOCATE(BFLTMP)
+  CALL BCFILE (FILENM, 'PNTS', BFLTMP, LBGP, &
+     &                   XCGRID, YCGRID, KGRPNT, XYTST, KGRBND, &
+     &                   DONALL)
+  IF (STPNOW()) then
+    ret=-1
+    return
+  endif
+  NULLIFY(BFLTMP%NEXTBSPC)
+  IF ( .NOT.LBFILS ) THEN
+    FBNDFIL = BFLTMP
+    CUBFL => FBNDFIL
+    LBFILS = .TRUE.
+  ELSE
+    CUBFL%NEXTBSPC => BFLTMP
+    CUBFL => BFLTMP
+  END IF
+  
+  NFSEQ=1
+  NBSPSS = NBSPSS + NFSEQ  
+
+  DO IKO = 1, KOUNTR
+    IX = CURR%JX
+    IY = CURR%JY
+    CURR => CURR%NEXTXY
+    ALLOCATE(BGPTMP)
+    BGPTMP%BGP(1) = KGRPNT(IX,IY)
+    BGPTMP%BGP(2) = 1
+    BGPTMP%BGP(3) = 1000
+    BGPTMP%BGP(4) = NBSPSS
+    BGPTMP%BGP(5) = 0
+    BGPTMP%BGP(6) = 1
+    NULLIFY(BGPTMP%NEXTBGP)
+    IF ( .NOT.LBGP ) THEN
+      FBGP = BGPTMP
+      CUBGP => FBGP
+      LBGP = .TRUE.
+    ELSE
+      CUBGP%NEXTBGP => BGPTMP
+      CUBGP => BGPTMP
+    END IF
+  ENDDO
+  NBGRPT = NBGRPT + KOUNTR
+  IF (ASSOCIATED(TMP)) DEALLOCATE(TMP)
+
+  ret=0
+
+end function
+
 
 end module
