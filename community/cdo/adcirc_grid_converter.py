@@ -4,8 +4,6 @@ import numpy
 
 from spherical_geometry import *
 
-
-
 class adcirc_grid_converter(object):
 
     def __init__(self, filename, coordinates):
@@ -75,8 +73,6 @@ class adcirc_grid_converter(object):
             elem_area_spherical[i] = triangle_area(a, b, c)
 
             i+=1
-
-
 
         self.adjacency_list = adjacency_list = []
         self.boundary_node = boundary_node = [False for i in range(num_nodes)]
@@ -273,7 +269,7 @@ if __name__ == "__main__":
     c = adcirc_grid_converter(filename, "spherical")
 
 
-
+    print 'size=', c.size
 
 
 
