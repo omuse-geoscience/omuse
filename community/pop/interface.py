@@ -2,6 +2,8 @@ from amuse.community import *
 
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 
+from amuse.datamodel.grids import *
+
 from omuse.units import units
 
 class POPInterface(CodeInterface):
@@ -25,6 +27,12 @@ class POPInterface(CodeInterface):
 
         keyword_arguments.setdefault('number_of_workers', 8)
         CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **keyword_arguments)
+
+        import os
+        if 'AMUSE_DIR' in os.environ:
+            amuse_dir = os.environ['AMUSE_DIR']
+            path = amuse_dir + '/src/omuse/community/pop/'
+            self.change_directory(path)
 
         if mode in [self.MODE_NORMAL,self.MODE_320x384x40]:
             self.set_namelist_filename('pop_in_lowres')
@@ -593,6 +601,45 @@ class POP(CommonCode):
         lat,lon=self.get_node_position(i,j)
         z=self.get_node_vposition(i,j,k)
         return lat,lon,z
+
+
+    def _compute_cell_corners(self):
+        size = self.get_domain_size()
+
+        import itertools
+        index_j = numpy.array([i[0] for i in itertools.product(range(1,size[1]+1), range(1,size[0]+1))])
+        index_i = numpy.array([i[1] for i in itertools.product(range(1,size[1]+1), range(1,size[0]+1))])
+
+        pos = self.get_node_position(index_i, index_j)
+        u_lat = pos[0].value_in(units.rad).reshape(size[1], size[0])
+        u_lon = pos[1].value_in(units.rad).reshape(size[1], size[0])
+
+        corners = [[[0 for i in range(size[0]+1)] for j in range(size[1]+1)] for i in range(2)]
+        corners = numpy.array(corners, dtype=numpy.double)
+
+        corners[1,1:,1:] = u_lat                    #u_lat is north east corner of t-cell
+        corners[1,1:,0] = u_lat[:,size[0]-1]        #copy last column to first column of corners
+        tiny = 1.0e-14
+        corners[1,0,:] = (-numpy.pi*0.5) + tiny     #mock-up latitudes of row 0
+
+        corners[0,1:,1:] = u_lon                    #u_lon is north east corner of t-cell
+        corners[0,1:,0] = u_lon[:,size[0]-1]        #copy last column to first column of corners
+        corners[0,0,:] = corners[0,1,:]             #copy row 1 of corners down to mocked-up row 0
+
+        return corners
+
+
+    def _create_grid(self, corners):
+        size = self.get_domain_size()
+        g = new_structured_grid((size[1], size[0]), corners, axes_names=("lon", "lat"))
+
+        return g
+
+
+    def get_grid(self):
+        corners = self._compute_cell_corners()
+        return self._create_grid(corners)
+
 
     def define_particle_sets(self, object):
         #for now we refer to the U grid as the nodes and T grid as the elements

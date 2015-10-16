@@ -72,7 +72,16 @@ sst = p.elements.temp.value_in(units.C)
 myplot(lats, lons, xs, ys, sst)
 #pyplot.imshow(numpy.swapaxes(sst,0,1)[::-1,:], cmap=pyplot.cm.jet)
 
+
+
+print p.get_domain_size()
+print p.get_node_position()
+
 raw_input()
+
+
+
+
 
 
 """
