@@ -357,21 +357,21 @@ class CDORemapper(CommonCode):
             object.add_method(state, 'get_src_grid_file')
             object.add_method(state, 'get_dst_grid_file')
 
-
-            object.add_method(state, 'get_src_grid_center_lon')
-            object.add_method(state, 'get_src_grid_center_lat')
-            object.add_method(state, 'get_src_grid_corner_lon')
-            object.add_method(state, 'get_src_grid_corner_lat')
-            object.add_method(state, 'get_dst_grid_center_lon')
-            object.add_method(state, 'get_dst_grid_center_lat')
-            object.add_method(state, 'get_dst_grid_corner_lon')
-            object.add_method(state, 'get_dst_grid_corner_lat')
-            object.add_method(state, 'get_src_grid_size')
-            object.add_method(state, 'get_src_grid_dims')
-            object.add_method(state, 'get_src_grid_corners')
-            object.add_method(state, 'get_dst_grid_size')
-            object.add_method(state, 'get_dst_grid_dims')
-            object.add_method(state, 'get_dst_grid_corners')
+        state = "RUN"
+        object.add_method(state, 'get_src_grid_center_lon')
+        object.add_method(state, 'get_src_grid_center_lat')
+        object.add_method(state, 'get_src_grid_corner_lon')
+        object.add_method(state, 'get_src_grid_corner_lat')
+        object.add_method(state, 'get_dst_grid_center_lon')
+        object.add_method(state, 'get_dst_grid_center_lat')
+        object.add_method(state, 'get_dst_grid_corner_lon')
+        object.add_method(state, 'get_dst_grid_corner_lat')
+        object.add_method(state, 'get_src_grid_size')
+        object.add_method(state, 'get_src_grid_dims')
+        object.add_method(state, 'get_src_grid_corners')
+        object.add_method(state, 'get_dst_grid_size')
+        object.add_method(state, 'get_dst_grid_dims')
+        object.add_method(state, 'get_dst_grid_corners')
 
 
 
