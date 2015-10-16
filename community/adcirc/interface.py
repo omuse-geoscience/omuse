@@ -307,6 +307,45 @@ class Adcirc(CommonCode):
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
 
+
+    def get_grid(self):
+        from amuse.datamodel.grids import new_unstructured_grid
+
+        num_elems = self.get_number_of_elements()
+        num_nodes = self.get_number_of_nodes()
+
+        index_i = range(1,num_elems+1)
+        triangles = self.get_element_nodes(index_i)
+        triangles = zip(triangles[0],triangles[1],triangles[2])
+        triangles = numpy.array(triangles)-1
+
+        grid_corner_lon = numpy.zeros(num_elems * 3, dtype=numpy.double)
+        grid_corner_lat = numpy.zeros(num_elems * 3, dtype=numpy.double)
+
+        pos = self.get_node_coordinates(range(1,num_nodes+1))
+        lon = pos[0].value_in(units.rad)
+        lat = pos[1].value_in(units.rad)
+
+        i=0
+        for triangle in triangles:
+            n1,n2,n3 = triangle
+
+            grid_corner_lat[i*3+0] = lat[n1]
+            grid_corner_lat[i*3+1] = lat[n2]
+            grid_corner_lat[i*3+2] = lat[n3]
+
+            grid_corner_lon[i*3+0] = lon[n1]
+            grid_corner_lon[i*3+1] = lon[n2]
+            grid_corner_lon[i*3+2] = lon[n3]
+            i+=1
+
+        corners = [grid_corner_lon, grid_corner_lat]
+        corners = numpy.array(corners)
+        adcirc_grid = new_unstructured_grid(num_elems, 3, corners, axes_names=("lon","lat"))
+
+        return adcirc_grid
+
+
     def define_particle_sets(self, object):
         object.define_grid('nodes',axes_names = ['x','y'])
         object.set_grid_range('nodes', 'get_firstlast_node')
@@ -377,7 +416,6 @@ class Adcirc(CommonCode):
 
         object.add_transition('INITIALIZED','EDIT','commit_parameters')
 
-
         #~ object.set_initial_state('UNINITIALIZED')
         #~ object.add_transition('!STOPPED', 'END', 'cleanup_code')
         #~ object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
@@ -396,4 +434,5 @@ class Adcirc(CommonCode):
           object.add_method(state,"get_number_of_nodes_in_elevation_boundary_segment")
           object.add_method(state,"get_number_of_nodes_flow_boundary_segment")
           object.add_method(state,"get_number_of_vertical_nodes")
+          object.add_method(state,"get_grid")
 
