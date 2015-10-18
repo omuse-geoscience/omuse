@@ -820,7 +820,8 @@ function swan_regular_add_boundary_from_file( side, filename) result(ret)
   
   NBSPSS = NBSPEC
   ALLOCATE(BFLTMP)
-  CALL BCFILE (FILENM, 'PNTS', BFLTMP, LBGP, &
+  FILENM=filename ! filename is passed as argument but actually the FILENM module var is used
+  CALL BCFILE ( FILENM, 'PNTS', BFLTMP, LBGP, &
      &                   XCGRID, YCGRID, KGRPNT, XYTST, KGRBND, &
      &                   DONALL)
   IF (STPNOW()) then

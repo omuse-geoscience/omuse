@@ -33,12 +33,12 @@ if __name__=="__main__":
   
   s=SwanInterface(redirection="none")
   
-  print s.get_coord()
-  print s.get_proj_method()
+  print s.get_coordinates()
+  print s.get_projection_method()
   print s.get_grid_type()
   print s.get_input_grid_type()
   print s.get_calc_mode()
-  print s.get_ndim()
+  print s.get_number_dimensions()
   
   print s.initialize_code()
   
@@ -56,12 +56,12 @@ if __name__=="__main__":
   s.set_nfreq(32)
   s.set_flow(0.0521)
   s.set_fhigh(1.)
-  s.set_ndir(36)
+  s.set_mdc(36)
 
   print s.get_nfreq()
   print s.get_flow()
   print s.get_fhigh()
-  print s.get_ndir()
+  print s.get_mdc()
 
   s.set_input_xp(0.)
   s.set_input_yp(0.)
@@ -73,5 +73,25 @@ if __name__=="__main__":
 
   print s.initialize_grids()
   print s.commit_grids()
+  print s.commit_parameters()
+ 
+  print s.get_exc_value(1)
+  
+  input_shape=bathimetry.shape
+  ii,jj=numpy.mgrid[1:input_shape[0]+1,1:input_shape[1]+1]
+  print s.set_depth(ii.flatten(),jj.flatten(),bathimetry.flatten())
+
+  print s.set_uniform_wind_vel(12.)
+  print s.set_uniform_wind_dir(8.8)
+
+  s.set_north_boundary_spec_file("f31har01.bnd")
+
+  s.set_use_gen3(True)
+  s.set_use_breaking(True)
+  s.set_use_triads(True)
+  s.set_use_friction(True)
+
+  print s.initialize_boundary()
+
 
   raw_input()
