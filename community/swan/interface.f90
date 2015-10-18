@@ -40,6 +40,8 @@ module swan_interface
 
 contains
 
+include "getter_setters.f90"
+
 function initialize_code(coord_, mode_, grid_,input_grid_) result(ret)
   integer :: ret
   character*12 :: coord_, mode_, grid_,input_grid_
@@ -282,6 +284,12 @@ end function
 function initialize_boundary() result(ret)
   integer :: ret
 
+  CHARACTER(len=255) :: cwd
+
+  call getcwd(cwd)
+  print*, north_boundary_spec_file
+  print*, cwd
+
   if(grid_type.EQ."regular") then
     if(north_boundary_spec_file.NE."none") then
       ret=swan_regular_add_boundary_from_file("N",north_boundary_spec_file)
@@ -314,95 +322,32 @@ function cleanup_code() result(ret)
   ret=swan_cleanup()
 end function
 
-function set_grid_xpc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  grid_xpc=x
-  ret=0
-end function
-function get_grid_xpc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=grid_xpc
-  ret=0
-end function
-
-function set_grid_ypc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  grid_ypc=x
-  ret=0
-end function
-function get_grid_ypc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=grid_ypc
-  ret=0
+function set_depth(i,j,x,n) result(ret)
+  integer :: ret,n,i(n),j(n),k,ii,igrid=1
+  real*8 :: x(n)
+  ret=-1
+  do k=1,n
+    ii=i(k) + (j(k)-1) * MXG(igrid)
+    if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
+      ret=-1
+    else
+      DEPTH(ii)=x(k)
+    endif
+  enddo
 end function
 
-function set_grid_xlenc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  grid_xlenc=x
+function get_depth(i,j,x,n) result(ret)
+  integer :: ret,n,i(n),j(n),k,ii,igrid=1
+  real*8 :: x(n)
   ret=0
-end function
-function get_grid_xlenc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=grid_xlenc
-  ret=0
-end function
-
-function set_grid_ylenc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  grid_ylenc=x
-  ret=0
-end function
-function get_grid_ylenc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=grid_ylenc
-  ret=0
-end function
-
-function set_grid_alpc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  grid_alpc=x
-  ret=0
-end function
-function get_grid_alpc(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=grid_alpc
-  ret=0
-end function
-
-function set_grid_mxc(x) result(ret)
-  integer :: ret
-  integer :: x
-  grid_mxc=x
-  ret=0
-end function
-function get_grid_mxc(x) result(ret)
-  integer :: ret
-  integer :: x
-  x=grid_mxc
-  ret=0
-end function
-
-function set_grid_myc(x) result(ret)
-  integer :: ret
-  integer :: x
-  grid_myc=x
-  ret=0
-end function
-function get_grid_myc(x) result(ret)
-  integer :: ret
-  integer :: x
-  x=grid_myc
-  ret=0
+  do k=1,n
+    ii=i(k) + (j(k)-1) * MXG(igrid)
+    if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
+      ret=-1
+    else
+      x(k)=DEPTH(ii)
+    endif
+  enddo
 end function
 
 function set_nfreq(x) result(ret)
@@ -418,23 +363,9 @@ function get_nfreq(x) result(ret)
   ret=0
 end function
 
-function set_ndir(x) result(ret)
-  integer :: ret
-  integer :: x
-  MDC=x
-  ret=0
-end function
-function get_ndir(x) result(ret)
-  integer :: ret
-  integer :: x
-  x=MDC
-  ret=0
-end function
-
 function set_flow(x) result(ret)
   integer :: ret
   real*8 :: x
-  print*,"PI",PI,x
   SLOW=2*PI*x
   ret=0
 end function
@@ -455,149 +386,6 @@ function get_fhigh(x) result(ret)
   integer :: ret
   real*8 :: x
   x=SHIG/2/PI
-  ret=0
-end function
-
-function set_input_xp(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  input_xp=x
-  ret=0
-end function
-function get_input_xp(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=input_xp
-  ret=0
-end function
-
-function set_input_yp(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  input_yp=x
-  ret=0
-end function
-function get_input_yp(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=input_yp
-  ret=0
-end function
-
-function set_input_alp(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  input_alp=x
-  ret=0
-end function
-function get_input_alp(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=input_alp
-  ret=0
-end function
-
-function set_input_dx(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  input_dx=x
-  ret=0
-end function
-function get_input_dx(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=input_dx
-  ret=0
-end function
-
-function set_input_dy(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  input_dy=x
-  ret=0
-end function
-function get_input_dy(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=input_dy
-  ret=0
-end function
-
-function set_input_mx(x) result(ret)
-  integer :: ret
-  integer :: x
-  input_mx=x
-  ret=0
-end function
-function get_input_mx(x) result(ret)
-  integer :: ret
-  integer :: x
-  x=input_mx
-  ret=0
-end function
-
-function set_input_my(x) result(ret)
-  integer :: ret
-  integer :: x
-  input_my=x
-  ret=0
-end function
-function get_input_my(x) result(ret)
-  integer :: ret
-  integer :: x
-  x=input_my
-  ret=0
-end function
-
-function set_wlev(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  WLEV=x
-  ret=0
-end function
-function get_wlev(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=WLEV
-  ret=0
-end function
-
-function set_grav(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  GRAV=x
-  ret=0
-end function
-function get_grav(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=GRAV
-  ret=0
-end function
-
-function set_rho(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  RHO=x
-  ret=0
-end function
-function get_rho(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=RHO
-  ret=0
-end function
-
-function set_cdcap(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  CDCAP=x
-  ret=0
-end function
-function get_cdcap(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=CDCAP
   ret=0
 end function
 
@@ -657,45 +445,12 @@ function get_uniform_air_sea_temp_diff(x) result(ret)
   ret=0
 end function
 
-! read only parameters (set in initialize_code)
-function get_calc_mode(x) result(ret)
-  integer :: ret
-  character*12 :: x
-  x=calc_mode
-  ret=0
+! note real vs double
+function get_exc_value(i,x) result(ret)
+  integer :: ret,i
+  real*8 :: x
+  x=EXCFLD(i)
+  ret=0  
 end function
-function get_grid_type(x) result(ret)
-  integer :: ret
-  character*12 :: x
-  x=grid_type
-  ret=0
-end function
-function get_input_grid_type(x) result(ret)
-  integer :: ret
-  character*12 :: x
-  x=input_grid_type
-  ret=0
-end function
-function get_coord(x) result(ret)
-  integer :: ret
-  character*12 :: x
-  x=coordinates
-  ret=0
-end function
-function get_proj_method(x) result(ret)
-  integer :: ret
-  character*12 :: x
-  x=projection_method
-  ret=0
-end function
-function get_ndim(x) result(ret)
-  integer :: ret
-  integer :: x
-  x=number_dimensions
-  ret=0
-end function
-
-
-
 
 end module

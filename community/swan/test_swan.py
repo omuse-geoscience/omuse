@@ -41,8 +41,8 @@ class TestSwanInterface(TestWithMPI):
       self.assertEqual(err,0)
 
       for name,default in [("calc_mode","stationary"),("grid_type","regular"),
-          ("input_grid_type","regular"),("proj_method","quasi-cart."),("ndim",2),
-          ("coord","cartesian")]:
+          ("input_grid_type","regular"),("projection_method","quasi-cart."),("number_dimensions",2),
+          ("coordinates","cartesian")]:
         x,err=eval("s.get_"+name+"()")
         self.assertEqual(x,default)
         self.assertEqual(err,0)
@@ -63,7 +63,7 @@ class TestSwanInterface(TestWithMPI):
       err=s.initialize_code("abc","defg","hij","klm")
       self.assertEqual(err,-1)
 
-      for name,default in [("coord","abc"),("calc_mode","defg"),("grid_type","hij"),
+      for name,default in [("coordinates","abc"),("calc_mode","defg"),("grid_type","hij"),
           ("input_grid_type","klm")]:
         x,err=eval("s.get_"+name+"()")
         self.assertEqual(x,default)

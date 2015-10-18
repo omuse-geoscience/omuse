@@ -26,6 +26,12 @@ swan_worker: worker_code.f90 interface.o src/amuse_swan.o src/libamuse_swan.a
 %.o: %.f90
 	$(FC) $(FCFLAGS) $(FCINCS) -c -o $@ $<
 
+interface.o: interface.f90 getter_setters.f90
+	$(FC) $(FCFLAGS) $(FCINCS) -c -o $@ interface.f90
+
+getter_setters.f90: interface.py
+	python -c "import interface; interface.generate_getters_setters()" > getter_setters.f90
+
 clean:
 	make -C src/ clean
 	rm -f *.pyc *.mod
