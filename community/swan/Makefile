@@ -14,7 +14,7 @@ all: src/libamuse_swan.a src/amuse_swan.o swan_worker
 src/libamuse_swan.a: 
 	make -C src/ libamuse_swan.a MPIFC="$(MPIFC)"
 
-src/amuse_swan.o: src/amuse_swan.f90
+src/amuse_swan.o: src/amuse_swan.ftn90
 	make -C src/ amuse_swan.o MPIFC="$(MPIFC)"
 
 worker_code.f90: interface.py
