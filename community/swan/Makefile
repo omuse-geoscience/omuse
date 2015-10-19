@@ -30,7 +30,7 @@ interface.o: interface.f90 getter_setters.f90
 	$(FC) $(FCFLAGS) $(FCINCS) -c -o $@ interface.f90
 
 getter_setters.f90: interface.py
-	python -c "import interface; interface.generate_getters_setters()" > getter_setters.f90
+	python -c "import interface; interface.generate_getters_setters()"
 
 clean:
 	make -C src/ clean
