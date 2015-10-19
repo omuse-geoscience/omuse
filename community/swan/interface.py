@@ -27,7 +27,7 @@ parameters={
             "input_grid_mesh_dy" : dict(short="input_dy", dtype="float64", default=0. , description="input grid x mesh size", simple=True),
             "input_grid_mesh_orientation" : dict(short="input_alp", dtype="float64", default=0. | units.deg, description="input grid x mesh size", simple=True),
             "input_grid_nmesh_x" : dict(short="input_mx", dtype="int32", default=0, description="input grid x number of mesh cells", simple=True),
-            "input_grid_nmesh_y" : dict(short="input_my", dtype="int32", default=0, description="input grid x number of mesh cells", simple=True),
+            "input_grid_nmesh_y" : dict(short="input_my", dtype="int32", default=0, description="input grid y number of mesh cells", simple=True),
             "uniform_wind_vel" : dict(short="uniform_wind_vel", dtype="float64", default=0. | units.m/units.s , description="wind velocity at 10 m elevation", simple=False),
             "uniform_wind_direction" : dict(short="uniform_wind_dir", dtype="float64", default=0 | units.deg , description="wind direction at 10 m elevation", simple=False),
             "grid_type" : dict(short="grid_type", dtype="string", default="regular" , description="type of grid for computation, [regular, curvilinear or unstructured]", simple=True),
@@ -54,10 +54,12 @@ parameters={
             "south_boundary_spec_file" : dict(short="south_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on south boundary",simple=True),
             "west_boundary_spec_file" : dict(short="west_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on west boundary",simple=True),
             "east_boundary_spec_file" : dict(short="east_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on east boundary",simple=True),
+            "timestep" : dict(short="dt", dtype="float64", default=360. | units.s , description="timestep of computation", simple=True),
+            "begin_time" : dict(short="begin_time", dtype="float64", default=0. | units.s , description="start time of computation", simple=True),
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
-def generate_getters_setters(filename="getter_setter_.f90"):
+def generate_getters_setters(filename="getter_setters.f90"):
     filestring=""
     py_to_f={"string" : "character(len=*) ", "float64" : "real*8", "int32" : "integer", "bool" : "logical"}
     for par,d in parameters.iteritems():
@@ -76,7 +78,8 @@ def generate_getters_setters(filename="getter_setter_.f90"):
                       ret=0
                     end function
                     """.format(d["short"],py_to_f[d["dtype"]])
-    print filestring
+    with open(filename,"w") as f:
+        f.write(filestring)
 
 
 class SwanInterface(CodeInterface, 
@@ -119,16 +122,24 @@ class SwanInterface(CodeInterface,
     def commit_parameters():
         returns ()
 
+    @remote_function
+    def get_time():
+        returns (time=0. | units.s)
+
+    @remote_function
+    def evolve_model(tend=0. | units.s):
+        returns ()
+
     @remote_function(must_handle_array=True)
-    def get_depth(i_index=0,j_index=0):
-        returns (depth=0. | units.m)
+    def get_depth(i_index="i",j_index="i"):
+        returns (depth="f" | units.m)
     @remote_function(must_handle_array=True)
-    def set_depth(i_index=0,j_index=0,depth=0. | units.m):
+    def set_depth(i_index="i",j_index="i",depth="f" | units.m):
         returns ()
 
     @remote_function
     def get_exc_value(field_index=0):
-        returns (exception_value=0.)
+        returns (exception_value='f')
 
     for par,d in parameters.iteritems():
         dtype=d["dtype"]

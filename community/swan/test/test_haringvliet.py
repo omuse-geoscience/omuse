@@ -6,7 +6,7 @@ from matplotlib import pyplot
 
 from amuse.test.amusetest import TestWithMPI
 
-def read_bot_data(filename="f31hari.bot",n=117,m=88):
+def read_bot_data(filename="f31hari.bot",n=88,m=117):
   f=open(filename,"r")
   lines=f.readlines()
   f.close()
@@ -16,20 +16,22 @@ def read_bot_data(filename="f31hari.bot",n=117,m=88):
     for s in line.split():
       dat.append(float(s))
   
-  return numpy.array(dat).reshape((n,m))
+  return numpy.transpose(numpy.array(dat).reshape((m,n)))
 
 class TestHaringvliet(TestWithMPI):
     def test1(self):
-      bathimetry=read_bot_data()
+      bathymetry=read_bot_data()
 
 
 if __name__=="__main__":
-  bathimetry=read_bot_data()
+  bathymetry=read_bot_data()
+  bathymetry=numpy.array(bathymetry,dtype="float32")
 
   pyplot.ion()
   f=pyplot.figure(figsize=(8,6))
   pyplot.show()
-  pyplot.imshow(numpy.transpose(bathimetry),origin="lower")
+  pyplot.imshow(numpy.transpose(bathymetry),origin="lower")
+  pyplot.draw()
   
   s=SwanInterface(redirection="none")
   
@@ -72,15 +74,7 @@ if __name__=="__main__":
   s.set_input_my(116)
 
   print s.initialize_grids()
-  print s.commit_grids()
-  print s.commit_parameters()
- 
-  print s.get_exc_value(1)
   
-  input_shape=bathimetry.shape
-  ii,jj=numpy.mgrid[1:input_shape[0]+1,1:input_shape[1]+1]
-  print s.set_depth(ii.flatten(),jj.flatten(),bathimetry.flatten())
-
   print s.set_uniform_wind_vel(12.)
   print s.set_uniform_wind_dir(8.8)
 
@@ -90,8 +84,27 @@ if __name__=="__main__":
   s.set_use_breaking(True)
   s.set_use_triads(True)
   s.set_use_friction(True)
+  s.set_use_uniform_wind(True)
+
+  print s.commit_parameters()
+ 
+  exc,err=s.get_exc_value(1)
+  
+  bathymetry[bathymetry==-99.]=exc
+  print (bathymetry==-1.e20).sum(),exc
+  input_shape=bathymetry.shape
+  ii,jj=numpy.mgrid[1:input_shape[0]+1,1:input_shape[1]+1]
+  print input_shape
+  print ii.max(),jj.max()
+  for i,j,b in zip(ii.flatten(),jj.flatten(),bathymetry.flatten())[0:200]:
+    print i,j,b
+  print s.set_depth(ii.flatten(),jj.flatten(),bathymetry.flatten())
+
+  print s.commit_grids()
 
   print s.initialize_boundary()
+  
+  print s.evolve_model(0.)
 
 
   raw_input()

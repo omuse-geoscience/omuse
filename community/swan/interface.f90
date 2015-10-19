@@ -2,6 +2,8 @@ module swan_interface
   use amuse_swan
   implicit none
 
+  real :: begin_time=0.
+
   character*12 :: grid_type="regular"
   character*12 :: calc_mode="stationary"
   character*12 :: coordinates="cartesian"
@@ -23,8 +25,6 @@ module swan_interface
               use_input_plant_density=.FALSE., &
               use_input_turbulent_visc=.FALSE., &
               use_input_mud_layer=.FALSE.
-
-  real :: x_offset=0., y_offset=0.
 
   logical :: use_uniform_wind=.FALSE.
 
@@ -116,6 +116,7 @@ function initialize_input_grids() result(ret)
       IF (ALLOCATED(DEPTH)) DEALLOCATE(DEPTH)
       ALLOCATE(DEPTH(MXG(1)*MYG(1)))
       DEPTH=1
+      LEDS(1)=2
     endif
     if(use_input_current) then
       ret=swan_init_regular_input_grid(2 , input_mx, input_my, input_xp,  &
@@ -193,13 +194,7 @@ end function
 function commit_parameters() result(ret)
   integer :: ret
 
-  TIMCO=0. ! begin_time
-
-  XOFFS=x_offset
-  YOFFS=y_offset
-  LXOFFs=.TRUE.
-
-! fix XOFFS, YOFFS and LXOFFS
+  TIMCO=begin_time
 
   if(.not.use_input_bottom) then
     ret=-1
@@ -258,6 +253,7 @@ function commit_parameters() result(ret)
   endif
   
   if(use_uniform_wind) then
+    IWIND=3
     VARWI=.FALSE.
   endif
   
@@ -311,6 +307,43 @@ function initialize_boundary() result(ret)
   ret=0
 end function
 
+function evolve_model(tend) result(ret)
+  integer :: ret
+  real*8 :: tend
+  real :: dt_save
+
+  ret=0
+  dt_save=DT
+  if(calc_mode.EQ."stationary") then
+    TINIC=TIMCO
+    TFINC=tend
+    TIMCO=tend
+    DT = 1.E10
+    RDTIM = 0.
+    NSTATC = 0
+    MTC = 1
+  else
+    TINIC=TIMCO
+    if(DT.LE.0.) then
+      ret=-1
+      return
+    endif
+    MTC = NINT ((tend - TINIC)/DT)
+    TFINC=TINIC+MTC*DT
+    RDTIM=1./DT
+    NSTATC=1
+  endif
+  IF (NSTATC.EQ.0) THEN
+    ITERMX = MXITST
+  ELSE
+    ITERMX = MXITNS
+  ENDIF
+  if(TFINC.GT.TINIC.OR.NSTATC.EQ.0) then
+    ret=swan_compute("COMP")
+  endif
+  dt_save=DT
+end function
+
 
 function recommit_parameters() result(ret)
   integer :: ret
@@ -324,8 +357,8 @@ end function
 
 function set_depth(i,j,x,n) result(ret)
   integer :: ret,n,i(n),j(n),k,ii,igrid=1
-  real*8 :: x(n)
-  ret=-1
+  real :: x(n)
+  ret=0
   do k=1,n
     ii=i(k) + (j(k)-1) * MXG(igrid)
     if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
@@ -338,7 +371,7 @@ end function
 
 function get_depth(i,j,x,n) result(ret)
   integer :: ret,n,i(n),j(n),k,ii,igrid=1
-  real*8 :: x(n)
+  real :: x(n)
   ret=0
   do k=1,n
     ii=i(k) + (j(k)-1) * MXG(igrid)
@@ -348,6 +381,13 @@ function get_depth(i,j,x,n) result(ret)
       x(k)=DEPTH(ii)
     endif
   enddo
+end function
+
+function get_time(x) result(ret)
+  integer :: ret
+  real*8 :: x
+  x=TIMCO
+  ret=0
 end function
 
 function set_nfreq(x) result(ret)
@@ -448,7 +488,7 @@ end function
 ! note real vs double
 function get_exc_value(i,x) result(ret)
   integer :: ret,i
-  real*8 :: x
+  real :: x
   x=EXCFLD(i)
   ret=0  
 end function

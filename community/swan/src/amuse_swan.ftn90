@@ -31,6 +31,7 @@ function swan_compute(COMPUT) result(ret)
   logical :: STPNOW
   character*18 :: DTTIWR   
   character*4 COMPUT
+
   
   IF (NUMOBS .GT. 0) THEN
     IF (OPTG.NE.5) THEN
@@ -327,15 +328,12 @@ function swan_init_regular_grid(mxc_,myc_,xpc_,ypc_,xlenc_,ylenc_,alpc_) result(
     return
   endif
   
-  IF (KSPHER.EQ.0) THEN
-    XPC=xpc_
-    YPC=ypc_
-    ALPC=alpc_
-  ELSE
-    XPC=xpc_
-    YPC=ypc_
-    ALPC=alpc_
-  ENDIF
+  XOFFS=xpc_
+  YOFFS=ypc_
+  LXOFFs=.TRUE.
+  XPC=0.
+  YPC=0.
+  ALPC=alpc_
   XCLEN=xlenc_
   YCLEN=ylenc_
   IF(ONED.AND.YCLEN.NE.0) THEN
@@ -463,8 +461,8 @@ function swan_init_regular_input_grid(i, mx_,my_,xp_,yp_,alp_,dx_,dy_) result(re
   
   IGRID1=i
   IGTYPE(IGRID1) = 1
-  XPG(IGRID1)=xp_
-  YPG(IGRID1)=yp_
+  XPG(IGRID1)=xp_-XOFFS
+  YPG(IGRID1)=yp_-YOFFS
   ALPG(IGRID1)=alp_
   ALTMP = ALPG(IGRID1)/360.
   ALPG(IGRID1)  = PI2 * (ALTMP - NINT(ALTMP))
