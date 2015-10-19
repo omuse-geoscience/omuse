@@ -9,6 +9,10 @@ libamuse_swan.a: work config objects
 amuse_swan.o: amuse_swan.f90
 	$(FC) -Iwork $(FCFLAGS) -c -o $@ $<
 
+amuse_swan.f90: work amuse_swan.ftn90
+	$(eval $(shell grep 'swch =' macros.inc))
+	perl work/switch.pl $(swch) amuse_swan.ftn90
+
 config: work
 	cp macros.inc work/macros.inc
 
