@@ -575,8 +575,8 @@ function swan_regular_add_boundary_from_file( side, filename) result(ret)
   USE M_BNDSPEC
 
   integer :: ret
-  character*2 :: side
-  character*80 :: filename
+  character(len=*) :: side
+  character(len=*) :: filename
   logical :: STPNOW
 
       INTEGER   IENT,KOUNTR,IX1,IY1,IX2,IY2
@@ -642,7 +642,6 @@ function swan_regular_add_boundary_from_file( side, filename) result(ret)
   ENDIF
   
   CCW = .TRUE.
-
   CRDM   = -1.E10
   ISIDM  = 0
   IF (ONED) THEN
