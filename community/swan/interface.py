@@ -17,7 +17,7 @@ parameters={
             "grid_length_y" : dict(short="grid_ylenc", dtype="float64", default=0. , description="length of the computational grid in y-direction", simple=True),
             "grid_nmesh_x" : dict(short="grid_mxc", dtype="int32", default=0 , description="number of meshes in computational grid in x-dir.", simple=True),
             "grid_nmesh_y" : dict(short="grid_myc", dtype="int32", default=0 , description="number of meshes in computational grid in x-dir.", simple=True),
-            "numer_of_freq" : dict(short="nfreq", dtype="int32", default=32 , description="number of frequencies", simple=False),
+            "numer_of_freq" : dict(short="msc", dtype="int32", default=32 , description="number of frequencies", simple=True),
             "numer_of_directions" : dict(short="mdc", dtype="int32", default=36 , description="number of directional bins", simple=True),
             "lowest_freq" : dict(short="flow", dtype="float64", default=0. | units.Hz, description="lowest frequency used in freq. discretization", simple=False),
             "highest_freq" : dict(short="fhigh", dtype="float64", default=0. | units.Hz , description="highest frequency used in freq. discretization", simple=False),
@@ -56,6 +56,7 @@ parameters={
             "east_boundary_spec_file" : dict(short="east_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on east boundary",simple=True),
             "timestep" : dict(short="dt", dtype="float64", default=360. | units.s , description="timestep of computation", simple=True),
             "begin_time" : dict(short="begin_time", dtype="float64", default=0. | units.s , description="start time of computation", simple=True),
+            "verbosity" : dict(short="itest", dtype="int32", default=1 , description="verbosity of output (0-200)", simple=True),
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
@@ -132,14 +133,17 @@ class SwanInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_depth(i_index="i",j_index="i"):
-        returns (depth="f" | units.m)
+        returns (depth="d" | units.m)
     @remote_function(must_handle_array=True)
-    def set_depth(i_index="i",j_index="i",depth="f" | units.m):
+    def set_depth(i_index="i",j_index="i",depth="d" | units.m):
         returns ()
 
     @remote_function
     def get_exc_value(field_index=0):
-        returns (exception_value='f')
+        returns (exception_value='d')
+    @remote_function
+    def set_exc_value(field_index="i",exception_value='d'):
+        returns ()
 
     for par,d in parameters.iteritems():
         dtype=d["dtype"]

@@ -357,7 +357,7 @@ end function
 
 function set_depth(i,j,x,n) result(ret)
   integer :: ret,n,i(n),j(n),k,ii,igrid=1
-  real :: x(n)
+  real*8 :: x(n)
   ret=0
   do k=1,n
     ii=i(k) + (j(k)-1) * MXG(igrid)
@@ -371,7 +371,7 @@ end function
 
 function get_depth(i,j,x,n) result(ret)
   integer :: ret,n,i(n),j(n),k,ii,igrid=1
-  real :: x(n)
+  real*8 :: x(n)
   ret=0
   do k=1,n
     ii=i(k) + (j(k)-1) * MXG(igrid)
@@ -387,19 +387,6 @@ function get_time(x) result(ret)
   integer :: ret
   real*8 :: x
   x=TIMCO
-  ret=0
-end function
-
-function set_nfreq(x) result(ret)
-  integer :: ret
-  integer :: x
-  MSC=x-1
-  ret=0
-end function
-function get_nfreq(x) result(ret)
-  integer :: ret
-  integer :: x
-  x=MSC+1
   ret=0
 end function
 
@@ -488,8 +475,15 @@ end function
 ! note real vs double
 function get_exc_value(i,x) result(ret)
   integer :: ret,i
-  real :: x
+  real*8 :: x
   x=EXCFLD(i)
+  ret=0  
+end function
+! note real vs double
+function set_exc_value(i,x) result(ret)
+  integer :: ret,i
+  real*8 :: x
+  EXCFLD(i)=x
   ret=0  
 end function
 

@@ -55,12 +55,12 @@ if __name__=="__main__":
   s.set_grid_mxc(98)
   s.set_grid_myc(88)
 
-  s.set_nfreq(32)
+  s.set_msc(32)
   s.set_flow(0.0521)
   s.set_fhigh(1.)
   s.set_mdc(36)
 
-  print s.get_nfreq()
+  print s.get_msc()
   print s.get_flow()
   print s.get_fhigh()
   print s.get_mdc()
@@ -78,7 +78,7 @@ if __name__=="__main__":
   print s.set_uniform_wind_vel(12.)
   print s.set_uniform_wind_dir(8.8)
 
-  s.set_north_boundary_spec_file("f31har01.bnd")
+  s.set_west_boundary_spec_file("f31har01.bnd")
 
   s.set_use_gen3(True)
   s.set_use_breaking(True)
@@ -94,10 +94,6 @@ if __name__=="__main__":
   print (bathymetry==-1.e20).sum(),exc
   input_shape=bathymetry.shape
   ii,jj=numpy.mgrid[1:input_shape[0]+1,1:input_shape[1]+1]
-  print input_shape
-  print ii.max(),jj.max()
-  for i,j,b in zip(ii.flatten(),jj.flatten(),bathymetry.flatten())[0:200]:
-    print i,j,b
   print s.set_depth(ii.flatten(),jj.flatten(),bathymetry.flatten())
 
   print s.commit_grids()
