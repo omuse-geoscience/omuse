@@ -355,7 +355,7 @@ function cleanup_code() result(ret)
   ret=swan_cleanup()
 end function
 
-function set_depth(i,j,x,n) result(ret)
+function set_depth_regular(i,j,x,n) result(ret)
   integer :: ret,n,i(n),j(n),k,ii,igrid=1
   real*8 :: x(n)
   ret=0
@@ -369,7 +369,7 @@ function set_depth(i,j,x,n) result(ret)
   enddo
 end function
 
-function get_depth(i,j,x,n) result(ret)
+function get_depth_regular(i,j,x,n) result(ret)
   integer :: ret,n,i(n),j(n),k,ii,igrid=1
   real*8 :: x(n)
   ret=0
@@ -383,36 +383,53 @@ function get_depth(i,j,x,n) result(ret)
   enddo
 end function
 
+function get_ac2_regular(i,j,k,l,x,n) result(ret)
+  integer :: ret,i(n),j(n),k(n),l(n),m,n,ii
+  real*8 :: x(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.MXC.OR. &
+        j(m).LT.1.OR.j(m).GT.MYC.OR. &
+        k(m).LT.1.OR.k(m).GT.MDC.OR. &
+        l(m).LT.1.OR.l(m).GT.MSC ) then
+      x(m)=0
+      ret=-1
+      cycle
+    endif
+    ii=KGRPNT(i(m),j(m))
+    if(ii.EQ.1) then
+      x(m)=0
+    else if(ii.LE.1.OR.ii.GT.MCGRD) then
+      x(m)=0
+      ret=-1
+    else
+      x(m)=AC2(k(m),l(m),ii)
+    endif
+  enddo
+end function
+
+function get_grid_position_regular(i,j,x,y,n) result(ret)
+  integer :: ret,i(n),j(n),m,n,ii
+  real*8 :: x(n),y(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.MXC.OR. &
+        j(m).LT.1.OR.j(m).GT.MYC ) then
+      x(m)=0
+      y(m)=0
+      ret=-1
+      cycle
+    endif
+    x(m)=XCGRID(i(m),j(m))
+    y(m)=YCGRID(i(m),j(m))
+  enddo
+
+end function  
+
 function get_time(x) result(ret)
   integer :: ret
   real*8 :: x
   x=TIMCO
-  ret=0
-end function
-
-function set_flow(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  SLOW=2*PI*x
-  ret=0
-end function
-function get_flow(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=SLOW/2/PI
-  ret=0
-end function
-
-function set_fhigh(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  SHIG=2*PI*x
-  ret=0
-end function
-function get_fhigh(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=SHIG/2/PI
   ret=0
 end function
 
@@ -430,19 +447,7 @@ function get_rearth(x) result(ret)
   ret=0
 end function
 
-function set_uniform_wind_vel(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  U10=x
-  ret=0
-end function
-function get_uniform_wind_vel(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=U10
-  ret=0
-end function
-function set_uniform_wind_dir(x) result(ret)
+function set_wdip(x) result(ret)
   integer :: ret
   real*8 :: x
   real :: ALTMP, DEGCNV
@@ -452,23 +457,11 @@ function set_uniform_wind_dir(x) result(ret)
   WDIP = PI2 * (ALTMP - NINT(ALTMP))
   ret=0
 end function
-function get_uniform_wind_dir(x) result(ret)
+function get_wdip(x) result(ret)
   integer :: ret
   real*8 :: x
   real :: DEGCNV
   x=DEGCNV(WDIP/PI2*360.)
-  ret=0
-end function
-function set_uniform_air_sea_temp_diff(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  CASTD=x
-  ret=0
-end function
-function get_uniform_air_sea_temp_diff(x) result(ret)
-  integer :: ret
-  real*8 :: x
-  x=CASTD
   ret=0
 end function
 

@@ -5,7 +5,7 @@ from amuse.units.core import system,no_system
 from amuse.support.options import option
 
 parameters={
-            "constant_water_level": dict(short="wlev", dtype="float64", default=0. | units.m ,description="water level that is constant in space and time", simple=True),
+            "constant_water_level": dict(short="wlev", dtype="float64", default=0. | units.m, description="water level that is constant in space and time", simple=True),
             "gravitational_acceleration" : dict(short="grav", dtype="float64", default=9.81 | units.m/units.s**2, description="gravitational acceleration", simple=True),
             "water_density" : dict(short="rho", dtype="float64", default=1025. | units.kg/units.m**3 , description="water density", simple=True),
             "max_wind_drag_coef" : dict(short="cdcap", dtype="float64", default=99999. , description="maximum value for the wind drag coefficient, suggest 0.0025", simple=True),
@@ -19,8 +19,8 @@ parameters={
             "grid_nmesh_y" : dict(short="grid_myc", dtype="int32", default=0 , description="number of meshes in computational grid in x-dir.", simple=True),
             "numer_of_freq" : dict(short="msc", dtype="int32", default=32 , description="number of frequencies", simple=True),
             "numer_of_directions" : dict(short="mdc", dtype="int32", default=36 , description="number of directional bins", simple=True),
-            "lowest_freq" : dict(short="flow", dtype="float64", default=0. | units.Hz, description="lowest frequency used in freq. discretization", simple=False),
-            "highest_freq" : dict(short="fhigh", dtype="float64", default=0. | units.Hz , description="highest frequency used in freq. discretization", simple=False),
+            "lowest_freq" : dict(short="slow", dtype="float64", default=0. | units.Hz, description="lowest angular frequency used in freq. discretization", simple=True),
+            "highest_freq" : dict(short="shig", dtype="float64", default=0. | units.Hz , description="highest angular frequency used in freq. discretization", simple=True),
             "input_grid_origin_x" : dict(short="input_xp", dtype="float64", default=0. , description="origin x coord of the input grid", simple=True),
             "input_grid_origin_y" : dict(short="input_yp", dtype="float64", default=0. , description="origin y coord of the input grid", simple=True),
             "input_grid_mesh_dx" : dict(short="input_dx", dtype="float64", default=0. , description="input grid x mesh size", simple=True),
@@ -28,8 +28,8 @@ parameters={
             "input_grid_mesh_orientation" : dict(short="input_alp", dtype="float64", default=0. | units.deg, description="input grid x mesh size", simple=True),
             "input_grid_nmesh_x" : dict(short="input_mx", dtype="int32", default=0, description="input grid x number of mesh cells", simple=True),
             "input_grid_nmesh_y" : dict(short="input_my", dtype="int32", default=0, description="input grid y number of mesh cells", simple=True),
-            "uniform_wind_vel" : dict(short="uniform_wind_vel", dtype="float64", default=0. | units.m/units.s , description="wind velocity at 10 m elevation", simple=False),
-            "uniform_wind_direction" : dict(short="uniform_wind_dir", dtype="float64", default=0 | units.deg , description="wind direction at 10 m elevation", simple=False),
+            "uniform_wind_velocity" : dict(short="u10", dtype="float64", default=0. | units.m/units.s , description="wind velocity at 10 m elevation", simple=True),
+            "uniform_wind_direction" : dict(short="wdip", dtype="float64", default=0 | units.deg , description="wind direction at 10 m elevation", simple=False),
             "grid_type" : dict(short="grid_type", dtype="string", default="regular" , description="type of grid for computation, [regular, curvilinear or unstructured]", simple=True),
             "input_grid_type" : dict(short="input_grid_type", dtype="string", default="regular" , description="type of grid for input grid, [regular, curvilinear or unstructured]", simple=True),
             "calculation_mode" : dict(short="calc_mode", dtype="string", default="stationary" , description="calculation mode [stationary or dynamic]", simple=True),
@@ -57,12 +57,13 @@ parameters={
             "timestep" : dict(short="dt", dtype="float64", default=360. | units.s , description="timestep of computation", simple=True),
             "begin_time" : dict(short="begin_time", dtype="float64", default=0. | units.s , description="start time of computation", simple=True),
             "verbosity" : dict(short="itest", dtype="int32", default=1 , description="verbosity of output (0-200)", simple=True),
+            "uniform_air_sea_temp_difference" : dict(short="CASTD", dtype="float64", default=0. | units.C , description="uniform air-sea temp. difference", simple=True),
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
 def generate_getters_setters(filename="getter_setters.f90"):
     filestring=""
-    py_to_f={"string" : "character(len=*) ", "float64" : "real*8", "int32" : "integer", "bool" : "logical"}
+    py_to_f={"string" : "character(len=*) ", "float64" : "real*8", "float32" : "real", "int32" : "integer", "bool" : "logical"}
     for par,d in parameters.iteritems():
       if d["simple"]:
         filestring+="""
@@ -132,11 +133,20 @@ class SwanInterface(CodeInterface,
         returns ()
 
     @remote_function(must_handle_array=True)
-    def get_depth(i_index="i",j_index="i"):
+    def get_depth_regular(i_index="i",j_index="i"):
         returns (depth="d" | units.m)
     @remote_function(must_handle_array=True)
-    def set_depth(i_index="i",j_index="i",depth="d" | units.m):
+    def set_depth_regular(i_index="i",j_index="i",depth="d" | units.m):
         returns ()
+
+    @remote_function(must_handle_array=True)
+    def get_ac2_regular(i_index='i',j_index='i',k_index='i',l_index='i'):
+        returns(ac2='d' | units.m**2*units.s**2/units.rad**2)
+
+    @remote_function(must_handle_array=True)
+    def get_grid_position_regular(i_index='i',j_index='i'):
+        returns(x='d',y='d')
+
 
     @remote_function
     def get_exc_value(field_index=0):
