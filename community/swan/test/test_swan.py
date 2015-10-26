@@ -2,7 +2,7 @@ import os.path
 import numpy
 from amuse.test.amusetest import TestWithMPI
 
-from omuse.community.swan.interface import SwanInterface
+from omuse.community.swan.interface import SwanInterface, Swan
 
 from amuse.units import units
 from amuse.datamodel import Particles
@@ -71,3 +71,8 @@ class TestSwanInterface(TestWithMPI):
 
     def test5(self):
       pass
+
+class TestSwan(TestWithMPI):
+    def test1(self):
+      s=Swan(**default_options)
+

@@ -15,8 +15,8 @@ parameters={
     "water_density" : dict(short="rho", dtype="float64", default=1025. | units.kg/units.m**3 , description="water density", ptype="simple"),
     "max_wind_drag_coef" : dict(short="cdcap", dtype="float64", default=99999. , description="maximum value for the wind drag coefficient, suggest 0.0025", ptype="simple"),
     "planetary_radius" : dict(short="rearth", dtype="float64", default=6.371e6 | units.m, description="Earth (planetary) radius", ptype="normal"),
-    "grid_origin_x" : dict(short="grid_xpc", dtype="float64", default=0. , description="x coord. of the origin of the computational grid in the problem coordinate system", ptype="simple"),
-    "grid_origin_y" : dict(short="grid_ypc", dtype="float64", default=0. , description="y coord. of the origin of the computational grid in the problem coordinate system", ptype="simple"),
+    "grid_origin_x" : dict(short="grid_xpc", dtype="float64", default=None , description="x coord. of the origin of the computational grid in the problem coordinate system", ptype="simple"),
+    "grid_origin_y" : dict(short="grid_ypc", dtype="float64", default=None , description="y coord. of the origin of the computational grid in the problem coordinate system", ptype="simple"),
     "grid_orientation" : dict(short="grid_alpc", dtype="float64", default=0. | units.deg , description="direction of the positive x-axis of the computational grid (in degrees, Cartesian convention)", ptype="simple"),
     "grid_length_x" : dict(short="grid_xlenc", dtype="float64", default=0. , description="length of the computational grid in x-direction", ptype="simple"),
     "grid_length_y" : dict(short="grid_ylenc", dtype="float64", default=0. , description="length of the computational grid in y-direction", ptype="simple"),
@@ -159,6 +159,10 @@ class SwanInterface(CodeInterface,
     def get_grid_position_regular(i_index='i',j_index='i'):
         returns(x='d',y='d')
 
+    #~ @remote_function(must_handle_array=True)
+    #~ def get_input_grid_position_regular(i_index='i',j_index='i'):
+        #~ returns(x='d',y='d')
+
 
     @remote_function
     def get_exc_value(field_index=0):
@@ -184,9 +188,22 @@ class SwanInterface(CodeInterface,
               "  function.result_type = 'int32'\n  return function")    
         
 class Swan(InCodeComponentImplementation):
-    def __init__(self, **options):
+    def __init__(self, coordinates="cartesian", mode="stationary", 
+                  grid_type="regular",input_grid_type="regular", **options):
+        self._coordinates=coordinates
+        self._mode=mode
+        self._grid_type=grid_type
+        self._input_grid_type=input_grid_type
         InCodeComponentImplementation.__init__(self,  SwanInterface(**options), **options)
 
+    def initialize_code(self):
+        self.overridden().initialize_code(self._coordinates,self._mode,
+            self._grid_type,self._input_grid_type)
+
+    def commit_grid_and_boundary(self):
+        self.overridden().commit_grids()
+        self.overridden().initialize_boundary()
+        
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
         object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
@@ -197,10 +214,32 @@ class Swan(InCodeComponentImplementation):
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
 
+        object.add_transition('INITIALIZED','GRID','initialize_grids')
+        object.add_transition('GRID','EDIT','commit_parameters')
+        object.add_transition('EDIT','RUN','commit_grid_and_boundary')
+        object.add_transition('RUN','EVOLVED','evolve_model')
+
+        for param in ["grid_origin_x","grid_origin_y", "grid_orientation",
+          "grid_length_x","grid_length_y","grid_nmesh_x","grid_nmesh_y",
+          "numer_of_freq","numer_of_directions","lowest_freq","highest_freq",
+          "input_grid_origin_x","input_grid_origin_y","input_grid_dx",
+          "input_grid_dy","input_grid_orientation","input_grid_nmesh_x",
+          "input_grid_nmesh_y"]:
+            short=parameters[param]['short']
+            object.add_method('INITIALIZED', 'set_'+short)
+
+        object.add_method('GRID', 'set_depth_regular')
+        object.add_method('EDIT', 'set_depth_regular')
+        for state in ['EDIT','RUN','EVOLVED']:
+            object.add_method(state, 'get_depth_regular')
+        object.add_method('RUN', 'get_ac2_regular')
+        object.add_method('EVOLVED', 'get_ac2_regular')
+
+
     def define_properties(self, object):
         object.add_property('get_time', public_name = "model_time")
 
-    def define_parameters(self, object):
+    def define_parameters(self, object):      
         for param in parameters:        
             object.add_default_form_parameter(
                 parameters[param]["short"], 
@@ -208,13 +247,44 @@ class Swan(InCodeComponentImplementation):
                 parameters[param]["default"] )  
           
     def define_methods(self, object):
-        pass
-        #~ object.add_method(
-            #~ 'initialize_code',
-            #~ (),
-            #~ (object.ERROR_CODE)
-        #~ )
+        if self._coordinates=="cartesian":
+            object.add_method(
+                'get_grid_position_regular',
+                (object.INDEX,object.INDEX),
+                (units.m,units.m,object.ERROR_CODE)
+            )
+            object.add_method(
+                'get_input_grid_position_regular',
+                (object.INDEX,object.INDEX),
+                (units.m,units.m,object.ERROR_CODE)
+            )
+            for p,u in [("grid_xpc",units.m),("grid_ypc",units.m),
+                        ("grid_xlenc",units.m),("grid_ylenc",units.m),
+                        ("input_xp",units.m),("input_yp",units.m),
+                        ("input_dx",units.m),("input_dy",units.m)]:
+                object.add_method( 'set_'+p, (u), (object.ERROR_CODE) )
+                object.add_method( 'get_'+p, (), (u,object.ERROR_CODE))
+
+    def get_grid_range(self):
+        return 1,self.get_grid_mxc()+1,1,self.get_grid_myc()+1
+    def get_input_grid_range(self):
+        return 1,self.get_input_mx()+1,1,self.get_input_my()+1
+    def get_dir_freq_range(self):
+        return 1,self.get_mdc(),1,self.get_msc()
 
     def define_particle_sets(self, object):
-        pass
+        if self._coordinates=="cartesian":
+            axes_names=['x','y']
 
+        if self._grid_type=="regular":
+            object.define_grid('grid',axes_names = axes_names)
+            object.set_grid_range('grid', 'get_grid_range')
+            object.add_getter('grid', 'get_grid_position_regular', names=axes_names)
+            object.add_gridded_getter('grid', 'get_ac2_regular','get_dir_freq_range', names = ["ac2"])
+
+        if self._input_grid_type=="regular":
+            object.define_grid('forcings',axes_names = axes_names)
+            object.set_grid_range('forcings', 'get_input_grid_range')
+            object.add_getter('forcings', 'get_input_grid_position_regular', names=axes_names)
+            object.add_getter('forcings', 'get_depth_regular', names=["depth"])
+            object.add_setter('forcings', 'set_depth_regular', names=["depth"])
