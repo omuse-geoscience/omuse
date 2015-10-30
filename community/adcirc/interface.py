@@ -347,7 +347,7 @@ class Adcirc(CommonCode):
 
 
     def define_particle_sets(self, object):
-        object.define_grid('nodes',axes_names = ['x','y'])
+        object.define_grid('nodes',axes_names = ['x','y'], grid_class=datamodel.UnstructuredGrid)
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_state', names=('eta','vx','vy'))
         object.add_getter('nodes', 'get_node_position', names=('x','y'))
@@ -365,7 +365,7 @@ class Adcirc(CommonCode):
             object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
             object.add_gridded_getter('nodes', 'get_node_velocities_3d','get_firstlast_vertical_index', names = ('wx','wy','wz'))
 
-        object.define_grid('forcings',axes_names = ['x','y'])
+        object.define_grid('forcings',axes_names = ['x','y'], grid_class=datamodel.UnstructuredGrid)
         object.set_grid_range('forcings', 'get_firstlast_node')
         object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f',))
         object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f',))
@@ -374,7 +374,7 @@ class Adcirc(CommonCode):
         object.add_getter('forcings', 'get_node_position', names=('x','y'))
         object.add_getter('forcings', 'get_node_coordinates', names=('lon','lat'))
 
-        object.define_grid('elements',axes_names = ['x','y'])
+        object.define_grid('elements',axes_names = ['x','y'], grid_class=datamodel.UnstructuredGrid)
         object.set_grid_range('elements', 'get_firstlast_element')    
         object.add_getter('elements', 'get_element_nodes', names=('n1','n2','n3'))
         object.add_getter('elements', 'get_element_position', names=('x','y'))
