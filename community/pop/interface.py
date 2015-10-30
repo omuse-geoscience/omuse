@@ -645,7 +645,7 @@ class POP(CommonCode):
         #for now we refer to the U grid as the nodes and T grid as the elements
         #the forcings can be on either grid, depends on what is preferred for coupling with adcirc I guess
 
-        object.define_grid('nodes')
+        object.define_grid('nodes', grid_class=datamodel.StructuredGrid)
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
@@ -671,7 +671,7 @@ class POP(CommonCode):
         object.add_getter('forcings', 'get_node_position', names=('lat','lon'))
 
         #elements are on the T-grid
-        object.define_grid('elements')
+        object.define_grid('elements', grid_class=datamodel.StructuredGrid)
         object.set_grid_range('elements', 'get_firstlast_node')
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
         object.add_getter('elements', 'get_element_depth', names=('depth',))
