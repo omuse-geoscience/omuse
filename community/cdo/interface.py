@@ -270,7 +270,7 @@ class CDORemapper(CommonCode):
             self.set_src_grid_corner_lat(range(grid.size * num_corners), cell_corners[1])
 
     def get_src_grid(self):
-        return _src_grid
+        return self._src_grid
 
 
 
@@ -315,7 +315,7 @@ class CDORemapper(CommonCode):
             self.set_dst_grid_corner_lat(range(grid.size * num_corners), cell_corners[1])
 
     def get_dst_grid(self):
-        return _dst_grid
+        return self._dst_grid
 
 
 
