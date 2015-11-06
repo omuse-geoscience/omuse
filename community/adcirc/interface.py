@@ -51,16 +51,39 @@ class AdcircInterface(CodeInterface,
         pass
 
     @remote_function(can_handle_array=True)
-    def get_node_state(index=0):
-        returns (eta=0. | units.m,vx=0.| units.m/units.s,vy=0.| units.m/units.s)
+    def get_node_eta(index=0):
+        returns (eta=0. | units.m)
+    @remote_function(can_handle_array=True)
+    def set_node_eta(index=0,eta=0. | units.m):
+        returns ()
+
+    @remote_function(can_handle_array=True)
+    def get_node_vx(index=0):
+        returns (vx=0.| units.m/units.s)
+    @remote_function(can_handle_array=True)
+    def set_node_vx(index=0,vx=0.| units.m/units.s):
+        returns ()
+
+    @remote_function(can_handle_array=True)
+    def get_node_vy(index=0):
+        returns (vy=0.| units.m/units.s)
+    @remote_function(can_handle_array=True)
+    def set_node_vy(index=0,vy=0.| units.m/units.s):
+        returns ()
 
     @remote_function(can_handle_array=True)
     def get_node_eta_prev(index=0):
         returns (eta_prev=0. | units.m)
+    @remote_function(can_handle_array=True)
+    def set_node_eta_prev(index=0,eta_prev=0. | units.m):
+        returns ()
 
     @remote_function(can_handle_array=True)
     def get_node_status(index=0):
         returns (status='s')
+    @remote_function(can_handle_array=True)
+    def set_node_status(index=0,status='wet'):
+        returns ()
 
     @remote_function(can_handle_array=True)
     def get_node_coriolis_f(index=0):
@@ -109,6 +132,9 @@ class AdcircInterface(CodeInterface,
     @remote_function(can_handle_array=True)
     def get_element_status(index=0):
         returns (status='s')
+    @remote_function(can_handle_array=True)
+    def set_element_status(index=0,status='wet'):
+        returns ()
 
     @remote_function
     def get_number_of_nodes():
@@ -211,7 +237,8 @@ class Adcirc(CommonCode):
                         NOLIBF=["linear","quadratic","hybrid"].index(self.parameters.bottom_friction_law),
                         TAU0=self.parameters.GWCE_weighting_factor,
                         TAU=self.parameters.linear_bottom_friction_coeff.value_in(units.s**-1),
-                        CF=self.parameters.quadratic_bottom_friction_coeff )
+                        CF=self.parameters.quadratic_bottom_friction_coeff,
+                        STATIM=self.parameters.begin_time.value_in(units.day) )
           param.write()
         if self.parameters.use_interface_grid:
           adcirc_grid_writer(coordinates=self.coordinates).write_grid(self._nodes,self._elements, 
@@ -318,7 +345,13 @@ class Adcirc(CommonCode):
             "quadratic bottom friction coefficient [dimensionless], only used for quadratic bottom friction law",
             0.,
             "before_set_interface_parameter"
-        )     
+        )
+        object.add_interface_parameter(
+            "begin_time",
+            "begin time of the simulation",
+            0. | units.day,
+            "before_set_interface_parameter"
+        )
            
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -365,12 +398,20 @@ class Adcirc(CommonCode):
     def define_particle_sets(self, object):
         object.define_grid('nodes',axes_names = ['x','y'], grid_class=datamodel.UnstructuredGrid)
         object.set_grid_range('nodes', 'get_firstlast_node')
-        object.add_getter('nodes', 'get_node_state', names=('eta','vx','vy'))
         object.add_getter('nodes', 'get_node_position', names=('x','y'))
         object.add_getter('nodes', 'get_node_coordinates', names=('lon','lat'))          
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
+        object.add_getter('nodes', 'get_node_eta', names=('eta',))
+        object.add_getter('nodes', 'get_node_vx', names=('vx',))
+        object.add_getter('nodes', 'get_node_vy', names=('vy',))
         object.add_getter('nodes', 'get_node_eta_prev', names=('eta_prev',))
         object.add_getter('nodes', 'get_node_status', names=('status',))
+        object.add_setter('nodes', 'set_node_eta', names=('eta',))
+        object.add_setter('nodes', 'set_node_vx', names=('vx',))
+        object.add_setter('nodes', 'set_node_vy', names=('vy',))
+        object.add_setter('nodes', 'set_node_eta_prev', names=('eta_prev',))
+        object.add_setter('nodes', 'set_node_status', names=('status',))
+
                 
         if self.mode in [self.MODE_3D]:
             object.define_grid('grid3d',axes_names=['x','y','z'])

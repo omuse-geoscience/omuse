@@ -105,12 +105,23 @@ function set_use_interface_met_forcing(flag) result(ret)
   ret=0
 end function  
 
-function get_node_state(ind,eta2_,uu2_,vv2_) result(ret)
+function get_node_eta(ind,eta2_) result(ret)
   integer :: ind,ret
-  real*8 :: eta2_,uu2_,vv2_
-  
+  real*8 :: eta2_
   eta2_=ETA2(ind)
+  ret=0
+end function
+
+function get_node_vx(ind,uu2_) result(ret)
+  integer :: ind,ret
+  real*8 :: uu2_
   uu2_=UU2(ind)
+  ret=0
+end function
+
+function get_node_vy(ind,vv2_) result(ret)
+  integer :: ind,ret
+  real*8 :: vv2_
   vv2_=VV2(ind)
   ret=0
 end function
@@ -153,6 +164,41 @@ function get_node_coordinates(ind,lon_,lat_) result(ret)
   endif
   lon_=SLAM(ind)
   lat_=SFEA(ind)
+  ret=0
+end function
+
+function set_node_eta(ind,eta2_) result(ret)
+  integer :: ind,ret
+  real*8 :: eta2_
+  
+  ETA2(ind)=eta2_
+  ret=0
+end function
+function set_node_vx(ind,uu2_) result(ret)
+  integer :: ind,ret
+  real*8 :: uu2_
+  
+  UU2(ind)=uu2_
+  ret=0
+end function
+function set_node_vy(ind,vv2_) result(ret)
+  integer :: ind,ret
+  real*8 :: vv2_
+  
+  VV2(ind)=vv2_
+  ret=0
+end function
+function set_node_eta_prev(ind,v1) result(ret)
+  integer :: ind,ret
+  real*8 :: v1  
+  ETA1(ind)=v1
+  ret=0
+end function
+function set_node_status(ind,v1) result(ret)
+  integer :: ind,ret
+  character(len=*) :: v1
+  if(v1.EQ."wet") NNODECODE(ind)=1
+  if(v1.EQ."dry") NNODECODE(ind)=0
   ret=0
 end function
 
@@ -252,6 +298,14 @@ function get_element_status(ind,x) result(ret)
   else
     x="wet"
   endif
+  ret=0
+end function
+
+function set_element_status(ind,v1) result(ret)
+  integer :: ind,ret
+  character(len=*) :: v1
+  if(v1.EQ."wet") NOFF(ind)=1
+  if(v1.EQ."dry") NOFF(ind)=0
   ret=0
 end function
 
