@@ -25,8 +25,12 @@ p.set_ws_monthly_file('data/input/ws_monthly/ws.1958-2000.mon')
 sst = p.elements.temp.value_in(units.C)
 
 #create a plot using sst values
-from pop_plot import *
-pop_plot(p, sst)
+#from pop_plot import *
+#pop_plot(p, sst)
+
+#from matplotlib import pyplot
+#pyplot.imshow(sst)
+#pyplot.show()
 
 
 #go interactive
