@@ -7,6 +7,8 @@ from amuse.units import trigo
 
 from write_grid import adcirc_grid_writer,adcirc_parameter_writer
 
+from amuse.datamodel.staggeredgrid import StaggeredGrid
+
 class AdcircInterface(CodeInterface, 
                       CommonCodeInterface,
                       StoppingConditionInterface,
@@ -358,45 +360,14 @@ class Adcirc(CommonCode):
 
 
     def get_grid(self):
-        from amuse.datamodel.grids import new_unstructured_grid
-
-        num_elems = self.get_number_of_elements()
-        num_nodes = self.get_number_of_nodes()
-
-        index_i = range(1,num_elems+1)
-        triangles = self.get_element_nodes(index_i)
-        triangles = zip(triangles[0],triangles[1],triangles[2])
-        triangles = numpy.array(triangles)-1
-
-        grid_corner_lon = numpy.zeros(num_elems * 3, dtype=numpy.double)
-        grid_corner_lat = numpy.zeros(num_elems * 3, dtype=numpy.double)
-
-        pos = self.get_node_coordinates(range(1,num_nodes+1))
-        lon = pos[0].value_in(units.rad)
-        lat = pos[1].value_in(units.rad)
-
-        i=0
-        for triangle in triangles:
-            n1,n2,n3 = triangle
-
-            grid_corner_lat[i*3+0] = lat[n1]
-            grid_corner_lat[i*3+1] = lat[n2]
-            grid_corner_lat[i*3+2] = lat[n3]
-
-            grid_corner_lon[i*3+0] = lon[n1]
-            grid_corner_lon[i*3+1] = lon[n2]
-            grid_corner_lon[i*3+2] = lon[n3]
-            i+=1
-
-        corners = [grid_corner_lon, grid_corner_lat]
-        corners = numpy.array(corners)
-        adcirc_grid = new_unstructured_grid(num_elems, 3, corners, axes_names=("lon","lat"))
-
-        return adcirc_grid
+        return StaggeredGrid(self.elements, self.nodes)
 
 
     def define_particle_sets(self, object):
-        object.define_grid('nodes',axes_names = ['x','y'], grid_class=datamodel.UnstructuredGrid)
+        axes_names = ['x', 'y']
+        if self.coordinates == "spherical":
+            axes_names = ['lon','lat']
+        object.define_grid('nodes', axes_names = axes_names, grid_class=datamodel.UnstructuredGrid)
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_position', names=('x','y'))
         object.add_getter('nodes', 'get_node_coordinates', names=('lon','lat'))          
@@ -424,7 +395,7 @@ class Adcirc(CommonCode):
             object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
             object.add_gridded_getter('nodes', 'get_node_velocities_3d','get_firstlast_vertical_index', names = ('wx','wy','wz'))
 
-        object.define_grid('forcings',axes_names = ['x','y'], grid_class=datamodel.UnstructuredGrid)
+        object.define_grid('forcings',axes_names = axes_names, grid_class=datamodel.UnstructuredGrid)
         object.set_grid_range('forcings', 'get_firstlast_node')
         object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f',))
         object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f',))
@@ -433,7 +404,7 @@ class Adcirc(CommonCode):
         object.add_getter('forcings', 'get_node_position', names=('x','y'))
         object.add_getter('forcings', 'get_node_coordinates', names=('lon','lat'))
 
-        object.define_grid('elements',axes_names = ['x','y'], grid_class=datamodel.UnstructuredGrid)
+        object.define_grid('elements',axes_names = axes_names, grid_class=datamodel.UnstructuredGrid)
         object.set_grid_range('elements', 'get_firstlast_element')    
         object.add_getter('elements', 'get_element_nodes', names=('n1','n2','n3'))
         object.add_getter('elements', 'get_element_position', names=('x','y'))

@@ -188,7 +188,7 @@ class CDORemapper(CommonCode):
     _dst_grid = []
 
     def __init__(self, **options):
-        CommonCode.__init__(self, CDOInterface(), **options)
+        CommonCode.__init__(self, CDOInterface(**options), **options)
 
     def define_parameters(self, object):
         object.add_method_parameter(
@@ -249,21 +249,29 @@ class CDORemapper(CommonCode):
             if len(grid.shape) != 2:
                 raise Exception("structured grids with not exactly 2 dimensions are not supported, received {0}".format(grid.shape))
 
-            self.set_src_grid_dims(grid.shape)
+            dims = grid.shape
+            size = grid.size
+            self.set_src_grid_dims((dims[1], dims[0]))
             self.set_src_grid_corners(num_corners)
-            self.set_src_grid_center_lon(range(grid.size), grid.lon.flatten())
-            self.set_src_grid_center_lat(range(grid.size), grid.lat.flatten())
+            lon = grid.lon.value_in(units.rad)
+            lon = numpy.swapaxes(lon,0,1)
+            lat = grid.lat.value_in(units.rad)
+            lat = numpy.swapaxes(lat,0,1)
+
+            self.set_src_grid_center_lon(range(size), lon.flatten())
+            self.set_src_grid_center_lat(range(size), lat.flatten())
 
             #construct a cell_corners array that CDO understands
             cell_corners = numpy.zeros((2, grid.size*num_corners), dtype=numpy.double)
+            print grid._cell_corners.shape
             for k in range(len(cell_corners)):
                 index = 0
-                for j in range(grid.shape[0]):
-                    for i in range(grid.shape[1]):
-                        cell_corners[k,index+0] = grid._cell_corners[k, j  , i  ] #sw
-                        cell_corners[k,index+1] = grid._cell_corners[k, j  , i+1] #se
-                        cell_corners[k,index+2] = grid._cell_corners[k, j+1, i+1] #ne
-                        cell_corners[k,index+3] = grid._cell_corners[k, j+1, i  ] #nw
+                for j in range(dims[1]):
+                    for i in range(dims[0]):
+                        cell_corners[k,index+0] = grid._cell_corners[k, i  , j  ] #sw
+                        cell_corners[k,index+1] = grid._cell_corners[k, i+1, j  ] #se
+                        cell_corners[k,index+2] = grid._cell_corners[k, i+1, j+1] #ne
+                        cell_corners[k,index+3] = grid._cell_corners[k, i  , j+1] #nw
                         index += 4
 
             self.set_src_grid_corner_lon(range(grid.size * num_corners), cell_corners[0])
@@ -294,7 +302,8 @@ class CDORemapper(CommonCode):
             if len(grid.shape) != 2:
                 raise Exception("structured grids with not exactly 2 dimensions are not supported, received {0}".format(grid.shape))
 
-            self.set_dst_grid_dims(grid.shape)
+            dims = grid.shape
+            self.set_dst_grid_dims(dims)
             self.set_dst_grid_corners(num_corners)
             self.set_dst_grid_center_lon(range(grid.size), grid.lon.flatten())
             self.set_dst_grid_center_lat(range(grid.size), grid.lat.flatten())
@@ -303,8 +312,8 @@ class CDORemapper(CommonCode):
             cell_corners = numpy.zeros((2, grid.size*num_corners), dtype=numpy.double)
             for k in range(len(cell_corners)):
                 index = 0
-                for j in range(grid.shape[0]):
-                    for i in range(grid.shape[1]):
+                for j in range(dims[0]):
+                    for i in range(dims[1]):
                         cell_corners[k,index+0] = grid._cell_corners[k, j  , i  ] #sw
                         cell_corners[k,index+1] = grid._cell_corners[k, j  , i+1] #se
                         cell_corners[k,index+2] = grid._cell_corners[k, j+1, i+1] #ne
