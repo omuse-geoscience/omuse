@@ -214,9 +214,9 @@ function get_element_nodes(ind,n1,n2,n3) result(ret)
     ret=-1
     return
   endif
-  n1=NM(ind,1)
-  n2=NM(ind,2)
-  n3=NM(ind,3)
+  n1=NM(ind,1)-1
+  n2=NM(ind,2)-1
+  n3=NM(ind,3)-1
   ret=0
 end function
   
