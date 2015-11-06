@@ -190,3 +190,19 @@ class TestAdcirc(TestWithMPI):
         instance.nodes.vx
         self.assertEqual(instance.get_name_of_current_state(), "EDIT")
         
+    def test10(self):
+        instance = Adcirc(**default_options)
+        instance.set_rootdir("data/test/2d")
+
+        print instance.parameters
+        instance.evolve_model( 1 | units.hour)
+
+        self.assertEqual(instance.model_time, 21*174.656| units.s)
+        
+        self.assertEquals(instance.nodes.status, u'wet')
+
+        self.assertEquals(instance.elements.status, u'wet')
+        
+        print instance.nodes.eta,instance.nodes.eta_prev
+
+        instance.stop()

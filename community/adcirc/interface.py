@@ -35,6 +35,10 @@ class AdcircInterface(CodeInterface,
         returns ()
 
     @remote_function
+    def commit_grid():
+        pass
+
+    @remote_function
     def get_model_time():
         returns (time=0.| units.s)
         
@@ -49,6 +53,14 @@ class AdcircInterface(CodeInterface,
     @remote_function(can_handle_array=True)
     def get_node_state(index=0):
         returns (eta=0. | units.m,vx=0.| units.m/units.s,vy=0.| units.m/units.s)
+
+    @remote_function(can_handle_array=True)
+    def get_node_eta_prev(index=0):
+        returns (eta_prev=0. | units.m)
+
+    @remote_function(can_handle_array=True)
+    def get_node_status(index=0):
+        returns (status='s')
 
     @remote_function(can_handle_array=True)
     def get_node_coriolis_f(index=0):
@@ -93,6 +105,10 @@ class AdcircInterface(CodeInterface,
     @remote_function(can_handle_array=True)
     def get_element_nodes(index=0):
         returns (n1=0,n2=0,n3=0)
+
+    @remote_function(can_handle_array=True)
+    def get_element_status(index=0):
+        returns (status='s')
 
     @remote_function
     def get_number_of_nodes():
@@ -353,7 +369,9 @@ class Adcirc(CommonCode):
         object.add_getter('nodes', 'get_node_position', names=('x','y'))
         object.add_getter('nodes', 'get_node_coordinates', names=('lon','lat'))          
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
-        
+        object.add_getter('nodes', 'get_node_eta_prev', names=('eta_prev',))
+        object.add_getter('nodes', 'get_node_status', names=('status',))
+                
         if self.mode in [self.MODE_3D]:
             object.define_grid('grid3d',axes_names=['x','y','z'])
             object.set_grid_range('grid3d', 'get_firstlast_grid3d')
@@ -379,6 +397,7 @@ class Adcirc(CommonCode):
         object.add_getter('elements', 'get_element_nodes', names=('n1','n2','n3'))
         object.add_getter('elements', 'get_element_position', names=('x','y'))
         object.add_getter('elements', 'get_element_coordinates', names=('lon','lat'))
+        object.add_getter('elements', 'get_element_status', names=('status',))
 
           
     def elevation_boundaries(self):
@@ -426,7 +445,7 @@ class Adcirc(CommonCode):
         object.add_method('INITIALIZED', 'before_set_interface_parameter')
         object.add_method('INITIALIZED', 'set_rootdir')
 
-        for state in ["RUN","EDIT"]:
+        for state in ["RUN","EDIT","EVOLVED"]:
           object.add_method(state,"get_model_time")
           object.add_method(state,"get_timestep")          
           object.add_method(state,"get_number_of_nodes")
@@ -436,3 +455,6 @@ class Adcirc(CommonCode):
           object.add_method(state,"get_number_of_vertical_nodes")
           object.add_method(state,"get_grid")
 
+        object.add_transition('EDIT', 'RUN', 'commit_grid')
+        object.add_transition('RUN', 'EVOLVED', 'evolve_model', False)
+        object.add_method('EVOLVED', 'evolve_model')

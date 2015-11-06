@@ -54,6 +54,12 @@ function commit_parameters() result(ret)
   ret=0
 end function
 
+function commit_grid() result(ret)
+  integer :: ret
+  ret=0
+end function
+
+
 function recommit_parameters() result(ret)
  integer :: ret
  ret=-2
@@ -106,6 +112,24 @@ function get_node_state(ind,eta2_,uu2_,vv2_) result(ret)
   eta2_=ETA2(ind)
   uu2_=UU2(ind)
   vv2_=VV2(ind)
+  ret=0
+end function
+
+function get_node_eta_prev(ind,eta_) result(ret)
+  integer :: ind,ret
+  real*8 :: eta_  
+  eta_=ETA1(ind)
+  ret=0
+end function
+
+function get_node_status(ind,x) result(ret)
+  integer :: ind,ret
+  character(len=*) :: x
+  if(NNODECODE(ind).EQ.0) then
+    x="dry"
+  else
+    x="wet"
+  endif
   ret=0
 end function
 
@@ -219,7 +243,18 @@ function get_element_nodes(ind,n1,n2,n3) result(ret)
   n3=NM(ind,3)-1
   ret=0
 end function
-  
+
+function get_element_status(ind,x) result(ret)
+  integer :: ind,ret
+  character(len=*) :: x
+  if(NOFF(ind).EQ.0) then
+    x="dry"
+  else
+    x="wet"
+  endif
+  ret=0
+end function
+
 function get_element_position(ind,x_,y_) result(ret)
   integer :: ind,n1,n2,n3,ret
   real*8 :: x_,y_
