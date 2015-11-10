@@ -19,7 +19,7 @@ class adcirc_grid_viewer():
         self.triangles = r.t[:,1:] -1 
 
     def plot(self):
-        pyplot.triplot(self.x, self.y, self.triangles)
+        pyplot.triplot(self.x, self.y, self.triangles, 'k-')
         pyplot.show()
 
 

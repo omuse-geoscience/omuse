@@ -1,0 +1,11 @@
+--- cdo-1.7.0rc5/src/remap_conserv_scrip.c	2015-01-20 15:38:15.000000000 +0100
++++ src_original/src/remap_conserv_scrip.c	2015-11-10 13:30:58.664306831 +0100
+@@ -1223,7 +1223,7 @@
+ {
+   /* local variables */
+ 
+-  int lcheck = TRUE;
++  int lcheck = FALSE;
+ 
+   long ioffset;
+   long max_subseg = 100000; /* max number of subsegments per segment to prevent infinite loop */
