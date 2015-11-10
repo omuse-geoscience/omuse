@@ -229,6 +229,22 @@ class CDORemapper(CommonCode):
         )
 
 
+    def _structured_corners_to_cdo_corners(self, grid):
+        #construct a cell_corners array that CDO understands
+        dims = grid.shape
+        cell_corners = numpy.zeros((2, grid.size*4), dtype=numpy.double) #always 4 corners for structured grid
+        print grid._cell_corners.shape
+        for k in range(len(cell_corners)):
+            index = 0
+            for j in range(dims[1]):
+                for i in range(dims[0]):
+                    cell_corners[k,index+0] = grid._cell_corners[k, i  , j  ] #sw
+                    cell_corners[k,index+1] = grid._cell_corners[k, i+1, j  ] #se
+                    cell_corners[k,index+2] = grid._cell_corners[k, i+1, j+1] #ne
+                    cell_corners[k,index+3] = grid._cell_corners[k, i  , j+1] #nw
+                    index += 4
+        return cell_corners
+
     def set_src_grid(self, grid):
         if not ((type(grid) is UnstructuredGrid) or (type(grid) is StructuredGrid)):
             raise Exception("expected grid type to be either UnstructuredGrid or StructuredGrid, received {0}".format(type(grid).__name__))
@@ -253,26 +269,21 @@ class CDORemapper(CommonCode):
             size = grid.size
             self.set_src_grid_dims((dims[1], dims[0]))
             self.set_src_grid_corners(num_corners)
-            lon = grid.lon.value_in(units.rad)
-            lon = numpy.swapaxes(lon,0,1)
-            lat = grid.lat.value_in(units.rad)
-            lat = numpy.swapaxes(lat,0,1)
 
+            if is_quantity(grid.lon):
+                lon = grid.lon.value_in(units.rad)
+            else:
+                lon = grid.lon
+            lon = numpy.swapaxes(lon,0,1)
+            if is_quantity(grid.lat):
+                lat = grid.lat.value_in(units.rad)
+            else:
+                lat = grid.lat
+            lat = numpy.swapaxes(lat,0,1)
             self.set_src_grid_center_lon(range(size), lon.flatten())
             self.set_src_grid_center_lat(range(size), lat.flatten())
 
-            #construct a cell_corners array that CDO understands
-            cell_corners = numpy.zeros((2, grid.size*num_corners), dtype=numpy.double)
-            print grid._cell_corners.shape
-            for k in range(len(cell_corners)):
-                index = 0
-                for j in range(dims[1]):
-                    for i in range(dims[0]):
-                        cell_corners[k,index+0] = grid._cell_corners[k, i  , j  ] #sw
-                        cell_corners[k,index+1] = grid._cell_corners[k, i+1, j  ] #se
-                        cell_corners[k,index+2] = grid._cell_corners[k, i+1, j+1] #ne
-                        cell_corners[k,index+3] = grid._cell_corners[k, i  , j+1] #nw
-                        index += 4
+            cell_corners = self._structured_corners_to_cdo_corners(grid)
 
             self.set_src_grid_corner_lon(range(grid.size * num_corners), cell_corners[0])
             self.set_src_grid_corner_lat(range(grid.size * num_corners), cell_corners[1])
@@ -305,20 +316,20 @@ class CDORemapper(CommonCode):
             dims = grid.shape
             self.set_dst_grid_dims(dims)
             self.set_dst_grid_corners(num_corners)
-            self.set_dst_grid_center_lon(range(grid.size), grid.lon.flatten())
-            self.set_dst_grid_center_lat(range(grid.size), grid.lat.flatten())
+            if is_quantity(grid.lon):
+                lon = grid.lon.value_in(units.rad)
+            else:
+                lon = grid.lon
+            lon = numpy.swapaxes(lon,0,1)
+            if is_quantity(grid.lat):
+                lat = grid.lat.value_in(units.rad)
+            else:
+                lat = grid.lat
+            lat = numpy.swapaxes(lat,0,1)
+            self.set_dst_grid_center_lon(range(grid.size), lon.flatten())
+            self.set_dst_grid_center_lat(range(grid.size), lat.flatten())
 
-            #construct a cell_corners array that CDO understands
-            cell_corners = numpy.zeros((2, grid.size*num_corners), dtype=numpy.double)
-            for k in range(len(cell_corners)):
-                index = 0
-                for j in range(dims[0]):
-                    for i in range(dims[1]):
-                        cell_corners[k,index+0] = grid._cell_corners[k, j  , i  ] #sw
-                        cell_corners[k,index+1] = grid._cell_corners[k, j  , i+1] #se
-                        cell_corners[k,index+2] = grid._cell_corners[k, j+1, i+1] #ne
-                        cell_corners[k,index+3] = grid._cell_corners[k, j+1, i  ] #nw
-                        index += 4
+            cell_corners = self._structured_corners_to_cdo_corners(grid)
 
             self.set_dst_grid_corner_lon(range(grid.size * num_corners), cell_corners[0])
             self.set_dst_grid_corner_lat(range(grid.size * num_corners), cell_corners[1])
