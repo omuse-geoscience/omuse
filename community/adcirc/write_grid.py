@@ -167,6 +167,14 @@ class adcirc_parameter_writer(object):
       f.write_var(param["CORI"])
       f.write_var(param["NTIF"])
       f.write_var(param["NBFR"])
+      if param["NBFR"]>0:
+        for tag,amig,ff,face in zip(param["BOUNTAG"],param["AMIG"],param["FF"],param["FACE"]):
+          f.write_var(tag)
+          f.write_var(amig,ff,face)
+        for tag,data in param["BOUNDARY_FORCING_DATA"].items():
+            f.write_var(tag)
+            for emo,efa in zip(*data):
+                f.write_var(emo,efa)      
       f.write_var(param["ANGINN"])
       f.write(outputblock1)
       f.write_var(param["ITITER"],param["ISLDIA"],

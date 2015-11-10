@@ -439,6 +439,7 @@ class Adcirc(CommonCode):
         object.add_getter('elements', 'get_element_position', names=('x','y'))
         object.add_getter('elements', 'get_element_coordinates', names=('lon','lat'))
         object.add_getter('elements', 'get_element_status', names=('status',))
+        object.add_setter('elements', 'set_element_status', names=('status',))
 
           
     def elevation_boundaries(self):
