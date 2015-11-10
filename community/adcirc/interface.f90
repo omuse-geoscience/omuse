@@ -26,7 +26,7 @@ end function
 function evolve_model(tend) result(ret)
   integer :: ret
   real(8) :: tend
-  do while(ITIME_BGN*DTDP+STATIM*86400.D0<tend-DTDP/2)
+  do while((ITIME_BGN-1)*DTDP+STATIM*86400.D0<tend-DTDP/2)
     call ADCIRC_Run(1)
   enddo
   if(.not.use_interface_elevation_boundary) ESBIN(1:NETA)=ETA2(NBD(1:NETA))
@@ -56,6 +56,16 @@ end function
 
 function commit_grid() result(ret)
   integer :: ret
+  integer :: i
+  REAL(SZ) H2
+
+  DO I=1, NP
+     ETAS(I)=ETA2(I)-ETA1(I)
+     H2=DP(I)+IFNLFA*ETA2(I)
+     QX2(I)=UU2(I)*H2
+     QY2(I)=VV2(I)*H2
+  END DO
+
   ret=0
 end function
 
@@ -68,7 +78,7 @@ end function
 function get_model_time(tout) result(ret)
   integer :: ret
   real(8) :: tout  
-  tout = STATIM*86400.D0+DTDP*ITIME_BGN
+  tout = STATIM*86400.D0+DTDP*(ITIME_BGN-1)
   ret=0
 end function
 
