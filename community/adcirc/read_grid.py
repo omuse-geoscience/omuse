@@ -132,6 +132,7 @@ class adcirc_parameter_reader(object):
       param["AMIG"]=[]
       param["FF"]=[]
       param["FACE"]=[]
+      param["BOUNDARY_FORCING_DATA"]=dict()
       for i in range(param["NBFR"]):
         param["BOUNTAG"].append(f.read_string(10))
         amig,ff,face=f.read_value(float,float,float)
@@ -139,10 +140,15 @@ class adcirc_parameter_reader(object):
         param["FF"].append(ff)
         param["FACE"].append(face)
       for i in range(param["NBFR"]):
-          f.read_string(10)
           if NETA is not None:
+            tag=f.read_string(10)
+            EMO=[]
+            EFA=[]
             for i in range(NETA):
               emo,efa=f.read_value(float,float)
+              EMO.append(emo)
+              EFA.append(efa)
+            param["BOUNDARY_FORCING_DATA"][tag]=(EMO,EFA)
           else:
             f.close()
             raise Exception("expect NETA to be provided")

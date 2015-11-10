@@ -236,32 +236,33 @@ class TestAdcirc(TestWithMPI):
         instance.stop()
 
 
-class TestAdcircLong(TestWithMPI):
+AMIG=0.000140525700000 | units.s**-1
+PER=2*numpy.pi/AMIG
+EMO=0.3048 | units.m
+DRAMP=2 | units.day
 
+def ramp(t):
+    return numpy.tanh(2*t/DRAMP)
+
+def tidal_force_function(t):
+    ncyc=numpy.floor(t/PER)
+    aj=AMIG*(t-ncyc*PER)
+    return ramp(t)*EMO*numpy.cos(aj)
+
+class TestAdcircLong(TestWithMPI):
 
     def test1(self):
         tend=5*86400. | units.s
-        AMIG=0.000140525700000 | units.s**-1
-        PER=2*numpy.pi/AMIG
-        EMO=0.3048 | units.m
-        DRAMP=2 | units.day
-
-        def ramp(t):
-            return numpy.tanh(2*t/DRAMP)
-
-        def tidal_force_function(t):
-            ncyc=numpy.floor(t/PER)
-            aj=AMIG*(t-ncyc*PER)
-            return ramp(t)*EMO*numpy.cos(aj)
 
         param=adcirc_parameter_reader("data/test/2d/fort.15")
-        param.read_parameters()
+        param.read_parameters(NETA=9)
+        param.parameters['NBFR']=-1
 
         gr=adcirc_grid_reader("data/test/2d/fort.14")
         gr.read_grid()
         nodes,elements,elev_boundary,flow_boundary=gr.get_sets()
 
-        code=Adcirc()
+        code=Adcirc(redirection="none")
 
         code._parameters=param.parameters        
         code.assign_grid_and_boundary(nodes,elements,elev_boundary, flow_boundary)
@@ -296,6 +297,70 @@ class TestAdcircLong(TestWithMPI):
   
         while tnow<tend-dt/2:
             elev_boundaries[0].eta=tidal_force_function(tnow+dt/2)
+            code.evolve_model(tnow+dt)
+            tnow=code.get_model_time()
+  
+            eta=code.nodes[60].eta.number
+            time.append(tnow.number)
+            eta61.append(eta)  
+            forcing.append(elev_boundaries[0].eta[0].number)
+      
+        code.stop()
+        
+        from matplotlib import pyplot
+          
+        f=pyplot.figure(figsize=(8,6))
+
+        pyplot.clf()
+        pyplot.plot(time,eta61,'r+')
+        pyplot.plot(time,forcing,'g+')
+        pyplot.plot(time,tidal_force_function((time| units.s)).number)
+        pyplot.show()
+
+    def test2(self):
+        tend=5*86400. | units.s
+
+        param=adcirc_parameter_reader("data/test/2d/fort.15")
+        param.read_parameters(NETA=9)
+
+        gr=adcirc_grid_reader("data/test/2d/fort.14")
+        gr.read_grid()
+        nodes,elements,elev_boundary,flow_boundary=gr.get_sets()
+
+        code=Adcirc(redirection="none")
+
+        code._parameters=param.parameters        
+        code.assign_grid_and_boundary(nodes,elements,elev_boundary, flow_boundary)
+
+        code.parameters.use_interface_elevation_boundary=False
+        code.parameters.use_interface_parameters=True
+        code.parameters.use_interface_grid=True
+        code.parameters.A_H=param.parameters["ESLM"] | units.m**2/units.s
+        code.parameters.timestep=abs(param.parameters["DTDP"]) | units.s
+        code.parameters.bottom_friction_law=["linear","quadratic","hybrid"][param.parameters["NOLIBF"]]
+        try:
+          code.parameters.linear_bottom_friction_coeff=param.parameters["TAU"]| units.s**-1
+        except:
+          pass
+        try:
+          code.parameters.quadratic_bottom_friction_coeff=param.parameters["CF"]
+        except:
+          pass
+        code.parameters.use_predictor_corrector=param.parameters["DTDP"]<0
+        code.parameters.use_interface_met_forcing=False
+
+        print code.parameters
+
+        tnow=code.model_time
+        dt=code.parameters.timestep
+  
+        elev_boundaries= list(code.elevation_boundaries())
+  
+        eta61=[]
+        time=[]
+        forcing=[]
+  
+        while tnow<tend-dt/2:
             code.evolve_model(tnow+dt)
             tnow=code.get_model_time()
   
