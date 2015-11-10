@@ -138,13 +138,14 @@ class adcirc_parameter_reader(object):
         param["AMIG"].append(amig)
         param["FF"].append(ff)
         param["FACE"].append(face)
-      if NETA is not None:
-        for i in range(param["NBFR"]):
+      for i in range(param["NBFR"]):
           f.read_string(10)
-          for i in range(NETA):
-            emo,efa=f.read_value(float,float)
-      else:
-        f.close()
+          if NETA is not None:
+            for i in range(NETA):
+              emo,efa=f.read_value(float,float)
+          else:
+            f.close()
+            raise Exception("expect NETA to be provided")
       param["ANGINN"]=f.read_value()
 # dummy read
       f.read_value(int,float,float,int)
@@ -243,6 +244,8 @@ class adcirc_grid_reader(object):
     param["NP"]=NP
     param["NOPE"]=NOPE
     param["NBOU"]=NBOU
+    param["NETA"]=NETA
+    param["NVEL"]=NVEL
     self.parameters=param
         
     f.close()
