@@ -29,19 +29,7 @@
  0.0                                 ! ESL - LATERAL EDDY VISCOSITY COEFFICIENT; IGNORED IF NWP =1
  0.0                                 ! CORI - CORIOLIS PARAMETER - IGNORED IF NCOR = 1
  0                                   ! NTIF - TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BEING FORCED
- 1                                   ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES
- M2                                  ! CONSTITUENT. 1  ALPHA DESCRIPTOR
- 0.000 1.0 0.0                       ! CONSTITUENT. 1 FREQ., NODAL FACTOR, EQUIL. ARG. 
-  M2                                 ! ALPHA NUMERIC DESCRIPTION OF OPEN BOUNDARY FORCING DATA SET WHICH FOLLOWS 
-  0.  0.00                       ! BOUNDARY FORCING DATA FOR CONSTITUENT NO. 1 AT FIRST NODE
-  0.  0.00
-  0.  0.00
-  0.  0.00
-  0.  0.00
-  0.  0.00
-  0.  0.00
-  0.  0.00
-  0.  0.00                       ! BOUNDARY FORCING DATA FOR CONSTITUENT NO. 1 AT LAST NODE
+ -1                                  ! NBFR - TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES
  110.0                               ! ANGINN : INNER ANGLE THRESHOLD
  0 0.0 5.0  3                        ! NOUTE,TOUTSE,TOUTFE,NSPOOLE:ELEV STATION OUTPUT INFO (UNIT  61)
  0                                   ! TOTAL NUMBER OF ELEVATION RECORDING STATIONS

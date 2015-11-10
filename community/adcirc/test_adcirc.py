@@ -255,8 +255,7 @@ class TestAdcircLong(TestWithMPI):
             return ramp(t)*EMO*numpy.cos(aj)
 
         param=adcirc_parameter_reader("data/test/2d/fort.15")
-        param.read_parameters(NETA=9)
-        param.parameters["NBFR"]=-1
+        param.read_parameters()
 
         gr=adcirc_grid_reader("data/test/2d/fort.14")
         gr.read_grid()
