@@ -29,6 +29,7 @@ function evolve_model(tend) result(ret)
   do while((ITIME_BGN-1)*DTDP+STATIM*86400.D0<tend-DTDP/2)
     call ADCIRC_Run(1)
   enddo
+  DETA_DT=(ETA2-ETA1)/DTDP
   if(.not.use_interface_elevation_boundary) ESBIN(1:NETA)=ETA2(NBD(1:NETA))
   if(.not.use_interface_met_forcing) then
     WSX(1:NP)=WSX2(1:NP)
@@ -48,9 +49,10 @@ function commit_parameters() result(ret)
   CALL ADCIRC_Init(ROOTD=ROOTDIR)
   allocate( ESBIN(MNETA) )
   ESBIN(:)=0.
-  allocate( WSX(MNP),WSY(MNP) )
+  allocate( WSX(MNP),WSY(MNP), DETA_DT(MNP) )
   WSX(:)=0.
   WSY(:)=0.
+  DETA_DT(:)=0.
   ret=0
 end function
 
@@ -58,6 +60,8 @@ function commit_grid() result(ret)
   integer :: ret
   integer :: i
   REAL(SZ) H2
+
+  ETA1=ETA2-DTDP*DETA_DT
 
   DO I=1, NP
      ETAS(I)=ETA2(I)-ETA1(I)
@@ -143,6 +147,13 @@ function get_node_eta_prev(ind,eta_) result(ret)
   ret=0
 end function
 
+function get_node_deta_dt(ind,x) result(ret)
+  integer :: ind,ret
+  real*8 :: x
+  x=DETA_DT(ind)
+  ret=0
+end function
+
 function get_node_status(ind,x) result(ret)
   integer :: ind,ret
   character(len=*) :: x
@@ -202,6 +213,12 @@ function set_node_eta_prev(ind,v1) result(ret)
   integer :: ind,ret
   real*8 :: v1  
   ETA1(ind)=v1
+  ret=0
+end function
+function set_node_deta_dt(ind,x) result(ret)
+  integer :: ind,ret
+  real*8 :: x
+  DETA_DT(ind)=x
   ret=0
 end function
 function set_node_status(ind,v1) result(ret)
