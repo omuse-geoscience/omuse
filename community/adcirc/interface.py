@@ -74,10 +74,10 @@ class AdcircInterface(CodeInterface,
         returns ()
 
     @remote_function(can_handle_array=True)
-    def get_node_eta_prev(index=0):
-        returns (eta_prev=0. | units.m)
+    def get_node_deta_dt(index=0):
+        returns (deta_dt=0. | units.m/units.s)
     @remote_function(can_handle_array=True)
-    def set_node_eta_prev(index=0,eta_prev=0. | units.m):
+    def set_node_deta_dt(index=0,deta_dt=0. | units.m/units.s):
         returns ()
 
     @remote_function(can_handle_array=True)
@@ -375,12 +375,12 @@ class Adcirc(CommonCode):
         object.add_getter('nodes', 'get_node_eta', names=('eta',))
         object.add_getter('nodes', 'get_node_vx', names=('vx',))
         object.add_getter('nodes', 'get_node_vy', names=('vy',))
-        object.add_getter('nodes', 'get_node_eta_prev', names=('eta_prev',))
+        object.add_getter('nodes', 'get_node_deta_dt', names=('deta_dt',))
         object.add_getter('nodes', 'get_node_status', names=('status',))
         object.add_setter('nodes', 'set_node_eta', names=('eta',))
         object.add_setter('nodes', 'set_node_vx', names=('vx',))
         object.add_setter('nodes', 'set_node_vy', names=('vy',))
-        object.add_setter('nodes', 'set_node_eta_prev', names=('eta_prev',))
+        object.add_setter('nodes', 'set_node_deta_dt', names=('deta_dt',))
         object.add_setter('nodes', 'set_node_status', names=('status',))
 
                 

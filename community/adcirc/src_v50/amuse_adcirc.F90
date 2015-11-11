@@ -7,7 +7,7 @@ module amuse_adcirc
   logical :: use_interface_elevation_boundary=.FALSE.
   logical :: use_interface_met_forcing=.FALSE.
   
-  real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:)
+  real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:)
   
 #ifdef CSWAN
 #error SWAN coupling TBD 

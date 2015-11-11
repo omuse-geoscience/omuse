@@ -75,7 +75,7 @@ def run(tend=5. | units.day, state=None):
 
     if state:
       channel=nodes.new_channel_to(code.nodes)
-      channel.copy_attributes(["eta","eta_prev","status","vx","vy"])
+      channel.copy_attributes(["eta","deta_dt","status","vx","vy"])
       channel=elements.new_channel_to(code.elements)
       channel.copy_attributes(["status"])
 
@@ -100,7 +100,7 @@ def run(tend=5. | units.day, state=None):
   
     state=code.nodes.copy(),code.elements.copy()
     state[0].collection_attributes.time=code.model_time
-    print "done at:", code.model_time
+    print "done at:", code.model_time.in_(units.day)
     
     code.stop()
     
