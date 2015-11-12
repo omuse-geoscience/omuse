@@ -1,7 +1,13 @@
 import os.path
+from omuse.units import units
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
-from amuse.community import *
-from amuse.support.options import option
+from amuse.support.interface import InCodeComponentImplementation
+from amuse.support.literature import LiteratureReferencesMixIn
+from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
+from amuse.rfi.core import legacy_function,remote_function
+from amuse.units.core import system,no_system
+from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
+from amuse import datamodel
 
 from amuse.units import trigo
 
@@ -102,6 +108,13 @@ class AdcircInterface(CodeInterface,
         returns ()        
 
     @remote_function(can_handle_array=True)
+    def get_node_atmospheric_pressure(index=0):
+        returns (pressure=0. | units.mbar)
+    @remote_function(can_handle_array=True)
+    def set_node_atmospheric_pressure(index=0,pressure=0. | units.mbar):
+        returns ()
+
+    @remote_function(can_handle_array=True)
     def get_node_position(index='i'):
         returns (x=0.| units.m,y=0. | units.m)
     @remote_function(can_handle_array=True)
@@ -199,6 +212,10 @@ class AdcircInterface(CodeInterface,
     @remote_function
     def set_use_interface_met_forcing(use_interface_met_forcing='b'):
         returns ()
+
+    @remote_function
+    def get_reference_pressure():
+        returns (pressure=0. | units.mbar)
 
 class Adcirc(CommonCode):
   
@@ -354,6 +371,13 @@ class Adcirc(CommonCode):
             0. | units.day,
             "before_set_interface_parameter"
         )
+        object.add_method_parameter(
+            "get_reference_pressure", 
+            None,
+            "atmospheric_reference_pressure", 
+            "reference atmospheric pressure", 
+            None
+        )        
            
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -401,6 +425,8 @@ class Adcirc(CommonCode):
         object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f',))
         object.add_getter('forcings', 'get_node_wind_stress', names=('tau_x','tau_y'))
         object.add_setter('forcings', 'set_node_wind_stress', names=('tau_x','tau_y'))
+        object.add_getter('forcings', 'get_node_atmospheric_pressure', names=('pressure',))
+        object.add_setter('forcings', 'set_node_atmospheric_pressure', names=('pressure',))
         object.add_getter('forcings', 'get_node_position', names=('x','y'))
         object.add_getter('forcings', 'get_node_coordinates', names=('lon','lat'))
 

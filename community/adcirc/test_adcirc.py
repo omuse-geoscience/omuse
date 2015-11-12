@@ -1,6 +1,7 @@
 import os.path
 import numpy
 from amuse.test.amusetest import TestWithMPI
+from time import sleep
 
 from omuse.community.adcirc.interface import AdcircInterface,Adcirc
 
@@ -219,8 +220,8 @@ class TestAdcirc(TestWithMPI):
         instance.nodes[12].status=u'dry'
         self.assertEqual(instance.nodes[12].status,u'dry')
 
-        instance.nodes[12].eta_prev=0.1 | units.m
-        self.assertEqual(instance.nodes[12].eta_prev,0.1 | units.m)
+        instance.nodes[12].deta_dt=0.1 | units.m/units.s
+        self.assertEqual(instance.nodes[12].deta_dt,0.1 | units.m/units.s)
 
         instance.nodes[12].eta=0.21 | units.m
         self.assertEqual(instance.nodes[12].eta,0.21 | units.m)
@@ -233,6 +234,36 @@ class TestAdcirc(TestWithMPI):
 
         
         
+        instance.stop()
+
+    def test12(self):
+        instance = Adcirc(**default_options)
+        instance.set_rootdir("data/test/2d")
+        instance.commit_parameters()
+ 
+        ref=instance.parameters.atmospheric_reference_pressure
+
+        self.assertEqual(len(instance.nodes),63)
+        self.assertEqual(len(instance.elements),96)
+        self.assertEqual(len(instance.forcings),63)
+        
+        self.assertEquals(instance.forcings.coriolis_f, (63*[0.0])| units.s**-1)
+        self.assertEquals(instance.forcings.tau_x, ([0.0])| units.Pa)
+        self.assertEquals(instance.forcings.tau_y, ([0.0])| units.Pa)
+        
+        self.assertEquals(instance.forcings.pressure, ref)
+
+        instance.forcings.coriolis_f=numpy.arange(63) | units.s**-1
+        self.assertEquals(instance.forcings.coriolis_f, range(63)| units.s**-1)
+        forcings=instance.forcings.empty_copy()
+        forcings.tau_x=(numpy.arange(63)+123) | units.Pa
+        forcings.tau_y=numpy.arange(63) | units.Pa
+        forcings.pressure=(numpy.arange(63)+321.) | units.Pa
+        forcings.new_channel_to(instance.forcings).copy_attributes(["pressure","tau_x","tau_y"])
+        self.assertAlmostEquals(instance.forcings.pressure, range(321,321+63)| units.Pa,10)
+        self.assertEquals(instance.forcings.tau_x, range(123,123+63)| units.Pa)
+        self.assertEquals(instance.forcings.tau_y, range(63)| units.Pa)
+
         instance.stop()
 
 
@@ -262,7 +293,7 @@ class TestAdcircLong(TestWithMPI):
         gr.read_grid()
         nodes,elements,elev_boundary,flow_boundary=gr.get_sets()
 
-        code=Adcirc(redirection="none")
+        code=Adcirc()
 
         code._parameters=param.parameters        
         code.assign_grid_and_boundary(nodes,elements,elev_boundary, flow_boundary)
@@ -309,13 +340,16 @@ class TestAdcircLong(TestWithMPI):
         
         from matplotlib import pyplot
           
+        pyplot.ion()
         f=pyplot.figure(figsize=(8,6))
+        pyplot.show()
 
         pyplot.clf()
         pyplot.plot(time,eta61,'r+')
         pyplot.plot(time,forcing,'g+')
         pyplot.plot(time,tidal_force_function((time| units.s)).number)
-        pyplot.show()
+        pyplot.draw()
+        sleep(3)
 
     def test2(self):
         tend=5*86400. | units.s
@@ -327,7 +361,7 @@ class TestAdcircLong(TestWithMPI):
         gr.read_grid()
         nodes,elements,elev_boundary,flow_boundary=gr.get_sets()
 
-        code=Adcirc(redirection="none")
+        code=Adcirc()
 
         code._parameters=param.parameters        
         code.assign_grid_and_boundary(nodes,elements,elev_boundary, flow_boundary)
@@ -373,11 +407,13 @@ class TestAdcircLong(TestWithMPI):
         
         from matplotlib import pyplot
           
+        pyplot.ion()
         f=pyplot.figure(figsize=(8,6))
+        pyplot.show()
 
         pyplot.clf()
         pyplot.plot(time,eta61,'r+')
         pyplot.plot(time,forcing,'g+')
         pyplot.plot(time,tidal_force_function((time| units.s)).number)
-        pyplot.show()
-
+        pyplot.draw()
+        sleep(3)

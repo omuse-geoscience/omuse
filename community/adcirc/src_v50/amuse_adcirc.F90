@@ -7,12 +7,10 @@ module amuse_adcirc
   logical :: use_interface_elevation_boundary=.FALSE.
   logical :: use_interface_met_forcing=.FALSE.
   
-  real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:)
+  real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:), PR(:)
   
-#ifdef CSWAN
-#error SWAN coupling TBD 
-#endif
-
+  real(SZ),parameter :: reference_pressure=1013.0d0
+  
 contains
 
 subroutine update_elevation_boundary()
@@ -22,6 +20,7 @@ end subroutine
 subroutine update_met_forcing()
   WSX2(1:NP)=WSX(1:NP)
   WSY2(1:NP)=WSY(1:NP)
+  PR2(1:NP)=(reference_pressure+PR(1:NP))/(RHOWAT0*G)
   NWS=OR(NWS,2**30)
 end subroutine
 

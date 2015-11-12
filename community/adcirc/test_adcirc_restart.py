@@ -145,6 +145,9 @@ class TestAdcircRestart(TestWithMPI):
 
         deta=(ref_state[0].eta-state[0].eta)
 
+        self.assertTrue(abs(deta.min().number) < 1.e-10)
+        self.assertTrue(abs(deta.max().number) < 1.e-10)
+
         print deta.min(),deta.max()
 
         raw_input()
