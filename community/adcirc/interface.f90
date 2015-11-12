@@ -29,7 +29,7 @@ function evolve_model(tend) result(ret)
   do while((ITIME_BGN-1)*DTDP+STATIM*86400.D0<tend-DTDP/2)
     call ADCIRC_Run(1)
   enddo
-  DETA_DT=(ETA2-ETA1)/DTDP
+  DETA_DT(1:NP)=(ETA2(1:NP)-ETA1(1:NP))/DTDP
   if(.not.use_interface_elevation_boundary) ESBIN(1:NETA)=ETA2(NBD(1:NETA))
   if(.not.use_interface_met_forcing) then
     WSX(1:NP)=WSX2(1:NP)
@@ -44,15 +44,25 @@ function cleanup_code() result(ret)
   ret=0  
 end function
 
-function commit_parameters() result(ret)
-  integer :: ret
-  CALL ADCIRC_Init(ROOTD=ROOTDIR)
+subroutine ADCIRC_allocate_interface_storage()
+  if(allocated(ESBIN)) deallocate(ESBIN)
+  if(allocated(WSX)) deallocate(WSX)
+  if(allocated(WSY)) deallocate(WSY)
+  if(allocated(DETA_DT)) deallocate(DETA_DT)
+  if(allocated(PR)) deallocate(PR)
   allocate( ESBIN(MNETA) )
+  allocate( WSX(MNP),WSY(MNP), DETA_DT(MNP), PR(MNP) )
   ESBIN(:)=0.
-  allocate( WSX(MNP),WSY(MNP), DETA_DT(MNP) )
   WSX(:)=0.
   WSY(:)=0.
   DETA_DT(:)=0.
+  PR(:)=0.
+end subroutine
+
+function commit_parameters() result(ret)
+  integer :: ret
+  CALL ADCIRC_Init(ROOTD=ROOTDIR)
+  call ADCIRC_allocate_interface_storage()
   ret=0
 end function
 
@@ -61,7 +71,7 @@ function commit_grid() result(ret)
   integer :: i
   REAL(SZ) H2
 
-  ETA1=ETA2-DTDP*DETA_DT
+  ETA1(1:NP)=ETA2(1:NP)-DTDP*DETA_DT(1:NP)
 
   DO I=1, NP
      ETAS(I)=ETA2(I)-ETA1(I)
@@ -269,6 +279,19 @@ function set_node_wind_stress(ind,wsx_,wsy_) result(ret)
   ret=0
 end function
 
+function get_node_atmospheric_pressure(ind,x) result(ret)
+  integer :: ind,ret
+  real*8 :: x
+  x=PR(ind)+reference_pressure
+  ret=0
+end function
+function set_node_atmospheric_pressure(ind,x) result(ret)
+  integer :: ind,ret
+  real*8 :: x
+  PR(ind)=x-reference_pressure
+  ret=0
+end function
+
 function get_node_sigma(ind,indz,s_,z_) result(ret)
   integer :: ind,indz,ret
   real*8 :: s_,z_
@@ -453,6 +476,12 @@ function get_number_of_vertical_nodes(nout) result(ret)
   ret=0  
 end function
 
+function get_reference_pressure(x) result(ret)
+  integer :: ret
+  real*8 :: x
+  x=reference_pressure
+  ret=0
+end function
 
 end module
 
