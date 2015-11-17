@@ -23,7 +23,7 @@ end subroutine
 subroutine update_met_forcing()
   WSX2(1:NP)=WSX(1:NP)
   WSY2(1:NP)=WSY(1:NP)
-  PR2(1:NP)=(reference_pressure+PR(1:NP))/(RHOWAT0*G)
+  PR2(1:NP)=100*(reference_pressure+PR(1:NP))/(RHOWAT0*G)
   NWS=OR(NWS,2**30)
 end subroutine
 

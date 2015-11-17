@@ -25,7 +25,7 @@ class adcirc_file_reader(file):
     while _n<n:
       line_=self.readline().split()
       index=int(line_[0])-1
-      result[index,:]=[float(line_[i]) for i in range(1,m+1)]
+      result[index,:]=[dtype(line_[i]) for i in range(1,m+1)]
       _n+=1    
     return result
   def read_boundary_segment(self,n):
