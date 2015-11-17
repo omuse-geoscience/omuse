@@ -113,8 +113,14 @@ class adcirc_parameter_reader(object):
       else:
         param["DRAMP"]=None
       param["A00"],param["B00"],param["C00"]=f.read_value(float,float,float)
-      param["H0"]=f.read_value()
+      if param["NOLIFA"] in [0,1]:
+        param["H0"]=f.read_value()
+      elif param["NOLIFA"] in [2,3]:
+        param["H0"], dummy1, dummy2, param["VELMIN"]=f.read_value(float,int, int, float)
       param["SLAM0"],param["SFEA0"]=f.read_value(float,float)
+
+      param["TAU"],param["CF"],param["HBREAK"],param["FTHETA"],param["FGAMMA"]=0.,0.,0.,0.,0.
+
       if param["NOLIBF"]==0:
         param["TAU"]=f.read_value()
       elif param["NOLIBF"]==1:
@@ -262,8 +268,8 @@ class adcirc_grid_reader(object):
       nodes.x=self.p[:,0] | units.m
       nodes.y=self.p[:,1] | units.m
     else:
-      nodes.x=self.p[:,0] | units.deg
-      nodes.y=self.p[:,1] | units.deg
+      nodes.lon=self.p[:,0] | units.deg
+      nodes.lat=self.p[:,1] | units.deg
     nodes.depth=self.p[:,2] | units.m
         
     elements=Grid(self.parameters["NE"])

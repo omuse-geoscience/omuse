@@ -233,6 +233,9 @@ class Adcirc(CommonCode):
         self._parameters=None
         self.stopping_conditions = StoppingConditions(self)
        
+    def get_coordinates(self):
+        return self.coordinates
+       
     def assign_grid_and_boundary(self,nodes,elements,elev_boundary, flow_boundary):
         self._nodes=nodes
         self._elements=elements
@@ -251,7 +254,7 @@ class Adcirc(CommonCode):
           param.update( ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
                         SLAM0=trigo.in_deg(self.parameters.central_longitude),
                         SFEA0=trigo.in_deg(self.parameters.central_latitude),
-                        ICS=1 if self.coordinates=="cartesian" else 2,
+                        ICS=1 if self.parameters.coordinates=="cartesian" else 2,
                         DTDP=(-1 if self.parameters.use_predictor_corrector else 1)*self.parameters.timestep.value_in(units.s),
                         NOLIBF=["linear","quadratic","hybrid"].index(self.parameters.bottom_friction_law),
                         TAU0=self.parameters.GWCE_weighting_factor,
@@ -378,6 +381,13 @@ class Adcirc(CommonCode):
             "reference atmospheric pressure", 
             None
         )        
+        object.add_method_parameter(
+            "get_coordinates", 
+            None,
+            "coordinates", 
+            "type of coordinates (spherical or cartesian)", 
+            None
+        )
            
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
