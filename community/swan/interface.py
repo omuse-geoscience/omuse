@@ -64,6 +64,8 @@ parameters={
     "verbosity" : dict(short="itest", dtype="int32", default=1 , description="verbosity of output (0-200)", ptype="simple"),
     "uniform_air_sea_temp_difference" : dict(short="CASTD", dtype="float64", default=0. | units.Celsius , description="uniform air-sea temp. difference", ptype="simple"),
     "wrap_x_coordinate" : dict(short="wrap_x", dtype="bool", default=False , description="whether grid wraps in x-direction", ptype="simple"),
+    "numer_of_vertices" : dict(short="nvertsg", dtype="int32", default=0, description="number of vertices in case of unstructured grid", ptype="simple"),
+    "numer_of_cells" : dict(short="ncellsg", dtype="int32", default=0, description="number of cells in case of unstructured grid", ptype="simple"),
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
