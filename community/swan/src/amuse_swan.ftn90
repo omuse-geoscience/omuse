@@ -446,8 +446,43 @@ function swan_report_grids() result(ret)
 end function
 
 function swan_init_unstructured_grid() result(ret)
-  integer :: ret
-  ret=-2
+  integer :: ret,istat
+
+  OPTG  = 5
+  XPC   = 0.
+  YPC   = 0.
+  ALPC  = 0.
+  XCLEN = 0.
+  YCLEN = 0.
+
+! this matches the behaviour of swan
+! (MXC, MYC should be  zero however)
+  IF(ALLOCATED(XCGRID)) DEALLOCATE(XCGRID)
+  IF(ALLOCATED(YCGRID)) DEALLOCATE(YCGRID)
+  ALLOCATE(XCGRID(MXC,MYC))
+  ALLOCATE(YCGRID(MXC,MYC))
+  
+! allocate vertices arrays
+! parallel tbd
+  nverts=nvertsg
+  ncells=ncellsg
+
+  if(ncells.LE.0.OR.nverts.LE.0) then
+    ret=-1
+    return
+  endif
+  
+  IF(ALLOCATED(xcugrd)) DEALLOCATE(xcugrd)
+  IF(ALLOCATED(ycugrd)) DEALLOCATE(ycugrd)
+  IF(ALLOCATED(vmark)) DEALLOCATE(vmark)
+  IF(ALLOCATED(kvertc)) DEALLOCATE(kvertc)
+  ALLOCATE(xcugrd(nverts),ycugrd(nverts),vmark(nverts),kvertc(3,ncells), stat=istat)
+  if(istat.NE.0) then
+    ret=-2
+    return
+  endif
+  ret=0
+  
 end function
 
 function swan_init_curvilinear_grid() result(ret)
@@ -529,7 +564,37 @@ end function
 
 function swan_init_unstructured_comp_grid() result(ret)
   integer :: ret
-  ret=-2
+  logical LOGCOM(6)
+  logical STPNOW 
+  
+  CALL SwanInitCompGrid (LOGCOM)
+  IF (STPNOW()) THEN
+    ret=-1
+    RETURN
+  ENDIF
+  CALL SwanCreateEdges
+  IF (STPNOW()) THEN
+    ret=-2
+    RETURN
+  ENDIF
+  CALL SwanGridTopology
+  IF (STPNOW()) THEN
+    ret=-3
+    RETURN
+  ENDIF
+  ret=0
+end function
+
+function swan_init_unstructured_boundary() result(ret)
+  integer :: ret
+  logical :: STPNOW
+  
+  CALL SwanBpntlist()
+  IF (STPNOW()) THEN
+    ret=-1
+    RETURN
+  ENDIF
+
 end function
 
 function swan_physics_gen3() result(ret)
@@ -570,6 +635,180 @@ function swan_physics_triads() result(ret)
   ret=0
 end function
 
+function swan_unstructured_add_boundary_from_file( marker, filename) result(ret)
+      USE M_BNDSPEC
+      USE SwanGridobjects
+      USE SwanCompdata
+
+  integer :: ret, marker, JBG, IXB1,IXB2, IXI,K,ISH,IPP
+  character(len=*) :: filename
+  logical :: STPNOW
+
+      INTEGER   IENT,KOUNTR,IX1,IY1,IX2,IY2
+      INTEGER   MM,IX,IY,ISIDM,ISIDE,KC,KC2,KC1,IX3,IY3,MP
+      INTEGER   IP,II,NBSPSS,NFSEQ,IKO,IKO2,IBSPC1,IBSPC2
+      INTEGER   VM
+
+      INTEGER, DIMENSION(:), ALLOCATABLE :: IARR1, IARR2
+
+      REAL      CRDP, CRDM, SOMX, SOMY
+      REAL      XP,YP,XC,YC,RR,DIRSI,COSDIR,SINDIR,DIRSID,DIRREF
+      REAL      RLEN1,RDIST,RLEN2,XC1,YC1,XC2,YC2,W1
+
+      LOGICAL   KEYWIS, LOCGRI, CCW, BPARF, BOUNPT,DONALL
+      LOGICAL   LFRST1, LFRST2, LFRST3
+
+      INTEGER   NUMP
+
+      LOGICAL, SAVE :: LBFILS = .FALSE.
+      LOGICAL, SAVE :: LBS    = .FALSE.
+      LOGICAL, SAVE :: LBGP   = .FALSE.
+
+      TYPE(BSPCDAT), POINTER :: BFLTMP
+      TYPE(BSPCDAT), SAVE, POINTER :: CUBFL
+
+      TYPE(BSDAT), POINTER :: BSTMP
+      TYPE(BSDAT), SAVE, POINTER :: CUBS
+
+      TYPE(BGPDAT), POINTER :: BGPTMP
+
+      TYPE XYPT
+        INTEGER             :: JX, JY
+        TYPE(XYPT), POINTER :: NEXTXY
+      END TYPE XYPT
+
+      TYPE(XYPT), TARGET  :: FRST
+      TYPE(XYPT), POINTER :: CURR, TMP
+
+      CHARACTER(80) :: MSGSTR  
+
+      TYPE(verttype), DIMENSION(:), POINTER :: vert
+      TYPE(facetype), DIMENSION(:), POINTER :: face
+
+
+  vert => gridobject%vert_grid
+  face => gridobject%face_grid
+
+    
+  KOUNTR  = 0
+  FRST%JX = 0
+  FRST%JY = 0
+  NULLIFY(FRST%NEXTXY)
+  CURR => FRST
+  
+  VM=marker
+  CCW = .TRUE.
+  
+  DO JBG = 1, nbpol
+               !
+               ! first boundary polyogon is assumed an outer one
+               ! (sea/mainland boundary) and hence, content of blist
+               ! is ordered in counterclockwise manner
+               !
+     IF ( JBG==1 .EQV. CCW ) THEN
+        IXB1 = 1
+        IXB2 = nbpt(JBG)
+        IXI  = 1
+     ELSE
+        IXB1 = nbpt(JBG)
+        IXB2 = 1
+        IXI  = -1
+     ENDIF
+     !
+     ALLOCATE(IARR1(SUM(nbpt)))
+     K = 0
+     DO IP = IXB1, IXB2, IXI
+        IX = blist(IP,JBG)
+        IF ( vmark(IX) == VM ) THEN
+           K = K+1
+           IARR1(K) = IP
+        ENDIF
+     ENDDO
+     !
+     IF ( K/=0 ) THEN
+        !
+        ALLOCATE(IARR2(K))
+        IARR2(1:K) = IARR1(1:K)
+        ISH = 0
+        DO IPP = 2, K
+           IF ( IARR2(IPP)/=IARR2(IPP-1)+IXI ) THEN
+              ISH = IPP-1
+              ret=-2
+              return
+           ENDIF
+        ENDDO
+        IARR2 = CSHIFT(IARR2,ISH)
+        !
+        DO IPP = 1, K
+           IP = IARR2(IPP)
+           IX = blist(IP,JBG)
+           KOUNTR = KOUNTR + 1
+           vert(IX)%atti(VBC) = 1
+           ALLOCATE(TMP)
+           TMP%JX = IX
+           NULLIFY(TMP%NEXTXY)
+           CURR%NEXTXY => TMP
+           CURR => TMP
+        ENDDO
+        DEALLOCATE(IARR2)
+        !
+     ENDIF
+     DEALLOCATE(IARR1)
+     !
+  ENDDO
+
+  CURR => FRST%NEXTXY
+
+  NBFILS = NBFILS + 1
+  NBSPSS = NBSPEC
+  ALLOCATE(BFLTMP)
+  FILENM=filename ! filename is passed as argument but actually the FILENM module var is used
+  CALL BCFILE ( FILENM, 'PNTS', BFLTMP, LBGP, &
+     &                   XCGRID, YCGRID, KGRPNT, XYTST, KGRBND, &
+     &                   DONALL)
+  IF (STPNOW()) then
+    ret=-1
+    return
+  endif
+  NULLIFY(BFLTMP%NEXTBSPC)
+  IF ( .NOT.LBFILS ) THEN
+     FBNDFIL = BFLTMP
+     CUBFL => FBNDFIL
+     LBFILS = .TRUE.
+  ELSE
+     CUBFL%NEXTBSPC => BFLTMP
+     CUBFL => BFLTMP
+  END IF
+  NFSEQ=1
+  NBSPSS = NBSPSS + NFSEQ  
+
+  DO IKO = 1, KOUNTR
+    IX = CURR%JX
+    IF (OPTG.NE.5) IY = CURR%JY
+    CURR => CURR%NEXTXY
+    ALLOCATE(BGPTMP)
+    BGPTMP%BGP(1) = IX
+    BGPTMP%BGP(2) = 1
+    BGPTMP%BGP(3) = 1000
+    BGPTMP%BGP(4) = NBSPSS
+    BGPTMP%BGP(5) = 0
+    BGPTMP%BGP(6) = 1
+    NULLIFY(BGPTMP%NEXTBGP)
+    IF ( .NOT.LBGP ) THEN
+       FBGP = BGPTMP
+       CUBGP => FBGP
+       LBGP = .TRUE.
+    ELSE
+       CUBGP%NEXTBGP => BGPTMP
+       CUBGP => BGPTMP
+    END IF
+  ENDDO
+  NBGRPT = NBGRPT + KOUNTR
+
+  IF (ASSOCIATED(TMP)) DEALLOCATE(TMP)
+
+  ret=0
+end function  
 
 function swan_regular_add_boundary_from_file( side, filename) result(ret)
   USE M_BNDSPEC

@@ -31,7 +31,10 @@ module swan_interface
   character*80 :: north_boundary_spec_file="none", &
                   south_boundary_spec_file="none", &
                   east_boundary_spec_file="none", &
-                  west_boundary_spec_file="none"
+                  west_boundary_spec_file="none", &
+                  unstructured_boundary_spec_file
+
+  integer :: boundary_marker
 
   logical ::  use_gen3=.FALSE., &
               use_breaking=.FALSE., &
@@ -304,6 +307,16 @@ function initialize_boundary() result(ret)
       if(ret.NE.0) return
     endif    
   endif
+
+  if(grid_type.EQ."unstructured") then
+    ret=swan_init_unstructured_boundary()
+    if(ret.NE.0) return
+    if(unstructured_boundary_spec_file.NE."none") then
+      ret=swan_unstructured_add_boundary_from_file(boundary_marker,unstructured_boundary_spec_file)
+      if(ret.NE.0) return
+    endif
+  endif
+
   ret=0
 end function
 
