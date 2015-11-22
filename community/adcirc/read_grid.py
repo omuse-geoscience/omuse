@@ -14,7 +14,7 @@ class adcirc_file_reader(file):
     if len(types)==0: types=(float,)
     result=[x(l) for x,l in zip(types,self.readline().split())]    
     return result[0] if len(result)==1 else result    
-  def read_value_rows(n,*types):
+  def read_value_rows(self,n,*types):
     result=[]
     for i in range(n):
       result.append(self.read_value(*types))

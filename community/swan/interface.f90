@@ -439,6 +439,123 @@ function get_grid_position_regular(i,j,x,y,n) result(ret)
 
 end function  
 
+function set_grid_position_unstructured(i,x,y,n) result(ret)
+  integer :: ret,i(n),m,n,ii
+  real*8 :: x(n),y(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.nvertsg ) then
+      ret=-1
+      cycle
+    endif
+    xcugrd(i(m))=x(m)
+    ycugrd(i(m))=y(m)
+  enddo
+end function  
+
+function get_grid_position_unstructured(i,x,y,n) result(ret)
+  integer :: ret,i(n),m,n,ii
+  real*8 :: x(n),y(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.nvertsg ) then
+      x(m)=0
+      y(m)=0
+      ret=-1
+      cycle
+    endif
+    x(m)=xcugrd(i(m))
+    x(m)=ycugrd(i(m))
+  enddo
+end function
+
+function set_grid_vmark_unstructured(i,vm,n) result(ret)
+  integer :: ret,i(n),m,n,ii,vm(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.nvertsg ) then
+      ret=-1
+      cycle
+    endif
+    vmark(i(m))=vm(m)
+  enddo
+end function  
+
+function get_grid_vmark_unstructured(i,vm,n) result(ret)
+  integer :: ret,i(n),m,n,ii,vm(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.nvertsg ) then
+      vm(m)=0
+      ret=-1
+      cycle
+    endif
+    vm(m)=vmark(i(m))
+  enddo
+end function
+
+! note the offset -1  
+function set_element_nodes(i,n1,n2,n3,n) result(ret)
+  integer :: ret,i(n),m,n,n1(n),n2(n),n3(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.ncellsg ) then
+      ret=-1
+      cycle
+    endif
+    kvertc(1,i(m))=n1(m)+1
+    kvertc(2,i(m))=n2(m)+1
+    kvertc(3,i(m))=n3(m)+1
+  enddo
+end function
+
+function get_element_nodes(i,n1,n2,n3,n) result(ret)
+  integer :: ret,i(n),m,n,n1(n),n2(n),n3(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.ncellsg ) then
+      n1(m)=0
+      n2(m)=0
+      n3(m)=0
+      ret=-1
+      cycle
+    endif
+    n1(m)=kvertc(1,i(m))-1
+    n2(m)=kvertc(2,i(m))-1
+    n3(m)=kvertc(3,i(m))-1
+  enddo
+end function
+
+function get_number_of_unstructured_boundary_segments(n) result(ret)
+  integer :: n,ret
+  n=nbpol
+  ret=0
+end function
+
+function get_number_of_nodes_in_unstructured_boundary_segment(i,n) result(ret)
+  integer :: i,n,ret
+  if(i.LT.1.OR.i.GT.nbpol) then
+    ret=-1
+    return
+  endif
+  n=nbpt(i)
+  ret=0
+end function
+
+function get_unstructured_boundary_node(i,j,n) result(ret)
+  integer :: i,j,n,ret
+  if(j.LT.1.OR.j.GT.nbpol) then
+    ret=-1
+    return
+  endif
+  if(i.LT.1.OR.i.GT.nbpt(j)) then
+    ret=-2
+    return
+  endif
+  n=blist(i,j)
+  ret=0
+end function
+
 function get_time(x) result(ret)
   integer :: ret
   real*8 :: x
