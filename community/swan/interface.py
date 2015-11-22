@@ -66,6 +66,8 @@ parameters={
     "wrap_x_coordinate" : dict(short="wrap_x", dtype="bool", default=False , description="whether grid wraps in x-direction", ptype="simple"),
     "numer_of_vertices" : dict(short="nvertsg", dtype="int32", default=0, description="number of vertices in case of unstructured grid", ptype="simple"),
     "numer_of_cells" : dict(short="ncellsg", dtype="int32", default=0, description="number of cells in case of unstructured grid", ptype="simple"),
+    "unstructured_boundary_spec_file" : dict(short="unstructured_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on unstructured boundary (1 supported)",ptype="simple"),
+    "boundary_marker" : dict(short="boundary_marker", dtype="int32", default=0, description="boundary associated with unstructured spec file", ptype="simple"),
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
@@ -165,6 +167,34 @@ class SwanInterface(CodeInterface,
     #~ def get_input_grid_position_regular(i_index='i',j_index='i'):
         #~ returns(x='d',y='d')
 
+    @remote_function(must_handle_array=True)
+    def set_grid_position_unstructured(i_index='i',x='d',y='d'):
+        returns()
+    @remote_function(must_handle_array=True)
+    def get_grid_position_unstructured(i_index='i'):
+        returns(x='d',y='d')
+    @remote_function(must_handle_array=True)
+    def set_element_nodes(i_index='i', n1='i', n2='i', n3='i'):
+        returns()
+    @remote_function(must_handle_array=True)
+    def get_element_nodes(i_index='i'):
+        returns(n1='i', n2='i', n3='i')
+    @remote_function(must_handle_array=True)
+    def set_grid_vmark_unstructured(i_index='i',vmark='i'):
+        returns()
+    @remote_function(must_handle_array=True)
+    def get_grid_vmark_unstructured(i_index='i'):
+        returns(vmark='i')
+
+    @remote_function
+    def get_number_of_unstructured_boundary_segments():
+        returns (n_boundaries=0)   
+    @remote_function
+    def get_number_of_nodes_in_unstructured_boundary_segment(index_of_segment=0):
+        returns (n_nodes=0)
+    @remote_function(can_handle_array=True)
+    def get_unstructured_boundary_node(index=0,index_of_segment=0):
+        returns (node_index=0)        
 
     @remote_function
     def get_exc_value(field_index=0):
