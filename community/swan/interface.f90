@@ -359,7 +359,7 @@ function cleanup_code() result(ret)
   ret=swan_cleanup()
 end function
 
-function set_depth_regular(i,j,x,n) result(ret)
+function set_input_depth_regular(i,j,x,n) result(ret)
   integer :: ret,n,i(n),j(n),k,ii,igrid=1
   real*8 :: x(n)
   ret=0
@@ -373,7 +373,7 @@ function set_depth_regular(i,j,x,n) result(ret)
   enddo
 end function
 
-function get_depth_regular(i,j,x,n) result(ret)
+function get_input_depth_regular(i,j,x,n) result(ret)
   integer :: ret,n,i(n),j(n),k,ii,igrid=1
   real*8 :: x(n)
   ret=0
@@ -383,6 +383,29 @@ function get_depth_regular(i,j,x,n) result(ret)
       ret=-1
     else
       x(k)=DEPTH(ii)
+    endif
+  enddo
+end function
+
+function get_depth_regular(i,j,x,n) result(ret)
+  integer :: ret,i(n),j(n),m,n,ii
+  real*8 :: x(n)
+  ret=0
+  do m=1,n
+    if( i(m).LT.1.OR.i(m).GT.MXC.OR. &
+        j(m).LT.1.OR.j(m).GT.MYC) then
+      x(m)=0
+      ret=-1
+      cycle
+    endif
+    ii=KGRPNT(i(m),j(m))
+    if(ii.EQ.1) then
+      x(m)=0
+    else if(ii.LE.1.OR.ii.GT.MCGRD) then
+      x(m)=0
+      ret=-1
+    else
+      x(m)=COMPDA(ii,JDP2)
     endif
   enddo
 end function
@@ -425,6 +448,20 @@ function get_ac2_unstructured(ii,k,l,x,n) result(ret)
       cycle
     endif
     x(m)=AC2(k(m),l(m),ii(m))
+  enddo
+end function
+
+function get_depth_unstructured(ii,x,n) result(ret)
+  integer :: ret,m,n,ii(n)
+  real*8 :: x(n)
+  ret=0
+  do m=1,n
+    if( ii(m).LT.1.OR.ii(m).GT.nvertsg) then
+      x(m)=0
+      ret=-1
+      cycle
+    endif
+    x(m)=COMPDA(ii(m),JDP2)
   enddo
 end function
 

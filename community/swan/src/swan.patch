@@ -1,16 +1,6 @@
---- swan/swanmain.ftn	2015-06-08 14:13:55.000000000 +0200
-+++ work/swanmain.ftn	2015-06-09 15:38:27.000000000 +0200
-@@ -26,7 +26,7 @@
- !
- !***********************************************************************
- !                                                                      *
--!NADC      PROGRAM SWAN
-+!NADC      SUBROUTINE SWAN
- !ADC      SUBROUTINE SWAN
- !                                                                      *
- !***********************************************************************
---- swan/Makefile	2015-06-08 14:13:55.000000000 +0200
-+++ work/Makefile	2015-06-09 15:37:57.000000000 +0200
+diff -uN swan/Makefile work/Makefile
+--- swan/Makefile	2015-10-19 12:51:48.919650461 +0200
++++ work/Makefile	2015-11-23 17:26:12.802912784 +0100
 @@ -135,6 +135,12 @@
  	        FFLAGS90="$(FLAGS_OPT) $(FLAGS90_MSC) $(FLAGS_SER)" \
                  INCS="$(INCS_SER)" LIBS="$(LIBS_SER)" OBJS="$(SWAN_OBJS)" $(SWAN_EXE)
@@ -33,3 +23,29 @@
  .f.o:
  	$(FOR) $< -c $(FFLAGS) $(INCS)
  
+diff -uN swan/swanmain.ftn work/swanmain.ftn
+--- swan/swanmain.ftn	2015-10-19 12:51:48.963650461 +0200
++++ work/swanmain.ftn	2015-11-23 17:26:12.801912785 +0100
+@@ -26,7 +26,7 @@
+ !
+ !***********************************************************************
+ !                                                                      *
+-!NADC      PROGRAM SWAN
++!NADC      SUBROUTINE SWAN
+ !ADC      SUBROUTINE SWAN
+ !                                                                      *
+ !***********************************************************************
+diff -uN swan/SwanPrepComp.ftn90 work/SwanPrepComp.ftn90
+--- swan/SwanPrepComp.ftn90	2015-10-19 12:51:48.933650463 +0200
++++ work/SwanPrepComp.ftn90	2015-11-23 17:34:32.368891882 +0100
+@@ -76,8 +76,8 @@
+ !PUN    !
+     ! deallocate arrays kvertc and kvertf (we don't use them anymore!)
+     !
+-    if (allocated(kvertc)) deallocate(kvertc)
+-    if (allocated(kvertf)) deallocate(kvertf)
++!    if (allocated(kvertc)) deallocate(kvertc)
++!    if (allocated(kvertf)) deallocate(kvertf)
+     !
+ !PUN    ! ghost vertices are regarded as vertices with boundary condition
+ !PUN    !
