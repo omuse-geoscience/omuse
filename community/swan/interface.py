@@ -256,14 +256,17 @@ class Swan(InCodeComponentImplementation):
           "numer_of_freq","numer_of_directions","lowest_freq","highest_freq",
           "input_grid_origin_x","input_grid_origin_y","input_grid_dx",
           "input_grid_dy","input_grid_orientation","input_grid_nmesh_x",
-          "input_grid_nmesh_y"]:
+          "input_grid_nmesh_y","number_of_vertices","number_of_cells"]:
             short=parameters[param]['short']
             object.add_method('INITIALIZED', 'set_'+short)
 
         object.add_method('GRID', 'set_depth_regular')
+        object.add_method('GRID', 'set_grid_position_unstructured')
         object.add_method('EDIT', 'set_depth_regular')
+        object.add_method('EDIT', 'set_grid_position_unstructured')
         for state in ['EDIT','RUN','EVOLVED']:
             object.add_method(state, 'get_depth_regular')
+            object.add_method(state, 'get_grid_position_unstructured')
         object.add_method('RUN', 'get_ac2_regular')
         object.add_method('EVOLVED', 'get_ac2_regular')
 
@@ -286,6 +289,16 @@ class Swan(InCodeComponentImplementation):
                 (units.m,units.m,object.ERROR_CODE)
             )
             object.add_method(
+                'get_grid_position_unstructured',
+                (object.INDEX,),
+                (units.m,units.m,object.ERROR_CODE)
+            )
+            object.add_method(
+                'set_grid_position_unstructured',
+                (object.INDEX,units.m,units.m),
+                (object.ERROR_CODE,)
+            )
+            object.add_method(
                 'get_input_grid_position_regular',
                 (object.INDEX,object.INDEX),
                 (units.m,units.m,object.ERROR_CODE)
@@ -299,6 +312,10 @@ class Swan(InCodeComponentImplementation):
 
     def get_grid_range(self):
         return 1,self.get_grid_mxc()+1,1,self.get_grid_myc()+1
+    def get_grid_range_unstructured(self):
+        return 1,self.get_nvertsg()
+    def get_element_range_unstructured(self):
+        return 1,self.get_ncellsg()
     def get_input_grid_range(self):
         return 1,self.get_input_mx()+1,1,self.get_input_my()+1
     def get_dir_freq_range(self):
@@ -313,6 +330,18 @@ class Swan(InCodeComponentImplementation):
             object.set_grid_range('grid', 'get_grid_range')
             object.add_getter('grid', 'get_grid_position_regular', names=axes_names)
             object.add_gridded_getter('grid', 'get_ac2_regular','get_dir_freq_range', names = ["ac2"])
+
+        if self._grid_type=="unstructured":
+            object.define_grid('grid',axes_names = axes_names)
+            object.set_grid_range('grid', 'get_grid_range_unstructured')
+            object.add_getter('grid', 'get_grid_position_unstructured', names=axes_names)
+            object.add_setter('grid', 'set_grid_position_unstructured', names=axes_names)
+            object.add_gridded_getter('grid', 'get_ac2_unstructured','get_dir_freq_range', names = ["ac2"])
+
+            object.define_grid('elements')
+            object.set_grid_range('elements', 'get_element_range_unstructured')
+            object.add_getter('elements', 'get_element_nodes', names=["n1","n2","n3"])
+            object.add_setter('elements', 'set_element_nodes', names=["n1","n2","n3"])
 
         if self._input_grid_type=="regular":
             object.define_grid('forcings',axes_names = axes_names)

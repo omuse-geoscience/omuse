@@ -421,6 +421,22 @@ function get_ac2_regular(i,j,k,l,x,n) result(ret)
   enddo
 end function
 
+function get_ac2_unstructured(ii,k,l,x,n) result(ret)
+  integer :: ret,k(n),l(n),m,n,ii(n)
+  real*8 :: x(n)
+  ret=0
+  do m=1,n
+    if( ii(m).LT.1.OR.ii(m).GT.nvertsg.OR. &
+        k(m).LT.1.OR.k(m).GT.MDC.OR. &
+        l(m).LT.1.OR.l(m).GT.MSC ) then
+      x(m)=0
+      ret=-1
+      cycle
+    endif
+    x(m)=AC2(k(m),l(m),ii(m))
+  enddo
+end function
+
 function get_grid_position_regular(i,j,x,y,n) result(ret)
   integer :: ret,i(n),j(n),m,n,ii
   real*8 :: x(n),y(n)
