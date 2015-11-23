@@ -153,20 +153,25 @@ class SwanInterface(CodeInterface,
         returns ()
 
     @remote_function(must_handle_array=True)
-    def get_depth_regular(i_index="i",j_index="i"):
+    def get_input_depth_regular(i_index="i",j_index="i"):
         returns (depth="d" | units.m)
     @remote_function(must_handle_array=True)
-    def set_depth_regular(i_index="i",j_index="i",depth="d" | units.m):
+    def set_input_depth_regular(i_index="i",j_index="i",depth="d" | units.m):
         returns ()
 
     @remote_function(must_handle_array=True)
     def get_ac2_regular(i_index='i',j_index='i',k_index='i',l_index='i'):
         returns(ac2='d' | units.m**2*units.s**2/units.rad**2)
+    @remote_function(must_handle_array=True)
+    def get_depth_regular(i_index="i",j_index="i"):
+        returns (depth="d" | units.m)
 
     @remote_function(must_handle_array=True)
     def get_ac2_unstructured(i_index='i',k_index='i',l_index='i'):
         returns(ac2='d' | units.m**2*units.s**2/units.rad**2)
-
+    @remote_function(must_handle_array=True)
+    def get_depth_unstructured(i_index="i"):
+        returns (depth="d" | units.m)
 
     @remote_function(must_handle_array=True)
     def get_grid_position_regular(i_index='i',j_index='i'):
@@ -271,12 +276,14 @@ class Swan(InCodeComponentImplementation):
             object.add_method('INITIALIZED', 'set_'+short)
 
         object.add_method('GRID', 'set_grid_position_unstructured')
-        object.add_method('INPUTGRID', 'set_depth_regular')
+        object.add_method('INPUTGRID', 'set_input_depth_regular')
         for state in ['EDIT','RUN','EVOLVED']:
-            object.add_method(state, 'get_depth_regular')
+            object.add_method(state, 'get_input_depth_regular')
             object.add_method(state, 'get_grid_position_unstructured')
         object.add_method('RUN', 'get_ac2_regular')
         object.add_method('EVOLVED', 'get_ac2_regular')
+        object.add_method('EVOLVED', 'get_depth_regular')
+        object.add_method('EVOLVED', 'get_depth_unstructured')
 
 
     def define_properties(self, object):
@@ -357,6 +364,7 @@ class Swan(InCodeComponentImplementation):
             object.define_grid('grid',axes_names = axes_names)
             object.set_grid_range('grid', 'get_grid_range')
             object.add_getter('grid', 'get_grid_position_regular', names=axes_names)
+            object.add_getter('grid', 'get_depth_regular', names=["depth"])
             object.add_gridded_getter('grid', 'get_ac2_regular','get_dir_freq_range', names = ["ac2"])
 
         if self._grid_type=="unstructured":
@@ -367,6 +375,7 @@ class Swan(InCodeComponentImplementation):
             object.add_getter('nodes', 'get_grid_vmark_unstructured', names=("vmark",))
             object.add_setter('nodes', 'set_grid_vmark_unstructured', names=("vmark",))
             object.add_gridded_getter('nodes', 'get_ac2_unstructured','get_dir_freq_range', names = ["ac2"])
+            object.add_getter('nodes', 'get_depth_unstructured',names = ["depth"])
 
             object.define_grid('elements')
             object.set_grid_range('elements', 'get_element_range_unstructured')
@@ -377,5 +386,5 @@ class Swan(InCodeComponentImplementation):
             object.define_grid('forcings',axes_names = axes_names)
             object.set_grid_range('forcings', 'get_input_grid_range')
             object.add_getter('forcings', 'get_input_grid_position_regular', names=axes_names)
-            object.add_getter('forcings', 'get_depth_regular', names=["depth"])
-            object.add_setter('forcings', 'set_depth_regular', names=["depth"])
+            object.add_getter('forcings', 'get_input_depth_regular', names=["depth"])
+            object.add_setter('forcings', 'set_input_depth_regular', names=["depth"])

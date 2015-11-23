@@ -1,7 +1,7 @@
 FC ?= ifort
 MPIFC ?= mpif90
 
-.PHONY: work config code objects
+.PHONY: patch apply_patch apply_reverse_patch config code objects
 
 libamuse_swan.a: work config objects
 	ar crs $@ work/*.o
@@ -16,20 +16,27 @@ amuse_swan.f90: work amuse_swan.ftn90
 config: work
 	cp macros.inc work/macros.inc
 
-objects: config
-	-cd work; patch -N -p1 < ../swan.patch
+objects: config apply_patch
 	make -C work amuse MPIFC="$(MPIFC)"
 
-code: config
-	-cd work; patch -N -p1 -R < ../swan.patch
+code: config apply_reverse_patch
 	make -C work/ ser MPIFC="$(MPIFC)"
 
 work:
 	cp -r swan work
 
+apply_patch:
+	-cd work; patch -N -p1 < ../swan.patch
+
+apply_reverse_patch:
+	-cd work; patch -N -p1 -R < ../swan.patch
+
+patch: clean
+	diff -uN swan work > new.patch || exit 0
+
 clean:
 	rm -f *.mod *.o libamuse_swan.a
-	make -C work/ clean
+	make -C work/ clobber
 
 distclean: clean
 	rm -rf work
