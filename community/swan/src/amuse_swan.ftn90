@@ -27,6 +27,54 @@ module amuse_swan
 
 contains
 
+! copy w/o deallocation of kvertc
+subroutine SwanPrepComp ( cross )
+    use ocpcomm4
+    use swcomm3
+    use SwanGriddata
+!PUN    use SwanGridobjects
+!
+    implicit none
+!
+!   Argument variables
+!
+    integer, dimension(nfaces), intent(out) :: cross ! contains sequence number of obstacles for each face
+                                                     ! where they crossing or zero if no crossing
+!
+!   Local variables
+!
+    integer, save                         :: ient = 0 ! number of entries in this subroutine
+!PUN    integer                               :: ivert    ! loop counter over vertices
+    !
+!PUN    type(verttype), dimension(:), pointer :: vert     ! datastructure for vertices with their attributes
+    if (ltrace) call strace (ient,'SwanPrepComp')
+    !
+!PUN    ! point to vertex object
+!PUN    !
+!PUN    vert => gridobject%vert_grid
+!PUN    !
+    ! skip deallocate arrays kvertc and kvertf (we don't use them anymore!)
+    !
+!     if (allocated(kvertc)) deallocate(kvertc)
+!     if (allocated(kvertf)) deallocate(kvertf)
+    !
+!PUN    ! ghost vertices are regarded as vertices with boundary condition
+!PUN    !
+!PUN    do ivert = 1, nverts
+!PUN       if ( vmark(ivert) == 999 ) vert(ivert)%atti(VBC) = 1
+!PUN    enddo
+!PUN    !
+    ! setup a vertex list
+    !
+    call SwanVertlist
+    !
+    ! find obstacles in computational grid, if present
+    !
+    if ( NUMOBS > 0 ) call SwanFindObstacles ( cross )
+    !
+end subroutine SwanPrepComp
+
+
 function swan_compute(COMPUT) result(ret)
   integer :: ret, SAVITE, ILEN, ISTAT, IT, IT0
   logical :: STPNOW

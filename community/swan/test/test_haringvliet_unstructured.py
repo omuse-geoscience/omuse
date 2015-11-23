@@ -37,7 +37,7 @@ class TestHaringvliet(object):
         rt.read_grid()
         nodes,elements=rt.get_sets() 
           
-        s=Swan(grid_type="unstructured", redirection="none")
+        s=Swan(grid_type="unstructured", redirection="none",debugger="gdb")
 
         print s.parameters.coordinates
         print s.parameters.projection_method
