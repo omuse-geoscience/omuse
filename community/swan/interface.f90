@@ -67,16 +67,7 @@ function initialize_code(coord_, mode_, grid_,input_grid_) result(ret)
   
 end function
 
-function initialize_grids() result(ret)
-  integer :: ret
-
-  ret=initialize_grid()
-  if(ret.NE.0) return
-  ret=initialize_input_grids()
-  
-end function
-
-function commit_grids() result(ret)
+function commit_grid() result(ret)
   integer :: ret
   
   if(grid_type.EQ."regular") ret=swan_init_regular_comp_grid()

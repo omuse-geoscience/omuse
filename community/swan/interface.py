@@ -22,10 +22,10 @@ parameters={
     "grid_length_y" : dict(short="grid_ylenc", dtype="float64", default=0. , description="length of the computational grid in y-direction", ptype="simple"),
     "grid_nmesh_x" : dict(short="grid_mxc", dtype="int32", default=0 , description="number of meshes in computational grid in x-dir.", ptype="simple"),
     "grid_nmesh_y" : dict(short="grid_myc", dtype="int32", default=0 , description="number of meshes in computational grid in x-dir.", ptype="simple"),
-    "numer_of_freq" : dict(short="msc", dtype="int32", default=32 , description="number of frequencies", ptype="simple"),
-    "numer_of_directions" : dict(short="mdc", dtype="int32", default=36 , description="number of directional bins", ptype="simple"),
-    "lowest_freq" : dict(short="slow", dtype="float64", default=0. | units.Hz, description="lowest angular frequency used in freq. discretization", ptype="simple"),
-    "highest_freq" : dict(short="shig", dtype="float64", default=0. | units.Hz , description="highest angular frequency used in freq. discretization", ptype="simple"),
+    "number_of_frequencies" : dict(short="msc", dtype="int32", default=32 , description="number of frequencies", ptype="simple"),
+    "number_of_directions" : dict(short="mdc", dtype="int32", default=36 , description="number of directional bins", ptype="simple"),
+    "lowest_frequency" : dict(short="slow", dtype="float64", default=0. | units.Hz, description="lowest angular frequency used in freq. discretization", ptype="simple"),
+    "highest_frequency" : dict(short="shig", dtype="float64", default=0. | units.Hz , description="highest angular frequency used in freq. discretization", ptype="simple"),
     "input_grid_origin_x" : dict(short="input_xp", dtype="float64", default=0. , description="origin x coord of the input grid", ptype="simple"),
     "input_grid_origin_y" : dict(short="input_yp", dtype="float64", default=0. , description="origin y coord of the input grid", ptype="simple"),
     "input_grid_dx" : dict(short="input_dx", dtype="float64", default=0. , description="input grid x mesh size", ptype="simple"),
@@ -40,7 +40,7 @@ parameters={
     "calculation_mode" : dict(short="calc_mode", dtype="string", default="stationary" , description="calculation mode [stationary or dynamic]", ptype="getter"),
     "coordinates" : dict(short="coordinates", dtype="string", default="cartesian" , description="choice of coordinates for input [cartesian, spherical]", ptype="getter"),
     "projection_method" : dict(short="projection_method", dtype="string", default="quasi-cart." , description="projection method (in case of spherical coordinates)", ptype="getter"),
-    "number_dimensions" : dict(short="number_dimensions", dtype="int32", default=2 , description="number of dimensions (1 (tbd) or 2)", ptype="getter"),
+    "number_of_dimensions" : dict(short="number_dimensions", dtype="int32", default=2 , description="number of dimensions (1 (tbd) or 2)", ptype="getter"),
     "use_uniform_wind" : dict(short="use_uniform_wind", dtype="bool", default=False , description="use constant wind",ptype="simple"),
     "use_input_bottom" : dict(short="use_input_bottom", dtype="bool", default=True , description="use input bathymetry",ptype="simple"),
     "use_input_water_level" : dict(short="use_input_water_level", dtype="bool", default=False , description="use input water level",ptype="simple"),
@@ -64,8 +64,8 @@ parameters={
     "verbosity" : dict(short="itest", dtype="int32", default=1 , description="verbosity of output (0-200)", ptype="simple"),
     "uniform_air_sea_temp_difference" : dict(short="CASTD", dtype="float64", default=0. | units.Celsius , description="uniform air-sea temp. difference", ptype="simple"),
     "wrap_x_coordinate" : dict(short="wrap_x", dtype="bool", default=False , description="whether grid wraps in x-direction", ptype="simple"),
-    "numer_of_vertices" : dict(short="nvertsg", dtype="int32", default=0, description="number of vertices in case of unstructured grid", ptype="simple"),
-    "numer_of_cells" : dict(short="ncellsg", dtype="int32", default=0, description="number of cells in case of unstructured grid", ptype="simple"),
+    "number_of_vertices" : dict(short="nvertsg", dtype="int32", default=0, description="number of vertices in case of unstructured grid", ptype="simple"),
+    "number_of_cells" : dict(short="ncellsg", dtype="int32", default=0, description="number of cells in case of unstructured grid", ptype="simple"),
     "unstructured_boundary_spec_file" : dict(short="unstructured_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on unstructured boundary (1 supported)",ptype="simple"),
     "boundary_marker" : dict(short="boundary_marker", dtype="int32", default=0, description="boundary associated with unstructured spec file", ptype="simple"),
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
@@ -124,7 +124,11 @@ class SwanInterface(CodeInterface,
         returns ()
 
     @remote_function
-    def initialize_grids():
+    def initialize_grid():
+        returns ()
+
+    @remote_function
+    def initialize_input_grids():
         returns ()
 
     @remote_function
@@ -133,7 +137,7 @@ class SwanInterface(CodeInterface,
 
 
     @remote_function
-    def commit_grids():
+    def commit_grid():
         returns ()
 
     @remote_function
@@ -158,6 +162,11 @@ class SwanInterface(CodeInterface,
     @remote_function(must_handle_array=True)
     def get_ac2_regular(i_index='i',j_index='i',k_index='i',l_index='i'):
         returns(ac2='d' | units.m**2*units.s**2/units.rad**2)
+
+    @remote_function(must_handle_array=True)
+    def get_ac2_unstructured(i_index='i',k_index='i',l_index='i'):
+        returns(ac2='d' | units.m**2*units.s**2/units.rad**2)
+
 
     @remote_function(must_handle_array=True)
     def get_grid_position_regular(i_index='i',j_index='i'):
@@ -232,9 +241,9 @@ class Swan(InCodeComponentImplementation):
         self.overridden().initialize_code(self._coordinates,self._mode,
             self._grid_type,self._input_grid_type)
 
-    def commit_grid_and_boundary(self):
-        self.overridden().commit_grids()
-        self.overridden().initialize_boundary()
+    def initialize_input_grids(self):
+        self.overridden().commit_grid() # needs to go before initialize_input_grids
+        self.overridden().initialize_input_grids()
         
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
@@ -246,24 +255,23 @@ class Swan(InCodeComponentImplementation):
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
 
-        object.add_transition('INITIALIZED','GRID','initialize_grids')
-        object.add_transition('GRID','EDIT','commit_parameters')
-        object.add_transition('EDIT','RUN','commit_grid_and_boundary')
+        object.add_transition('INITIALIZED','GRID','initialize_grid')
+        object.add_transition('GRID','INPUTGRID','initialize_input_grids')
+        object.add_transition('INPUTGRID','EDIT','commit_parameters')
+        object.add_transition('EDIT','RUN','initialize_boundary')
         object.add_transition('RUN','EVOLVED','evolve_model')
 
         for param in ["grid_origin_x","grid_origin_y", "grid_orientation",
           "grid_length_x","grid_length_y","grid_nmesh_x","grid_nmesh_y",
-          "numer_of_freq","numer_of_directions","lowest_freq","highest_freq",
+          "number_of_frequencies","number_of_directions","lowest_frequency","highest_frequency",
           "input_grid_origin_x","input_grid_origin_y","input_grid_dx",
           "input_grid_dy","input_grid_orientation","input_grid_nmesh_x",
           "input_grid_nmesh_y","number_of_vertices","number_of_cells"]:
             short=parameters[param]['short']
             object.add_method('INITIALIZED', 'set_'+short)
 
-        object.add_method('GRID', 'set_depth_regular')
         object.add_method('GRID', 'set_grid_position_unstructured')
-        object.add_method('EDIT', 'set_depth_regular')
-        object.add_method('EDIT', 'set_grid_position_unstructured')
+        object.add_method('INPUTGRID', 'set_depth_regular')
         for state in ['EDIT','RUN','EVOLVED']:
             object.add_method(state, 'get_depth_regular')
             object.add_method(state, 'get_grid_position_unstructured')
@@ -275,11 +283,31 @@ class Swan(InCodeComponentImplementation):
         object.add_property('get_time', public_name = "model_time")
 
     def define_parameters(self, object):      
-        for param in parameters:        
-            object.add_default_form_parameter(
-                parameters[param]["short"], 
-                parameters[param]["description"], 
-                parameters[param]["default"] )  
+        for param in parameters:
+            short=parameters[param]["short"]
+            ptype=parameters[param]["ptype"]
+            dtype=parameters[param]["dtype"]
+            getter="get_"+short
+            if ptype in ["simple","normal"]:
+              setter="set_"+short
+            else:
+              setter=None
+            if dtype!='bool':
+                object.add_method_parameter(
+                    getter,
+                    setter,
+                    param,
+                    parameters[param]["description"], 
+                    parameters[param]["default"]
+                )
+            else:
+                object.add_boolean_parameter(
+                    getter,
+                    setter,
+                    param,
+                    parameters[param]["description"], 
+                    parameters[param]["default"]
+                )            
           
     def define_methods(self, object):
         if self._coordinates=="cartesian":
@@ -332,11 +360,13 @@ class Swan(InCodeComponentImplementation):
             object.add_gridded_getter('grid', 'get_ac2_regular','get_dir_freq_range', names = ["ac2"])
 
         if self._grid_type=="unstructured":
-            object.define_grid('grid',axes_names = axes_names)
-            object.set_grid_range('grid', 'get_grid_range_unstructured')
-            object.add_getter('grid', 'get_grid_position_unstructured', names=axes_names)
-            object.add_setter('grid', 'set_grid_position_unstructured', names=axes_names)
-            object.add_gridded_getter('grid', 'get_ac2_unstructured','get_dir_freq_range', names = ["ac2"])
+            object.define_grid('nodes',axes_names = axes_names)
+            object.set_grid_range('nodes', 'get_grid_range_unstructured')
+            object.add_getter('nodes', 'get_grid_position_unstructured', names=axes_names)
+            object.add_setter('nodes', 'set_grid_position_unstructured', names=axes_names)
+            object.add_getter('nodes', 'get_grid_vmark_unstructured', names=("vmark",))
+            object.add_setter('nodes', 'set_grid_vmark_unstructured', names=("vmark",))
+            object.add_gridded_getter('nodes', 'get_ac2_unstructured','get_dir_freq_range', names = ["ac2"])
 
             object.define_grid('elements')
             object.set_grid_range('elements', 'get_element_range_unstructured')

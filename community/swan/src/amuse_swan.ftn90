@@ -737,8 +737,7 @@ function swan_unstructured_add_boundary_from_file( marker, filename) result(ret)
         DO IPP = 2, K
            IF ( IARR2(IPP)/=IARR2(IPP-1)+IXI ) THEN
               ISH = IPP-1
-              ret=-2
-              return
+              EXIT
            ENDIF
         ENDDO
         IARR2 = CSHIFT(IARR2,ISH)
