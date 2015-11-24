@@ -396,3 +396,10 @@ class Swan(InCodeComponentImplementation):
             object.add_getter('forcings', 'get_input_grid_position_regular', names=axes_names)
             object.add_getter('forcings', 'get_input_depth_regular', names=["depth"])
             object.add_setter('forcings', 'set_input_depth_regular', names=["depth"])
+
+        if self._input_grid_type=="unstructured":
+            object.define_grid('forcings',axes_names = axes_names)
+            object.set_grid_range('forcings', 'get_element_range_unstructured')
+            object.add_getter('forcings', 'get_grid_position_unstructured', names=axes_names)
+            object.add_getter('forcings', 'get_input_depth_unstructured', names=["depth"])
+            object.add_setter('forcings', 'set_input_depth_unstructured', names=["depth"])

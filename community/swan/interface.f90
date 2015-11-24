@@ -108,85 +108,151 @@ end function
 function initialize_input_grids() result(ret)
   integer :: ret
   ret=0
-  if(input_grid_type.EQ."regular") then
-    if(use_input_bottom) then
+  
+  if(input_grid_type.EQ."curvilinear") then
+    ret=-2
+    return
+  endif
+  
+  if(use_input_bottom) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(1, input_mx, input_my, input_xp,  &
-                                        input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(DEPTH)) DEALLOCATE(DEPTH)
-      ALLOCATE(DEPTH(MXG(1)*MYG(1)))
-      DEPTH=1
-      LEDS(1)=2
+                                      input_yp, input_alp, input_dx, input_dy)
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(1)
     endif
-    if(use_input_current) then
+    if(ret.NE.0) return
+    IF (ALLOCATED(DEPTH)) DEALLOCATE(DEPTH)
+    ALLOCATE(DEPTH(MXG(1)*MYG(1)))
+    DEPTH=1
+    LEDS(1)=2
+  endif
+
+  if(use_input_current) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(2 , input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
       ret=swan_init_regular_input_grid(3 , input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(UXB)) DEALLOCATE(UXB)
-      IF (ALLOCATED(UYB)) DEALLOCATE(UYB)
-      ALLOCATE(UXB(MXG(2)*MYG(2)))      
-      ALLOCATE(UYB(MXG(3)*MYG(3)))      
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(2)
+      ret=swan_init_unstructured_input_grid(3)
     endif
-    if(use_input_friction) then
+    if(ret.NE.0) return
+    IF (ALLOCATED(UXB)) DEALLOCATE(UXB)
+    IF (ALLOCATED(UYB)) DEALLOCATE(UYB)
+    ALLOCATE(UXB(MXG(2)*MYG(2)))      
+    ALLOCATE(UYB(MXG(3)*MYG(3)))      
+    UXB=0
+    UYB=0
+    LEDS(2)=2
+    LEDS(3)=2
+  endif
+  
+  if(use_input_friction) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(4, input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(FRIC)) DEALLOCATE(FRIC)
-      ALLOCATE(FRIC(MXG(4)*MYG(4)))
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(4)
     endif
-    if(use_input_wind) then
+    if(ret.NE.0) return
+    IF (ALLOCATED(FRIC)) DEALLOCATE(FRIC)
+    ALLOCATE(FRIC(MXG(4)*MYG(4)))
+    FRIC=0
+    LEDS(4)=2
+  endif
+  
+  if(use_input_wind) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(5, input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
       ret=swan_init_regular_input_grid(6, input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(WXI)) DEALLOCATE(WXI)
-      IF (ALLOCATED(WYI)) DEALLOCATE(WYI)
-      ALLOCATE(WXI(MXG(5)*MYG(5)))
-      ALLOCATE(WYI(MXG(6)*MYG(6)))
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(5)
+      ret=swan_init_unstructured_input_grid(6)
     endif
-    if(use_input_water_level) then
+    if(ret.NE.0) return
+    IF (ALLOCATED(WXI)) DEALLOCATE(WXI)
+    IF (ALLOCATED(WYI)) DEALLOCATE(WYI)
+    ALLOCATE(WXI(MXG(5)*MYG(5)))
+    ALLOCATE(WYI(MXG(6)*MYG(6)))
+    WXI=0
+    WYI=0
+    LEDS(5)=2
+    LEDS(6)=2
+  endif
+
+  if(use_input_water_level) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(7, input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(WLEVL)) DEALLOCATE(WLEVL)
-      ALLOCATE(WLEVL(MXG(7)*MYG(7)))
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(7)
     endif
-    if(use_input_air_sea_temp_diff) then
+    if(ret.NE.0) return
+    IF (ALLOCATED(WLEVL)) DEALLOCATE(WLEVL)
+    ALLOCATE(WLEVL(MXG(7)*MYG(7)))
+    WLEVL=0
+    LEDS(7)=2
+  endif
+  
+  if(use_input_air_sea_temp_diff) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(10, input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(ASTDF)) DEALLOCATE(ASTDF)
-      ALLOCATE(ASTDF(MXG(10)*MYG(10)))
-    endif        
-    if(use_input_plant_density) then
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(10)
+    endif
+    if(ret.NE.0) return
+    IF (ALLOCATED(ASTDF)) DEALLOCATE(ASTDF)
+    ALLOCATE(ASTDF(MXG(10)*MYG(10)))
+    ASTDF=0
+    LEDS(10)=2
+  endif      
+    
+  if(use_input_plant_density) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(11, input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(NPLAF)) DEALLOCATE(NPLAF)
-      ALLOCATE(NPLAF(MXG(11)*MYG(11)))
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(11)
     endif
-    if(use_input_turbulent_visc) then
+    if(ret.NE.0) return
+    IF (ALLOCATED(NPLAF)) DEALLOCATE(NPLAF)
+    ALLOCATE(NPLAF(MXG(11)*MYG(11)))
+    NPLAF=0
+    LEDS(11)=2
+  endif
+  
+  if(use_input_turbulent_visc) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(12, input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(TURBF)) DEALLOCATE(TURBF)
-      ALLOCATE(TURBF(MXG(12)*MYG(12)))
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(12)
     endif
-    if(use_input_mud_layer) then
+    if(ret.NE.0) return
+    IF (ALLOCATED(TURBF)) DEALLOCATE(TURBF)
+    ALLOCATE(TURBF(MXG(12)*MYG(12)))
+    TURBF(12)=0
+    LEDS(12)=2
+  endif
+  
+  if(use_input_mud_layer) then
+    if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(13, input_mx, input_my, input_xp,  &
                                         input_yp, input_alp, input_dx, input_dy)
-      if(ret.NE.0) return
-      IF (ALLOCATED(MUDLF)) DEALLOCATE(MUDLF)
-      ALLOCATE(MUDLF(MXG(13)*MYG(13)))
-    endif    
-  else if(input_grid_type.EQ."curvilinear") then
-    ret=-2 
-  else 
-    ret=-2
-  endif
+    else if(input_grid_type.EQ."unstructured") then
+      ret=swan_init_unstructured_input_grid(13)
+    endif
+    if(ret.NE.0) return
+    IF (ALLOCATED(MUDLF)) DEALLOCATE(MUDLF)
+    ALLOCATE(MUDLF(MXG(13)*MYG(13)))
+    MUDLF=0
+    LEDS(13)=2
+  endif    
   
 end function
 
@@ -385,6 +451,34 @@ function get_input_depth_regular(i,j,x,n) result(ret)
   ret=0
   do k=1,n
     ii=i(k) + (j(k)-1) * MXG(igrid)
+    if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
+      ret=-1
+    else
+      x(k)=DEPTH(ii)
+    endif
+  enddo
+end function
+
+function set_input_depth_unstructured(i,x,n) result(ret)
+  integer :: ret,n,i(n),k,ii,igrid=1
+  real*8 :: x(n)
+  ret=0
+  do k=1,n
+    ii=i(k)
+    if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
+      ret=-1
+    else
+      DEPTH(ii)=x(k)
+    endif
+  enddo
+end function
+
+function get_input_depth_unstructured(i,x,n) result(ret)
+  integer :: ret,n,i(n),k,ii,igrid=1
+  real*8 :: x(n)
+  ret=0
+  do k=1,n
+    ii=i(k)
     if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
       ret=-1
     else
