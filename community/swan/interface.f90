@@ -67,12 +67,18 @@ function initialize_code(coord_, mode_, grid_,input_grid_) result(ret)
   
 end function
 
-function commit_grid() result(ret)
+function commit_grid_positions() result(ret)
+  integer :: ret
+  
+  if(grid_type.EQ."unstructured") ret=swan_init_unstructured_comp_grid()
+  
+end function
+
+function commit_grids() result(ret)
   integer :: ret
   
   if(grid_type.EQ."regular") ret=swan_init_regular_comp_grid()
   if(grid_type.EQ."curvilinear") ret=swan_init_curvilinear_comp_grid()
-  if(grid_type.EQ."unstructured") ret=swan_init_unstructured_comp_grid()
   
 end function
 
@@ -509,7 +515,7 @@ function get_grid_position_unstructured(i,x,y,n) result(ret)
       cycle
     endif
     x(m)=xcugrd(i(m))
-    x(m)=ycugrd(i(m))
+    y(m)=ycugrd(i(m))
   enddo
 end function
 

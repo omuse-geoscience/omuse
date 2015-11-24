@@ -37,7 +37,7 @@ class TestHaringvliet(object):
         rt.read_grid()
         nodes,elements=rt.get_sets() 
           
-        s=Swan(grid_type="unstructured", redirection="none",debugger="gdb")
+        s=Swan(grid_type="unstructured", redirection="none")
 
         print s.parameters.coordinates
         print s.parameters.projection_method
@@ -68,8 +68,6 @@ class TestHaringvliet(object):
       
         s.parameters.constant_water_level=0.3 | units.m
       
-        #~ print s.initialize_grids()
-
         s.parameters.uniform_wind_velocity=12. | units.m/units.s
         s.parameters.uniform_wind_direction=8.8 | units.deg
       
@@ -82,7 +80,6 @@ class TestHaringvliet(object):
         s.parameters.use_friction_parameters=True
         s.parameters.use_uniform_wind=True
       
-        #~ s.commit_parameters()
         print s.parameters
        
         exc=s.get_exc_value(1)
@@ -101,10 +98,6 @@ class TestHaringvliet(object):
         channel.copy_attributes(["n1","n2","n3"])
 
         s.forcings.depth=bathymetry | units.m
-      
-        #~ print s.commit_grids()
-      
-        #~ print s.initialize_boundary()
 
         s.evolve_model(0. | units.s)
       
