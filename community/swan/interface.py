@@ -137,7 +137,11 @@ class SwanInterface(CodeInterface,
 
 
     @remote_function
-    def commit_grid():
+    def commit_grid_positions():
+        returns ()
+
+    @remote_function
+    def commit_grids():
         returns ()
 
     @remote_function
@@ -247,8 +251,12 @@ class Swan(InCodeComponentImplementation):
             self._grid_type,self._input_grid_type)
 
     def initialize_input_grids(self):
-        self.overridden().commit_grid() # needs to go before initialize_input_grids
+        self.overridden().commit_grid_positions()
         self.overridden().initialize_input_grids()
+        
+    def initialize_boundary(self):
+        self.overridden().commit_grids()
+        self.overridden().initialize_boundary()
         
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')

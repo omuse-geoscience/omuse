@@ -41,7 +41,7 @@ class TestHaringvliet(object):
         print s.get_calc_mode()
         print s.get_number_dimensions()
         
-        print s.initialize_code()
+        s.initialize_code()
         
         s.set_wlev(0.3)
         wlev,err=s.get_wlev()
@@ -79,10 +79,10 @@ class TestHaringvliet(object):
         s.set_input_mx(87)
         s.set_input_my(116)
       
-        print s.initialize_grids()
+        s.initialize_grid()
         
-        print s.set_u10(12.)
-        print s.set_wdip(8.8)
+        s.set_u10(12.)
+        s.set_wdip(8.8)
       
         s.set_west_boundary_spec_file("f31har01.bnd")
       
@@ -91,29 +91,30 @@ class TestHaringvliet(object):
         s.set_use_triads(True)
         s.set_use_friction(True)
         s.set_use_uniform_wind(True)
-      
-        print s.commit_parameters()
-       
+             
         exc,err=s.get_exc_value(1)
+
+        s.commit_parameters()
+        s.commit_grid_positions()  
+          
+        s.initialize_input_grids()
         
         bathymetry[bathymetry==-99.]=exc
         print (bathymetry==-1.e20).sum(),exc
         input_shape=bathymetry.shape
         ii,jj=numpy.mgrid[1:input_shape[0]+1,1:input_shape[1]+1]
-        print s.set_depth_regular(ii.flatten(),jj.flatten(),bathymetry.flatten())
-      
-        print s.commit_grids()
-      
-        print s.initialize_boundary()
-      
+        print s.set_input_depth_regular(ii.flatten(),jj.flatten(),bathymetry.flatten())
+          
+        s.commit_grids()
+        s.initialize_boundary()
+              
         i,j=numpy.mgrid[1:mxc+1,1:myc+1]
         x,y,err=s.get_grid_position_regular(i.flatten(),j.flatten())
-      
-        print s.evolve_model(0.)
+
+        s.evolve_model(0.)
       
         i,j,k,l=numpy.mgrid[1:mxc+1,1:myc+1,1:mdc+1,1:msc+1]
         ac2,err=s.get_ac2_regular(i.flatten(),j.flatten(),k.flatten(),l.flatten())
-        print err.max(),err.min()
       
         ac2=ac2.reshape(mxc,myc,mdc,msc)
         numpy.savez("data.npz", ac2=ac2,x=x,y=y)
@@ -129,8 +130,8 @@ class TestHaringvliet(object):
         print s.parameters.projection_method
         print s.parameters.grid_type
         print s.parameters.input_grid_type
-        print s.parameters.calc_mode
-        print s.parameters.number_dimensions
+        print s.parameters.calculation_mode
+        print s.parameters.number_of_dimensions
 
         mxc=98
         myc=88
@@ -138,43 +139,39 @@ class TestHaringvliet(object):
         mdc=36
 
                 
-        s.parameters.grid_xpc=6960.2 | units.m
-        s.parameters.grid_ypc=0. | units.m
-        s.parameters.grid_alpc=0. | units.deg
-        s.parameters.grid_xlenc=14789.8 | units.m
-        s.parameters.grid_ylenc=22000. | units.m
-        s.parameters.grid_mxc=mxc
-        s.parameters.grid_myc=myc
-        s.parameters.mdc=mdc
-        s.parameters.msc=msc
-        s.parameters.slow=2*numpy.pi*0.0521 | units.rad/units.s
-        s.parameters.shig=2*numpy.pi | units.rad/units.s
+        s.parameters.grid_origin_x=6960.2 | units.m
+        s.parameters.grid_origin_y=0. | units.m
+        s.parameters.grid_orientation=0. | units.deg
+        s.parameters.grid_length_x=14789.8 | units.m
+        s.parameters.grid_length_y=22000. | units.m
+        s.parameters.grid_nmesh_x=mxc
+        s.parameters.grid_nmesh_y=myc
+        s.parameters.number_of_directions=mdc
+        s.parameters.number_of_frequencies=msc
+        s.parameters.lowest_frequency=2*numpy.pi*0.0521 | units.rad/units.s
+        s.parameters.highest_frequency=2*numpy.pi | units.rad/units.s
 
-        s.parameters.input_xp=0. | units.m
-        s.parameters.input_yp=0. | units.m
-        s.parameters.input_alp=0. | units.deg
-        s.parameters.input_dx=250. | units.m
-        s.parameters.input_dy=250. | units.m
-        s.parameters.input_mx=87
-        s.parameters.input_my=116
+        s.parameters.input_grid_origin_x=0. | units.m
+        s.parameters.input_grid_origin_y=0. | units.m
+        s.parameters.input_grid_orientation=0. | units.deg
+        s.parameters.input_grid_dx=250. | units.m
+        s.parameters.input_grid_dy=250. | units.m
+        s.parameters.input_grid_nmesh_x=87
+        s.parameters.input_grid_nmesh_y=116
       
-        s.parameters.wlev=0.3 | units.m
-      
-        #~ print s.initialize_grids()
+        s.parameters.constant_water_level=0.3 | units.m
 
-        s.parameters.u10=12. | units.m/units.s
-        s.parameters.wdip=8.8 | units.deg
+        s.parameters.uniform_wind_velocity=12. | units.m/units.s
+        s.parameters.uniform_wind_direction=8.8 | units.deg
       
         s.parameters.west_boundary_spec_file="f31har01.bnd"
       
-        s.parameters.use_gen3=True
-        s.parameters.use_breaking=True
-        s.parameters.use_triads=True
-        s.parameters.use_friction=True
+        s.parameters.use_gen3_parameters=True
+        s.parameters.use_breaking_parameters=True
+        s.parameters.use_triads_parameters=True
+        s.parameters.use_friction_parameters=True
         s.parameters.use_uniform_wind=True
-      
-        #~ s.commit_parameters()
-       
+
         exc=s.get_exc_value(1)
         
         bathymetry[bathymetry==-99.]=exc
@@ -187,10 +184,6 @@ class TestHaringvliet(object):
 
         s.forcings.depth=bathymetry | units.m
       
-        #~ print s.commit_grids()
-      
-        #~ print s.initialize_boundary()
-
         s.evolve_model(0. | units.s)
       
         write_set_to_file(s.grid,"grid.amuse","amuse")
