@@ -552,9 +552,23 @@ function swan_init_regular_input_grid(i, mx_,my_,xp_,yp_,alp_,dx_,dy_) result(re
   ret=0
 end function
 
-function swan_init_unstructured_input_grids() result(ret)
-  integer :: ret
-  ret=-2  
+function swan_init_unstructured_input_grid(i) result(ret)
+  integer :: i,IGRID1,ret
+  
+  IGRID1=i
+
+  IF (ONED) THEN
+    CALL MSGERR (4, '1D-simulation cannot be done with unstructured grid')
+    ret=-1
+    return
+  ENDIF
+  
+  IGTYPE(IGRID1) = 3
+  MXG(IGRID1)    = nverts
+  MYG(IGRID1)    = 1
+  LEDS(IGRID1) = 1
+
+  ret=0
 end function
 
 function swan_init_curvilinear_input_grids() result(ret)
