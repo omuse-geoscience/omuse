@@ -14,7 +14,7 @@ p.set_topography_file('data/input/grid/topography_20010702.ieeei4')
 #set the restart file
 p.set_ts_file('data/input/restart/r.x1_SAMOC_control.00750101')
 
-#setup the forcing 
+#setup the forcing
 p.set_shf_monthly_file('data/input/shf_monthly/shf.normal_year+flux.mon')
 p.set_sfwf_monthly_file('data/input/sfwf/sfwf_phc0-50_ncarp_r46_flux.mon')
 p.set_ws_monthly_file('data/input/ws_monthly/ws.1958-2000.mon')

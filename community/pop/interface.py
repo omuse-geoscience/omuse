@@ -615,11 +615,8 @@ class POP(CommonCode):
         #u_lon = pos[1].value_in(units.rad).reshape(size)
 
         u_lat = self.nodes.lat.value_in(units.rad)
-        print 'u_lat =', u_lat, u_lat.shape
         u_lon = self.nodes.lon.value_in(units.rad)
-        print 'u_lon =', u_lon, u_lon.shape
 
-    
         corners = numpy.zeros( (2, size[0]+1, size[1]+1) , dtype=numpy.double)
         #corners = [[[0 for i in range(size[0]+1)] for j in range(size[1]+1)] for i in range(2)]
         #corners = numpy.array(corners, dtype=numpy.double)
