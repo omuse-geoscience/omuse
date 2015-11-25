@@ -25,9 +25,12 @@ config['LONMAX'] = 50.
 config['LATMIN'] = -45.
 config['LATMAX'] = -25.
 
-RW_PATH = '/home/ben/Downloads/emason-py-eddy-tracker/rossrad.dat'
-SAVE_DIR = '/home/ben/drive/eddy-tracker/'
-DATA_DIR = '/home/ben/amuse/amuse/src/omuse/ext/eddy_tracker/'
+import os
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+
+RW_PATH = THIS_DIR + '/rossrad.dat'
+SAVE_DIR = THIS_DIR + '/'
+DATA_DIR = THIS_DIR + '/'
 DIAGNOSTIC_TYPE = 'SLA'
 A_SAVEFILE = "".join([SAVE_DIR, 'eddy_tracks_SLA_AVISO_anticyclonic.nc'])
 C_SAVEFILE = "".join([SAVE_DIR, 'eddy_tracks_SLA_AVISO_cyclonic.nc'])
