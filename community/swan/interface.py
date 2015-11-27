@@ -59,7 +59,7 @@ parameters={
     "south_boundary_spec_file" : dict(short="south_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on south boundary",ptype="simple"),
     "west_boundary_spec_file" : dict(short="west_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on west boundary",ptype="simple"),
     "east_boundary_spec_file" : dict(short="east_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on east boundary",ptype="simple"),
-    "timestep" : dict(short="dt", dtype="float64", default=360. | units.s , description="timestep of computation", ptype="simple"),
+    "timestep" : dict(short="dt", dtype="float64", default=0. | units.s , description="timestep of computation", ptype="simple"),
     "begin_time" : dict(short="begin_time", dtype="float64", default=0. | units.s , description="start time of computation", ptype="simple"),
     "verbosity" : dict(short="itest", dtype="int32", default=1 , description="verbosity of output (0-200)", ptype="simple"),
     "uniform_air_sea_temp_difference" : dict(short="CASTD", dtype="float64", default=0. | units.Celsius , description="uniform air-sea temp. difference", ptype="simple"),
@@ -88,7 +88,7 @@ _setter_string="""
   end function
                """
 
-def generate_getters_setters(filename="getter_setters.f90"):
+def parameter_getter_setters(filename="getter_setters.f90"):
     filestring=""
     py_to_f={"string" : "character(len=*) ", "float64" : "real*8", "float32" : "real", "int32" : "integer", "bool" : "logical"}
     for par,d in parameters.iteritems():
@@ -96,9 +96,70 @@ def generate_getters_setters(filename="getter_setters.f90"):
         filestring+=_setter_string.format(d["short"],py_to_f[d["dtype"]])
       if d["ptype"] in ["simple","getter"]:
         filestring+=_getter_string.format(d["short"],py_to_f[d["dtype"]])
+    return filestring
+    
+input_grid_variables={
+    "depth" : dict(pyvar=["depth"], forvar=["depth"], igrid=1, unit=units.m),
+    "water_level" : dict(pyvar=["water_level"], forvar=["wlevl"], igrid=7, unit=units.m),
+    "current" : dict(pyvar=["vx","vy"], forvar=["uxb","uyb"], igrid=2, unit=units.m/units.s),
+    "wind" : dict(pyvar=["wind_vx","wind_vy"], forvar=["wxi","wyi"], igrid=5, unit=units.m/units.s)
+}
+
+_regular_input_grid_template="""
+  function {0}et_input_{1}_regular(i,j,{2},n) result(ret)
+    integer :: ret,n,i(n),j(n),k,ii,igrid={3}
+    real*8 :: {4}
+    ret=0
+    do k=1,n
+      ii=i(k) + (j(k)-1) * MXG(igrid)
+      if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
+        ret=-1
+      else
+{5}
+      endif
+    enddo
+  end function
+"""
+
+_unstructured_input_grid_template="""
+  function {0}et_input_{1}_unstructured(i,{2},n) result(ret)
+    integer :: ret,n,i(n),k,ii,igrid={3}
+    real*8 :: {4}
+    ret=0
+    do k=1,n
+      ii=i(k)
+      if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
+        ret=-1
+      else
+{5}
+      endif
+    enddo
+  end function
+"""
+
+def input_grid_string(template=_unstructured_input_grid_template):
+    filestring=""
+    for var,d in input_grid_variables.iteritems():
+        for getset,getset_template in zip("sg",["{1}={0}","{0}={1}"]):
+            args=d["forvar"]
+            igrid=d["igrid"]
+            n=len(args)
+            forvar=','.join(['x'+str(i) for i,x in enumerate(args)])
+            forvarn=','.join(['x'+str(i)+'(n)' for i,x in enumerate(args)])
+            getset_lines=[]
+            for i,a in enumerate(args):
+              getset_lines.append(8*" "+getset_template.format('x'+str(i)+"(k)",a+"(ii)"))
+            getset_lines='\n'.join(getset_lines)
+            filestring+=template.format(getset,var,forvar,igrid,forvarn,getset_lines)
+    return filestring
+
+def generate_getters_setters(filename="getter_setters.f90"):
+    filestring=""
+    filestring+=input_grid_string(_unstructured_input_grid_template)
+    filestring+=input_grid_string(_regular_input_grid_template)
+    filestring+=parameter_getter_setters()
     with open(filename,"w") as f:
         f.write(filestring)
-
 
 class SwanInterface(CodeInterface, 
                       CommonCodeInterface,
@@ -154,13 +215,6 @@ class SwanInterface(CodeInterface,
 
     @remote_function
     def evolve_model(tend=0. | units.s):
-        returns ()
-
-    @remote_function(must_handle_array=True)
-    def get_input_depth_regular(i_index="i",j_index="i"):
-        returns (depth="d" | units.m)
-    @remote_function(must_handle_array=True)
-    def set_input_depth_regular(i_index="i",j_index="i",depth="d" | units.m):
         returns ()
 
     @remote_function(must_handle_array=True)
@@ -235,7 +289,34 @@ class SwanInterface(CodeInterface,
         if ptype!="getter":
           exec("@legacy_function\ndef set_"+short+"():\n  function = LegacyFunctionSpecification()\n"
               "  function.addParameter('"+short+"', dtype='"+dtype+"', direction=function.IN, unit="+unit+")\n"
-              "  function.result_type = 'int32'\n  return function")    
+              "  function.result_type = 'int32'\n  return function")
+
+    for var,d in input_grid_variables.iteritems():
+        pyvars=d["pyvar"]
+        forvars=d["forvar"]
+        unit=d["unit"].reference_string()
+        for getset in "sg":
+            exec( "@legacy_function\n"
+                  "def "+getset+"et_input_"+var+"_regular():\n"
+                  "  function = LegacyFunctionSpecification()\n"
+                  "  function.must_handle_array = True\n"
+                  "  function.addParameter('i_index', dtype='i', direction=function.IN)\n"
+                  "  function.addParameter('j_index', dtype='i', direction=function.IN)\n" +
+        ''.join([ "  function.addParameter('"+v+"', dtype='d', direction=function."+("IN" if getset=="s" else "OUT")+", unit="+unit+")\n" for v in pyvars] ) +
+                  "  function.addParameter('ncells', dtype='i', direction=function.LENGTH)\n"
+                  "  function.result_type = 'i'\n"
+                  "  return function\n")
+        for getset in "sg":
+            exec( "@legacy_function\n"
+                  "def "+getset+"et_input_"+var+"_unstructured():\n"
+                  "  function = LegacyFunctionSpecification()\n"
+                  "  function.must_handle_array = True\n"
+                  "  function.addParameter('i_index', dtype='i', direction=function.IN)\n" +
+        ''.join([ "  function.addParameter('"+v+"', dtype='d', direction=function."+("IN" if getset=="s" else "OUT")+", unit="+unit+")\n" for v in pyvars] ) +
+                  "  function.addParameter('ncells', dtype='i', direction=function.LENGTH)\n"
+                  "  function.result_type = 'i'\n"
+                  "  return function\n") 
+
         
 class Swan(InCodeComponentImplementation):
     def __init__(self, coordinates="cartesian", mode="stationary", 
@@ -292,6 +373,7 @@ class Swan(InCodeComponentImplementation):
         object.add_method('EVOLVED', 'get_ac2_regular')
         object.add_method('EVOLVED', 'get_depth_regular')
         object.add_method('EVOLVED', 'get_depth_unstructured')
+        object.add_method('EVOLVED', 'evolve_model')
 
 
     def define_properties(self, object):
