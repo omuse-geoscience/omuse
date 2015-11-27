@@ -387,6 +387,7 @@ function evolve_model(tend) result(ret)
   integer :: ret
   real*8 :: tend
   real :: dt_save
+  character*4 :: comp
 
   ret=0
   dt_save=DT
@@ -398,26 +399,32 @@ function evolve_model(tend) result(ret)
     RDTIM = 0.
     NSTATC = 0
     MTC = 1
+    comp="COMP"
   else
     TINIC=TIMCO
     if(DT.LE.0.) then
       ret=-1
       return
     endif
-    MTC = NINT ((tend - TINIC)/DT)
-    TFINC=TINIC+MTC*DT
-    RDTIM=1./DT
-    NSTATC=1
+    MTC = CEILING ((tend - TINIC)/DT)
+    if(MTC.LE.0) then
+      MTC=0
+      TFINC=TINIC
+      RDTIM=0.
+      comp="NOCO"
+    else
+      TFINC=TINIC+MTC*DT
+      RDTIM=1./DT
+      NSTATC=1
+    endif
   endif
   IF (NSTATC.EQ.0) THEN
     ITERMX = MXITST
   ELSE
     ITERMX = MXITNS
   ENDIF
-  if(TFINC.GT.TINIC.OR.NSTATC.EQ.0) then
-    ret=swan_compute("COMP")
-  endif
-  dt_save=DT
+  ret=swan_compute("COMP")
+  DT=dt_save
 end function
 
 
@@ -429,62 +436,6 @@ end function
 function cleanup_code() result(ret)
   integer :: ret
   ret=swan_cleanup()
-end function
-
-function set_input_depth_regular(i,j,x,n) result(ret)
-  integer :: ret,n,i(n),j(n),k,ii,igrid=1
-  real*8 :: x(n)
-  ret=0
-  do k=1,n
-    ii=i(k) + (j(k)-1) * MXG(igrid)
-    if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
-      ret=-1
-    else
-      DEPTH(ii)=x(k)
-    endif
-  enddo
-end function
-
-function get_input_depth_regular(i,j,x,n) result(ret)
-  integer :: ret,n,i(n),j(n),k,ii,igrid=1
-  real*8 :: x(n)
-  ret=0
-  do k=1,n
-    ii=i(k) + (j(k)-1) * MXG(igrid)
-    if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
-      ret=-1
-    else
-      x(k)=DEPTH(ii)
-    endif
-  enddo
-end function
-
-function set_input_depth_unstructured(i,x,n) result(ret)
-  integer :: ret,n,i(n),k,ii,igrid=1
-  real*8 :: x(n)
-  ret=0
-  do k=1,n
-    ii=i(k)
-    if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
-      ret=-1
-    else
-      DEPTH(ii)=x(k)
-    endif
-  enddo
-end function
-
-function get_input_depth_unstructured(i,x,n) result(ret)
-  integer :: ret,n,i(n),k,ii,igrid=1
-  real*8 :: x(n)
-  ret=0
-  do k=1,n
-    ii=i(k)
-    if(ii.LT.1.OR.ii.GT.MXG(igrid)*MYG(igrid)) THEN
-      ret=-1
-    else
-      x(k)=DEPTH(ii)
-    endif
-  enddo
 end function
 
 function get_depth_regular(i,j,x,n) result(ret)
