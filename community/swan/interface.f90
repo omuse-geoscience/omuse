@@ -16,7 +16,7 @@ module swan_interface
   character*12 :: input_grid_type="regular"
   real :: input_xp,input_yp,input_dx,input_dy,input_alp
   integer :: input_mx,input_my
-  logical ::  use_input_bottom=.TRUE., &
+  logical ::  use_input_depth=.TRUE., &
               use_input_water_level=.FALSE., &
               use_input_current=.FALSE., &
               use_input_air_sea_temp_diff=.FALSE., &
@@ -114,7 +114,7 @@ function initialize_input_grids() result(ret)
     return
   endif
   
-  if(use_input_bottom) then
+  if(use_input_depth) then
     if(input_grid_type.EQ."regular") then
       ret=swan_init_regular_input_grid(1, input_mx, input_my, input_xp,  &
                                       input_yp, input_alp, input_dx, input_dy)
@@ -262,7 +262,7 @@ function commit_parameters() result(ret)
 
   TIMCO=begin_time
 
-  if(.not.use_input_bottom) then
+  if(.not.use_input_depth) then
     ret=-1
     return
   endif

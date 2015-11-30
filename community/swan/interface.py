@@ -42,7 +42,7 @@ parameters={
     "projection_method" : dict(short="projection_method", dtype="string", default="quasi-cart." , description="projection method (in case of spherical coordinates)", ptype="getter"),
     "number_of_dimensions" : dict(short="number_dimensions", dtype="int32", default=2 , description="number of dimensions (1 (tbd) or 2)", ptype="getter"),
     "use_uniform_wind" : dict(short="use_uniform_wind", dtype="bool", default=False , description="use constant wind",ptype="simple"),
-    "use_input_bottom" : dict(short="use_input_bottom", dtype="bool", default=True , description="use input bathymetry",ptype="simple"),
+    "use_input_depth" : dict(short="use_input_depth", dtype="bool", default=True , description="use input bathymetry",ptype="simple"),
     "use_input_water_level" : dict(short="use_input_water_level", dtype="bool", default=False , description="use input water level",ptype="simple"),
     "use_input_current" : dict(short="use_input_current", dtype="bool", default=False , description="use input current velocity",ptype="simple"),
     "use_input_air_sea_temp_diff" : dict(short="use_input_air_sea_temp_diff", dtype="bool", default=False , description="use input air sea temp diff.",ptype="simple"),
@@ -334,11 +334,16 @@ class Swan(InCodeComponentImplementation):
     def initialize_input_grids(self):
         self.overridden().commit_grid_positions()
         self.overridden().initialize_input_grids()
+
+    def commit_parameters(self):
+        self.overridden().commit_parameters()
+        handler=self.get_handler("PARTICLES")
+        self.define_additional_grid_attributes(handler)
         
     def initialize_boundary(self):
         self.overridden().commit_grids()
         self.overridden().initialize_boundary()
-        
+            
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
         object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
@@ -349,10 +354,10 @@ class Swan(InCodeComponentImplementation):
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
 
-        object.add_transition('INITIALIZED','GRID','initialize_grid')
+        object.add_transition('INITIALIZED','PARAM','commit_parameters')
+        object.add_transition('PARAM','GRID','initialize_grid')
         object.add_transition('GRID','INPUTGRID','initialize_input_grids')
-        object.add_transition('INPUTGRID','EDIT','commit_parameters')
-        object.add_transition('EDIT','RUN','initialize_boundary')
+        object.add_transition('INPUTGRID','RUN','initialize_boundary')
         object.add_transition('RUN','EVOLVED','evolve_model')
 
         for param in ["grid_origin_x","grid_origin_y", "grid_orientation",
@@ -364,9 +369,11 @@ class Swan(InCodeComponentImplementation):
             short=parameters[param]['short']
             object.add_method('INITIALIZED', 'set_'+short)
 
+        #~ object.add_method('PARAM', 'forcings')
+
         object.add_method('GRID', 'set_grid_position_unstructured')
         object.add_method('INPUTGRID', 'set_input_depth_regular')
-        for state in ['EDIT','RUN','EVOLVED']:
+        for state in ['RUN','EVOLVED']:
             object.add_method(state, 'get_input_depth_regular')
             object.add_method(state, 'get_grid_position_unstructured')
         object.add_method('RUN', 'get_ac2_regular')
@@ -374,8 +381,7 @@ class Swan(InCodeComponentImplementation):
         object.add_method('EVOLVED', 'get_depth_regular')
         object.add_method('EVOLVED', 'get_depth_unstructured')
         object.add_method('EVOLVED', 'evolve_model')
-
-
+    
     def define_properties(self, object):
         object.add_property('get_time', public_name = "model_time")
 
@@ -441,7 +447,7 @@ class Swan(InCodeComponentImplementation):
         return 1,self.get_nvertsg()
     def get_element_range_unstructured(self):
         return 1,self.get_ncellsg()
-    def get_input_grid_range(self):
+    def get_input_grid_range_regular(self):
         return 1,self.get_input_mx()+1,1,self.get_input_my()+1
     def get_dir_freq_range(self):
         return 1,self.get_mdc(),1,self.get_msc()
@@ -472,16 +478,24 @@ class Swan(InCodeComponentImplementation):
             object.add_getter('elements', 'get_element_nodes', names=["n1","n2","n3"])
             object.add_setter('elements', 'set_element_nodes', names=["n1","n2","n3"])
 
+
+    def define_additional_grid_attributes(self,object):
+        if self._coordinates=="cartesian":
+            axes_names=['x','y']
+
         if self._input_grid_type=="regular":
             object.define_grid('forcings',axes_names = axes_names)
-            object.set_grid_range('forcings', 'get_input_grid_range')
+            object.set_grid_range('forcings', 'get_input_grid_range_regular')
             object.add_getter('forcings', 'get_input_grid_position_regular', names=axes_names)
-            object.add_getter('forcings', 'get_input_depth_regular', names=["depth"])
-            object.add_setter('forcings', 'set_input_depth_regular', names=["depth"])
 
         if self._input_grid_type=="unstructured":
             object.define_grid('forcings',axes_names = axes_names)
-            object.set_grid_range('forcings', 'get_element_range_unstructured')
+            object.set_grid_range('forcings', 'get_grid_range_unstructured')
             object.add_getter('forcings', 'get_grid_position_unstructured', names=axes_names)
-            object.add_getter('forcings', 'get_input_depth_unstructured', names=["depth"])
-            object.add_setter('forcings', 'set_input_depth_unstructured', names=["depth"])
+
+
+        for var,d in input_grid_variables.iteritems():
+            if getattr(self.parameters,"use_input_"+var):
+                object.add_getter('forcings', 'get_input_'+var+'_'+self._input_grid_type, names=d["pyvar"])
+                object.add_setter('forcings', 'set_input_'+var+'_'+self._input_grid_type, names=d["pyvar"])
+
