@@ -371,7 +371,9 @@ class Swan(InCodeComponentImplementation):
         #~ object.add_method('PARAM', 'forcings')
 
         object.add_method('GRID', 'set_grid_position_unstructured')
-        object.add_method('INPUTGRID', 'set_input_depth_regular')
+        for var,d in input_grid_variables.iteritems():
+            object.add_method('INPUTGRID', 'set_input_'+var+'_regular')
+            object.add_method('INPUTGRID', 'set_input_'+var+'_unstructured')
         for state in ['RUN','EVOLVED']:
             object.add_method(state, 'get_input_depth_regular')
             object.add_method(state, 'get_grid_position_unstructured')
