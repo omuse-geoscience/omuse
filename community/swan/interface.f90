@@ -26,8 +26,6 @@ module swan_interface
               use_input_turbulent_visc=.FALSE., &
               use_input_mud_layer=.FALSE.
 
-  logical :: use_uniform_wind=.FALSE.
-
   character*80 :: north_boundary_spec_file="none", &
                   south_boundary_spec_file="none", &
                   east_boundary_spec_file="none", &
@@ -318,7 +316,7 @@ function commit_parameters() result(ret)
     ENDIF
   endif
   
-  if(use_uniform_wind) then
+  if(.not.use_input_wind) then
     IWIND=3
     VARWI=.FALSE.
   endif

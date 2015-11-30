@@ -41,7 +41,6 @@ parameters={
     "coordinates" : dict(short="coordinates", dtype="string", default="cartesian" , description="choice of coordinates for input [cartesian, spherical]", ptype="getter"),
     "projection_method" : dict(short="projection_method", dtype="string", default="quasi-cart." , description="projection method (in case of spherical coordinates)", ptype="getter"),
     "number_of_dimensions" : dict(short="number_dimensions", dtype="int32", default=2 , description="number of dimensions (1 (tbd) or 2)", ptype="getter"),
-    "use_uniform_wind" : dict(short="use_uniform_wind", dtype="bool", default=False , description="use constant wind",ptype="simple"),
     "use_input_depth" : dict(short="use_input_depth", dtype="bool", default=True , description="use input bathymetry",ptype="simple"),
     "use_input_water_level" : dict(short="use_input_water_level", dtype="bool", default=False , description="use input water level",ptype="simple"),
     "use_input_current" : dict(short="use_input_current", dtype="bool", default=False , description="use input current velocity",ptype="simple"),
