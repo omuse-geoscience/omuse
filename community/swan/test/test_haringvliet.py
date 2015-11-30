@@ -90,7 +90,6 @@ class TestHaringvliet(object):
         s.set_use_breaking(True)
         s.set_use_triads(True)
         s.set_use_friction(True)
-        s.set_use_uniform_wind(True)
              
         exc,err=s.get_exc_value(1)
 

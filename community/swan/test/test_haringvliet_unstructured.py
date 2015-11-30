@@ -71,7 +71,6 @@ class TestHaringvliet(object):
         s.parameters.use_breaking_parameters=True
         s.parameters.use_triads_parameters=True
         s.parameters.use_friction_parameters=True
-        s.parameters.use_uniform_wind=True
              
         exc=s.get_exc_value(1)
         
@@ -162,4 +161,4 @@ class TestHaringvliet(object):
         
 if __name__=="__main__":
     test=TestHaringvliet()
-    test.test2()
+    test.test1()
