@@ -7,7 +7,7 @@ from matplotlib import pyplot
 
 from amuse.test.amusetest import TestWithMPI
 
-from amuse.io import write_set_to_file
+from amuse.io import write_set_to_file, read_set_from_file
 
 from read_triangle_mesh import read_triangle_mesh
 
@@ -122,10 +122,7 @@ class TestHaringvliet(object):
         s.parameters.input_grid_nmesh_y=116
       
         s.parameters.constant_water_level=0.3 | units.m
-      
-        s.parameters.uniform_wind_velocity=0.*12. | units.m/units.s
-        s.parameters.uniform_wind_direction=8.8 | units.deg
-      
+            
         s.parameters.unstructured_boundary_spec_file="f31har01.bnd"
         s.parameters.boundary_marker=2
       
@@ -133,7 +130,6 @@ class TestHaringvliet(object):
         s.parameters.use_breaking_parameters=True
         s.parameters.use_triads_parameters=True
         s.parameters.use_friction_parameters=True
-        s.parameters.use_uniform_wind=False
         s.parameters.use_input_wind=True
              
         exc=s.get_exc_value(1)
@@ -148,17 +144,88 @@ class TestHaringvliet(object):
         channel=elements.new_channel_to(s.elements)
         channel.copy_attributes(["n1","n2","n3"])
 
-        s.forcings.depth=bathymetry | units.m
+        u10=12. | units.m/units.s
+        wdir=8.8 | units.deg
+        
+        forcings=s.forcings.empty_copy()
+ 
+        forcings.depth=bathymetry | units.m
+        forcings.wind_vx=u10*numpy.cos(wdir.value_in(units.rad))
+        forcings.wind_vy=u10*numpy.sin(wdir.value_in(units.rad))
+        
+        forcings.new_channel_to(s.forcings).copy_attributes(["depth","wind_vx","wind_vy"])
         
         print s.forcings
-        raises
 
         s.evolve_model(0. | units.s)
       
         write_set_to_file(s.nodes,"nodes.amuse","amuse",append_to_file="False")
         write_set_to_file(s.elements,"elements.amuse","amuse",append_to_file="False")
 
+    def test3(self):
+        bathymetry=read_bot_data()
+        bathymetry=numpy.array(bathymetry,dtype="float32")
+          
+        rt=read_triangle_mesh("f32hari") 
+        rt.read_grid()
+        nodes,elements=rt.get_sets() 
+          
+        input_grid=read_set_from_file("nodes.amuse","amuse")  
+
+        s=Swan(grid_type="unstructured", input_grid_type="unstructured", redirection="none")
+
+        ncells=len(elements)
+        nverts=len(nodes)
+        msc=32
+        mdc=36
+
+        s.parameters.number_of_cells=ncells
+        s.parameters.number_of_vertices=nverts
+        s.parameters.number_of_directions=mdc
+        s.parameters.number_of_frequencies=msc
+        s.parameters.lowest_frequency=2*numpy.pi*0.0521 | units.rad/units.s
+        s.parameters.highest_frequency=2*numpy.pi | units.rad/units.s
+      
+        s.parameters.constant_water_level=0.3 | units.m
+            
+        s.parameters.unstructured_boundary_spec_file="f31har01.bnd"
+        s.parameters.boundary_marker=2
+      
+        s.parameters.use_gen3_parameters=True
+        s.parameters.use_breaking_parameters=True
+        s.parameters.use_triads_parameters=True
+        s.parameters.use_friction_parameters=True
+        s.parameters.use_input_wind=True
+             
+        exc=s.get_exc_value(1)
+        
+        bathymetry[bathymetry==-99.]=exc
+        input_shape=bathymetry.shape
+        ii,jj=numpy.mgrid[1:input_shape[0]+1,1:input_shape[1]+1]
+
+        
+        channel=nodes.new_channel_to(s.nodes)
+        channel.copy_attributes(["x","y","vmark"])
+        channel=elements.new_channel_to(s.elements)
+        channel.copy_attributes(["n1","n2","n3"])
+
+        u10=12. | units.m/units.s
+        wdir=8.8 | units.deg
+        
+        forcings=s.forcings.empty_copy()
+  
+        forcings.depth=input_grid.depth
+        forcings.wind_vx=u10*numpy.cos(wdir.value_in(units.rad))
+        forcings.wind_vy=u10*numpy.sin(wdir.value_in(units.rad))
+        
+        forcings.new_channel_to(s.forcings).copy_attributes(["depth","wind_vx","wind_vy"])
+        
+        s.evolve_model(0. | units.s)
+      
+        write_set_to_file(s.nodes,"nodes_2.amuse","amuse",append_to_file="False")
+        write_set_to_file(s.elements,"elements_2.amuse","amuse",append_to_file="False")
+
         
 if __name__=="__main__":
     test=TestHaringvliet()
-    test.test1()
+    test.test3()
