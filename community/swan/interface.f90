@@ -529,8 +529,14 @@ function get_grid_position_regular(i,j,x,y,n) result(ret)
     x(m)=XCGRID(i(m),j(m))
     y(m)=YCGRID(i(m),j(m))
   enddo
-
 end function  
+
+function get_grid_lonlat_regular(i,j,x,y,n) result(ret)
+  integer :: ret,i(n),j(n),m,n,ii
+  real*8 :: x(n),y(n)
+  ret=get_grid_position_regular(i,j,x,y,n)
+end function
+
 
 function set_grid_position_unstructured(i,x,y,n) result(ret)
   integer :: ret,i(n),m,n,ii
@@ -546,6 +552,12 @@ function set_grid_position_unstructured(i,x,y,n) result(ret)
   enddo
 end function  
 
+function set_grid_lonlat_unstructured(i,x,y,n) result(ret)
+  integer :: ret,i(n),m,n,ii
+  real*8 :: x(n),y(n)
+  ret=set_grid_position_unstructured(i,x,y,n)
+end function
+
 function get_grid_position_unstructured(i,x,y,n) result(ret)
   integer :: ret,i(n),m,n,ii
   real*8 :: x(n),y(n)
@@ -560,6 +572,12 @@ function get_grid_position_unstructured(i,x,y,n) result(ret)
     x(m)=xcugrd(i(m))
     y(m)=ycugrd(i(m))
   enddo
+end function
+
+function get_grid_lonlat_unstructured(i,x,y,n) result(ret)
+  integer :: ret,i(n),m,n,ii
+  real*8 :: x(n),y(n)
+  ret=get_grid_position_unstructured(i,x,y,n)
 end function
 
 function set_grid_vmark_unstructured(i,vm,n) result(ret)
@@ -602,6 +620,12 @@ function get_input_grid_position_regular(i,j, x,y,n) result(ret)
         y(k)=YPG(igrid)+(SINPG(igrid)*dx+COSPG(igrid)*dy)
       endif
     enddo
+end function
+
+function get_input_grid_lonlat_regular(i,j, x,y,n) result(ret)
+    integer :: ret,n,i(n),j(n),k,ii, igrid=1
+    real*8 :: x(n),y(n),dx,dy
+    ret=get_input_grid_position_regular(i,j,x,y,n)
 end function
 
 ! note the offset -1  

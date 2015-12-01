@@ -39,7 +39,7 @@ parameters={
     "input_grid_type" : dict(short="input_grid_type", dtype="string", default="regular" , description="type of grid for input grid, [regular, curvilinear or unstructured]", ptype="getter"),
     "calculation_mode" : dict(short="calc_mode", dtype="string", default="stationary" , description="calculation mode [stationary or dynamic]", ptype="getter"),
     "coordinates" : dict(short="coordinates", dtype="string", default="cartesian" , description="choice of coordinates for input [cartesian, spherical]", ptype="getter"),
-    "projection_method" : dict(short="projection_method", dtype="string", default="quasi-cart." , description="projection method (in case of spherical coordinates)", ptype="getter"),
+    "projection_method" : dict(short="projection_method", dtype="string", default="quasi-cart." , description="projection method (in case of spherical coordinates - doesn't actually do anything atm)", ptype="getter"),
     "number_of_dimensions" : dict(short="number_dimensions", dtype="int32", default=2 , description="number of dimensions (1 (tbd) or 2)", ptype="getter"),
     "use_input_depth" : dict(short="use_input_depth", dtype="bool", default=True , description="use input bathymetry",ptype="simple"),
     "use_input_water_level" : dict(short="use_input_water_level", dtype="bool", default=False , description="use input water level",ptype="simple"),
@@ -233,10 +233,16 @@ class SwanInterface(CodeInterface,
     @remote_function(must_handle_array=True)
     def get_grid_position_regular(i_index='i',j_index='i'):
         returns(x='d' | units.m,y='d' | units.m)
+    @remote_function(must_handle_array=True)
+    def get_grid_lonlat_regular(i_index='i',j_index='i'):
+        returns(lon='d' | units.deg,lat='d' | units.deg)
 
     @remote_function(must_handle_array=True)
     def get_input_grid_position_regular(i_index='i',j_index='i'):
         returns(x='d' | units.m,y='d' | units.m)
+    @remote_function(must_handle_array=True)
+    def get_input_grid_lonlat_regular(i_index='i',j_index='i'):
+        returns(lon='d' | units.deg,lat='d' | units.deg)
 
     @remote_function(must_handle_array=True)
     def set_grid_position_unstructured(i_index='i',x='d' | units.m,y='d' | units.m):
@@ -244,6 +250,12 @@ class SwanInterface(CodeInterface,
     @remote_function(must_handle_array=True)
     def get_grid_position_unstructured(i_index='i'):
         returns(x='d' | units.m,y='d' | units.m)
+    @remote_function(must_handle_array=True)
+    def set_grid_lonlat_unstructured(i_index='i',lon='d' | units.deg,lat='d' | units.deg):
+        returns()
+    @remote_function(must_handle_array=True)
+    def get_grid_lonlat_unstructured(i_index='i'):
+        returns(lon='d' | units.deg,lat='d' | units.deg)
     @remote_function(must_handle_array=True)
     def set_element_nodes(i_index='i', n1='i', n2='i', n3='i'):
         returns()
@@ -368,7 +380,10 @@ class Swan(InCodeComponentImplementation):
             short=parameters[param]['short']
             object.add_method('INITIALIZED', 'set_'+short)
 
-        object.add_method('PARAM', 'before_new_set_instance')
+        for state in ['INPUTGRID','RUN','EVOLVED']:
+            object.add_method(state, 'before_new_set_instance')
+        for state in ['GRID','INPUTGRID','RUN','EVOLVED']:
+            object.add_method(state, 'before_new_set_instance2')
 
         object.add_method('GRID', 'set_grid_position_unstructured')
         for var,d in input_grid_variables.iteritems():
@@ -449,14 +464,15 @@ class Swan(InCodeComponentImplementation):
             coordinates="lonlat"
 
         if self._grid_type=="regular":
-            object.define_grid('grid',axes_names = axes_names)
+            object.define_grid('grid',axes_names = axes_names, state_guard="before_new_set_instance")
             object.set_grid_range('grid', 'get_grid_range')
             object.add_getter('grid', 'get_grid_'+coordinates+'_regular', names=axes_names)
             object.add_getter('grid', 'get_depth_regular', names=["depth"])
             object.add_gridded_getter('grid', 'get_ac2_regular','get_dir_freq_range', names = ["ac2"])
 
         if self._grid_type=="unstructured":
-            object.define_grid('nodes',axes_names = axes_names)
+            object.define_grid('nodes',axes_names = axes_names, 
+                state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
             object.set_grid_range('nodes', 'get_grid_range_unstructured')
             object.add_getter('nodes', 'get_grid_'+coordinates+'_unstructured', names=axes_names)
             object.add_setter('nodes', 'set_grid_'+coordinates+'_unstructured', names=axes_names)
@@ -465,7 +481,7 @@ class Swan(InCodeComponentImplementation):
             object.add_gridded_getter('nodes', 'get_ac2_unstructured','get_dir_freq_range', names = ["ac2"])
             object.add_getter('nodes', 'get_depth_unstructured',names = ["depth"])
 
-            object.define_grid('elements')
+            object.define_grid('elements', grid_class=datamodel.UnstructuredGrid)
             object.set_grid_range('elements', 'get_element_range_unstructured')
             object.add_getter('elements', 'get_element_nodes', names=["n1","n2","n3"])
             object.add_setter('elements', 'set_element_nodes', names=["n1","n2","n3"])

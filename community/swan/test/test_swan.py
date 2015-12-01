@@ -92,3 +92,35 @@ class TestSwan(TestWithMPI):
       v=s.parameters.grid_length_x
       self.assertEqual(u,0 | units.deg)
       self.assertEqual(v,0 | units.deg)
+
+    def test4(self):
+      options=dict(coordinates="spherical")
+      options.update(default_options)
+      s=Swan(**options)
+      u=s.parameters.grid_origin_x
+      v=s.parameters.grid_length_x
+      self.assertEqual(u,0 | units.deg)
+      self.assertEqual(v,0 | units.deg)
+                        
+      s.parameters.grid_origin_x=0. | units.deg
+      s.parameters.grid_origin_y=0. | units.deg
+      s.parameters.grid_orientation=0. | units.deg
+      s.parameters.grid_length_x=1. | units.deg
+      s.parameters.grid_length_y=1. | units.deg
+      s.parameters.grid_nmesh_x=10
+      s.parameters.grid_nmesh_y=10
+      s.parameters.number_of_directions=36
+      s.parameters.number_of_frequencies=32
+      s.parameters.lowest_frequency=2*numpy.pi*0.0521 | units.rad/units.s
+      s.parameters.highest_frequency=2*numpy.pi | units.rad/units.s
+  
+      s.parameters.input_grid_origin_x=0. | units.deg
+      s.parameters.input_grid_origin_y=0. | units.deg
+      s.parameters.input_grid_orientation=0. | units.deg
+      s.parameters.input_grid_dx=0.1 | units.deg
+      s.parameters.input_grid_dy=0.1 | units.deg
+      s.parameters.input_grid_nmesh_x=10
+      s.parameters.input_grid_nmesh_y=10
+      
+      self.assertEqual(s.grid.lat.unit,units.deg) 
+      self.assertEqual(s.forcings.lat.unit,units.deg) 
