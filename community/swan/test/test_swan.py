@@ -75,4 +75,20 @@ class TestSwanInterface(TestWithMPI):
 class TestSwan(TestWithMPI):
     def test1(self):
       s=Swan(**default_options)
+      print s.parameters
 
+    def test2(self):
+      options=dict(coordinates="cartesian")
+      options.update(default_options)
+      s=Swan(**options)
+      u=s.parameters.grid_origin_x
+      self.assertEqual(u,0 | units.m)
+
+    def test3(self):
+      options=dict(coordinates="spherical")
+      options.update(default_options)
+      s=Swan(**options)
+      u=s.parameters.grid_origin_x
+      v=s.parameters.grid_length_x
+      self.assertEqual(u,0 | units.deg)
+      self.assertEqual(v,0 | units.deg)

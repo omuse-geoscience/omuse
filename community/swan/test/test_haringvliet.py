@@ -9,6 +9,11 @@ from amuse.test.amusetest import TestWithMPI
 
 from amuse.io import write_set_to_file
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("code").setLevel(logging.DEBUG)
+
+
 def read_bot_data(filename="f31hari.bot",n=88,m=117):
   f=open(filename,"r")
   lines=f.readlines()
@@ -125,19 +130,11 @@ class TestHaringvliet(object):
           
         s=Swan(redirection="none")
 
-        print s.parameters.coordinates
-        print s.parameters.projection_method
-        print s.parameters.grid_type
-        print s.parameters.input_grid_type
-        print s.parameters.calculation_mode
-        print s.parameters.number_of_dimensions
-
         mxc=98
         myc=88
         msc=32
         mdc=36
-
-                
+                        
         s.parameters.grid_origin_x=6960.2 | units.m
         s.parameters.grid_origin_y=0. | units.m
         s.parameters.grid_orientation=0. | units.deg
@@ -169,23 +166,22 @@ class TestHaringvliet(object):
         s.parameters.use_breaking_parameters=True
         s.parameters.use_triads_parameters=True
         s.parameters.use_friction_parameters=True
-        s.parameters.use_uniform_wind=True
 
         exc=s.get_exc_value(1)
         
         bathymetry[bathymetry==-99.]=exc
-        print (bathymetry==-1.e20).sum(),exc
+
         input_shape=bathymetry.shape
         ii,jj=numpy.mgrid[1:input_shape[0]+1,1:input_shape[1]+1]
 
+        #~ s.commit_parameters()
         print s.forcings
-        print bathymetry.shape
 
         s.forcings.depth=bathymetry | units.m
       
         s.evolve_model(0. | units.s)
       
-        write_set_to_file(s.grid,"grid.amuse","amuse")
+        write_set_to_file(s.grid,"grid.amuse","amuse",append_to_file=False)
         
 if __name__=="__main__":
     test=TestHaringvliet()
