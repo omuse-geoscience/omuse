@@ -587,6 +587,23 @@ function get_grid_vmark_unstructured(i,vm,n) result(ret)
   enddo
 end function
 
+function get_input_grid_position_regular(i,j, x,y,n) result(ret)
+    integer :: ret,n,i(n),j(n),k,ii, igrid=1
+    real*8 :: x(n),y(n),dx,dy
+    ret=0
+    do k=1,n
+      if(i(k).LT.1.OR.i(k).GT.MXG(igrid).OR. &
+         j(k).LT.1.OR.j(k).GT.MYG(igrid) ) THEN
+        ret=-1
+      else
+        dx=DXG(igrid)*(i(k)-1)
+        dy=DYG(igrid)*(j(k)-1)
+        x(k)=XPG(igrid)+(COSPG(igrid)*dx-SINPG(igrid)*dy)
+        y(k)=YPG(igrid)+(SINPG(igrid)*dx+COSPG(igrid)*dy)
+      endif
+    enddo
+end function
+
 ! note the offset -1  
 function set_element_nodes(i,n1,n2,n3,n) result(ret)
   integer :: ret,i(n),m,n,n1(n),n2(n),n3(n)

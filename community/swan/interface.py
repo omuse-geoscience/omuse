@@ -232,18 +232,18 @@ class SwanInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_grid_position_regular(i_index='i',j_index='i'):
-        returns(x='d',y='d')
-
-    #~ @remote_function(must_handle_array=True)
-    #~ def get_input_grid_position_regular(i_index='i',j_index='i'):
-        #~ returns(x='d',y='d')
+        returns(x='d' | units.m,y='d' | units.m)
 
     @remote_function(must_handle_array=True)
-    def set_grid_position_unstructured(i_index='i',x='d',y='d'):
+    def get_input_grid_position_regular(i_index='i',j_index='i'):
+        returns(x='d' | units.m,y='d' | units.m)
+
+    @remote_function(must_handle_array=True)
+    def set_grid_position_unstructured(i_index='i',x='d' | units.m,y='d' | units.m):
         returns()
     @remote_function(must_handle_array=True)
     def get_grid_position_unstructured(i_index='i'):
-        returns(x='d',y='d')
+        returns(x='d' | units.m,y='d' | units.m)
     @remote_function(must_handle_array=True)
     def set_element_nodes(i_index='i', n1='i', n2='i', n3='i'):
         returns()
@@ -342,13 +342,13 @@ class Swan(InCodeComponentImplementation):
     def initialize_boundary(self):
         self.overridden().commit_grids()
         self.overridden().initialize_boundary()
-            
+                        
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
         object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
-        object.add_method('INITIALIZED', 'before_get_parameter')
+        #~ object.add_method('INITIALIZED', 'before_get_parameter')
         object.add_method('INITIALIZED', 'before_set_parameter')
-        object.add_method('END', 'before_get_parameter')
+        #~ object.add_method('END', 'before_get_parameter')
         object.add_transition('!UNINITIALIZED!STOPPED', 'END', 'cleanup_code')
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
@@ -368,7 +368,7 @@ class Swan(InCodeComponentImplementation):
             short=parameters[param]['short']
             object.add_method('INITIALIZED', 'set_'+short)
 
-        #~ object.add_method('PARAM', 'forcings')
+        object.add_method('PARAM', 'before_new_set_instance')
 
         object.add_method('GRID', 'set_grid_position_unstructured')
         for var,d in input_grid_variables.iteritems():
@@ -415,30 +415,17 @@ class Swan(InCodeComponentImplementation):
           
     def define_methods(self, object):
         if self._coordinates=="cartesian":
-            object.add_method(
-                'get_grid_position_regular',
-                (object.INDEX,object.INDEX),
-                (units.m,units.m,object.ERROR_CODE)
-            )
-            object.add_method(
-                'get_grid_position_unstructured',
-                (object.INDEX,),
-                (units.m,units.m,object.ERROR_CODE)
-            )
-            object.add_method(
-                'set_grid_position_unstructured',
-                (object.INDEX,units.m,units.m),
-                (object.ERROR_CODE,)
-            )
-            object.add_method(
-                'get_input_grid_position_regular',
-                (object.INDEX,object.INDEX),
-                (units.m,units.m,object.ERROR_CODE)
-            )
             for p,u in [("grid_xpc",units.m),("grid_ypc",units.m),
                         ("grid_xlenc",units.m),("grid_ylenc",units.m),
                         ("input_xp",units.m),("input_yp",units.m),
                         ("input_dx",units.m),("input_dy",units.m)]:
+                object.add_method( 'set_'+p, (u), (object.ERROR_CODE) )
+                object.add_method( 'get_'+p, (), (u,object.ERROR_CODE))
+        if self._coordinates=="spherical":
+            for p,u in [("grid_xpc",units.deg),("grid_ypc",units.deg),
+                        ("grid_xlenc",units.deg),("grid_ylenc",units.deg),
+                        ("input_xp",units.deg),("input_yp",units.deg),
+                        ("input_dx",units.deg),("input_dy",units.deg)]:
                 object.add_method( 'set_'+p, (u), (object.ERROR_CODE) )
                 object.add_method( 'get_'+p, (), (u,object.ERROR_CODE))
 
@@ -456,19 +443,23 @@ class Swan(InCodeComponentImplementation):
     def define_particle_sets(self, object):
         if self._coordinates=="cartesian":
             axes_names=['x','y']
+            coordinates="position"
+        elif self._coordinates=="spherical":
+            axes_names=['lon','lat']
+            coordinates="lonlat"
 
         if self._grid_type=="regular":
             object.define_grid('grid',axes_names = axes_names)
             object.set_grid_range('grid', 'get_grid_range')
-            object.add_getter('grid', 'get_grid_position_regular', names=axes_names)
+            object.add_getter('grid', 'get_grid_'+coordinates+'_regular', names=axes_names)
             object.add_getter('grid', 'get_depth_regular', names=["depth"])
             object.add_gridded_getter('grid', 'get_ac2_regular','get_dir_freq_range', names = ["ac2"])
 
         if self._grid_type=="unstructured":
             object.define_grid('nodes',axes_names = axes_names)
             object.set_grid_range('nodes', 'get_grid_range_unstructured')
-            object.add_getter('nodes', 'get_grid_position_unstructured', names=axes_names)
-            object.add_setter('nodes', 'set_grid_position_unstructured', names=axes_names)
+            object.add_getter('nodes', 'get_grid_'+coordinates+'_unstructured', names=axes_names)
+            object.add_setter('nodes', 'set_grid_'+coordinates+'_unstructured', names=axes_names)
             object.add_getter('nodes', 'get_grid_vmark_unstructured', names=("vmark",))
             object.add_setter('nodes', 'set_grid_vmark_unstructured', names=("vmark",))
             object.add_gridded_getter('nodes', 'get_ac2_unstructured','get_dir_freq_range', names = ["ac2"])
@@ -479,23 +470,36 @@ class Swan(InCodeComponentImplementation):
             object.add_getter('elements', 'get_element_nodes', names=["n1","n2","n3"])
             object.add_setter('elements', 'set_element_nodes', names=["n1","n2","n3"])
 
+        if self._input_grid_type=="regular":
+            object.define_grid('forcings',axes_names = axes_names, state_guard="before_new_set_instance")
+            object.set_grid_range('forcings', 'get_input_grid_range_regular')
+
+        if self._input_grid_type=="unstructured":
+            object.define_grid('forcings',axes_names = axes_names, state_guard="before_new_set_instance")
+            object.set_grid_range('forcings', 'get_grid_range_unstructured')
+
 
     def define_additional_grid_attributes(self,object):
         if self._coordinates=="cartesian":
             axes_names=['x','y']
-
+            coordinates="position"
+        elif self._coordinates=="spherical":
+            axes_names=['lon','lat']
+            coordinates="lonlat"
+            
         if self._input_grid_type=="regular":
-            object.define_grid('forcings',axes_names = axes_names)
-            object.set_grid_range('forcings', 'get_input_grid_range_regular')
-            object.add_getter('forcings', 'get_input_grid_position_regular', names=axes_names)
+            #~ object.define_grid('forcings',axes_names = axes_names)
+            #~ object.set_grid_range('forcings', 'get_input_grid_range_regular')
+            object.add_getter('forcings', 'get_input_grid_'+coordinates+'_regular', names=axes_names)
 
         if self._input_grid_type=="unstructured":
-            object.define_grid('forcings',axes_names = axes_names)
-            object.set_grid_range('forcings', 'get_grid_range_unstructured')
-            object.add_getter('forcings', 'get_grid_position_unstructured', names=axes_names)
+            #~ object.define_grid('forcings',axes_names = axes_names)
+            #~ object.set_grid_range('forcings', 'get_grid_range_unstructured')
+            object.add_getter('forcings', 'get_grid_'+coordinates+'_unstructured', names=axes_names)
 
 
         for var,d in input_grid_variables.iteritems():
+            #~ if eval("self.get_use_input_"+var+"()"):
             if getattr(self.parameters,"use_input_"+var):
                 object.add_getter('forcings', 'get_input_'+var+'_'+self._input_grid_type, names=d["pyvar"])
                 object.add_setter('forcings', 'set_input_'+var+'_'+self._input_grid_type, names=d["pyvar"])
