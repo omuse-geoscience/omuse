@@ -11,9 +11,9 @@ from amuse.io import write_set_to_file, read_set_from_file
 
 from read_triangle_mesh import read_triangle_mesh
 
-#~ import logging
-#~ logging.basicConfig(level=logging.DEBUG)
-#~ logging.getLogger("code").setLevel(logging.DEBUG)
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("code").setLevel(logging.DEBUG)
 
 
 def read_bot_data(filename="f31hari.bot",n=88,m=117):
@@ -196,14 +196,7 @@ class TestHaringvliet(object):
         s.parameters.use_triads_parameters=True
         s.parameters.use_friction_parameters=True
         s.parameters.use_input_wind=True
-             
-        exc=s.get_exc_value(1)
-        
-        bathymetry[bathymetry==-99.]=exc
-        input_shape=bathymetry.shape
-        ii,jj=numpy.mgrid[1:input_shape[0]+1,1:input_shape[1]+1]
 
-        
         channel=nodes.new_channel_to(s.nodes)
         channel.copy_attributes(["x","y","vmark"])
         channel=elements.new_channel_to(s.elements)

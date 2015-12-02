@@ -94,9 +94,9 @@ if __name__=="__main__":
     x=nodes.x.number
     y=nodes.y.number
     vmark=nodes.vmark
-    n1=elements.nodes[:,0]
-    n2=elements.nodes[:,1]
-    n3=elements.nodes[:,2]
+    n1=elements.n1[:]
+    n2=elements.n2[:]
+    n3=elements.n3[:]
 
     elements=numpy.column_stack((n1,n2,n3))
     print elements.min(),elements.max()

@@ -30,7 +30,7 @@ module swan_interface
                   south_boundary_spec_file="none", &
                   east_boundary_spec_file="none", &
                   west_boundary_spec_file="none", &
-                  unstructured_boundary_spec_file
+                  unstructured_boundary_spec_file="none"
 
   integer :: boundary_marker
 
@@ -53,9 +53,28 @@ function initialize_code(coord_, mode_, grid_,input_grid_) result(ret)
   coordinates=coord_
 
   ret=swan_entry()
-  if(ret.EQ.0) ret=swan_init()
-  if(ret.EQ.0) ret=swan_init_mode(calc_mode, number_dimensions)
-  if(ret.EQ.0) ret=swan_init_coord(coordinates, projection_method, wrap_x)
+  if(ret.NE.0) then
+    return
+  endif
+  
+  ret=swan_init()
+  if(ret.NE.0) then
+    ret=ret-10
+    return
+  endif
+  
+  ret=swan_init_mode(calc_mode, number_dimensions)
+  if(ret.NE.0) then
+    ret=ret-100
+    return
+  endif
+
+  ret=swan_init_coord(coordinates, projection_method)
+  if(ret.NE.0) then
+    ret=ret-1000
+    return
+  endif
+  
   PROJID='AMUSE'
   PROJNR='1'
   
@@ -86,7 +105,7 @@ function initialize_grid() result(ret)
   
   if(grid_type.EQ."regular") then
     ret=swan_init_regular_grid(grid_mxc,grid_myc, &
-      grid_xpc,grid_ypc,grid_xlenc,grid_ylenc,grid_alpc)
+      grid_xpc,grid_ypc,grid_xlenc,grid_ylenc,grid_alpc, wrap_x)
     if(ret.NE.0) return
   endif
   if(grid_type.EQ."curvilinear") then
