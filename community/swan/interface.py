@@ -7,6 +7,7 @@ from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
 from amuse.support.options import option
+from amuse import datamodel
 
 
 parameters={
@@ -472,7 +473,7 @@ class Swan(InCodeComponentImplementation):
 
         if self._grid_type=="unstructured":
             object.define_grid('nodes',axes_names = axes_names, 
-                state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
+                state_guard="before_new_set_instance2", grid_class=datamodel.UnstructuredGrid)
             object.set_grid_range('nodes', 'get_grid_range_unstructured')
             object.add_getter('nodes', 'get_grid_'+coordinates+'_unstructured', names=axes_names)
             object.add_setter('nodes', 'set_grid_'+coordinates+'_unstructured', names=axes_names)
@@ -494,6 +495,8 @@ class Swan(InCodeComponentImplementation):
             object.define_grid('forcings',axes_names = axes_names, state_guard="before_new_set_instance")
             object.set_grid_range('forcings', 'get_grid_range_unstructured')
 
+    def before_new_set_instance2(self):
+        pass
 
     def define_additional_grid_attributes(self,object):
         if self._coordinates=="cartesian":

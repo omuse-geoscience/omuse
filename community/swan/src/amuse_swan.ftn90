@@ -294,10 +294,9 @@ function swan_init_mode(mode, number_dimension) result(ret)
   
 end function
 
-function swan_init_coord(coordinates,projection_method, wrap_x) result(ret)
+function swan_init_coord(coordinates,projection_method) result(ret)
   integer :: ret
   character*12 coordinates,projection_method
-  logical wrap_x
 
   if(coordinates.EQ."cartesian") then
     KSPHER=0
@@ -323,19 +322,21 @@ function swan_init_coord(coordinates,projection_method, wrap_x) result(ret)
     endif
     
   endif
-  if(wrap_x) then    
-    KREPTX = 1
-  endif
   ret=0  
 end function
 
-function swan_init_regular_grid(mxc_,myc_,xpc_,ypc_,xlenc_,ylenc_,alpc_) result(ret)
+function swan_init_regular_grid(mxc_,myc_,xpc_,ypc_,xlenc_,ylenc_,alpc_,wrap_x) result(ret)
   integer :: ret,mxc_,myc_,MXS,MYS,i,j
   real :: ALTMP,xpc_,ypc_,xlenc_,ylenc_,alpc_,VALX,VALY
+  logical :: wrap_x
 
   if(OPTG.NE.1) then
     ret=-1
     return
+  endif
+
+  if(wrap_x) then    
+    KREPTX = 1
   endif
   
   XOFFS=xpc_
@@ -369,7 +370,7 @@ function swan_init_regular_grid(mxc_,myc_,xpc_,ypc_,xlenc_,ylenc_,alpc_) result(
     return
   ENDIF
   IF (KREPTX.EQ.1) THEN
-    MXC = MXS
+    MXC = MXS+1 ! resized (+1) to always have the same sized grid
   ELSE
     MXC = MXS+1
   ENDIF
