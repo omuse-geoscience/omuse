@@ -387,9 +387,11 @@ class Swan(InCodeComponentImplementation):
             object.add_method(state, 'before_new_set_instance2')
 
         object.add_method('GRID', 'set_grid_position_unstructured')
+        object.add_method('GRID', 'set_grid_lonlat_unstructured')
         for var,d in input_grid_variables.iteritems():
-            object.add_method('INPUTGRID', 'set_input_'+var+'_regular')
-            object.add_method('INPUTGRID', 'set_input_'+var+'_unstructured')
+            for state in ['INPUTGRID','RUN','EVOLVED']:
+                object.add_method(state, 'set_input_'+var+'_regular')
+                object.add_method(state, 'set_input_'+var+'_unstructured')
         for state in ['RUN','EVOLVED']:
             object.add_method(state, 'get_input_depth_regular')
             object.add_method(state, 'get_grid_position_unstructured')
