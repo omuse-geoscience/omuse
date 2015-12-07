@@ -366,8 +366,6 @@ function initialize_boundary() result(ret)
   CHARACTER(len=255) :: cwd
 
   call getcwd(cwd)
-  print*, north_boundary_spec_file
-  print*, cwd
 
   if(grid_type.EQ."regular") then
     if(north_boundary_spec_file.NE."none") then
@@ -395,6 +393,8 @@ function initialize_boundary() result(ret)
       ret=swan_unstructured_add_boundary_from_file(boundary_marker,unstructured_boundary_spec_file)
       if(ret.NE.0) return
     endif
+    ret=swan_compute_wave_induced_force_unstructured() ! maybe move later on
+    if(ret.NE.0) return
   endif
 
   ret=0
@@ -442,6 +442,9 @@ function evolve_model(tend) result(ret)
   ENDIF
   ret=swan_compute("COMP")
   DT=dt_save
+  
+  if(grid_type.EQ."unstructured") ret=swan_compute_wave_induced_force_unstructured()
+  
 end function
 
 
@@ -476,6 +479,12 @@ function get_depth_regular(i,j,x,n) result(ret)
       x(m)=COMPDA(ii,JDP2)
     endif
   enddo
+end function
+
+function get_wave_stress_regular(i,j,x,y,n) result(ret)
+  integer :: ret,i(n),j(n),m,n,ii
+  real*8 :: x(n),y(n)
+  ret=-2
 end function
 
 function get_ac2_regular(i,j,k,l,x,n) result(ret)
@@ -530,6 +539,22 @@ function get_depth_unstructured(ii,x,n) result(ret)
       cycle
     endif
     x(m)=COMPDA(ii(m),JDP2)
+  enddo
+end function
+
+function get_wave_stress_unstructured(ii,x,y,n) result(ret)
+  integer :: ret,m,n,ii(n)
+  real*8 :: x(n),y(n)
+  ret=0
+  do m=1,n
+    if( ii(m).LT.1.OR.ii(m).GT.nvertsg) then
+      x(m)=0
+      y(m)=0
+      ret=-1
+      cycle
+    endif
+    x(m)=FORCE(ii(m),1)
+    y(m)=FORCE(ii(m),2)
   enddo
 end function
 
