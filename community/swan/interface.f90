@@ -393,7 +393,7 @@ function initialize_boundary() result(ret)
       ret=swan_unstructured_add_boundary_from_file(boundary_marker,unstructured_boundary_spec_file)
       if(ret.NE.0) return
     endif
-    ret=swan_compute_wave_induced_force_unstructured() ! maybe move later on
+!    ret=swan_compute_wave_induced_force_unstructured() ! maybe move later on
     if(ret.NE.0) return
   endif
 
