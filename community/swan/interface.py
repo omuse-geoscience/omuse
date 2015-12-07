@@ -478,7 +478,7 @@ class Swan(InCodeComponentImplementation):
             object.set_grid_range('grid', 'get_grid_range')
             object.add_getter('grid', 'get_grid_'+coordinates+'_regular', names=axes_names)
             object.add_getter('grid', 'get_depth_regular', names=["depth"])
-            object.add_getter('grid', 'get_wave_stress_regular',names = ["tau_x","tau_y"])
+#            object.add_getter('grid', 'get_wave_stress_regular',names = ["tau_x","tau_y"])
             object.add_gridded_getter('grid', 'get_ac2_regular','get_dir_freq_range', names = ["ac2"])
 
         if self._grid_type=="unstructured":
