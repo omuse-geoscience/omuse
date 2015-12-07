@@ -108,6 +108,13 @@ class AdcircInterface(CodeInterface,
         returns ()        
 
     @remote_function(can_handle_array=True)
+    def get_node_wave_stress(index=0):
+        returns (tau_x=0. | units.Pa,tau_y=0. | units.Pa)
+    @remote_function(can_handle_array=True)
+    def set_node_wave_stress(index=0,tau_x=0.| units.Pa,tau_y=0. | units.Pa):
+        returns ()
+
+    @remote_function(can_handle_array=True)
     def get_node_atmospheric_pressure(index=0):
         returns (pressure=0. | units.mbar)
     @remote_function(can_handle_array=True)
@@ -214,6 +221,13 @@ class AdcircInterface(CodeInterface,
         returns ()
 
     @remote_function
+    def get_use_interface_wave_forcing():
+        returns (use_interface_wave_forcing='b')
+    @remote_function
+    def set_use_interface_wave_forcing(use_interface_wave_forcing='b'):
+        returns ()
+
+    @remote_function
     def get_reference_pressure():
         returns (pressure=0. | units.mbar)
 
@@ -300,6 +314,11 @@ class Adcirc(CommonCode):
         object.add_default_form_parameter(
             "use_interface_met_forcing", 
             "toggle the use of interface meteorological forcings", 
+            False
+        )
+        object.add_default_form_parameter(
+            "use_interface_wave_forcing", 
+            "toggle the use of interface wave stress forcings", 
             False
         )
         object.add_interface_parameter(
@@ -435,6 +454,8 @@ class Adcirc(CommonCode):
         object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f',))
         object.add_getter('forcings', 'get_node_wind_stress', names=('tau_x','tau_y'))
         object.add_setter('forcings', 'set_node_wind_stress', names=('tau_x','tau_y'))
+        object.add_getter('forcings', 'get_node_wave_stress', names=('wave_tau_x','wave_tau_y'))
+        object.add_setter('forcings', 'set_node_wave_stress', names=('wave_tau_x','wave_tau_y'))
         object.add_getter('forcings', 'get_node_atmospheric_pressure', names=('pressure',))
         object.add_setter('forcings', 'set_node_atmospheric_pressure', names=('pressure',))
         object.add_getter('forcings', 'get_node_position', names=('x','y'))
