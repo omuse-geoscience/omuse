@@ -24,6 +24,8 @@ module amuse_swan
   REAL   , ALLOCATABLE :: AC1(:,:,:), COMPDA(:,:)
   REAL   , ALLOCATABLE :: BLKND(:), BLKNDC(:)
 
+! additional
+  REAL   , ALLOCATABLE :: FORCE(:,:)
 
 contains
 
@@ -238,6 +240,7 @@ end function
 function swan_cleanup() result(ret)
   integer :: ret
 
+  IF (ALLOCATED(FORCE )) DEALLOCATE(FORCE )
   IF (ALLOCATED(AC1   )) DEALLOCATE(AC1   )
   IF (ALLOCATED(BGRIDP)) DEALLOCATE(BGRIDP)
   IF (ALLOCATED(BSPECS)) DEALLOCATE(BSPECS)
@@ -487,7 +490,8 @@ function swan_init_unstructured_grid() result(ret)
   IF(ALLOCATED(ycugrd)) DEALLOCATE(ycugrd)
   IF(ALLOCATED(vmark)) DEALLOCATE(vmark)
   IF(ALLOCATED(kvertc)) DEALLOCATE(kvertc)
-  ALLOCATE(xcugrd(nverts),ycugrd(nverts),vmark(nverts),kvertc(3,ncells), stat=istat)
+  IF(ALLOCATED(FORCE)) DEALLOCATE(FORCE)
+  ALLOCATE(xcugrd(nverts),ycugrd(nverts),vmark(nverts),kvertc(3,ncells), FORCE(nverts,2), stat=istat)
   if(istat.NE.0) then
     ret=-2
     return
@@ -1132,5 +1136,20 @@ function swan_regular_add_boundary_from_file( side, filename) result(ret)
 
 end function
 
+function swan_compute_wave_induced_force_unstructured() result(ret)
+  integer :: ret
+
+  if(.not.allocated(AC2).OR. & 
+     .not.allocated(COMPDA).OR. &
+     .not.allocated(SPCSIG).OR. &
+     .not.allocated(SPCDIR).OR. &
+     .not.allocated(FORCE) ) then
+    ret=-1
+    return
+  endif
+
+  CALL SwanComputeForce ( FORCE(1,1), FORCE(1,2), AC2, COMPDA(1,JDP2), SPCSIG, SPCDIR )
+
+end function
 
 end module
