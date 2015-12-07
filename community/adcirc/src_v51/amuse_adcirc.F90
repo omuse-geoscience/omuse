@@ -9,8 +9,10 @@ module amuse_adcirc
 
   logical :: use_interface_elevation_boundary=.FALSE.
   logical :: use_interface_met_forcing=.FALSE.
+  logical :: use_interface_wave_forcing=.FALSE.
   
-  real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:), PR(:)
+  real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:), PR(:), &
+                            RSNX(:), RSNY(:)
   
   real(SZ),parameter :: reference_pressure=1013.0d0
 
@@ -27,6 +29,11 @@ subroutine update_met_forcing()
   NWS=OR(NWS,2**30)
 end subroutine
 
+subroutine update_wave_forcing()
+  WSX2(1:NP)=WSX2(1:NP)+RSNX(1:NP)
+  WSY2(1:NP)=WSY2(1:NP)+RSNY(1:NP)
+end subroutine
+
 end module
 
 subroutine AMUSE_elevation_boundary() 
@@ -37,4 +44,5 @@ end subroutine
 subroutine AMUSE_met_forcing()
   use amuse_adcirc
   if(use_interface_met_forcing) call update_met_forcing()
+  if(use_interface_wave_forcing) call update_wave_forcing()
 end subroutine
