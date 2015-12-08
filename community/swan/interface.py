@@ -478,7 +478,7 @@ class Swan(InCodeComponentImplementation):
             object.set_grid_range('grid', 'get_grid_range')
             object.add_getter('grid', 'get_grid_'+coordinates+'_regular', names=axes_names)
             object.add_getter('grid', 'get_depth_regular', names=["depth"])
-#            object.add_getter('grid', 'get_wave_stress_regular',names = ["tau_x","tau_y"])
+#            object.add_getter('grid', 'get_wave_stress_regular',names = ["wave_tau_x","wave_tau_y"])
             object.add_gridded_getter('grid', 'get_ac2_regular','get_dir_freq_range', names = ["ac2"])
 
         if self._grid_type=="unstructured":
@@ -491,7 +491,7 @@ class Swan(InCodeComponentImplementation):
             object.add_setter('nodes', 'set_grid_vmark_unstructured', names=("vmark",))
             object.add_gridded_getter('nodes', 'get_ac2_unstructured','get_dir_freq_range', names = ["ac2"])
             object.add_getter('nodes', 'get_depth_unstructured',names = ["depth"])
-            object.add_getter('nodes', 'get_wave_stress_unstructured',names = ["tau_x","tau_y"])
+            object.add_getter('nodes', 'get_wave_stress_unstructured',names = ["wave_tau_x","wave_tau_y"])
 
             object.define_grid('elements', grid_class=datamodel.UnstructuredGrid)
             object.set_grid_range('elements', 'get_element_range_unstructured')
