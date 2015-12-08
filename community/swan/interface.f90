@@ -86,17 +86,16 @@ end function
 
 function commit_grid_positions() result(ret)
   integer :: ret
-  
+  ret=0
   if(grid_type.EQ."unstructured") ret=swan_init_unstructured_comp_grid()
   
 end function
 
 function commit_grids() result(ret)
   integer :: ret
-  
+  ret=0
   if(grid_type.EQ."regular") ret=swan_init_regular_comp_grid()
   if(grid_type.EQ."curvilinear") ret=swan_init_curvilinear_comp_grid()
-  
 end function
 
 
