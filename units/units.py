@@ -2,6 +2,7 @@ from amuse.units.units import *
 from amuse.units.core import named_unit
 from amuse.units.quantities import zero
 
+Rearth = named('Earth radius', 'Rearth', 6371.0088 * km)
 Sv=named_unit("Sverdrup","Sv",1.e6*m**3/s)
 dyn=named_unit("Dyne","dyn", 1.e-5*N)
 bar=named_unit("Bar", "bar", 1.e5*Pa)
