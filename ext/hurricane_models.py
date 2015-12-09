@@ -264,7 +264,11 @@ class HollandHurricane(object):
         if B>2.5: B=2.5
         
         coriolis_f=constants.coriolis_frequency(lat)
-        r=spherical_geometry.distance(lat,lon,self.nodes.lat,self.nodes.lon, R=1| units.Rearth)
+        r=spherical_geometry.distance(lat,lon,self.nodes.lat,self.nodes.lon, R=1.| units.Rearth)
+        
+        a=numpy.where(r.number==0.)
+        r[a]=mrd*constants.eps
+        
         theta=trigo.arctan2(trigo.in_rad(self.nodes.lat-lat),trigo.in_rad(self.nodes.lon-lon))
         self.nodes.pressure=mslp+central_pressure_deficit*numpy.exp(-(mrd/r)**B)
         
