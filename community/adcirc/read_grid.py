@@ -133,6 +133,20 @@ class adcirc_parameter_reader(object):
         param["ESLM"],param["ESLC"]=f.read_value(float,float)
       param["CORI"]=f.read_value()
       param["NTIF"]=f.read_int()
+      param["TIPOTAG"]=[]
+      param["TPK"]=[]
+      param["AMIGT"]=[]
+      param["ETRF"]=[]
+      param["FFT"]=[]
+      param["FACET"]=[]
+      for i in range(param["NTIF"]):
+          param["TIPOTAG"].append(f.read_string(10))
+          tpk,amigt,etrf,fft,facet=f.read_value(float,float,float,float,float)
+          param["TPK"].append(tpk)
+          param["AMIGT"].append(amigt)
+          param["ETRF"].append(etrf)
+          param["FFT"].append(fft)
+          param["FACET"].append(facet)
       param["NBFR"]=f.read_int()
       param["BOUNTAG"]=[]
       param["AMIG"]=[]
