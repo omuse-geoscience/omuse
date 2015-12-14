@@ -140,6 +140,8 @@ class adcirc_parameter_writer(object):
       f.write_var(param["DTDP"])
       f.write_var(param["STATIM"])
       f.write_var(param["REFTIM"])
+      if param["NWS"] not in [0]:
+        raise Exception("NWS not equal zero, check..")
   #~ WTIMINC  Supplemental Meteorological/Wave/Ice Parameters Line
       f.write_var(param["RNDAY"])
       if param["NRAMP"] in [0,1]:
