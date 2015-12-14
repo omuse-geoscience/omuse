@@ -1,0 +1,23 @@
+.PHONY: patch apply_patch apply_reverse_patch code
+
+all:
+
+ADCIRC_SRC=../adcirc/adcirc_v51_52_07
+
+code: adcirc_src
+
+adcirc_src:
+	cp -r $(ADCIRC_SRC) ./adcirc_src
+	chmod +x ./adcirc_src/work/config.guess
+
+apply_patch:
+	-cd adcirc_src; patch -N -p1 --no-backup-if-mismatch < ../adcirc.patch
+
+apply_reverse_patch:
+	-cd adcirc_src; patch -N -p1 -R --no-backup-if-mismatch < ../adcirc.patch
+
+patch:
+	diff -ruN $(ADCIRC_SRC) adcirc_src > new.patch || exit 0
+
+distclean:
+	rm -rf ./adcirc_src

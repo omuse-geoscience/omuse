@@ -17,12 +17,14 @@ FCFLAGS+=-traceback
 endif
 
 
-all: src src/libamuse_adcirc.a src/amuse_adcirc.o adcirc_worker
+all: src prep src/libamuse_adcirc.a src/amuse_adcirc.o adcirc_worker
 
 src:
 	$(error "please link src to correct src_v[version] directory")  
 
-src/libamuse_adcirc.a: adcirc/v50release_121024/src/*.F
+src/adcirc_src/src/*.F: prep
+
+src/libamuse_adcirc.a: src/adcirc_src/src/*.F
 	make -C src/ libamuse_adcirc.a BUILDTYPE=amuse FC="$(FC)" PFC="$(MPIFC)" compiler=$(compiler) FSO=-FI
 
 src/amuse_adcirc.o: src/amuse_adcirc.F90
@@ -33,6 +35,9 @@ worker_code.f90: interface.py
 
 adcirc_worker: worker_code.f90 interface.o src/amuse_adcirc.o src/libamuse_adcirc.a 
 	$(MPIFC) $(FCFLAGS) $(SC_FLAGS) $(FS_FLAGS) $^ -o $@  $(LIBS) $(SC_FCLIBS) $(FS_LIBS)
+
+prep:
+	make -C src/ -f makefile_prep
 
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c -o $@ $<
@@ -45,3 +50,4 @@ clean:
 
 distclean: clean
 	make -C src/ LIBADC=libadcirc.a clobber
+	make -C src/ -f makefile_prep distclean

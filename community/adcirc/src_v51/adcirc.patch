@@ -1,0 +1,140 @@
+diff -ruN ../adcirc/adcirc_v51_52_07/src/read_input.F src/src/read_input.F
+--- ../adcirc/adcirc_v51_52_07/src/read_input.F	2015-03-09 12:22:00.000000000 +0100
++++ src/src/read_input.F	2015-12-14 11:54:00.775741810 +0100
+@@ -173,13 +173,14 @@
+       call readMesh()
+ C
+ C     ALLOCATE ARRAYS Dimensioned by MNP and MNE
+-      call alloc_main1a()
+-      ! jgf51.21.13: Allocate boundary condition arrays dimensioned by
+-      ! mnope and mneta
+-      call alloc_main2()
+-      ! jgf51.21.13: Allocate boundary condition arrays dimensioned by
+-      ! mnvel 
+-      call alloc_main3()
++Ctemporaryfix, fip 12052015
++!~       call alloc_main1a()
++!~       ! jgf51.21.13: Allocate boundary condition arrays dimensioned by
++!~       ! mnope and mneta
++!~       call alloc_main2()
++!~       ! jgf51.21.13: Allocate boundary condition arrays dimensioned by
++!~       ! mnvel 
++!~       call alloc_main3()
+ C...
+ C...  OPEN UNIT 15 INPUT FILE (control parameters and periodic boundary conditions)
+ C...
+@@ -785,6 +786,11 @@
+       WRITE(16,*) '         CTIP             = ',CTIP
+       WRITE(16,*) '         CHARMV           = ',CHARMV
+ 
++Ctemporary fix, fip 12052015
++      call alloc_main1a()
++      call alloc_main2()
++      call alloc_main3()
++
+ C...
+ C...  READ AND PROCESS NOLIBF - NONLINEAR BOTTOM FRICTION OPTION
+ C...
+diff -ruN ../adcirc/adcirc_v51_52_07/src/sizes.F src/src/sizes.F
+--- ../adcirc/adcirc_v51_52_07/src/sizes.F	2015-03-09 12:22:00.000000000 +0100
++++ src/src/sizes.F	2015-12-14 11:54:00.775741810 +0100
+@@ -147,8 +147,8 @@
+       naFileNameSpecified = .false.
+       naFileName = 'fort.13'
+ 
+-Casey 090527: Debug.
+-      ROOTDIR = "."
++Casey 090527: Debug. AMUSE comment out
++C      ROOTDIR = "."
+ 
+ Cobell 110518: Add compiler flag for local hot start.
+ #ifdef LOCALHOT
+diff -ruN ../adcirc/adcirc_v51_52_07/src/timestep.F src/src/timestep.F
+--- ../adcirc/adcirc_v51_52_07/src/timestep.F	2015-04-13 16:09:02.000000000 +0200
++++ src/src/timestep.F	2015-12-14 11:54:00.776741809 +0100
+@@ -1413,6 +1413,11 @@
+          END DO
+        END IF
+ 
++
++#ifdef AMUSE
++       call AMUSE_met_forcing()
++#endif
++
+ C
+ C--------------------END MET FORCING---------------------------------------
+ 
+@@ -4410,6 +4415,12 @@
+             END DO
+          ENDIF
+       endif                                   ! NCSU Subdomain
++
++C... AMUSE elevation boundary condition
++#ifdef AMUSE
++      call AMUSE_elevation_boundary()  
++#endif
++
+       ! 
+       ! jgf46.02 Added the ability to include geoid offset on the boundary.
+       !
+@@ -7587,6 +7598,10 @@
+          END DO
+       ENDIF
+ 
++C... AMUSE elevation boundary condition
++#ifdef AMUSE
++      call AMUSE_elevation_boundary()  
++#endif
+ 
+ C...  IMPOSE NORMAL FLOW, RADIATION OR GRADIENT BOUNDARY CONDITIONS
+ C...  ALONG FLOW BOUNDARY TO LOAD VECTOR GWCE_LV(I)
+diff -ruN ../adcirc/adcirc_v51_52_07/work/cmplrflags.mk src/work/cmplrflags.mk
+--- ../adcirc/adcirc_v51_52_07/work/cmplrflags.mk	2015-05-06 14:33:40.000000000 +0200
++++ src/work/cmplrflags.mk	2015-12-14 11:54:00.778741810 +0100
+@@ -1238,6 +1238,8 @@
+ # i386-apple-darwin using intel
+ 
+ ifneq (,$(findstring i386-darwin,$(MACHINE)-$(OS)))
++
++ifeq ($(compiler),intel)
+   PPFC	        := ifort
+   FC	        := ifort
+   PFC	        := mpif77
+@@ -1262,6 +1264,37 @@
+      MULTIPLE := TRUE
+   endif
+ endif
++
++ifeq ($(compiler),gnu)
++  PPFC		:=  gfortran
++  FC		:=  gfortran
++  PFC		:=  mpif90
++  FFLAGS1	:=  $(INCDIRS) -O2 -mcmodel=medium -ffixed-line-length-none -march=k8 -m64
++  FFLAGS2	:=  $(FFLAGS1)
++  FFLAGS3	:=  $(FFLAGS1)
++  DA		:=  -DREAL8 -DLINUX -DCSCA
++  DP		:=  -DREAL8 -DLINUX -DCSCA -DCMPI -DHAVE_MPI_MOD
++  DPRE		:=  -DREAL8 -DLINUX
++  IMODS 	:=  -I
++  CC		:= gcc
++  CCBE		:= $(CC)
++  CFLAGS	:= $(INCDIRS) -O2 -mcmodel=medium -DLINUX -march=k8 -m64
++  CLIBS	:=
++  LIBS		:=
++  MSGLIBS	:=
++  ifeq ($(NETCDF),enable)
++        FLIBS          := $(FLIBS) -L$(HDF5HOME) -lhdf5 -lhdf5_fortran
++  endif
++  $(warning (INFO) Corresponding compilers and flags found in cmplrflags.mk.)
++  ifneq ($(FOUND),TRUE)
++     FOUND := TRUE
++  else
++     MULTIPLE := TRUE
++  endif
++endif
++
++
++endif
+ ########################################################################
+ ifneq ($(FOUND), TRUE)
+      $(warning (WARNING) None of the platforms in cmplrflags.mk match your platform. As a result, the specific compilers and flags that are appropriate for you could not be specified. Please edit the cmplrflags.mk file to include your machine and operating system. Continuing with generic selections for compilers.)
