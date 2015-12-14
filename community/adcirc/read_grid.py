@@ -103,7 +103,8 @@ class adcirc_parameter_reader(object):
         pass
       elif param["NWS"] in [4,5,6,7,10,12,15]:
         param["WTIMINC"]=f.read_value()
-        
+      else
+        raise Exception("NWS not 0, check value")
   #~ WTIMINC  Supplemental Meteorological/Wave/Ice Parameters Line
       param["RNDAY"]=f.read_value()
       if param["NRAMP"] in [0,1]:
