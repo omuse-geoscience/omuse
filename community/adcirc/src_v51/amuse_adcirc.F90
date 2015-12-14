@@ -10,9 +10,10 @@ module amuse_adcirc
   logical :: use_interface_elevation_boundary=.FALSE.
   logical :: use_interface_met_forcing=.FALSE.
   logical :: use_interface_wave_forcing=.FALSE.
+  logical :: use_interface_tidal_forcing=.FALSE.
   
   real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:), PR(:), &
-                            RSNX(:), RSNY(:)
+                            RSNX(:), RSNY(:), TIP(:)
   
   real(SZ),parameter :: reference_pressure=1013.0d0
 
@@ -34,6 +35,10 @@ subroutine update_wave_forcing()
   WSY2(1:NP)=WSY2(1:NP)+RSNY(1:NP)
 end subroutine
 
+subroutine update_tidal_forcing()
+  TIP2(1:NP)=TIP2(1:NP)+TIP(1:NP)
+end subroutine
+
 end module
 
 subroutine AMUSE_elevation_boundary() 
@@ -45,4 +50,9 @@ subroutine AMUSE_met_forcing()
   use amuse_adcirc
   if(use_interface_met_forcing) call update_met_forcing()
   if(use_interface_wave_forcing) call update_wave_forcing()
+end subroutine
+
+subroutine AMUSE_tidal_forcing() 
+  use amuse_adcirc
+  if(use_interface_tidal_forcing) call update_tidal_forcing()
 end subroutine

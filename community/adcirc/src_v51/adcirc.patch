@@ -1,6 +1,6 @@
-diff -ruN ../adcirc/adcirc_v51_52_07/src/read_input.F src/src/read_input.F
+diff -ruN ../adcirc/adcirc_v51_52_07/src/read_input.F adcirc_src/src/read_input.F
 --- ../adcirc/adcirc_v51_52_07/src/read_input.F	2015-03-09 12:22:00.000000000 +0100
-+++ src/src/read_input.F	2015-12-14 11:54:00.775741810 +0100
++++ adcirc_src/src/read_input.F	2015-12-14 12:15:59.846686644 +0100
 @@ -173,13 +173,14 @@
        call readMesh()
  C
@@ -35,9 +35,9 @@ diff -ruN ../adcirc/adcirc_v51_52_07/src/read_input.F src/src/read_input.F
  C...
  C...  READ AND PROCESS NOLIBF - NONLINEAR BOTTOM FRICTION OPTION
  C...
-diff -ruN ../adcirc/adcirc_v51_52_07/src/sizes.F src/src/sizes.F
+diff -ruN ../adcirc/adcirc_v51_52_07/src/sizes.F adcirc_src/src/sizes.F
 --- ../adcirc/adcirc_v51_52_07/src/sizes.F	2015-03-09 12:22:00.000000000 +0100
-+++ src/src/sizes.F	2015-12-14 11:54:00.775741810 +0100
++++ adcirc_src/src/sizes.F	2015-12-14 12:15:59.846686644 +0100
 @@ -147,8 +147,8 @@
        naFileNameSpecified = .false.
        naFileName = 'fort.13'
@@ -49,9 +49,9 @@ diff -ruN ../adcirc/adcirc_v51_52_07/src/sizes.F src/src/sizes.F
  
  Cobell 110518: Add compiler flag for local hot start.
  #ifdef LOCALHOT
-diff -ruN ../adcirc/adcirc_v51_52_07/src/timestep.F src/src/timestep.F
+diff -ruN ../adcirc/adcirc_v51_52_07/src/timestep.F adcirc_src/src/timestep.F
 --- ../adcirc/adcirc_v51_52_07/src/timestep.F	2015-04-13 16:09:02.000000000 +0200
-+++ src/src/timestep.F	2015-12-14 11:54:00.776741809 +0100
++++ adcirc_src/src/timestep.F	2015-12-14 16:00:03.660124388 +0100
 @@ -1413,6 +1413,11 @@
           END DO
         END IF
@@ -64,7 +64,19 @@ diff -ruN ../adcirc/adcirc_v51_52_07/src/timestep.F src/src/timestep.F
  C
  C--------------------END MET FORCING---------------------------------------
  
-@@ -4410,6 +4415,12 @@
+@@ -1614,6 +1619,11 @@
+          END DO
+       ENDIF
+ 
++#ifdef AMUSE
++      call AMUSE_tidal_forcing()  
++#endif
++
++
+ C...
+ C...  Depth Averaged Baroclinic Forcing needed by GWCE and 2DDI Momentum
+ C...  Compute this (divided by H, i.e., Bx/H, By/H) as a nodally averaged
+@@ -4410,6 +4420,12 @@
              END DO
           ENDIF
        endif                                   ! NCSU Subdomain
@@ -77,7 +89,7 @@ diff -ruN ../adcirc/adcirc_v51_52_07/src/timestep.F src/src/timestep.F
        ! 
        ! jgf46.02 Added the ability to include geoid offset on the boundary.
        !
-@@ -7587,6 +7598,10 @@
+@@ -7587,6 +7603,10 @@
           END DO
        ENDIF
  
@@ -88,9 +100,9 @@ diff -ruN ../adcirc/adcirc_v51_52_07/src/timestep.F src/src/timestep.F
  
  C...  IMPOSE NORMAL FLOW, RADIATION OR GRADIENT BOUNDARY CONDITIONS
  C...  ALONG FLOW BOUNDARY TO LOAD VECTOR GWCE_LV(I)
-diff -ruN ../adcirc/adcirc_v51_52_07/work/cmplrflags.mk src/work/cmplrflags.mk
+diff -ruN ../adcirc/adcirc_v51_52_07/work/cmplrflags.mk adcirc_src/work/cmplrflags.mk
 --- ../adcirc/adcirc_v51_52_07/work/cmplrflags.mk	2015-05-06 14:33:40.000000000 +0200
-+++ src/work/cmplrflags.mk	2015-12-14 11:54:00.778741810 +0100
++++ adcirc_src/work/cmplrflags.mk	2015-12-14 12:15:59.851686643 +0100
 @@ -1238,6 +1238,8 @@
  # i386-apple-darwin using intel
  

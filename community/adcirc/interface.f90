@@ -39,6 +39,7 @@ function evolve_model(tend) result(ret)
     RSNX(1:NP)=RSNX2(1:NP)
     RSNY(1:NP)=RSNY2(1:NP)  
   endif
+  if(.not.use_interface_tidal_forcing) TIP(1:NP)=TIP2(1:NP) 
   ret=0
 end function
 
@@ -54,11 +55,13 @@ subroutine ADCIRC_allocate_interface_storage()
   if(allocated(WSY)) deallocate(WSY)
   if(allocated(RSNX)) deallocate(RSNX)
   if(allocated(RSNY)) deallocate(RSNY)
+  if(allocated(TIP)) deallocate(TIP)
   if(allocated(DETA_DT)) deallocate(DETA_DT)
   if(allocated(PR)) deallocate(PR)
   allocate( ESBIN(MNETA) )
   allocate( WSX(MNP),WSY(MNP), DETA_DT(MNP), PR(MNP) )
   allocate( RSNX(MNP),RSNY(MNP) )
+  allocate( TIP(MNP) )
   ESBIN(:)=0.
   WSX(:)=0.
   WSY(:)=0.
@@ -66,6 +69,7 @@ subroutine ADCIRC_allocate_interface_storage()
   RSNY(:)=0.
   DETA_DT(:)=0.
   PR(:)=0.
+  TIP(:)=0.
 end subroutine
 
 function commit_parameters() result(ret)
@@ -151,6 +155,18 @@ function set_use_interface_wave_forcing(flag) result(ret)
   ret=0
 end function  
 
+function get_use_interface_tidal_forcing(flag) result(ret)
+  integer :: ret
+  logical flag
+  flag=use_interface_tidal_forcing
+  ret=0
+end function  
+function set_use_interface_tidal_forcing(flag) result(ret)
+  integer :: ret
+  logical flag
+  use_interface_tidal_forcing=flag
+  ret=0
+end function
 
 function get_node_eta(ind,eta2_) result(ret)
   integer :: ind,ret
@@ -314,6 +330,19 @@ function set_node_wave_stress(ind,wsx_,wsy_) result(ret)
   real*8 :: wsx_,wsy_
   RSNX(ind)=wsx_/RhoWat0
   RSNY(ind)=wsy_/RhoWat0
+  ret=0
+end function
+
+function get_node_tidal_potential(ind,x_) result(ret)
+  integer :: ind,ret
+  real*8 :: x_
+  x_=G*TIP(ind)
+  ret=0
+end function
+function set_node_tidal_potential(ind,x_) result(ret)
+  integer :: ind,ret
+  real*8 :: x_
+  TIP(ind)=x_/G
   ret=0
 end function
 
