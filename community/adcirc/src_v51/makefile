@@ -1,5 +1,5 @@
 SHELL:=/bin/sh
-SRCDIR=../adcirc/v51_52_02/
+SRCDIR=./adcirc_src/
 #
 #  Makefile to Build PADCIRC and its pre-processor 
 #  University of Texas's parallel version of the Hydrodynamics
