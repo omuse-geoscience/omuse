@@ -170,8 +170,8 @@ class adcirc_parameter_writer(object):
       f.write_var(param["NTIF"])
       if param["NTIF"]>0:
         for tag,tpk,amigt,etrf,fft,facet in zip(param["TIPOTAG"],param["TPK"],param["AMIGT"],param["ETRF"],param["FFT"],param["FACET"]):
-        f.write_var(tag)
-        f.write_var(tpk,amigt,etrf,fft,facet)
+          f.write_var(tag)
+          f.write_var(tpk,amigt,etrf,fft,facet)
       f.write_var(param["NBFR"])
       if param["NBFR"]>0:
         for tag,amig,ff,face in zip(param["BOUNTAG"],param["AMIG"],param["FF"],param["FACE"]):
