@@ -50,4 +50,3 @@ clean:
 
 distclean: clean
 	make -C src/ LIBADC=libadcirc.a clobber
-	make -C src/ -f makefile_prep distclean
