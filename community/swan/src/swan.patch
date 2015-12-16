@@ -1,6 +1,6 @@
 diff -uN swan/Makefile work/Makefile
 --- swan/Makefile	2015-10-19 12:51:48.919650461 +0200
-+++ work/Makefile	2015-11-23 17:26:12.802912784 +0100
++++ work/Makefile	2015-12-16 14:17:35.221693866 +0100
 @@ -135,6 +135,12 @@
  	        FFLAGS90="$(FLAGS_OPT) $(FLAGS90_MSC) $(FLAGS_SER)" \
                  INCS="$(INCS_SER)" LIBS="$(LIBS_SER)" OBJS="$(SWAN_OBJS)" $(SWAN_EXE)
@@ -23,9 +23,21 @@ diff -uN swan/Makefile work/Makefile
  .f.o:
  	$(FOR) $< -c $(FFLAGS) $(INCS)
  
+diff -uN swan/ocpids.ftn work/ocpids.ftn
+--- swan/ocpids.ftn	2015-10-19 12:51:48.948650462 +0200
++++ work/ocpids.ftn	2015-12-16 14:18:12.987692286 +0100
+@@ -182,7 +182,7 @@
+ !       REFERENCE NUMBERS AND NAMES OF STANDARD FILES
+ !
+         INPUTF = 3
+-        INPFIL = 'INPUT'
++        INPFIL = '    '
+         PRINTF = 4
+         OUTFIL = 'PRINT'
+ !       unit ref. numbers for output to screen and to separate
 diff -uN swan/swanmain.ftn work/swanmain.ftn
 --- swan/swanmain.ftn	2015-10-19 12:51:48.963650461 +0200
-+++ work/swanmain.ftn	2015-11-23 17:26:12.801912785 +0100
++++ work/swanmain.ftn	2015-12-16 14:17:35.223693866 +0100
 @@ -26,7 +26,7 @@
  !
  !***********************************************************************
@@ -37,7 +49,7 @@ diff -uN swan/swanmain.ftn work/swanmain.ftn
  !***********************************************************************
 diff -uN swan/SwanPrepComp.ftn90 work/SwanPrepComp.ftn90
 --- swan/SwanPrepComp.ftn90	2015-10-19 12:51:48.933650463 +0200
-+++ work/SwanPrepComp.ftn90	2015-11-23 17:34:32.368891882 +0100
++++ work/SwanPrepComp.ftn90	2015-12-16 14:17:35.223693866 +0100
 @@ -76,8 +76,8 @@
  !PUN    !
      ! deallocate arrays kvertc and kvertf (we don't use them anymore!)
