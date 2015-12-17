@@ -1150,6 +1150,8 @@ function swan_compute_wave_induced_force_unstructured() result(ret)
 
   CALL SwanComputeForce ( FORCE(1,1), FORCE(1,2), AC2, COMPDA(1,JDP2), SPCSIG, SPCDIR )
 
+  ret=0
+
 end function
 
 end module
