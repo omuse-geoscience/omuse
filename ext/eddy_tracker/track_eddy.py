@@ -18,12 +18,12 @@ from matplotlib import pyplot
 from make_eddy_track_AVISO import *
 
 
-config = {}
-config['THE_DOMAIN'] = 'Regional'
-config['LONMIN'] = 0.
-config['LONMAX'] = 50.
-config['LATMIN'] = -45.
-config['LATMAX'] = -25.
+#config = {}
+#config['THE_DOMAIN'] = 'Regional'
+#config['LONMIN'] = 0.
+#config['LONMAX'] = 50.
+#config['LATMIN'] = -45.
+#config['LATMAX'] = -25.
 
 import os
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -32,8 +32,8 @@ RW_PATH = THIS_DIR + '/rossrad.dat'
 SAVE_DIR = THIS_DIR + '/'
 DATA_DIR = THIS_DIR + '/'
 DIAGNOSTIC_TYPE = 'SLA'
-A_SAVEFILE = "".join([SAVE_DIR, 'eddy_tracks_SLA_AVISO_anticyclonic.nc'])
-C_SAVEFILE = "".join([SAVE_DIR, 'eddy_tracks_SLA_AVISO_cyclonic.nc'])
+A_SAVEFILE = "".join([SAVE_DIR, 'eddy_tracks_SLA_OMUSE_anticyclonic.nc'])
+C_SAVEFILE = "".join([SAVE_DIR, 'eddy_tracks_SLA_OMUSE_cyclonic.nc'])
 
 class GenericGrid (PyEddyTracker):
     """
