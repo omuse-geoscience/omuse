@@ -39,7 +39,7 @@ function evolve_model(tend) result(ret)
     RSNX(1:NP)=RSNX2(1:NP)
     RSNY(1:NP)=RSNY2(1:NP)  
   endif
-  if(.not.use_interface_tidal_forcing) TIP(1:NP)=TIP2(1:NP) 
+  if(.not.use_interface_tidal_forcing.AND.CTIP) TIP(1:NP)=TIP2(1:NP) 
   ret=0
 end function
 
@@ -172,6 +172,9 @@ function get_node_eta(ind,eta2_) result(ret)
   integer :: ind,ret
   real*8 :: eta2_
   eta2_=ETA2(ind)
+  if(NNODECODE(ind).EQ.0) then
+    eta2_=-DP(ind)
+  endif
   ret=0
 end function
 
