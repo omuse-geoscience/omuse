@@ -68,6 +68,10 @@ parameters={
     "number_of_cells" : dict(short="ncellsg", dtype="int32", default=0, description="number of cells in case of unstructured grid", ptype="simple"),
     "unstructured_boundary_spec_file" : dict(short="unstructured_boundary_spec_file", dtype="string", default="none" , description="file with wave spectrum on unstructured boundary (1 supported)",ptype="simple"),
     "boundary_marker" : dict(short="boundary_marker", dtype="int32", default=0, description="boundary associated with unstructured spec file", ptype="simple"),
+    "use_csigma_cfl_limiter" : dict(short="use_csigma_cfl_limiter", dtype="bool", default=False , description="this option prevents an excessive frequency shifting at a single grid point or vertex due to a very coarse bathymetry or current locally",ptype="simple"),
+    "use_ctheta_cfl_limiter" : dict(short="use_ctheta_cfl_limiter", dtype="bool", default=False , description="this option prevents an excessive directional turning at a single grid point or vertex due to a very coarse bathymetry or current locally",ptype="simple"),
+    "max_iterations_stationary" : dict(short="mxitst", dtype="int32", default=50, description="maximum number of iterations for stationary calc.", ptype="simple"),
+    "max_iterations_dynamic" : dict(short="mxitns", dtype="int32", default=1, description="maximum number of iterations for dynamic calc.", ptype="simple"),
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
