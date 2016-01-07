@@ -1,6 +1,6 @@
 # standard amuse configuration include
 # config.mk will be made after ./configure has run
-AMUSE_DIR?=/Users/brunnabend/amuse-svn/amuse-svn/
+AMUSE_DIR?=../../../..
 -include $(AMUSE_DIR)/config.mk
 
 MPIFC ?= mpif90
