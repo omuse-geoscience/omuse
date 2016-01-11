@@ -288,7 +288,10 @@ class Adcirc(CommonCode):
                         TAU0=self.parameters.GWCE_weighting_factor,
                         TAU=self.parameters.linear_bottom_friction_coeff.value_in(units.s**-1),
                         CF=self.parameters.quadratic_bottom_friction_coeff,
-                        STATIM=self.parameters.begin_time.value_in(units.day) )
+                        STATIM=self.parameters.begin_time.value_in(units.day),
+                        CONVCR=self.parameters.convergence_criterion,
+                        ITMAX=self.parameters.maximum_iterations,
+                        ISLDIA=self.parameters.solver_verbosity )
           param.write()
         if self.parameters.use_interface_grid:
           adcirc_grid_writer(coordinates=self.coordinates).write_grid(self._nodes,self._elements, 
@@ -410,6 +413,24 @@ class Adcirc(CommonCode):
             "begin_time",
             "begin time of the simulation",
             0. | units.day,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "convergence_criterion",
+            "absolute convergence criteria (should be no smaller than 500 times the machine precision) [1.e-10] ",
+            1.e-10,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "maximum_iterations",
+            "maximum number of iterations for iterative solver [25] ",
+            25,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "solver_verbosity",
+            "verbosity of solver (special for debug) [0-5] ",
+            0,
             "before_set_interface_parameter"
         )
         object.add_method_parameter(
