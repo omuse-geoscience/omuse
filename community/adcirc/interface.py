@@ -291,7 +291,11 @@ class Adcirc(CommonCode):
                         STATIM=self.parameters.begin_time.value_in(units.day),
                         CONVCR=self.parameters.convergence_criterion,
                         ITMAX=self.parameters.maximum_iterations,
-                        ISLDIA=self.parameters.solver_verbosity )
+                        ISLDIA=self.parameters.solver_verbosity,
+# NOLIFA, NOLICA, NOLICAT should all either 0 or >0...
+                        NOLIFA=self.parameters.finite_amplitude_term_parameter,
+                        NOLICA=self.parameters.spatial_derivative_advective_term_parameter,
+                        NOLICAT=self.parameters.time_derivative_advective_term_parameter )
           param.write()
         if self.parameters.use_interface_grid:
           adcirc_grid_writer(coordinates=self.coordinates).write_grid(self._nodes,self._elements, 
@@ -431,6 +435,24 @@ class Adcirc(CommonCode):
             "solver_verbosity",
             "verbosity of solver (special for debug) [0-5] ",
             0,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "finite_amplitude_term_parameter",
+            "term selecting treatment of finite amplitude terms [0 (linearalize using bathym.) ,1 (actual depth) or 2 (1+wetting/drying), default = 1] ",
+            1,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "spatial_derivative_advective_term_parameter",
+            "term selecting treatment spatial advective terms [0 (not include) or 1 (include), default = 1] ",
+            1,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "time_derivative_advective_term_parameter",
+            "term selecting treatment time derivative advective terms [0 (not include) or 1 (include), default = 1] ",
+            1,
             "before_set_interface_parameter"
         )
         object.add_method_parameter(
