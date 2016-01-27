@@ -129,6 +129,14 @@ class AdcircInterface(CodeInterface,
         returns ()
 
     @remote_function(can_handle_array=True)
+    def get_node_surface_heat_flux(index=0):
+        returns (shf=0. | units.W/units.m**2)
+    @remote_function(can_handle_array=True)
+    def set_node_surface_heat_flux(index=0,shf=0. | units.W/units.m**2):
+        returns ()
+
+
+    @remote_function(can_handle_array=True)
     def get_node_position(index='i'):
         returns (x=0.| units.m,y=0. | units.m)
     @remote_function(can_handle_array=True)
@@ -242,6 +250,13 @@ class AdcircInterface(CodeInterface,
         returns ()
 
     @remote_function
+    def get_use_interface_surface_heat_forcing():
+        returns (use_interface_surface_heat_forcing='b')
+    @remote_function
+    def set_use_interface_surface_heat_forcing(use_interface_surface_heat_forcing='b'):
+        returns ()
+
+    @remote_function
     def get_reference_pressure():
         returns (pressure=0. | units.mbar)
 
@@ -345,6 +360,11 @@ class Adcirc(CommonCode):
         object.add_default_form_parameter(
             "use_interface_tidal_forcing", 
             "toggle the use of interface tidal forcing", 
+            False
+        )
+        object.add_default_form_parameter(
+            "use_interface_surface_heat_forcing", 
+            "toggle the use of interface surface heat flux forcing (baroclinic runs)", 
             False
         )
         object.add_interface_parameter(
@@ -522,6 +542,8 @@ class Adcirc(CommonCode):
         object.add_setter('forcings', 'set_node_atmospheric_pressure', names=('pressure',))
         object.add_getter('forcings', 'get_node_tidal_potential', names=('tidal_potential',))
         object.add_setter('forcings', 'set_node_tidal_potential', names=('tidal_potential',))
+        object.add_getter('forcings', 'get_node_surface_heat_flux', names=('shf',))
+        object.add_setter('forcings', 'set_node_surface_heat_flux', names=('shf',))
         object.add_getter('forcings', 'get_node_position', names=('x','y'))
         object.add_getter('forcings', 'get_node_coordinates', names=('lon','lat'))
 
