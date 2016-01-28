@@ -481,11 +481,55 @@ class PyEddyTracker (object):
                 points, sla.ravel())
             self.uspd_coeffs = interpolate.CloughTocher2DInterpolator(
                 points, uspd.ravel())
-        if 'Generic' in self.PRODUCT: #do same as AVISO
+        elif 'Generic' in self.PRODUCT: #do same as AVISO
+            #print "check if lat is strictly increasing", self.lat()[:,0]
+            #print "gradient:", np.gradient(self.lat()[:,0])
+
+            #print "check if lon is strictly increasing", self.lon()[0]
+            #print "gradient:", np.gradient(self.lon()[0])
+
+            #this bit of code can't handle gaps of zeros in the lat/lon arrays 
+            #i could write something to mockup the arrays or select a row different
+            #from 0 that does not contain gaps
+
             self.sla_coeffs = interpolate.RectBivariateSpline(
                 self.lat()[:, 0], self.lon()[0], sla, kx=1, ky=1)
             self.uspd_coeffs = interpolate.RectBivariateSpline(
                 self.lat()[:, 0], self.lon()[0], uspd, kx=1, ky=1)
+            #self.sla_coeffs = interpolate.RectBivariateSpline(
+            #    self.lat()[:, 0], self.lon()[-1], sla, kx=1, ky=1)
+            #self.uspd_coeffs = interpolate.RectBivariateSpline(
+            #    self.lat()[:, 0], self.lon()[-1], uspd, kx=1, ky=1)
+
+            """
+            lats = self.lat().ravel()
+            lons = self.lon().ravel()
+            slas = sla.ravel()
+            uspd = uspd.ravel()
+            flat_lat = []
+            flat_lon = []
+            flat_sla = []
+            flat_uspd = []
+            for i in range(len(lats)):
+                if lats[i] != 0.0 and lons[i] != 0.0:
+                    flat_lat.append(lats[i])
+                    flat_lon.append(lons[i])
+                    flat_sla.append(slas[i])
+
+            self.sla_coeffs = interpolate.SmoothBivariateSpline(
+                flat_lat, flat_lon, flat_sla, kx=1, ky=1)
+            self.uspd_coeffs = interpolate.SmoothBivariateSpline(
+                flat_lat, flat_lon, flat_uspd, kx=1, ky=1)
+
+            self.sla_coeffs = interpolate.SmoothBivariateSpline(
+                self.lat().ravel(), self.lon().ravel(), sla.ravel(), kx=1, ky=1)
+            self.uspd_coeffs = interpolate.SmoothBivariateSpline(
+                self.lat().ravel(), self.lon().ravel(), uspd.ravel(), kx=1, ky=1)
+
+            """
+
+
+
         return self
 
 
