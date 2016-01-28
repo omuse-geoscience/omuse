@@ -43,7 +43,7 @@ import mpl_toolkits.basemap.pyproj as pyproj
 import make_eddy_tracker_list_obj as eddy_tracker
 from py_eddy_tracker_property_classes import Amplitude, EddyProperty, interpolate
 #from haversine import haversine # needs compiling with f2py
-import haversine_distmat_python as haversine # needs compiling with f2py
+import haversine_distmat_python as haversine 
 import scipy.sparse as sparse
 
 
@@ -104,11 +104,15 @@ def do_basemap(M, ax):
 
 def anim_figure(A_eddy, C_eddy, Mx, My, MMx, MMy, cmap, rtime, DIAGNOSTIC_TYPE,
                 savedir, tit, ax, ax_cbar, qparam=None, qparameter=None,
-                xi=None, xicopy=None):
+                xi=None, xicopy=None, track_length=0, plot_all=False):
     """
     """
-    def plot_tracks(Eddy, track_length, rtime, col, ax):
-        for i in Eddy.get_active_tracks(rtime):
+    def plot_tracks(Eddy, track_length, rtime, col, ax, plot_all):
+        if plot_all:
+            eddylist = range(len(Eddy.tracklist))
+        else:
+            eddylist = Eddy.get_active_tracks(rtime)
+        for i in eddylist:
             # filter for longer tracks
             if len(Eddy.tracklist[i].lon) > track_length:
                 aex, aey = Eddy.M(np.asarray(Eddy.tracklist[i].lon),
@@ -125,7 +129,6 @@ def anim_figure(A_eddy, C_eddy, Mx, My, MMx, MMy, cmap, rtime, DIAGNOSTIC_TYPE,
                           ax=ax, zorder=5)
         return
 
-    track_length = 0  # for filtering below
     M = A_eddy.M
 
     if 'Q' in DIAGNOSTIC_TYPE:
@@ -146,8 +149,8 @@ def anim_figure(A_eddy, C_eddy, Mx, My, MMx, MMy, cmap, rtime, DIAGNOSTIC_TYPE,
                   colors='g',
                   linestyles='solid', linewidths=0.15)
         pcm.set_clim(-20., 20.)
-    plot_tracks(A_eddy, track_length, rtime, 'r', ax)
-    plot_tracks(C_eddy, track_length, rtime, 'b', ax)
+    plot_tracks(A_eddy, track_length, rtime, 'r', ax, plot_all)
+    plot_tracks(C_eddy, track_length, rtime, 'b', ax, plot_all)
 
     do_basemap(M, ax)
 
@@ -155,7 +158,7 @@ def anim_figure(A_eddy, C_eddy, Mx, My, MMx, MMy, cmap, rtime, DIAGNOSTIC_TYPE,
     plt.colorbar(pcm, cax=ax_cbar, orientation='horizontal')
     plt.savefig(savedir + 'eddy_track_%s.png' % tit.replace(' ', '_'),
                 dpi=150, bbox_inches='tight')
-    plt.show()
+    #plt.show()
     ax.cla()
     ax_cbar.cla()
     return
@@ -610,7 +613,8 @@ def collection_loop(CS, grd, rtime, A_list_obj, C_list_obj,
                 aerr = np.atleast_1d(aerr)
 
                 # Filter for shape: >35% (>55%) is not an eddy for Q (SLA)
-                if aerr >= 0. and aerr <= Eddy.SHAPE_ERROR[collind]:
+                if True: #shape test disabled by Ben
+                #if aerr >= 0. and aerr <= Eddy.SHAPE_ERROR[collind]:
 
                     # Get centroid in lon lat
                     centlon_e, centlat_e = proj(centlon_e, centlat_e, inverse=True)
@@ -981,6 +985,10 @@ def track_eddies(Eddy, first_record):
     old_sparse_inds = sparse_mat.row
     new_sparse_inds = sparse_mat.col
 
+    #print "old_sparse_inds=", old_sparse_inds
+    #print "new_sparse_inds=", new_sparse_inds
+
+
 
     # *new_eddy_inds* contains indices to every newly identified eddy
     # that are initially set to True on the assumption that it is a new
@@ -1015,7 +1023,9 @@ def track_eddies(Eddy, first_record):
             fig = plt.figure(225)
             #plt.clf()
             debug_ax = fig.add_subplot(131)
-            im = plt.imshow(dist_mat_copy, interpolation='none',
+            #im = plt.imshow(dist_mat_copy, interpolation='none',
+            #                origin='lower', cmap=debug_cmap)
+            im = plt.matshow(dist_mat_copy,
                             origin='lower', cmap=debug_cmap)
             im.cmap.set_over('k')
             im.set_clim(0, debug_distmax)
@@ -1040,7 +1050,7 @@ def track_eddies(Eddy, first_record):
             new_dist = dist_mat[old_ind, new_ind]
             within_range = False
 
-            if new_dist < Eddy.search_ellipse.rw_c_mod:#far_away:
+            if new_dist < Eddy.search_ellipse.rw_c_mod: #far_away:
 
                 if 'ellipse' in Eddy.SEPARATION_METHOD:
                     within_range = Eddy.search_ellipse.ellipse_path.contains_point(
