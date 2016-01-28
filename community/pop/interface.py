@@ -567,6 +567,13 @@ class POP(CommonCode):
         object.add_transition('EVOLVED', 'RUN', 'prepare_parameters')
         object.add_transition('EVOLVED', 'EDIT', 'prepare_parameters')
 
+        #ensure that get_model_time only returns valid values
+        object.add_method('RUN', 'get_model_time')
+        object.add_method('EDIT', 'get_model_time')
+        object.add_method('EDIT_FORCINGS', 'get_model_time')
+        object.add_method('EVOLVED', 'get_model_time')
+
+
 
     def commit_parameters(self):
         self.set_nprocs(self.nprocs)
