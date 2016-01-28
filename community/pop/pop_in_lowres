@@ -87,7 +87,7 @@
    restart_freq     = 1
    restart_outfile  = ''
    restart_fmt      = 'nc'
-   leven_odd_on     = .true. 
+   leven_odd_on     = .false. 
    even_odd_freq    = 2400
    pressure_correction = .false.
 /
