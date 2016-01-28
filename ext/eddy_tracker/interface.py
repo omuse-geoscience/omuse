@@ -33,7 +33,7 @@ from make_eddy_track_AVISO import *
 class EddyTracker(object):
 
     def __init__(self, grid=None, lon=None, lat=None, domain='Regional',
-                 lonmin=0., lonmax=50., latmin=-45., latmax=-20.):
+                 lonmin=0., lonmax=50., latmin=-45., latmax=-20., days_between=7):
 
         #initialize using either lon lat or StructuredGrid passed
         if grid is not None:
@@ -43,13 +43,13 @@ class EddyTracker(object):
             lat = grid.lat
 
         if is_quantity(lon):
-            lon = lon.value_in(units.degrees)
+            lon = lon.value_in(units.deg)
         if is_quantity(lat):
-            lat = lat.value_in(units.degrees)
+            lat = lat.value_in(units.deg)
 
         #force lon range into [-360.0, 0] as required by eddy tracker
-        #if lon[:,0].max() > 0.0:
-        #    lon = lon - 360.0
+        if lon[:,0].max() > 0.0:
+            lon = lon - 360.0
 
         #perform the initialization phase and create eddy tracking list objects
         import os
@@ -81,10 +81,24 @@ class EddyTracker(object):
         self.grd = grd = GenericGrid(lon.shape[1], lon.shape[0], lons=lon, lats=lat, sla=None, **config)
 
         self._mean_ssh = None
+        self.first_record = True
 
+        self.days_between = days_between
         search_ellipse = eddy_tracker.SearchEllipse(grd.THE_DOMAIN,
-                                            grd, 7,
+                                            grd, days_between,
                                             self.RW_PATH)
+
+        config['TRACK_DURATION_MIN'] = 0
+        config['DAYS_BTWN_RECORDS'] = days_between
+        config['MAX_LOCAL_EXTREMA'] = 1 # Mason et al use 1, Chelton has unlimited
+        config['SAVE_FIGURES'] = False
+        config['VERBOSE'] = False
+        config['AMPMAX'] = 150.0 #150 is default
+        config['AMPMIN'] = 1.0 #used to be 1 by default, but Mason uses 0.02 for AVISO and ROMS
+
+        self.CONTOUR_PARAMETER = np.arange(-100., 101, 1)  #used to be -100, 101
+        config['CONTOUR_PARAMETER'] = self.CONTOUR_PARAMETER
+        config['SHAPE_ERROR'] = np.full(self.CONTOUR_PARAMETER.size, 55.)   #Ben: Mason et al use 55 
 
         # Initialise two eddy objects to hold data
         self.A_eddy = A_eddy = eddy_tracker.TrackList('Anticyclonic', self.A_SAVEFILE,
@@ -95,9 +109,13 @@ class EddyTracker(object):
         A_eddy.search_ellipse = search_ellipse
         C_eddy.search_ellipse = search_ellipse
 
-        #constants that define the minimal and maximal eddy radius in radians
-        config['RADMIN'] = 0.35
+        #constants that define the minimal and maximal eddy radius in degrees
+        config['RADMIN'] = 0.7 # 0.35 is default
         config['RADMAX'] = 4.461
+
+        #config['RADMAX'] = 8.0   #Ben testing with bigger radius
+        #to see if big anticyclonic eddies in the Aghulas leakage can be found
+        #result: increasing maximum radius does not help
 
         # See Chelton section B2 (0.4 degree radius)
         # These should give 8 and 1000 for 0.25 deg resolution
@@ -107,6 +125,8 @@ class EddyTracker(object):
                    grd.get_resolution() ** 2)
         print '--- Pixel range = %s-%s' % (np.int(PIXMIN),
                                    np.int(PIXMAX))
+
+        print "resolution", grd.get_resolution()
 
         A_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
         C_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
@@ -149,7 +169,7 @@ class EddyTracker(object):
         #as per matplotlib.dates.date2num See:
         #http://matplotlib.org/api/dates_api.html#matplotlib.dates.date2num
         if is_quantity(rtime):
-            rtime = rtime.value_in(units.days)
+            rtime = rtime.value_in(units.day)
 
         #if both sla and ssh are supplied use sla
         if (ssh is not None) and (sla is not None):
@@ -169,6 +189,7 @@ class EddyTracker(object):
                 self._mean_ssh = grd.get_interpolated_mean_ssh()
             sla = ssh - self._mean_ssh
 
+
         #reduce sla to the area of interest (includes padding)
         sla = sla[grd.jp0:grd.jp1, grd.ip0:grd.ip1]
 
@@ -177,8 +198,13 @@ class EddyTracker(object):
         # Apply Gaussian smoothing
         sla -= ndimage.gaussian_filter(sla, [self.MRES, self.ZRES])
 
+        #print "gaussian parameters", [self.MRES, self.ZRES]
+        #sla = ndimage.gaussian_filter(sla, 2) #Ben: attempt to smooth the field a bit
+
         # Apply the landmask
         sla = np.ma.masked_where(grd.mask == 0, sla)
+
+        #print "sla max min", sla.max(), sla.min()
 
         # Multiply by 0.01 for m
         grd.set_geostrophic_velocity(sla * 0.01)
@@ -216,7 +242,7 @@ class EddyTracker(object):
         C_eddy.uspd_coeffs = grd.uspd_coeffs
 
         # Get contours of Q/sla parameter
-        if not hasattr(self, 'first_record'):
+        if self.first_record:
             print('------ processing SLA contours for eddies')
 
         A_CS = self.ax.contour(grd.lon(),
@@ -246,9 +272,7 @@ class EddyTracker(object):
                          sign_type=C_eddy.SIGN_TYPE,
                          VERBOSE=C_eddy.VERBOSE)
 
-        if not hasattr(self, 'first_record'):
-            #this block should only be executed the first iteration
-            self.first_record = True
+        if self.first_record:
             # Set old variables equal to new variables
             A_eddy.set_old_variables()
             C_eddy.set_old_variables()
@@ -259,7 +283,6 @@ class EddyTracker(object):
 
         # Save inactive eddies to nc file
         if not self.first_record:
-
             if A_eddy.VERBOSE:
                 print('--- saving to nc', A_eddy.SAVE_DIR)
                 print('--- saving to nc', C_eddy.SAVE_DIR)
@@ -268,11 +291,12 @@ class EddyTracker(object):
             A_eddy.write2netcdf(rtime)
             C_eddy.write2netcdf(rtime)
 
+        # mark the end of the first record
+        self.first_record = False
 
-    def plot_eddies(self, rtime=0.0):
-        if is_quantity(rtime):
-            rtime = rtime.value_in(units.days)
 
+
+    def rtime_to_ymdstr(self, rtime):
         # Get timing
         try:
             thedate = dt.num2date(rtime)[0]
@@ -282,6 +306,16 @@ class EddyTracker(object):
         mo = thedate.month
         da = thedate.day
         ymd_str = ''.join((str(yr), str(mo).zfill(2), str(da).zfill(2)))
+
+        return ymd_str
+
+
+    def plot_eddies(self, rtime=0.0):
+        if is_quantity(rtime):
+            rtime = rtime.value_in(units.day)
+
+        # Get timing
+        ymd_str = self.rtime_to_ymdstr(rtime)
 
         # Set coordinates for figures
         grd = self.grd
@@ -294,9 +328,29 @@ class EddyTracker(object):
                 self.animax, self.animax_cbar)
 
 
+    def plot_result(self, rtime=0.0):
+        if is_quantity(rtime):
+            rtime = rtime.value_in(units.day)
+
+        # Get timing
+        ymd_str = self.rtime_to_ymdstr(rtime)
+
+        # Set coordinates for figures
+        grd = self.grd
+        Mx, My = grd.M(grd.lon(), grd.lat())
+
+        MMx, MMy = Mx, My
+
+        anim_figure(self.A_eddy, self.C_eddy, Mx, My, MMx, MMy, plt.cm.RdBu_r, rtime,
+                self.DIAGNOSTIC_TYPE, self.SAVE_DIR, 'SLA ' + ymd_str,
+                self.animax, self.animax_cbar, track_length=28/self.days_between) #plot all tracks of at least 28 days
+
+
+
+
     def stop(self, rtime=0.0):
         if is_quantity(rtime):
-            rtime = rtime.value_in(units.days)
+            rtime = rtime.value_in(units.day)
 
         self.A_eddy.kill_all_tracks()
         self.C_eddy.kill_all_tracks()
