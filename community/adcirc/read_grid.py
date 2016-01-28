@@ -203,7 +203,9 @@ class adcirc_parameter_reader(object):
       param["ITITER"],param["ISLDIA"],param["CONVCR"],param["ITMAX"]=f.read_value(int,int,float,int)
       if param['IM'] in [1,11,21,31,2]:
         # continue reading 3D info
+        _iden=param["IDEN"]
         param["IDEN"]=f.read_int()
+        if _iden is not None and _iden != param["IDEN"]: raise Exception("inconsistent IDEN")
         param['ISLIP'],param['KP']=f.read_value(int,float)
         param['Z0S'],param['Z0B']=f.read_value(float,float)
         param['ALP1'],param['ALP2'],param['ALP3']=f.read_value(float,float,float)
@@ -217,11 +219,56 @@ class adcirc_parameter_reader(object):
         param['EVTOT']=None
         if param['IEVC']==0: 
           param[EVTOT]=f.read_value_rows(param['NFEN'],float)
-        for i in range(9):
+        f.readline() # I3DSD,TO3DSDS,TO3DSDF,NSPO3DSD ignored
+        nsta=f.read_int()
+        for i in range(nsta):
           f.readline()
-        if param['IM'] in [21,31]:
+        f.readline() # I3DSV,TO3DSVS,TO3DSVF,NSPO3DSV
+        nsta=f.read_int()
+        for i in range(nsta):
+          f.readline()
+        f.readline() # I3DST,TO3DSTS,TO3DSTF,NSPO3DST 
+        nsta=f.read_int()
+        for i in range(nsta):
+          f.readline()
+        f.readline() # I3DGD,TO3DGDS,TO3DGDF,NSPO3DGD
+        f.readline() # I3DGV,TO3DGVS,TO3DGVF,NSPO3DGV
+        f.readline() # I3DGT,TO3DGTS,TO3DGTF,NSPO3DGT
+        if param['IDEN'] != 0: # param['IM'] in [21,31]:
           param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP']=f.read_int(3)
-          raise Exception("tbd: 3D baroclinic input")
+          if param['RES_BC_FLAG'] not in range(-4,5):
+            raise Exception("unexpected RES_BC_FLAG value")
+          if NETA is None: # assume NOPE>0 if NETA>0
+            raise Exception("expect NETA to be provided")
+          if param['RES_BC_FLAG']<0:
+            if abs(param['RES_BC_FLAG'])>=1 and NETA>0:
+              param['RBCTIMEINC']=f.read_value(float)
+              param['BCSTATIM']=f.read_value(float)
+          elif param['RES_BC_FLAG']>0:
+            if abs(param['RES_BC_FLAG'])==1 and NETA>0:
+              param['RBCTIMEINC']=f.read_value(float)
+              param['BCSTATIM']=f.read_value(float)
+            elif abs(param['RES_BC_FLAG'])==2 and NETA>0:
+              param['RBCTIMEINC'],param['SBCTIMEINC']=f.read_value(float,float)
+              param['BCSTATIM'],param['SBCSTATIM']=f.read_value(float,float)
+            elif abs(param['RES_BC_FLAG'])==3 and NETA>0:
+              param['RBCTIMEINC'],param['TBCTIMEINC']=f.read_value(float,float)
+              param['BCSTATIM'],param['TBCSTATIM']=f.read_value(float,float)
+              if param['BCFLAG_TEMP']!=0:
+                  param['TTBCTIMEINC'],param['TTBCSTATIM']=f.read_value(float,float)                
+            elif abs(param['RES_BC_FLAG'])==4 and NETA>0:
+              param['RBCTIMEINC'],param['SBCTIMEINC'],param['TBCTIMEINC']=f.read_value(float,float,float)
+              param['BCSTATIM'],param['SBCSTATIM'],param['TBCSTATIM']=f.read_value(float,float,float)
+              if param['BCFLAG_TEMP']!=0:
+                  param['TTBCTIMEINC'],param['TTBCSTATIM']=f.read_value(float,float)
+          param['SPONGEDIST']=f.read_value(float)
+          param['EQNSTATE']=f.read_value(float)
+        if param['IDEN']>0:
+          param['NLSD'],param['NVSD']=f.read_value(float,float)
+          param['NLTD'],param['NVTD']=f.read_value(float,float)
+          param['ALP4']=f.read_value(float)
+        #~ if param['IDEN'] in [3,4]:
+          #~ param['NTF']=f.read_value(float)
 
 #~ H0  include this line if NOLIFA =0, 1
 #~ H0, INTEGER, INTEGER, VELMIN  include this line if NOLIFA =2, 3

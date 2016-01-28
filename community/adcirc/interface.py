@@ -129,6 +129,14 @@ class AdcircInterface(CodeInterface,
         returns ()
 
     @remote_function(can_handle_array=True)
+    def get_node_surface_heat_flux(index=0):
+        returns (shf=0. | units.W/units.m**2)
+    @remote_function(can_handle_array=True)
+    def set_node_surface_heat_flux(index=0,shf=0. | units.W/units.m**2):
+        returns ()
+
+
+    @remote_function(can_handle_array=True)
     def get_node_position(index='i'):
         returns (x=0.| units.m,y=0. | units.m)
     @remote_function(can_handle_array=True)
@@ -242,6 +250,13 @@ class AdcircInterface(CodeInterface,
         returns ()
 
     @remote_function
+    def get_use_interface_surface_heat_forcing():
+        returns (use_interface_surface_heat_forcing='b')
+    @remote_function
+    def set_use_interface_surface_heat_forcing(use_interface_surface_heat_forcing='b'):
+        returns ()
+
+    @remote_function
     def get_reference_pressure():
         returns (pressure=0. | units.mbar)
 
@@ -288,7 +303,14 @@ class Adcirc(CommonCode):
                         TAU0=self.parameters.GWCE_weighting_factor,
                         TAU=self.parameters.linear_bottom_friction_coeff.value_in(units.s**-1),
                         CF=self.parameters.quadratic_bottom_friction_coeff,
-                        STATIM=self.parameters.begin_time.value_in(units.day) )
+                        STATIM=self.parameters.begin_time.value_in(units.day),
+                        CONVCR=self.parameters.convergence_criterion,
+                        ITMAX=self.parameters.maximum_iterations,
+                        ISLDIA=self.parameters.solver_verbosity,
+# NOLIFA, NOLICA, NOLICAT should all either 0 or >0...
+                        NOLIFA=self.parameters.finite_amplitude_term_parameter,
+                        NOLICA=self.parameters.spatial_derivative_advective_term_parameter,
+                        NOLICAT=self.parameters.time_derivative_advective_term_parameter )
           param.write()
         if self.parameters.use_interface_grid:
           adcirc_grid_writer(coordinates=self.coordinates).write_grid(self._nodes,self._elements, 
@@ -338,6 +360,11 @@ class Adcirc(CommonCode):
         object.add_default_form_parameter(
             "use_interface_tidal_forcing", 
             "toggle the use of interface tidal forcing", 
+            False
+        )
+        object.add_default_form_parameter(
+            "use_interface_surface_heat_forcing", 
+            "toggle the use of interface surface heat flux forcing (baroclinic runs)", 
             False
         )
         object.add_interface_parameter(
@@ -412,6 +439,42 @@ class Adcirc(CommonCode):
             0. | units.day,
             "before_set_interface_parameter"
         )
+        object.add_interface_parameter(
+            "convergence_criterion",
+            "absolute convergence criteria (should be no smaller than 500 times the machine precision) [1.e-10] ",
+            1.e-10,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "maximum_iterations",
+            "maximum number of iterations for iterative solver [25] ",
+            25,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "solver_verbosity",
+            "verbosity of solver (special for debug) [0-5] ",
+            0,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "finite_amplitude_term_parameter",
+            "term selecting treatment of finite amplitude terms [0 (linearalize using bathym.) ,1 (actual depth) or 2 (1+wetting/drying), default = 1] ",
+            1,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "spatial_derivative_advective_term_parameter",
+            "term selecting treatment spatial advective terms [0 (not include) or 1 (include), default = 1] ",
+            1,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "time_derivative_advective_term_parameter",
+            "term selecting treatment time derivative advective terms [0 (not include) or 1 (include), default = 1] ",
+            1,
+            "before_set_interface_parameter"
+        )
         object.add_method_parameter(
             "get_reference_pressure", 
             None,
@@ -479,6 +542,8 @@ class Adcirc(CommonCode):
         object.add_setter('forcings', 'set_node_atmospheric_pressure', names=('pressure',))
         object.add_getter('forcings', 'get_node_tidal_potential', names=('tidal_potential',))
         object.add_setter('forcings', 'set_node_tidal_potential', names=('tidal_potential',))
+        object.add_getter('forcings', 'get_node_surface_heat_flux', names=('shf',))
+        object.add_setter('forcings', 'set_node_surface_heat_flux', names=('shf',))
         object.add_getter('forcings', 'get_node_position', names=('x','y'))
         object.add_getter('forcings', 'get_node_coordinates', names=('lon','lat'))
 
