@@ -4,7 +4,7 @@ module amuse_adcirc
   use ADCIRC_Mod
   use BOUNDARIES, only: NETA, NBD, NVDLL, NBDV, NOPE, NBOU, NVELL, NBVV, IBTYPE
   use MESH, only: NP, NE, X, Y,DP,SLAM,SFEA
-  use GLOBAL_3DVS, only: NFEN,SIGMA,Q,WZ
+  use GLOBAL_3DVS, only: NFEN,SIGMA,Q,WZ, RESSAL, RESTEMP, qsurfkp1, HFLUX, qsurf
   implicit none
 
   logical :: use_interface_elevation_boundary=.FALSE.
@@ -12,8 +12,16 @@ module amuse_adcirc
   logical :: use_interface_wave_forcing=.FALSE.
   logical :: use_interface_tidal_forcing=.FALSE.
   
+  logical :: use_interface_lnm_boundary=.FALSE.
+  logical :: use_interface_salt_boundary=.FALSE.
+  logical :: use_interface_temp_boundary=.FALSE.
+  logical :: use_interface_surface_heat_forcing=.FALSE.
+  
   real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:), PR(:), &
                             RSNX(:), RSNY(:), TIP(:)
+  
+  real(SZ),allocatable ::   AMUSE_LNM(:), AMUSE_RESSAL(:,:), AMUSE_RESTEMP(:,:), &
+                            AMUSE_HFLUX(:)
   
   real(SZ),parameter :: reference_pressure=1013.0d0
 
@@ -39,6 +47,23 @@ subroutine update_tidal_forcing()
   TIP2(1:NP)=TIP2(1:NP)+TIP(1:NP)
 end subroutine
 
+subroutine update_lnm_boundary()
+  LNM_BC(NBD(1:NETA))=AMUSE_LNM(1:NETA)
+end subroutine
+
+subroutine update_salt_boundary()
+  RESSAL(1:NETA,1:NFEN)=AMUSE_RESSAL(1:NETA,1:NFEN)
+end subroutine 
+
+subroutine update_temp_boundary()
+  RESTEMP(1:NETA,1:NFEN)=AMUSE_RESTEMP(1:NETA,1:NFEN)
+end subroutine 
+
+subroutine update_surface_heat_forcing()
+  qsurf(1:NP)=qsurfkp1(1:NP) ! store old value..?
+  HFLUX(1:NP)=AMUSE_HFLUX(1:NP)
+end subroutine
+
 end module
 
 subroutine AMUSE_elevation_boundary() 
@@ -55,4 +80,20 @@ end subroutine
 subroutine AMUSE_tidal_forcing() 
   use amuse_adcirc
   if(use_interface_tidal_forcing) call update_tidal_forcing()
+end subroutine
+
+subroutine AMUSE_lnm_boundary()
+  use amuse_adcirc
+  if(use_interface_lnm_boundary) call update_lnm_boundary()
+end subroutine
+
+subroutine AMUSE_salt_temp_boundary()
+  use amuse_adcirc
+  if(use_interface_salt_boundary) call update_salt_boundary()
+  if(use_interface_temp_boundary) call update_temp_boundary()
+end subroutine
+
+subroutine AMUSE_surface_heating_forcing()
+  use amuse_adcirc
+  if(use_interface_surface_heat_forcing) call update_surface_heat_forcing()
 end subroutine

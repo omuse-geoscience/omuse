@@ -103,7 +103,7 @@ class adcirc_parameter_writer(object):
   def __init__(self,filename="fort.15"):
     self.filename=filename
     self.parameters=get_default_parameter_set()
-  def write(self):
+  def write(self, NETA=None):
     with adcirc_file_writer(self.filename,'w') as f:
       param=self.parameters
       f.write_var(param["RUNDES"])    
@@ -203,6 +203,45 @@ class adcirc_parameter_writer(object):
         if param['IM'] in [21,31]:
           f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
           raise Exception("tbd: 3D baroclinic input")
+
+        if param['IDEN'] != 0: # param['IM'] in [21,31]:
+          f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
+          if param['RES_BC_FLAG'] not in range(-4,5):
+            raise Exception("unexpected RES_BC_FLAG value")
+          if NETA is None: # assume NOPE > 0 if NETA>0
+            raise Exception("expect NETA to be provided")
+          if param['RES_BC_FLAG']<0:
+            if abs(param['RES_BC_FLAG'])>=1 and NETA>0:
+              f.write_var(param['RBCTIMEINC'])
+              f.write_var(param['BCSTATIM'])
+          elif param['RES_BC_FLAG']>0:
+            if abs(param['RES_BC_FLAG'])==1 and NETA>0:
+              f.write_var(param['RBCTIMEINC'])
+              f.write_var(param['BCSTATIM'])
+            elif abs(param['RES_BC_FLAG'])==2 and NETA>0:
+              f.write_var(param['RBCTIMEINC'],param['SBCTIMEINC'])
+              f.write_var(param['BCSTATIM'],param['SBCSTATIM'])
+            elif abs(param['RES_BC_FLAG'])==3 and NETA>0:
+              f.write_var(param['RBCTIMEINC'],param['TBCTIMEINC'])
+              f.write_var(param['BCSTATIM'],param['TBCSTATIM'])
+              if param['BCFLAG_TEMP']!=0:
+                  f.write_var(param['TTBCTIMEINC'],param['TTBCSTATIM'])
+            elif abs(param['RES_BC_FLAG'])==4 and NETA>0:
+              f.write_var(param['RBCTIMEINC'],param['SBCTIMEINC'],param['TBCTIMEINC'])
+              f.write_var(param['BCSTATIM'],param['SBCSTATIM'],param['TBCSTATIM'])
+              if param['BCFLAG_TEMP']!=0:
+                  f.write_var(param['TTBCTIMEINC'],param['TTBCSTATIM'])
+          f.write_var(param['SPONGEDIST'])
+          f.write_var(param['EQNSTATE'])
+        if param['IDEN']>0:
+          f.write_var(param['NLSD'])
+          f.write_var(param['NLTD'])
+          f.write_var(param['ALP4'])
+        #~ if param['IDEN'] in [3,4]:
+          #~ f.write_var(param['NTF'])
+
+
+
       
   def update(self, **kwargs):
     self.parameters.update(kwargs)

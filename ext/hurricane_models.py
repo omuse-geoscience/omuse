@@ -193,7 +193,10 @@ class HollandHurricane(object):
     air_density=1.15 | units.kg/units.m**3
     
     def __init__(self,nodes,file_or_track="fort.22"):
-        self.nodes=nodes.copy()
+        if nodes:
+            self.nodes=nodes.copy()
+        else:
+            self.nodes=None
         if isinstance(file_or_track,str):
             self.initialize_from_file(file_or_track)
         elif isinstance(file_or_track, list):
@@ -248,6 +251,8 @@ class HollandHurricane(object):
         vy=(1-dx)*self.track[i]["vy"]+dx*self.track[i1]["vy"]
         return lat,lon,mslp,vmax,mrd,rrp,vx,vy
     def evolve_model(self,tend):
+        if not self.nodes:
+            return
         lat,lon,mslp,vmax,mrd,rrp,vx,vy=self.interpolate_track(tend)
         
         central_pressure_deficit=self.ambient_pressure-mslp

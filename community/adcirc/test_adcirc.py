@@ -217,14 +217,19 @@ class TestAdcirc(TestWithMPI):
         self.assertEquals(instance.nodes.status, u'wet')
         self.assertEquals(instance.elements.status, u'wet')
         
-        instance.nodes[12].status=u'dry'
-        self.assertEqual(instance.nodes[12].status,u'dry')
-
-        instance.nodes[12].deta_dt=0.1 | units.m/units.s
-        self.assertEqual(instance.nodes[12].deta_dt,0.1 | units.m/units.s)
-
         instance.nodes[12].eta=0.21 | units.m
         self.assertEqual(instance.nodes[12].eta,0.21 | units.m)
+
+        instance.nodes[12].status=u'dry'
+        self.assertEqual(instance.nodes[12].status,u'dry')
+        self.assertEqual(instance.nodes[12].eta,-instance.nodes[12].depth)
+
+        instance.nodes[11].deta_dt=0.1 | units.m/units.s
+        self.assertEqual(instance.nodes[11].deta_dt,0.1 | units.m/units.s)
+
+        instance.nodes[11].eta=0.21 | units.m
+        self.assertEqual(instance.nodes[11].eta,0.21 | units.m)
+
 
         instance.nodes[21].vx=0.21 | units.m/units.s
         self.assertEqual(instance.nodes[21].vx,0.21 | units.m/units.s)

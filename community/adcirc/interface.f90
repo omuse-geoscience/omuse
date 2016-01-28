@@ -39,7 +39,7 @@ function evolve_model(tend) result(ret)
     RSNX(1:NP)=RSNX2(1:NP)
     RSNY(1:NP)=RSNY2(1:NP)  
   endif
-  if(.not.use_interface_tidal_forcing) TIP(1:NP)=TIP2(1:NP) 
+  if(.not.use_interface_tidal_forcing.AND.CTIP) TIP(1:NP)=TIP2(1:NP) 
   ret=0
 end function
 
@@ -70,6 +70,20 @@ subroutine ADCIRC_allocate_interface_storage()
   DETA_DT(:)=0.
   PR(:)=0.
   TIP(:)=0.
+
+  if(allocated(AMUSE_LNM)) deallocate(AMUSE_LNM)
+  if(allocated(AMUSE_RESSAL)) deallocate(AMUSE_RESSAL)
+  if(allocated(AMUSE_RESTEMP)) deallocate(AMUSE_RESTEMP)
+  if(allocated(AMUSE_HFLUX)) deallocate(AMUSE_HFLUX)
+  allocate( AMUSE_LNM(MNETA) )
+  allocate( AMUSE_RESSAL(MNETA, NFEN) )
+  allocate( AMUSE_RESTEMP(MNETA, NFEN) )
+  allocate( AMUSE_HFLUX(MNP) )
+  AMUSE_LNM=0.
+  AMUSE_RESSAL=0.
+  AMUSE_RESTEMP=0.
+  AMUSE_HFLUX=0.
+
 end subroutine
 
 function commit_parameters() result(ret)
@@ -168,10 +182,27 @@ function set_use_interface_tidal_forcing(flag) result(ret)
   ret=0
 end function
 
+function get_use_interface_surface_heat_forcing(flag) result(ret)
+  integer :: ret
+  logical flag
+  flag=use_interface_surface_heat_forcing
+  ret=0
+end function  
+function set_use_interface_surface_heat_forcing(flag) result(ret)
+  integer :: ret
+  logical flag
+  use_interface_surface_heat_forcing=flag
+  ret=0
+end function
+
+
 function get_node_eta(ind,eta2_) result(ret)
   integer :: ind,ret
   real*8 :: eta2_
   eta2_=ETA2(ind)
+  if(NNODECODE(ind).EQ.0) then
+    eta2_=-DP(ind)
+  endif
   ret=0
 end function
 
@@ -356,6 +387,19 @@ function set_node_atmospheric_pressure(ind,x) result(ret)
   integer :: ind,ret
   real*8 :: x
   PR(ind)=x-reference_pressure
+  ret=0
+end function
+
+function get_node_surface_heat_flux(ind,hflux_) result(ret)
+  integer :: ind,ret
+  real*8 :: hflux_
+  hflux_=HFLUX(ind)
+  ret=0
+end function
+function set_node_surface_heat_flux(ind,hflux_) result(ret)
+  integer :: ind,ret
+  real*8 :: hflux_
+  HFLUX(ind)=hflux_
   ret=0
 end function
 

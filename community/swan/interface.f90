@@ -39,6 +39,9 @@ module swan_interface
               use_friction=.FALSE., &
               use_triads=.FALSE.
 
+  logical ::  use_csigma_cfl_limiter=.FALSE., &
+              use_ctheta_cfl_limiter=.FALSE.
+
 contains
 
 include "getter_setters.f90"
@@ -356,6 +359,17 @@ function commit_parameters() result(ret)
     if(ret.NE.0) return
   endif
   
+  if(use_csigma_cfl_limiter) then 
+    PNUMS(33)=1.
+  else
+    PNUMS(33)=0
+  endif
+  if(use_ctheta_cfl_limiter) then
+    PNUMS(35)=1.
+  else
+    PNUMS(35)=0
+  endif
+
   ret=0
 end function
 
