@@ -18,7 +18,7 @@ resource = Resource()
 resource.name = "DAS-5"
 resource.location = "bwn200@fs0.das5.cs.vu.nl"
 resource.scheduler_type = "slurm"
-resource.amuse_dir = "/home/bwn200/amuse/amuse-svn"
+resource.amuse_dir = "/home/bwn200/amuse/amuse"
 resource.tmp_dir = "/home/bwn200/tmp"
 
 instance.resources.add_resource(resource)
