@@ -57,9 +57,6 @@ p.set_ws_monthly_file('/var/scratch/bwn200/pop/input/forcing/ws.o_n_avg.mon')
 
 
 
-ssh = numpy.array(p.nodes.ssh.value_in(units.cm)).T
-lon = numpy.array(p.nodes.lon.value_in(units.deg)).T
-lat = numpy.array(p.nodes.lat.value_in(units.deg)).T
 
 #pyplot.imshow(ssh, origin="lower", cmap=pyplot.cm.jet)
 #pyplot.show()
@@ -84,24 +81,20 @@ start_time = p.get_model_time()
 
 from omuse.ext.eddy_tracker.interface import EddyTracker
 
-tracker = EddyTracker(lon=lon, lat=lat, domain='Regional',
-                lonmin=0., lonmax=50., latmin=-45., latmax=-20., days_between=1)
-tracker.find_eddies(ssh=ssh, rtime=start_time)
+days_between = 1
+tracker = EddyTracker(grid=p.nodes, domain='Regional',
+     lonmin=0., lonmax=50., latmin=-45., latmax=-20., days_between=days_between)
+tracker.find_eddies(p.nodes.ssh, rtime=start_time)
 
 tend = p.get_model_time() + (1.0 | units.day)
 stop_time = start_time + (60.0 | units.day)
 
-count = 0
 while (tend < stop_time):
-    tend = p.get_model_time() + (1.0 | units.day)
     p.evolve_model(tend)
-    count += 1
 
-    ssh = numpy.array(p.nodes.ssh.value_in(units.cm)).T
-    ssh.tofile("pop-ssh-" + str(count) + ".dat")
-    rtime = p.get_model_time()
-    tracker.find_eddies(ssh=ssh, rtime=rtime)
+    tracker.find_eddies(ssh=p.nodes.ssh, rtime=p.get_model_time())
     tracker.plot_eddies(rtime=tend)
+    tend = p.get_model_time() + (days_between | units.day)
 
 #stop tracking, ensure output is written
 tracker.stop(tend)
