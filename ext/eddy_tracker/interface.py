@@ -43,9 +43,9 @@ class EddyTracker(object):
             lat = grid.lat
 
         if is_quantity(lon):
-            lon = lon.value_in(units.deg)
+            lon = numpy.array(lon.value_in(units.deg)).T
         if is_quantity(lat):
-            lat = lat.value_in(units.deg)
+            lat = numpy.array(lat.value_in(units.deg)).T
 
         #force lon range into [-360.0, 0] as required by eddy tracker
         if lon[:,0].max() > 0.0:
@@ -94,7 +94,7 @@ class EddyTracker(object):
         config['SAVE_FIGURES'] = False
         config['VERBOSE'] = False
         config['AMPMAX'] = 150.0 #150 is default
-        config['AMPMIN'] = 1.0 #used to be 1 by default, but Mason uses 0.02 for AVISO and ROMS
+        config['AMPMIN'] = 1.0 #1 by default, but Mason seems to be using 0.02 for AVISO and ROMS
 
         self.CONTOUR_PARAMETER = np.arange(-100., 101, 1)  #used to be -100, 101
         config['CONTOUR_PARAMETER'] = self.CONTOUR_PARAMETER
@@ -178,10 +178,10 @@ class EddyTracker(object):
         #convert to cm
         if sla is not None:
             if is_quantity(sla):
-                sla = sla.value_in(units.cm)
+                sla = numpy.array(sla.value_in(units.cm)).T
         if ssh is not None:
             if is_quantity(ssh):
-                ssh = ssh.value_in(units.cm)
+                ssh = numpy.array(ssh.value_in(units.cm)).T
 
         #convert ssh to sla
         if ssh is not None:
@@ -199,7 +199,7 @@ class EddyTracker(object):
         sla -= ndimage.gaussian_filter(sla, [self.MRES, self.ZRES])
 
         #print "gaussian parameters", [self.MRES, self.ZRES]
-        #sla = ndimage.gaussian_filter(sla, 2) #Ben: attempt to smooth the field a bit
+        #sla = ndimage.gaussian_filter(sla, 2) #Ben: attempt to smooth the field a bit, does not help at all
 
         # Apply the landmask
         sla = np.ma.masked_where(grd.mask == 0, sla)
