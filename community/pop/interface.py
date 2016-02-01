@@ -1,17 +1,22 @@
-from amuse.community import *
+import os
 
+from amuse.rfi.core import CodeInterface
+from amuse.rfi.core import legacy_function,remote_function
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
+from amuse.support.literature import LiteratureReferencesMixIn
+from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
 
-from amuse.datamodel.grids import *
+from amuse.datamodel import StructuredGrid
 from amuse.datamodel.staggeredgrid import StaggeredGrid
 
 from omuse.units import units
 
-class POPInterface(CodeInterface):
+class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     
     """
     POP - Parallel Ocean Program
 
+    .. [#] http://www.cesm.ucar.edu/models/cesm1.0/pop2/doc/sci/POPRefManual.pdf
     .. [#] https://github.com/NLeSC/eSalsa-POP
 
     """
@@ -28,8 +33,8 @@ class POPInterface(CodeInterface):
 
         keyword_arguments.setdefault('number_of_workers', 8)
         CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **keyword_arguments)
+        LiteratureReferencesMixIn.__init__(self)
 
-        import os
         if 'AMUSE_DIR' in os.environ:
             amuse_dir = os.environ['AMUSE_DIR']
             path = amuse_dir + '/src/omuse/community/pop/'
@@ -649,7 +654,7 @@ class POP(CommonCode):
         #the forcings can be on either grid, depends on what is preferred for coupling with adcirc I guess
         axes_names = ['lon', 'lat']
 
-        object.define_grid('nodes', axes_names=axes_names, grid_class=datamodel.StructuredGrid)
+        object.define_grid('nodes', axes_names=axes_names, grid_class=StructuredGrid)
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
@@ -675,7 +680,7 @@ class POP(CommonCode):
         object.add_getter('forcings', 'get_node_position', names=('lat','lon'))
 
         #elements are on the T-grid
-        object.define_grid('elements', axes_names=axes_names, grid_class=datamodel.StructuredGrid)
+        object.define_grid('elements', axes_names=axes_names, grid_class=StructuredGrid)
         object.set_grid_range('elements', 'get_firstlast_node')
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
         object.add_getter('elements', 'get_element_depth', names=('depth',))
