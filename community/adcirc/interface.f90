@@ -393,13 +393,13 @@ end function
 function get_node_surface_heat_flux(ind,hflux_) result(ret)
   integer :: ind,ret
   real*8 :: hflux_
-  hflux_=HFLUX(ind)
+  hflux_=AMUSE_HFLUX(ind)
   ret=0
 end function
 function set_node_surface_heat_flux(ind,hflux_) result(ret)
   integer :: ind,ret
   real*8 :: hflux_
-  HFLUX(ind)=hflux_
+  AMUSE_HFLUX(ind)=hflux_
   ret=0
 end function
 
