@@ -1291,7 +1291,7 @@ class SearchEllipse (object):
             self.rw_c_mod *= self.rw_c
             self.rw_c_mod[:] = np.array([self.rw_c_mod,
                                          self.semi_n_s_minor]).max()
-            self.rw_c_mod *= 2. #Ben: I don't understand why this is multiplied by 2.0
+            #self.rw_c_mod *= 2. #Ben: I don't understand why this is multiplied by 2.0
             self._set_global_ellipse()
 
         elif self.THE_DOMAIN in ('BlackSea', 'MedSea'):
