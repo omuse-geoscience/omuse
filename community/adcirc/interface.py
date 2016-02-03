@@ -330,10 +330,10 @@ class Adcirc(CommonCode):
     def get_firstlast_grid3d(self):
         return 1,self.get_number_of_nodes(),1,self.get_number_of_vertical_nodes()
 
-    #~ def get_node_position_3d(self,index,zindex):
+    def get_node_position_3d(self,index,zindex):
         #~ sigma,z=self.get_node_sigma(index,zindex)
-        #~ x,y=self.get_node_position(index)
-        #~ return x,y,z
+        x,y=self.get_node_position(index)
+        return x,y
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
@@ -524,7 +524,7 @@ class Adcirc(CommonCode):
             object.set_grid_range('grid3d', 'get_firstlast_grid3d')
             object.add_getter('grid3d', 'get_node_sigma', names = ('sigma','z'))
             object.add_getter('grid3d', 'get_node_velocities_3d', names = ('wx','wy','wz'))
-            object.add_getter('grid3d', 'get_node_position', names = ('x','y'))
+            object.add_getter('grid3d', 'get_node_position_3d', names = ('x','y'))
             object.add_getter('grid3d', 'get_node_coordinates', names = ('lon','lat'))
 
             object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
