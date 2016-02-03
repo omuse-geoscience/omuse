@@ -110,7 +110,7 @@ class EddyTracker(object):
         C_eddy.search_ellipse = search_ellipse
 
         #constants that define the minimal and maximal eddy radius in degrees
-        config['RADMIN'] = 0.7 # 0.35 is default
+        config['RADMIN'] = 0.35 # 0.35 is default
         config['RADMAX'] = 4.461
 
         #config['RADMAX'] = 8.0   #Ben testing with bigger radius
@@ -134,10 +134,6 @@ class EddyTracker(object):
         # Create nc files for saving of eddy tracks
         A_eddy.create_netcdf(self.DATA_DIR, self.A_SAVEFILE)
         C_eddy.create_netcdf(self.DATA_DIR, self.C_SAVEFILE)
-
-        # Holding variables
-        A_eddy.reset_holding_variables()
-        C_eddy.reset_holding_variables()
 
         # Get parameters for smoothing SLA field
         ZWL = numpy.atleast_1d(20.) # degrees, zonal wavelength (see Chelton etal 2011)
@@ -194,6 +190,10 @@ class EddyTracker(object):
         sla = sla[grd.jp0:grd.jp1, grd.ip0:grd.ip1]
 
         # so far the preprocessing of parameters, eddy tracking starts here
+
+        # Holding variables
+        A_eddy.reset_holding_variables()
+        C_eddy.reset_holding_variables()
 
         # Apply Gaussian smoothing
         sla -= ndimage.gaussian_filter(sla, [self.MRES, self.ZRES])
@@ -342,8 +342,8 @@ class EddyTracker(object):
         MMx, MMy = Mx, My
 
         anim_figure(self.A_eddy, self.C_eddy, Mx, My, MMx, MMy, plt.cm.RdBu_r, rtime,
-                self.DIAGNOSTIC_TYPE, self.SAVE_DIR, 'SLA ' + ymd_str,
-                self.animax, self.animax_cbar, track_length=28/self.days_between) #plot all tracks of at least 28 days
+                self.DIAGNOSTIC_TYPE, self.SAVE_DIR, 'ALL ' + ymd_str,
+                self.animax, self.animax_cbar, track_length=7/self.days_between, plot_all=True) #plot all tracks of at least 28 days
 
 
 
