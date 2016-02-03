@@ -43,9 +43,9 @@ class EddyTracker(object):
             lat = grid.lat
 
         if is_quantity(lon):
-            lon = lon.value_in(units.deg)
+            lon = numpy.array(lon.value_in(units.deg)).T
         if is_quantity(lat):
-            lat = lat.value_in(units.deg)
+            lat = numpy.array(lat.value_in(units.deg)).T
 
         #force lon range into [-360.0, 0] as required by eddy tracker
         if lon[:,0].max() > 0.0:
@@ -94,7 +94,7 @@ class EddyTracker(object):
         config['SAVE_FIGURES'] = False
         config['VERBOSE'] = False
         config['AMPMAX'] = 150.0 #150 is default
-        config['AMPMIN'] = 1.0 #used to be 1 by default, but Mason uses 0.02 for AVISO and ROMS
+        config['AMPMIN'] = 1.0 #1 by default, but Mason seems to be using 0.02 for AVISO and ROMS
 
         self.CONTOUR_PARAMETER = np.arange(-100., 101, 1)  #used to be -100, 101
         config['CONTOUR_PARAMETER'] = self.CONTOUR_PARAMETER
@@ -110,7 +110,7 @@ class EddyTracker(object):
         C_eddy.search_ellipse = search_ellipse
 
         #constants that define the minimal and maximal eddy radius in degrees
-        config['RADMIN'] = 0.7 # 0.35 is default
+        config['RADMIN'] = 0.35 # 0.35 is default
         config['RADMAX'] = 4.461
 
         #config['RADMAX'] = 8.0   #Ben testing with bigger radius
@@ -134,10 +134,6 @@ class EddyTracker(object):
         # Create nc files for saving of eddy tracks
         A_eddy.create_netcdf(self.DATA_DIR, self.A_SAVEFILE)
         C_eddy.create_netcdf(self.DATA_DIR, self.C_SAVEFILE)
-
-        # Holding variables
-        A_eddy.reset_holding_variables()
-        C_eddy.reset_holding_variables()
 
         # Get parameters for smoothing SLA field
         ZWL = numpy.atleast_1d(20.) # degrees, zonal wavelength (see Chelton etal 2011)
@@ -178,10 +174,10 @@ class EddyTracker(object):
         #convert to cm
         if sla is not None:
             if is_quantity(sla):
-                sla = sla.value_in(units.cm)
+                sla = numpy.array(sla.value_in(units.cm)).T
         if ssh is not None:
             if is_quantity(ssh):
-                ssh = ssh.value_in(units.cm)
+                ssh = numpy.array(ssh.value_in(units.cm)).T
 
         #convert ssh to sla
         if ssh is not None:
@@ -195,11 +191,15 @@ class EddyTracker(object):
 
         # so far the preprocessing of parameters, eddy tracking starts here
 
+        # Holding variables
+        A_eddy.reset_holding_variables()
+        C_eddy.reset_holding_variables()
+
         # Apply Gaussian smoothing
         sla -= ndimage.gaussian_filter(sla, [self.MRES, self.ZRES])
 
         #print "gaussian parameters", [self.MRES, self.ZRES]
-        #sla = ndimage.gaussian_filter(sla, 2) #Ben: attempt to smooth the field a bit
+        #sla = ndimage.gaussian_filter(sla, 2) #Ben: attempt to smooth the field a bit, does not help at all
 
         # Apply the landmask
         sla = np.ma.masked_where(grd.mask == 0, sla)
@@ -342,8 +342,8 @@ class EddyTracker(object):
         MMx, MMy = Mx, My
 
         anim_figure(self.A_eddy, self.C_eddy, Mx, My, MMx, MMy, plt.cm.RdBu_r, rtime,
-                self.DIAGNOSTIC_TYPE, self.SAVE_DIR, 'SLA ' + ymd_str,
-                self.animax, self.animax_cbar, track_length=28/self.days_between) #plot all tracks of at least 28 days
+                self.DIAGNOSTIC_TYPE, self.SAVE_DIR, 'ALL ' + ymd_str,
+                self.animax, self.animax_cbar, track_length=7/self.days_between, plot_all=True) #plot all tracks of at least 28 days
 
 
 
