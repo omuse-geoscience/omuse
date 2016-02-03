@@ -4,7 +4,7 @@ module amuse_adcirc
   use ADCIRC_Mod
   use BOUNDARIES, only: NETA, NBD, NVDLL, NBDV, NOPE, NBOU, NVELL, NBVV, IBTYPE
   use MESH, only: NP, NE, X, Y,DP,SLAM,SFEA
-  use GLOBAL_3DVS, only: NFEN,SIGMA,Q,WZ, RESSAL, RESTEMP, qsurfkp1, HFLUX, qsurf
+  use GLOBAL_3DVS, only: NFEN,SIGMA,Q,WZ, RESSAL, RESTEMP, qsurfkp1, qsurf
   implicit none
 
   logical :: use_interface_elevation_boundary=.FALSE.
