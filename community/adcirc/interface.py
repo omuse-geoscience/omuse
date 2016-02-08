@@ -264,6 +264,9 @@ class Adcirc(CommonCode):
   
     MODE_2D = "2D"
     MODE_3D = "3D"
+
+    bottom_friction_laws=["linear","quadratic","hybrid"]     
+    baroclinic_density_forcings=["none", "sigmaT", "salinity","temperature","salinity+temperature"]
     
     def __init__(self, mode=MODE_2D, coordinates="cartesian", **options):
         self.mode=mode
@@ -285,21 +288,38 @@ class Adcirc(CommonCode):
         self._elev_boundary=elev_boundary
         self._flow_boundary=flow_boundary
 
-    def commit_parameters(self):        
+    def commit_parameters(self):      
         if self.parameters.use_interface_parameters:
           param=adcirc_parameter_writer()
           if self._parameters is not None:
             param.parameters=self._parameters
           else:
             self._parameters=param.parameters
-          if self.parameters.bottom_friction_law not in ["linear","quadratic","hybrid"]:
-            raise Exception("invalid/ unimplemented bottom friction law: %s"%bottom_friction_law)
-          param.update( ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
+
+          if self.parameters.bottom_friction_law not in self.bottom_friction_laws:
+            raise Exception("invalid/ unimplemented bottom friction law: %s"%self.parameters.bottom_friction_law)
+          if self.parameters.baroclinic_density_forcing not in self.baroclinic_density_forcings:
+            raise Exception("invalid/ unimplemented baroclinic forcing: %s"%self.parameters.baroclinic_density_forcing)
+
+          if self.mode==self.MODE_2D and self.parameters.baroclinic_flag==False:
+            IM,IDEN=0,0
+          elif self.mode==self.MODE_3D and self.parameters.baroclinic_flag==False:   
+            IM,IDEN=1,0
+          elif self.mode==self.MODE_2D and self.parameters.baroclinic_flag==True:
+            IM=20
+            IDEN=self.baroclinic_density_forcings.index(self.parameters.baroclinic_density_forcing)   
+          elif self.mode==self.MODE_3D and self.parameters.baroclinic_flag==True:
+            IM=21
+            IDEN=self.baroclinic_density_forcings.index(self.parameters.baroclinic_density_forcing)            
+            
+          param.update( IM=IM,
+                        IDEN=IDEN,
+                        ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
                         SLAM0=trigo.in_deg(self.parameters.central_longitude),
                         SFEA0=trigo.in_deg(self.parameters.central_latitude),
                         ICS=1 if self.parameters.coordinates=="cartesian" else 2,
                         DTDP=(-1 if self.parameters.use_predictor_corrector else 1)*self.parameters.timestep.value_in(units.s),
-                        NOLIBF=["linear","quadratic","hybrid"].index(self.parameters.bottom_friction_law),
+                        NOLIBF=self.bottom_friction_laws.index(self.parameters.bottom_friction_law),
                         TAU0=self.parameters.GWCE_weighting_factor,
                         TAU=self.parameters.linear_bottom_friction_coeff.value_in(units.s**-1),
                         CF=self.parameters.quadratic_bottom_friction_coeff,
@@ -334,6 +354,11 @@ class Adcirc(CommonCode):
         #~ sigma,z=self.get_node_sigma(index,zindex)
         x,y=self.get_node_position(index)
         return x,y
+    def get_node_coordinates_3d(self,index,zindex):
+        x,y=self.get_node_coordinates(index)
+        return x,y
+
+
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
@@ -489,6 +514,18 @@ class Adcirc(CommonCode):
             "type of coordinates (spherical or cartesian)", 
             None
         )
+        object.add_interface_parameter(
+            "baroclinic_flag",
+            "flag selecting barotropic or baroclinic model",
+            False,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "baroclinic_density_forcing",
+            "type of density forcing for baroclinic runs [sigmaT, salinity, temperature or  salinity+temperature]",
+            "none",
+            "before_set_interface_parameter"
+        )
            
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -525,7 +562,7 @@ class Adcirc(CommonCode):
             object.add_getter('grid3d', 'get_node_sigma', names = ('sigma','z'))
             object.add_getter('grid3d', 'get_node_velocities_3d', names = ('wx','wy','wz'))
             object.add_getter('grid3d', 'get_node_position_3d', names = ('x','y'))
-            object.add_getter('grid3d', 'get_node_coordinates', names = ('lon','lat'))
+            object.add_getter('grid3d', 'get_node_coordinates_3d', names = ('lon','lat'))
 
             object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
             object.add_gridded_getter('nodes', 'get_node_velocities_3d','get_firstlast_vertical_index', names = ('wx','wy','wz'))
