@@ -61,7 +61,28 @@ default_parameters={
  "HBREAK": dict(dtype=float, value=1., description="hybrid bottom friction break depth"),
  "FTHETA": dict(dtype=float, value=10., description="dimensionless shallow/deep water bottom friction law transition parameter"),
  "FGAMMA": dict(dtype=float, value=0.33333333, description="friction factor parameter"),
+ "RES_BC_FLAG" : dict(dtype=int, value=0, descrption="Controls the type of boundary conditions used in the 3D baroclinic simulations (=IDEN)"),
+ "BCFLAG_LNM" : dict(dtype=int, value=0, description="Flag to control the levels of no motion parameterization used in the 3D ADCIRC run."),
+ "BCFLAG_TEMP" : dict(dtype=int, value=0, description="surface heat flux parameterization (must be 0 or 1)"),
+ "RBCTIMEINC" : dict(dtype=float, value=-1, description=" Time interval between data sets for the level of no motion boundary condition data, in seconds"),
+ "SBCTIMEINC" : dict(dtype=float, value=-1, description=" Time interval between data sets for the level of salinity condition data, in seconds"),
+ "TBCTIMEINC" : dict(dtype=float, value=-1, description=" Time interval between data sets for the level of temperature condition data, in seconds"),
+ "TTBCTIMEINC" : dict(dtype=float, value=-1, description=" Time interval between data sets for the surface heat flux condition data, in seconds"),
+ "BCSTATIM" : dict(dtype=float, value=0., desciption="Starting time (in seconds since ADCIRC cold start) for boundary condition data for the level of no motion boundary condition."),
+ "SBCSTATIM" : dict(dtype=float, value=0., desciption="Starting time (in seconds since ADCIRC cold start) for boundary condition data for the salinity boundary condition."),
+ "TBCSTATIM" : dict(dtype=float, value=0., desciption="Starting time (in seconds since ADCIRC cold start) for boundary condition data for the temperature boundary condition."),
+ "TTBCSTATIM" : dict(dtype=float, value=0., desciption="Starting time (in seconds since ADCIRC cold start) for boundary condition data for the surface heat flux boundary condition."),
+ "SPONGEDIST" : dict(dtype=float, value=0., description="spatial ramp (in m) on the wind and advection terms"),
+ "EQNSTATE" : dict(dtype=int, value=1, description="equation of state to use (1,2 or 3)"),
+ "NLSD" : dict(dtype=float, value=0., description="lateral salinity diffusion coefficient"),
+ "NLTD" : dict(dtype=float, value=0., description="lateral temperature diffusion coefficient"),
+ "NVSD" : dict(dtype=float, value=0., description="vertical salinity diffusion coefficient"),
+ "NVTD" : dict(dtype=float, value=0., description="vertical temperature diffusion coefficient"),
+ "ALP4" : dict(dtype=float, value=0.5, description="timestepping coefficient for transport eq. terms"),
+ "NTF" : dict(dtype=int, value=0, description="temperature boundary condition file type"),
+ "IDEN" : dict(dtype=int, value=0, description="type of density forcing for baroclinic runs"),
  }
+# THETA1, THETA2
 
 def get_default_parameter_set():
   return dict([(key,val["value"]) for key,val in default_parameters.items()])
@@ -205,6 +226,8 @@ class adcirc_parameter_writer(object):
           raise Exception("tbd: 3D baroclinic input")
 
         if param['IDEN'] != 0: # param['IM'] in [21,31]:
+          if param['RES_BC_FLAG']!=param['IDEN']:
+            raise Exception("RES_BC_FLAG should be equal to IDEN (?)")
           f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
           if param['RES_BC_FLAG'] not in range(-4,5):
             raise Exception("unexpected RES_BC_FLAG value")
