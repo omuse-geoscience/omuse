@@ -265,10 +265,11 @@ class Adcirc(CommonCode):
     MODE_2D = "2D"
     MODE_3D = "3D"
 
-    bottom_friction_laws=["linear","quadratic","hybrid"]     
-    bottom_friction_laws_3d=["noslip","linear","loglayer","quadratic"]     
-    baroclinic_density_forcings=["none", "sigmaT", "salinity","temperature","salinity+temperature"]
-    vertical_grid_types=["user", "uniform", "log", "loglinear", "doublelog", "pgrid", "sine"]
+    bottom_friction_laws={"linear":0,"quadratic":1,"hybrid":2}     
+    bottom_friction_laws_3d={"noslip":0,"linear":1,"loglayer":2,"quadratic":3}     
+    baroclinic_density_forcings={"none":0, "sigmaT":1, "salinity":2,"temperature":3,"salinity+temperature":4}
+    vertical_grid_types={"user":0, "uniform":1, "log":2, "loglinear":3, "doublelog":4, "pgrid":5, "sine":6}
+    vertical_eddy_viscosity_formulations={"user":0,"constant":1}
     
     def __init__(self, mode=MODE_2D, coordinates="cartesian", **options):
         self.mode=mode
@@ -306,6 +307,8 @@ class Adcirc(CommonCode):
             raise Exception("invalid/ unimplemented baroclinic forcing: %s"%self.parameters.baroclinic_density_forcing)
           if self.parameters.vertical_grid_type not in self.vertical_grid_types:
             raise Exception("invalid vertical grid type: %s"%self.parameters.vertical_grid_type)
+          if self.parameters.vertical_eddy_viscosity_formulation not in self.vertical_eddy_viscosity_formulations:
+            raise EXception("invalid vertical eddy viscosity, check! %s"%self.parameters.vertical_eddy_viscosity_formulation)
 
           if self.mode==self.MODE_2D and self.parameters.baroclinic_flag==False:
             IM,IDEN=0,0
@@ -313,10 +316,10 @@ class Adcirc(CommonCode):
             IM,IDEN=1,0
           elif self.mode==self.MODE_2D and self.parameters.baroclinic_flag==True:
             IM=20
-            IDEN=self.baroclinic_density_forcings.index(self.parameters.baroclinic_density_forcing)   
+            IDEN=self.baroclinic_density_forcings[self.parameters.baroclinic_density_forcing]   
           elif self.mode==self.MODE_3D and self.parameters.baroclinic_flag==True:
             IM=21
-            IDEN=self.baroclinic_density_forcings.index(self.parameters.baroclinic_density_forcing)            
+            IDEN=self.baroclinic_density_forcings[self.parameters.baroclinic_density_forcing] 
             
           if self.parameters.bottom_friction_law_3d == "noslip":
             KP=0.
@@ -332,7 +335,7 @@ class Adcirc(CommonCode):
                         SFEA0=trigo.in_deg(self.parameters.central_latitude),
                         ICS=1 if self.parameters.coordinates=="cartesian" else 2,
                         DTDP=(-1 if self.parameters.use_predictor_corrector else 1)*self.parameters.timestep.value_in(units.s),
-                        NOLIBF=self.bottom_friction_laws.index(self.parameters.bottom_friction_law),
+                        NOLIBF=self.bottom_friction_laws[self.parameters.bottom_friction_law],
                         TAU0=self.parameters.GWCE_weighting_factor,
                         TAU=self.parameters.linear_bottom_friction_coeff.value_in(units.s**-1),
                         CF=self.parameters.quadratic_bottom_friction_coeff,
@@ -344,11 +347,15 @@ class Adcirc(CommonCode):
                         NOLIFA=self.parameters.finite_amplitude_term_parameter,
                         NOLICA=self.parameters.spatial_derivative_advective_term_parameter,
                         NOLICAT=self.parameters.time_derivative_advective_term_parameter,
-                        ISLIP=self.bottom_friction_laws_3d.index(self.parameters.bottom_friction_law_3d),
+                        ISLIP=self.bottom_friction_laws_3d[self.parameters.bottom_friction_law_3d],
                         KP=KP,
-                        IGC=self.vertical_grid_types.index(self.parameters.vertical_grid_type),
-                        NFEN=len(self.parameters.sigma_levels) if self.parameters.vertical_grid_type=="user" else self.parameter.number_of_vertical_levels,
-                        SIGMA=self.parameters.sigma_levels
+                        IGC=self.vertical_grid_types[self.parameters.vertical_grid_type],
+                        NFEN=len(self.parameters.sigma_levels) if self.parameters.vertical_grid_type=="user" else self.parameters.number_of_vertical_levels,
+                        SIGMA=self.parameters.sigma_levels,
+                        IEVC=self.vertical_eddy_viscosity_formulations[self.parameters.vertical_eddy_viscosity_formulation],
+                        EVMIN=self.parameters.minimum_vertical_eddy_viscosity.value_in(units.m**2/units.s),
+                        EVCON=self.parameters.vertical_eddy_viscosity.value_in(units.m**2/units.s),
+                        EVTOT=self.parameters.vertical_eddy_viscosities.value_in(units.m**2/units.s)
                         )
           param.write()
         if self.parameters.use_interface_grid:
@@ -581,7 +588,31 @@ class Adcirc(CommonCode):
             [],
             "before_set_interface_parameter"
         )
-           
+        object.add_interface_parameter(
+            "vertical_eddy_viscosity_formulation",
+            "form of eddy viscosity used [user, constant, ...]",
+            "constant",
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "vertical_eddy_viscosity",
+            "(reference) value of eddy viscosity used [m**2/s]",
+            0.05 | units.m**2/units.s,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "minimum_vertical_eddy_viscosity",
+            "minimal value of eddy viscosity [m**2/s]",
+            1.e-6 | units.m**2/units.s,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "vertical_eddy_viscosities",
+            "value of eddy viscosity of each depth level [m**2/s]",
+            [] | units.m**2/units.s,
+            "before_set_interface_parameter"
+        )        
+                   
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
 
