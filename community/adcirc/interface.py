@@ -266,7 +266,9 @@ class Adcirc(CommonCode):
     MODE_3D = "3D"
 
     bottom_friction_laws=["linear","quadratic","hybrid"]     
+    bottom_friction_laws_3d=["noslip","linear","loglayer","quadratic"]     
     baroclinic_density_forcings=["none", "sigmaT", "salinity","temperature","salinity+temperature"]
+    vertical_grid_types=["user", "uniform", "log", "loglinear", "doublelog", "pgrid", "sine"]
     
     def __init__(self, mode=MODE_2D, coordinates="cartesian", **options):
         self.mode=mode
@@ -298,8 +300,12 @@ class Adcirc(CommonCode):
 
           if self.parameters.bottom_friction_law not in self.bottom_friction_laws:
             raise Exception("invalid/ unimplemented bottom friction law: %s"%self.parameters.bottom_friction_law)
+          if self.parameters.bottom_friction_law_3d not in self.bottom_friction_laws_3d:
+            raise Exception("invalid/ unimplemented 3D bottom friction law: %s"%self.parameters.bottom_friction_law_3d)
           if self.parameters.baroclinic_density_forcing not in self.baroclinic_density_forcings:
             raise Exception("invalid/ unimplemented baroclinic forcing: %s"%self.parameters.baroclinic_density_forcing)
+          if self.parameters.vertical_grid_type not in self.vertical_grid_types:
+            raise Exception("invalid vertical grid type: %s"%self.parameters.vertical_grid_type)
 
           if self.mode==self.MODE_2D and self.parameters.baroclinic_flag==False:
             IM,IDEN=0,0
@@ -312,6 +318,13 @@ class Adcirc(CommonCode):
             IM=21
             IDEN=self.baroclinic_density_forcings.index(self.parameters.baroclinic_density_forcing)            
             
+          if self.parameters.bottom_friction_law_3d == "noslip":
+            KP=0.
+          elif self.parameters.bottom_friction_law_3d == "linear":
+            KP=self.parameters.linear_3d_bottom_friction_coeff.value_in(units.m/units.s)
+          else:
+            KP=self.parameters.quadratic_3d_bottom_friction_coeff
+             
           param.update( IM=IM,
                         IDEN=IDEN,
                         ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
@@ -330,7 +343,13 @@ class Adcirc(CommonCode):
 # NOLIFA, NOLICA, NOLICAT should all either 0 or >0...
                         NOLIFA=self.parameters.finite_amplitude_term_parameter,
                         NOLICA=self.parameters.spatial_derivative_advective_term_parameter,
-                        NOLICAT=self.parameters.time_derivative_advective_term_parameter )
+                        NOLICAT=self.parameters.time_derivative_advective_term_parameter,
+                        ISLIP=self.bottom_friction_laws_3d.index(self.parameters.bottom_friction_law_3d),
+                        KP=KP,
+                        IGC=self.vertical_grid_types.index(self.parameters.vertical_grid_type),
+                        NFEN=len(self.parameters.sigma_levels) if self.parameters.vertical_grid_type=="user" else self.parameter.number_of_vertical_levels,
+                        SIGMA=self.parameters.sigma_levels
+                        )
           param.write()
         if self.parameters.use_interface_grid:
           adcirc_grid_writer(coordinates=self.coordinates).write_grid(self._nodes,self._elements, 
@@ -459,6 +478,24 @@ class Adcirc(CommonCode):
             "before_set_interface_parameter"
         )
         object.add_interface_parameter(
+            "linear_3d_bottom_friction_coeff",
+            "linear 3D bottom friction coefficient [0. m/s], only used for linear bottom friction law",
+            0. | units.m/units.s,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "quadratic_3d_bottom_friction_coeff",
+            "quadratic 3D bottom friction coefficient [dimensionless], only used for quadratic bottom friction law",
+            0.,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "bottom_friction_law_3d",
+            "type of 3D bottom friction law [noslip, linear, quadratic, loglayer]",
+            "noslip",
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
             "begin_time",
             "begin time of the simulation",
             0. | units.day,
@@ -524,6 +561,24 @@ class Adcirc(CommonCode):
             "baroclinic_density_forcing",
             "type of density forcing for baroclinic runs [sigmaT, salinity, temperature or  salinity+temperature]",
             "none",
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "number_of_vertical_levels",
+            "number of nodes in the vertical grid, only for 3D runs",
+            21,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "vertical_grid_type",
+            "type of vertical grid spacing: [user, uniform, log, loglinear, doublelog, pgrid, sine]",
+            "uniform",
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "sigma_levels",
+            "dimensionless levels of the vertical grid, from -1 (bottom) to +1 (surface)",
+            [],
             "before_set_interface_parameter"
         )
            
