@@ -270,6 +270,7 @@ class Adcirc(CommonCode):
     baroclinic_density_forcings={"none":0, "sigmaT":1, "salinity":2,"temperature":3,"salinity+temperature":4}
     vertical_grid_types={"user":0, "uniform":1, "log":2, "loglinear":3, "doublelog":4, "pgrid":5, "sine":6}
     vertical_eddy_viscosity_formulations={"user":0,"constant":1}
+    equations_of_state={"CushmanRoisin":0,"McDougall":1,"unesco":2}
     
     def __init__(self, mode=MODE_2D, coordinates="cartesian", **options):
         self.mode=mode
@@ -308,7 +309,9 @@ class Adcirc(CommonCode):
           if self.parameters.vertical_grid_type not in self.vertical_grid_types:
             raise Exception("invalid vertical grid type: %s"%self.parameters.vertical_grid_type)
           if self.parameters.vertical_eddy_viscosity_formulation not in self.vertical_eddy_viscosity_formulations:
-            raise EXception("invalid vertical eddy viscosity, check! %s"%self.parameters.vertical_eddy_viscosity_formulation)
+            raise Exception("invalid vertical eddy viscosity, check! %s"%self.parameters.vertical_eddy_viscosity_formulation)
+          if self.parameters.equation_of_state not in self.equations_of_state:
+            raise Exception("invalid equation of state: %s"%self.paramters.equation_of_state)
 
           if self.mode==self.MODE_2D and self.parameters.baroclinic_flag==False:
             IM,IDEN=0,0
@@ -355,7 +358,12 @@ class Adcirc(CommonCode):
                         IEVC=self.vertical_eddy_viscosity_formulations[self.parameters.vertical_eddy_viscosity_formulation],
                         EVMIN=self.parameters.minimum_vertical_eddy_viscosity.value_in(units.m**2/units.s),
                         EVCON=self.parameters.vertical_eddy_viscosity.value_in(units.m**2/units.s),
-                        EVTOT=self.parameters.vertical_eddy_viscosities.value_in(units.m**2/units.s)
+                        EVTOT=self.parameters.vertical_eddy_viscosities.value_in(units.m**2/units.s),
+                        NLSD=self.parameters.lateral_salinity_diffusion_coefficient,
+                        NVSD=self.parameters.vertical_salinity_diffusion_coefficient,
+                        NLTD=self.parameters.lateral_temperature_diffusion_coefficient,
+                        NVTD=self.parameters.vertical_temperature_diffusion_coefficient,
+                        EQNSTATE=self.equations_of_state[self.parameters.equation_of_state]
                         )
           param.write()
         if self.parameters.use_interface_grid:
@@ -611,8 +619,40 @@ class Adcirc(CommonCode):
             "value of eddy viscosity of each depth level [m**2/s]",
             [] | units.m**2/units.s,
             "before_set_interface_parameter"
-        )        
-                   
+        )
+        
+        object.add_interface_parameter(
+            "lateral_salinity_diffusion_coefficent",
+            "value of the lateral salinity diffusion coefficient for baroclinic runs [m**2/s]",
+            0. | units.m**2/units.s,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "vertical_salinity_diffusion_coefficent",
+            "value of the vertical salinity diffusion coefficient for baroclinic runs  [m**2/s]",
+            0. | units.m**2/units.s,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "lateral_temperature_diffusion_coefficent",
+            "value of the lateral temperature diffusion coefficient for baroclinic runs  [m**2/s]",
+            0. | units.m**2/units.s,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "vertical_temperature_diffusion_coefficent",
+            "value of the vertical temperature diffusion coefficient for baroclinic runs  [m**2/s]",
+            0. | units.m**2/units.s,
+            "before_set_interface_parameter"
+        )
+
+        object.add_interface_parameter(
+            "equation_of_state",
+            "equation of state rho(T,sal) to use for baroclinic runs [CushmanRoisin, McDougall, unesco]",
+            "CushmanRoisin",
+            "before_set_interface_parameter"
+        )
+        
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
 
