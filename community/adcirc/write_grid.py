@@ -214,11 +214,13 @@ class adcirc_parameter_writer(object):
         f.write_var(param['ALP1'],param['ALP2'],param['ALP3'])
         f.write_var(param['IGC'],param['NFEN'])
         if  param['IGC']==0:
+          assert  len(param['SIGMA'])==param['NFEN']
           f.write_var_rows(param['SIGMA'])
         f.write_var(param['IEVC'],param['EVMIN'],param['EVCON'])
         if param['IEVC'] in [50,51]:
           f.write_var(param['THETA1'],param['THETA2'])
-        if  param['IEVC']==0: 
+        if  param['IEVC']==0:
+          assert  len(param['EVTOT'])==param['NFEN']
           f.write_var_rows(param['EVTOT'])
         f.write(outputblock2)
         if param['IM'] in [21,31]:
