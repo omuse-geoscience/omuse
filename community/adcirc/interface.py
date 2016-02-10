@@ -622,25 +622,25 @@ class Adcirc(CommonCode):
         )
         
         object.add_interface_parameter(
-            "lateral_salinity_diffusion_coefficent",
+            "lateral_salinity_diffusion_coefficient",
             "value of the lateral salinity diffusion coefficient for baroclinic runs [m**2/s]",
             0. | units.m**2/units.s,
             "before_set_interface_parameter"
         )
         object.add_interface_parameter(
-            "vertical_salinity_diffusion_coefficent",
+            "vertical_salinity_diffusion_coefficient",
             "value of the vertical salinity diffusion coefficient for baroclinic runs  [m**2/s]",
             0. | units.m**2/units.s,
             "before_set_interface_parameter"
         )
         object.add_interface_parameter(
-            "lateral_temperature_diffusion_coefficent",
+            "lateral_temperature_diffusion_coefficient",
             "value of the lateral temperature diffusion coefficient for baroclinic runs  [m**2/s]",
             0. | units.m**2/units.s,
             "before_set_interface_parameter"
         )
         object.add_interface_parameter(
-            "vertical_temperature_diffusion_coefficent",
+            "vertical_temperature_diffusion_coefficient",
             "value of the vertical temperature diffusion coefficient for baroclinic runs  [m**2/s]",
             0. | units.m**2/units.s,
             "before_set_interface_parameter"
