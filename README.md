@@ -5,7 +5,7 @@ experiments in Oceanography and Climate Science.
 
 ### What is this repository for? ###
 
-This repository contains the source branch for OMUSE. 
+This repository contains the source tree for OMUSE. 
 
 ### How do I get set up? ###
 
