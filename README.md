@@ -9,7 +9,7 @@ This repository contains the source branch for OMUSE.
 
 ### How do I get set up? ###
 
-To install first install [AMUSE www.amusecode.org] from source. Then in the AMUSE trunk, clone the OMUSE
+To install first install [AMUSE](www.amusecode.org) from source. Then in the AMUSE trunk, clone the OMUSE
 source into /src, such that this directory contains src/amuse and src/omuse subdirectories. The community
 codes of OMUSE are not yet automatically build by the framework, so you need to build them manually by going into each of:
 * src/omuse/community/adcirc
@@ -26,4 +26,4 @@ In addition to the AMUSE dependencies, OMUSE needs/ can use the following packag
 ### Contribution guidelines ###
 
 At the moment, this repository is private, since it contains the source of ADCIRC, which is not 
-freely distributable. 
+freely distributable.
