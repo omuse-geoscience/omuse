@@ -12,16 +12,20 @@ This repository contains the source tree for OMUSE.
 To install first install [AMUSE](www.amusecode.org) from source. Then in the AMUSE trunk, clone the OMUSE
 source into /src, such that this directory contains src/amuse and src/omuse subdirectories. The community
 codes of OMUSE are not yet automatically build by the framework, so you need to build them manually by going into each of:
- - src/omuse/community/adcirc
- - src/omuse/community/swan
- - src/omuse/community/pop
- - src/omuse/community/qgmodel
+
+ + src/omuse/community/adcirc
+ + src/omuse/community/swan
+ + src/omuse/community/pop
+ + src/omuse/community/qgmodel
+
 and typing: `make`
-This has been tested on OSX and linux machines, with ifort and gfortran compilers.
+This has been tested on OSX and linux machines, with ifort and gfortran compilers, on desktop machines and the Carthesius
+supercomputer.
 
 In addition to the AMUSE dependencies, OMUSE needs/ can use the following packages:
- - matplotlib basemap
- - netCDF and netCDF for fortran and the python bindings
+
+ + matplotlib basemap
+ + netCDF and netCDF for fortran and the python bindings
 
 ### Contribution guidelines ###
 
