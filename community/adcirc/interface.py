@@ -270,7 +270,7 @@ class Adcirc(CommonCode):
     baroclinic_density_forcings={"none":0, "sigmaT":1, "salinity":2,"temperature":3,"salinity+temperature":4}
     vertical_grid_types={"user":0, "uniform":1, "log":2, "loglinear":3, "doublelog":4, "pgrid":5, "sine":6}
     vertical_eddy_viscosity_formulations={"user":0,"constant":1}
-    equations_of_state={"CushmanRoisin":0,"McDougall":1,"unesco":2}
+    equations_of_state={"CushmanRoisin":1,"McDougall":2,"unesco":3}
     
     def __init__(self, mode=MODE_2D, coordinates="cartesian", **options):
         self.mode=mode
@@ -330,9 +330,10 @@ class Adcirc(CommonCode):
             KP=self.parameters.linear_3d_bottom_friction_coeff.value_in(units.m/units.s)
           else:
             KP=self.parameters.quadratic_3d_bottom_friction_coeff
-             
+          NFEN=len(self.parameters.sigma_levels) if self.parameters.vertical_grid_type=="user" else self.parameters.number_of_vertical_levels
           param.update( IM=IM,
                         IDEN=IDEN,
+                        RES_BC_FLAG=IDEN,
                         ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
                         SLAM0=trigo.in_deg(self.parameters.central_longitude),
                         SFEA0=trigo.in_deg(self.parameters.central_latitude),
@@ -353,22 +354,27 @@ class Adcirc(CommonCode):
                         ISLIP=self.bottom_friction_laws_3d[self.parameters.bottom_friction_law_3d],
                         KP=KP,
                         IGC=self.vertical_grid_types[self.parameters.vertical_grid_type],
-                        NFEN=len(self.parameters.sigma_levels) if self.parameters.vertical_grid_type=="user" else self.parameters.number_of_vertical_levels,
+                        NFEN=NFEN,
                         SIGMA=self.parameters.sigma_levels,
                         IEVC=self.vertical_eddy_viscosity_formulations[self.parameters.vertical_eddy_viscosity_formulation],
                         EVMIN=self.parameters.minimum_vertical_eddy_viscosity.value_in(units.m**2/units.s),
                         EVCON=self.parameters.vertical_eddy_viscosity.value_in(units.m**2/units.s),
                         EVTOT=self.parameters.vertical_eddy_viscosities.value_in(units.m**2/units.s),
-                        NLSD=self.parameters.lateral_salinity_diffusion_coefficient,
-                        NVSD=self.parameters.vertical_salinity_diffusion_coefficient,
-                        NLTD=self.parameters.lateral_temperature_diffusion_coefficient,
-                        NVTD=self.parameters.vertical_temperature_diffusion_coefficient,
+                        NLSD=self.parameters.lateral_salinity_diffusion_coefficient.value_in(units.m**2/units.s),
+                        NVSD=self.parameters.vertical_salinity_diffusion_coefficient.value_in(units.m**2/units.s),
+                        NLTD=self.parameters.lateral_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
+                        NVTD=self.parameters.vertical_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
                         EQNSTATE=self.equations_of_state[self.parameters.equation_of_state]
                         )
           param.write()
         if self.parameters.use_interface_grid:
-          adcirc_grid_writer(coordinates=self.coordinates).write_grid(self._nodes,self._elements, 
-            self._elev_boundary,self._flow_boundary)
+          agw=adcirc_grid_writer(coordinates=self.coordinates,nodes=self._nodes,
+            elements=self._elements, elevation_boundaries=self._elev_boundary,
+            flow_boundaries=self._flow_boundary)
+          agw.write_grid()
+          if self.mode==self.MODE_3D and self.parameters.baroclinic_flag==True:
+              agw.write_density(density_forcing=self.parameters.baroclinic_density_forcing,
+               number_of_vertical_levels=NFEN)
         self.overridden().commit_parameters()
 
     def get_firstlast_node(self):
@@ -705,8 +711,8 @@ class Adcirc(CommonCode):
         object.add_setter('forcings', 'set_node_atmospheric_pressure', names=('pressure',))
         object.add_getter('forcings', 'get_node_tidal_potential', names=('tidal_potential',))
         object.add_setter('forcings', 'set_node_tidal_potential', names=('tidal_potential',))
-        object.add_getter('forcings', 'get_node_surface_heat_flux', names=('shf',))
-        object.add_setter('forcings', 'set_node_surface_heat_flux', names=('shf',))
+        object.add_getter('forcings', 'get_node_surface_heat_flux', names=('surface_heat_flux',))
+        object.add_setter('forcings', 'set_node_surface_heat_flux', names=('surface_heat_flux',))
         object.add_getter('forcings', 'get_node_position', names=('x','y'))
         object.add_getter('forcings', 'get_node_coordinates', names=('lon','lat'))
 

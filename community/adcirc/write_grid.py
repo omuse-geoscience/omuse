@@ -1,6 +1,7 @@
 import numpy
 
-from amuse.units import units,trigo
+from omuse.units import units
+from amuse.units import trigo
 
 from amuse.datamodel import Grid
 
@@ -21,7 +22,7 @@ default_parameters={
  "NCOR": dict(dtype=int , value=0, description="VARIABLE CORIOLIS IN SPACE OPTION PARAMETER"),
  "NTIP": dict(dtype=int , value=0, description="TIDAL POTENTIAL OPTION PARAMETER"),
  "NWS": dict(dtype=int , value=0, description="WIND STRESS AND BAROMETRIC PRESSURE OPTION PARAMETER"),
- "NRAMP": dict(dtype=int , value=1, description="RAMP FUNCTION OPTION"),
+ "NRAMP": dict(dtype=int , value=0, description="RAMP FUNCTION OPTION"),
  "G": dict(dtype=float , value=9.81, description="ACCELERATION DUE TO GRAVITY: DETERMINES UNITS"),
  "TAU0": dict(dtype=float , value=0.005, description="WEIGHTING FACTOR IN GWCE"),
  "DTDP": dict(dtype=float , value=-360., description="TIME STEP (IN SECONDS)"),
@@ -74,10 +75,10 @@ default_parameters={
  "TTBCSTATIM" : dict(dtype=float, value=0., desciption="Starting time (in seconds since ADCIRC cold start) for boundary condition data for the surface heat flux boundary condition."),
  "SPONGEDIST" : dict(dtype=float, value=0., description="spatial ramp (in m) on the wind and advection terms"),
  "EQNSTATE" : dict(dtype=int, value=1, description="equation of state to use (1,2 or 3)"),
- "NLSD" : dict(dtype=float, value=0., description="lateral salinity diffusion coefficient"),
- "NLTD" : dict(dtype=float, value=0., description="lateral temperature diffusion coefficient"),
- "NVSD" : dict(dtype=float, value=0., description="vertical salinity diffusion coefficient"),
- "NVTD" : dict(dtype=float, value=0., description="vertical temperature diffusion coefficient"),
+ "NLSD" : dict(dtype=float, value=100., description="lateral salinity diffusion coefficient"),
+ "NLTD" : dict(dtype=float, value=100., description="lateral temperature diffusion coefficient"),
+ "NVSD" : dict(dtype=float, value=1.e-4, description="vertical salinity diffusion coefficient"),
+ "NVTD" : dict(dtype=float, value=1.e-4, description="vertical temperature diffusion coefficient"),
  "ALP4" : dict(dtype=float, value=0.5, description="timestepping coefficient for transport eq. terms"),
  "NTF" : dict(dtype=int, value=0, description="temperature boundary condition file type"),
  "IDEN" : dict(dtype=int, value=0, description="type of density forcing for baroclinic runs"),
@@ -135,7 +136,7 @@ class adcirc_parameter_writer(object):
       f.write_var(param["IHOT"])
       f.write_var(param["ICS"])
       f.write_var(param["IM"])
-      if param["IM"] in [20,30]:
+      if param["IM"] in [21,31]:
         f.write_var(param["IDEN"])
       else:
         pass
@@ -168,7 +169,7 @@ class adcirc_parameter_writer(object):
       if param["NRAMP"] in [0,1]:
         f.write_var(param["DRAMP"])
       elif param["NRAMP"] in [2,3,4,5,6,7,8]:
-        raise Exception("tbd")
+        raise Exception("DRAMP for NRAMP>1 tbd")
       else:
         pass
       f.write_var(param["A00"],param["B00"],param["C00"])
@@ -183,7 +184,7 @@ class adcirc_parameter_writer(object):
         f.write_var(param["CF"])
       elif param["NOLIBF"]==2:
         f.write_var(param["CF"],param["HBREAK"],param["FTHETA"],param["FGAMMA"])
-      if param["IM"] in [0,1,2]:
+      if param["IM"]!=10:
         f.write_var(param["ESLM"])
       elif param["IM"]==10:
         f.write_var(param["ESLM"],param["ESLC"])
@@ -223,18 +224,16 @@ class adcirc_parameter_writer(object):
           assert  len(param['EVTOT'])==param['NFEN']
           f.write_var_rows(param['EVTOT'])
         f.write(outputblock2)
-        if param['IM'] in [21,31]:
-          f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
-          raise Exception("tbd: 3D baroclinic input")
-
         if param['IDEN'] != 0: # param['IM'] in [21,31]:
           if param['RES_BC_FLAG']!=param['IDEN']:
+            print param['RES_BC_FLAG'], param['IDEN']
             raise Exception("RES_BC_FLAG should be equal to IDEN (?)")
           f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
           if param['RES_BC_FLAG'] not in range(-4,5):
             raise Exception("unexpected RES_BC_FLAG value")
           if NETA is None: # assume NOPE > 0 if NETA>0
-            raise Exception("expect NETA to be provided")
+            NETA=0
+            #~ raise Exception("expect NETA to be provided")
           if param['RES_BC_FLAG']<0:
             if abs(param['RES_BC_FLAG'])>=1 and NETA>0:
               f.write_var(param['RBCTIMEINC'])
@@ -259,8 +258,8 @@ class adcirc_parameter_writer(object):
           f.write_var(param['SPONGEDIST'])
           f.write_var(param['EQNSTATE'])
         if param['IDEN']>0:
-          f.write_var(param['NLSD'])
-          f.write_var(param['NLTD'])
+          f.write_var(param['NLSD'],param['NVSD'])
+          f.write_var(param['NLTD'],param['NVTD'])
           f.write_var(param['ALP4'])
         #~ if param['IDEN'] in [3,4]:
           #~ f.write_var(param['NTF'])
@@ -273,8 +272,14 @@ class adcirc_parameter_writer(object):
 
 class adcirc_grid_writer(object):
   
-  def __init__(self,filename="fort.14",coordinates="cartesian"):
+  def __init__(self,filename="fort.14",coordinates="cartesian", density_filename="fort.11",
+                nodes=None,elements=None, elevation_boundaries=None, flow_boundaries=None):
+    self.nodes=nodes
+    self.elements=elements
+    self.elevation_boundaries=elevation_boundaries
+    self.flow_boundaries=flow_boundaries
     self.filename=filename
+    self.density_filename=density_filename
     self.coordinates=coordinates
     if coordinates not in ["cartesian","spherical"]:
       raise Exception("coordinates must be cartesian or spherical")  
@@ -304,7 +309,30 @@ class adcirc_grid_writer(object):
       
     f.close()
 
-  def write_grid(self, nodes, elements, elev_boundary,flow_boundary):
+  def write_density(self, nodes=None, density_forcing=None, number_of_vertical_levels=None):
+    if nodes is None: nodes=self.nodes
+    if density_forcing!="temperature":
+      raise Exception("not implemented yet")
+    else:
+      Tconst=5 | units.Celsius
+      print "assumes constant temperature:", Tconst
+
+    NP=len(nodes)
+    NFEN=number_of_vertical_levels
+    f=adcirc_file_writer(self.density_filename,'w')
+    f.write_var("header 1")
+    f.write_var("header 2")
+    f.write_var(NFEN,NP)
+    for i in range(NP):
+      for j in range(NFEN):
+        f.write_var(i,j,Tconst.value_in(units.Celsius))
+      
+  def write_grid(self, nodes=None, elements=None, elevation_boundaries=None,flow_boundaries=None):
+    if nodes is None: nodes=self.nodes
+    if elements is None: elements=self.elements
+    if elevation_boundaries is None: elevation_boundaries=self.elevation_boundaries
+    if flow_boundaries is None: flow_boundaries=self.flow_boundaries
+    
     if self.coordinates=="cartesian":
       x=nodes.x.value_in(units.m)
       y=nodes.y.value_in(units.m)
@@ -313,8 +341,8 @@ class adcirc_grid_writer(object):
       y=nodes.lat.value_in(units.deg)      
     depth=nodes.depth.value_in(units.m)
     element_nodes=elements.nodes+1
-    elev_boundary_nodes=[(b.nodes+1,0) for b in elev_boundary] # type = always zero atm
-    flow_boundary_nodes=[(b.nodes+1,b[0].type) for b in flow_boundary]
+    elev_boundary_nodes=[(b.nodes+1,0) for b in elevation_boundaries] # type = always zero atm
+    flow_boundary_nodes=[(b.nodes+1,b[0].type) for b in flow_boundaries]
     self.write(x,y,depth,element_nodes,elev_boundary_nodes,flow_boundary_nodes)
 
 if __name__=="__main__":
