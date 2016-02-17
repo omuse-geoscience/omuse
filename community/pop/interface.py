@@ -82,7 +82,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     @remote_function(must_handle_array=True)
     def get_element_surface_heat_flux(i=0,j=0):
-        returns (shf=0. | units.W/units.m**2) #surface heat flux in W/m**2
+        returns (surface_heat_flux=0. | units.W/units.m**2) #surface heat flux in W/m**2
 
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
     @remote_function(must_handle_array=True)
@@ -685,7 +685,7 @@ class POP(CommonCode):
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
         object.add_getter('elements', 'get_element_depth', names=('depth',))
         object.add_getter('elements', 'get_element_surface_state', names=('temp','salt'))
-        object.add_getter('elements', 'get_element_surface_heat_flux', names=('shf',))
+        object.add_getter('elements', 'get_element_surface_heat_flux', names=('surface_heat_flux',))
 
         #elements are on the T-grid
         object.define_grid('elements3d')
