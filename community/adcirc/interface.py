@@ -163,6 +163,10 @@ class AdcircInterface(CodeInterface,
         returns (vx=0.| units.m/units.s, vy=0. | units.m/units.s, vz=0. | units.m/units.s)
 
     @remote_function(can_handle_array=True)
+    def get_node_temperature_3d(index='i',zindex='i'):
+        returns (temperature=0. | units.Celsius)
+
+    @remote_function(can_handle_array=True)
     def get_element_nodes(index=0):
         returns (n1=0,n2=0,n3=0)
 
@@ -364,7 +368,8 @@ class Adcirc(CommonCode):
                         NVSD=self.parameters.vertical_salinity_diffusion_coefficient.value_in(units.m**2/units.s),
                         NLTD=self.parameters.lateral_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
                         NVTD=self.parameters.vertical_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
-                        EQNSTATE=self.equations_of_state[self.parameters.equation_of_state]
+                        EQNSTATE=self.equations_of_state[self.parameters.equation_of_state],
+                        BCFLAG_TEMP=-1 if self.parameters.use_interface_surface_heat_forcing else 0
                         )
           param.write()
         if self.parameters.use_interface_grid:
@@ -693,11 +698,13 @@ class Adcirc(CommonCode):
             object.set_grid_range('grid3d', 'get_firstlast_grid3d')
             object.add_getter('grid3d', 'get_node_sigma', names = ('sigma','z'))
             object.add_getter('grid3d', 'get_node_velocities_3d', names = ('wx','wy','wz'))
+            object.add_getter('grid3d', 'get_node_temperature_3d', names = ('temperature',))
             object.add_getter('grid3d', 'get_node_position_3d', names = ('x','y'))
             object.add_getter('grid3d', 'get_node_coordinates_3d', names = ('lon','lat'))
 
             object.add_gridded_getter('nodes', 'get_node_sigma','get_firstlast_vertical_index', names = ('sigma','z'))
             object.add_gridded_getter('nodes', 'get_node_velocities_3d','get_firstlast_vertical_index', names = ('wx','wy','wz'))
+            object.add_gridded_getter('nodes', 'get_node_temperature_3d','get_firstlast_vertical_index', names = ('temperature',))
 
         object.define_grid('forcings',axes_names = axes_names, grid_class=datamodel.UnstructuredGrid)
         object.set_grid_range('forcings', 'get_firstlast_node')

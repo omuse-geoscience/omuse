@@ -423,7 +423,6 @@ end function
 function get_node_velocities_3d(ind,indz,vx_,vy_,vz_) result(ret)
   integer :: ind,indz,ret
   real*8 :: vx_,vy_,vz_
-  real*8, parameter :: a=1,b=-1
   if(ind.LT.1.OR.ind.GT.NP) then
     ret=-1
     return
@@ -438,6 +437,20 @@ function get_node_velocities_3d(ind,indz,vx_,vy_,vz_) result(ret)
   ret=0
 end function
 
+function get_node_temperature_3d(ind,indz,temp_) result(ret)
+  integer :: ind,indz,ret
+  real*8 :: temp_
+  if(ind.LT.1.OR.ind.GT.NP) then
+    ret=-1
+    return
+  endif
+  if(indz.LT.1.OR.indz.GT.NFEN) then
+    ret=-1
+    return
+  endif
+  temp_=TEMP(ind,indz)
+  ret=0
+end function
 
 function get_element_nodes(ind,n1,n2,n3) result(ret)
   integer :: ind,n1,n2,n3,ret
