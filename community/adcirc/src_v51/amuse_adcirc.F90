@@ -4,7 +4,7 @@ module amuse_adcirc
   use ADCIRC_Mod
   use BOUNDARIES, only: NETA, NBD, NVDLL, NBDV, NOPE, NBOU, NVELL, NBVV, IBTYPE
   use MESH, only: NP, NE, X, Y,DP,SLAM,SFEA
-  use GLOBAL_3DVS, only: NFEN,SIGMA,Q,WZ, RESSAL, RESTEMP, qsurfkp1, qsurf
+  use GLOBAL_3DVS, only: NFEN,SIGMA,Q,WZ, RESSAL, RESTEMP, qsurfkp1, qsurf, SigT, Temp, Sal
   implicit none
 
   logical :: use_interface_elevation_boundary=.FALSE.
@@ -93,7 +93,7 @@ subroutine AMUSE_salt_temp_boundary()
   if(use_interface_temp_boundary) call update_temp_boundary()
 end subroutine
 
-subroutine AMUSE_surface_heating_forcing()
+subroutine AMUSE_surface_heat_forcing()
   use amuse_adcirc
   if(use_interface_surface_heat_forcing) call update_surface_heat_forcing()
 end subroutine

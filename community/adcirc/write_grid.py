@@ -314,7 +314,7 @@ class adcirc_grid_writer(object):
     if density_forcing!="temperature":
       raise Exception("not implemented yet")
     else:
-      Tconst=5 | units.Celsius
+      Tconst=5. | units.Celsius
       print "assumes constant temperature:", Tconst
 
     NP=len(nodes)
@@ -325,7 +325,7 @@ class adcirc_grid_writer(object):
     f.write_var(NFEN,NP)
     for i in range(NP):
       for j in range(NFEN):
-        f.write_var(i,j,Tconst.value_in(units.Celsius))
+        f.write_var(i+1,j+1,Tconst.value_in(units.Celsius))
       
   def write_grid(self, nodes=None, elements=None, elevation_boundaries=None,flow_boundaries=None):
     if nodes is None: nodes=self.nodes
