@@ -309,12 +309,12 @@ class adcirc_grid_writer(object):
       
     f.close()
 
-  def write_density(self, nodes=None, density_forcing=None, number_of_vertical_levels=None):
+  def write_density(self, nodes=None, density_forcing=None, number_of_vertical_levels=None,
+      Tconst=10. | units.Celsius):
     if nodes is None: nodes=self.nodes
     if density_forcing!="temperature":
       raise Exception("not implemented yet")
     else:
-      Tconst=5. | units.Celsius
       print "assumes constant temperature:", Tconst
 
     NP=len(nodes)
