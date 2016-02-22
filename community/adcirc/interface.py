@@ -369,7 +369,11 @@ class Adcirc(CommonCode):
                         NLTD=self.parameters.lateral_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
                         NVTD=self.parameters.vertical_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
                         EQNSTATE=self.equations_of_state[self.parameters.equation_of_state],
-                        BCFLAG_TEMP=-1 if self.parameters.use_interface_surface_heat_forcing else 0
+                        BCFLAG_TEMP=-1 if self.parameters.use_interface_surface_heat_forcing else 0,
+                        ALP1=self.parameters.time_weight_coefficient_coriolis,
+                        ALP2=self.parameters.time_weight_coefficient_bottom_friction,
+                        ALP3=self.parameters.time_weight_coefficient_vertical_diffusion,
+                        ALP4=self.parameters.time_weight_coefficient_transport,
                         )
           param.write()
         if self.parameters.use_interface_grid:
@@ -661,6 +665,31 @@ class Adcirc(CommonCode):
             "equation_of_state",
             "equation of state rho(T,sal) to use for baroclinic runs [CushmanRoisin, McDougall, unesco]",
             "CushmanRoisin",
+            "before_set_interface_parameter"
+        )
+        
+        object.add_interface_parameter(
+            "time_weight_coefficient_coriolis",
+            "time weighting for coriolis terms in 3D velocity eq. (0.=fully explicit, 1. = fully implicit)",
+            0.5,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "time_weight_coefficient_bottom_friction",
+            "time weighting for bottom friction terms in 3D velocity eq. (0.=fully explicit, 1. = fully implicit)",
+            0.5,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "time_weight_coefficient_vertical_diffusion",
+            "time weighting for vertical diffusion terms in 3D velocity eq. (0.=fully explicit, 1. = fully implicit)",
+            0.5,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "time_weight_coefficient_transport",
+            "time weighting for transport eq. terms in baroclinic sims (0.=fully explicit, 1. = fully implicit)",
+            0.5,
             "before_set_interface_parameter"
         )
         
