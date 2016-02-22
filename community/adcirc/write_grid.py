@@ -225,9 +225,9 @@ class adcirc_parameter_writer(object):
           f.write_var_rows(param['EVTOT'])
         f.write(outputblock2)
         if param['IDEN'] != 0: # param['IM'] in [21,31]:
-          if param['RES_BC_FLAG']!=param['IDEN']:
+          if param['RES_BC_FLAG'] not in [0,param['IDEN']]:
             print param['RES_BC_FLAG'], param['IDEN']
-            raise Exception("RES_BC_FLAG should be equal to IDEN (?)")
+            raise Exception("RES_BC_FLAG should be equal to IDEN or 0")
           f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
           if param['RES_BC_FLAG'] not in range(-4,5):
             raise Exception("unexpected RES_BC_FLAG value")
