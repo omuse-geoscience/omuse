@@ -337,7 +337,6 @@ class Adcirc(CommonCode):
           NFEN=len(self.parameters.sigma_levels) if self.parameters.vertical_grid_type=="user" else self.parameters.number_of_vertical_levels
           param.update( IM=IM,
                         IDEN=IDEN,
-                        RES_BC_FLAG=IDEN,
                         ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
                         SLAM0=trigo.in_deg(self.parameters.central_longitude),
                         SFEA0=trigo.in_deg(self.parameters.central_latitude),
@@ -369,7 +368,9 @@ class Adcirc(CommonCode):
                         NLTD=self.parameters.lateral_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
                         NVTD=self.parameters.vertical_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
                         EQNSTATE=self.equations_of_state[self.parameters.equation_of_state],
-                        BCFLAG_TEMP=-1 if self.parameters.use_interface_surface_heat_forcing else 0,
+                        RES_BC_FLAG=0, # these three can be zero  because corresponding boundary
+                        BCFLAG_TEMP=0, # will be used depending on use_interface_.. parameters
+                        BCFLAG_LNM=0,
                         ALP1=self.parameters.time_weight_coefficient_coriolis,
                         ALP2=self.parameters.time_weight_coefficient_bottom_friction,
                         ALP3=self.parameters.time_weight_coefficient_vertical_diffusion,
