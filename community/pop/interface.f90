@@ -172,6 +172,9 @@ function commit_parameters() result(ret)
   ! ensure the forcings can be read
   ret = prepare_parameters()
 
+  ! ensure full grid info is present on master_task
+  call initialize_global_grid
+
   if (errorCode /= POP_Success) then
     ret=-1
   endif
@@ -870,7 +873,7 @@ end function
 !
 !-----------------------------------------------------------------------
 function get_node_position(g_i, g_j, lat_, lon_, n) result(ret)
-  integer :: ret,n
+  integer :: ret,n,ii
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: lat_, lon_
 
@@ -881,15 +884,15 @@ function get_node_position(g_i, g_j, lat_, lon_, n) result(ret)
 !    write (*,*) 'get_node_position() called n=', n
 !  endif
 
-  if (n < nx_global*ny_global) then
-    call get_gridded_variable_vector(g_i, g_j, ULAT, lat_, n)
-    call get_gridded_variable_vector(g_i, g_j, ULON, lon_, n)
-  else
+!  if (n < nx_global*ny_global) then
+!    call get_gridded_variable_vector(g_i, g_j, ULAT, lat_, n)
+!    call get_gridded_variable_vector(g_i, g_j, ULON, lon_, n)
+!  else
 
 !  time = 0.0
 !  call MPI_Barrier(MPI_COMM_OCN, ierr)
 !  call start_timer
-   call get_gather(g_i, g_j, ULAT, lat_, n)
+!   call get_gather(g_i, g_j, ULAT, lat_, n)
 !  call MPI_Barrier(MPI_COMM_OCN, ierr)
 !  call stop_timer(time)
 
@@ -907,24 +910,38 @@ function get_node_position(g_i, g_j, lat_, lon_, n) result(ret)
 !  if (my_task == master_task) then
 !    write(*,*) 'get_gridded_variable_vector took: ', time, ' ms.'
 !  endif
-   call get_gather(g_i, g_j, ULON, lon_, n)
+!   call get_gather(g_i, g_j, ULON, lon_, n)
 
+  if (my_task == master_task) then
+    do ii=1,n
+      lon_(ii) = ULON_G(g_i(ii),g_j(ii))
+      lat_(ii) = ULAT_G(g_i(ii),g_j(ii))
+    enddo
   endif
+
+!  endif
 
   ret=0
 end function
 
 function get_element_position(g_i, g_j, lat_, lon_, n) result(ret)
   integer :: ret,n
+  integer :: ii
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: lat_, lon_
 
-  if (n < nx_global*ny_global) then
-    call get_gridded_variable_vector(g_i, g_j, TLAT, lat_, n)
-    call get_gridded_variable_vector(g_i, g_j, TLON, lon_, n)
-  else
-   call get_gather(g_i, g_j, TLAT, lat_, n)
-   call get_gather(g_i, g_j, TLON, lon_, n)
+  !if (n < nx_global*ny_global) then
+  !  call get_gridded_variable_vector(g_i, g_j, TLAT, lat_, n)
+  !  call get_gridded_variable_vector(g_i, g_j, TLON, lon_, n)
+  !else
+  ! call get_gather(g_i, g_j, TLAT, lat_, n)
+  ! call get_gather(g_i, g_j, TLON, lon_, n)
+  !endif
+  if (my_task == master_task) then
+    do ii=1,n
+      lon_(ii) = TLON_G(g_i(ii),g_j(ii))
+      lat_(ii) = TLAT_G(g_i(ii),g_j(ii))
+    enddo
   endif
 
   ret=0
@@ -1845,8 +1862,121 @@ end function
 
 
 
+! this routine was created because, for coupling purposes, it is important
+! that the lon,lat positions of the complete grid can be requested, including
+! the land-only blocks not present in the rest of the POP simulation
+subroutine initialize_global_grid
 
+    !read latlon_only from grid file
+    call read_horiz_grid(horiz_grid_file, .true.)
 
+    !read_horiz_grid allocates ULAT_G and ULON_G on all nodes
+    !deallocate on all but the master
+    if (my_task /= master_task) then
+        deallocate(ULAT_G, ULON_G)
+    endif
+
+    !compute the lat,lon of T points on master
+    if (my_task == master_task) then
+        allocate (TLAT_G(nx_global,ny_global), &
+              TLON_G(nx_global,ny_global))
+
+        call calc_tpoints_global
+    endif
+end subroutine initialize_global_grid
+
+! copied and modified from grid.F90 to work for global grid
+subroutine calc_tpoints_global
+! !DESCRIPTION:
+!  Calculates lat/lon coordinates of T points from U points
+!  using a simple average of four neighbors in Cartesian 3d space.
+!
+   integer (POP_i4) :: i,j,n
+
+   real (POP_r8) ::                   &
+      xc,yc,zc,xs,ys,zs,xw,yw,zw, &! Cartesian coordinates for
+      xsw,ysw,zsw,tx,ty,tz,da      !    nbr points
+
+!-----------------------------------------------------------------------
+!
+!  TLAT_G, TLON_G are southwest 4-point averages of ULAT_G,ULON_G
+!  for general grids, must drop into 3-d Cartesian space to prevent
+!  problems near the pole
+!
+!-----------------------------------------------------------------------
+
+    do j=2,ny_global
+    do i=2,nx_global
+
+         !***
+         !*** convert neighbor U-cell coordinates to 3-d Cartesian coordinates 
+         !*** to prevent problems with averaging near the pole
+         !***
+
+         zsw = cos(ULAT_G(i-1,j-1))
+         xsw = cos(ULON_G(i-1,j-1))*zsw
+         ysw = sin(ULON_G(i-1,j-1))*zsw
+         zsw = sin(ULAT_G(i-1,j-1))
+
+         zs  = cos(ULAT_G(i  ,j-1))
+         xs  = cos(ULON_G(i  ,j-1))*zs
+         ys  = sin(ULON_G(i  ,j-1))*zs
+         zs  = sin(ULAT_G(i  ,j-1))
+
+         zw  = cos(ULAT_G(i-1,j  ))
+         xw  = cos(ULON_G(i-1,j  ))*zw
+         yw  = sin(ULON_G(i-1,j  ))*zw
+         zw  = sin(ULAT_G(i-1,j  ))
+
+         zc  = cos(ULAT_G(i  ,j  ))
+         xc  = cos(ULON_G(i  ,j  ))*zc
+         yc  = sin(ULON_G(i  ,j  ))*zc
+         zc  = sin(ULAT_G(i  ,j  ))
+
+         !***
+         !*** straight 4-point average to T-cell Cartesian coords
+         !***
+
+         tx = p25*(xc + xs + xw + xsw)
+         ty = p25*(yc + ys + yw + ysw)
+         tz = p25*(zc + zs + zw + zsw)
+
+         !***
+         !*** convert to lat/lon in radians
+         !***
+
+         da = sqrt(tx**2 + ty**2 + tz**2)
+
+         TLAT_G(i,j) = asin(tz/da)
+
+         if (tx /= c0 .or. ty /= c0) then
+            TLON_G(i,j) = atan2(ty,tx)
+         else
+            TLON_G(i,j) = c0
+         endif
+
+    end do
+    end do
+
+    !***
+    !*** for bottom row of domain where sw 4pt average is not valid,
+    !*** extrapolate from interior
+    !*** NOTE: THIS ASSUMES A CLOSED SOUTH BOUNDARY - WILL NOT
+    !***       WORK CORRECTLY FOR CYCLIC OPTION
+    !***
+
+    do i=1,nx_global
+       TLON_G(i,1) = TLON_G(i,2)
+       TLAT_G(i,1) = c2*TLAT_G(i,2) - TLAT_G(i,3)
+    end do
+
+    where (TLON_G(:,:) > pi2) TLON_G(:,:) = TLON_G(:,:) - pi2
+    where (TLON_G(:,:) < c0 ) TLON_G(:,:) = TLON_G(:,:) + pi2
+
+    where (TLON_G(:,:) > pi2) TLON_G(:,:) = TLON_G(:,:) - pi2
+    where (TLON_G(:,:) < c0 ) TLON_G(:,:) = TLON_G(:,:) + pi2
+
+end subroutine calc_tpoints_global
 
 end module pop_interface
 

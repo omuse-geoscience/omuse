@@ -10,6 +10,7 @@ from amuse.datamodel import StructuredGrid
 from amuse.datamodel.staggeredgrid import StaggeredGrid
 
 from omuse.units import units
+import numpy
 
 class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     
@@ -616,7 +617,7 @@ class POP(CommonCode):
         return lat,lon,z
 
 
-    def _compute_cell_corners(self):
+    def _compute_cell_corners(self, u_lon=None, u_lat=None):
         size = self.get_domain_size()
 
         #import itertools
@@ -626,8 +627,10 @@ class POP(CommonCode):
         #u_lat = pos[0].value_in(units.rad).reshape(size)
         #u_lon = pos[1].value_in(units.rad).reshape(size)
 
-        u_lat = self.nodes.lat.value_in(units.rad)
-        u_lon = self.nodes.lon.value_in(units.rad)
+        if u_lon is None:
+            u_lon = self.nodes.lon.value_in(units.rad)
+        if u_lat is None:
+            u_lat = self.nodes.lat.value_in(units.rad)
 
         corners = numpy.zeros( (2, size[0]+1, size[1]+1) , dtype=numpy.double)
         #corners = [[[0 for i in range(size[0]+1)] for j in range(size[1]+1)] for i in range(2)]
