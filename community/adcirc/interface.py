@@ -209,6 +209,30 @@ class AdcircInterface(CodeInterface,
     def get_elevation_boundary_eta(index=0,index_of_segment=0):
         returns (eta=0. | units.m)
 
+    @remote_function(can_handle_array=True)
+    def set_boundary_lnm(index=0,lnm=0. | units.m,index_of_segment=0):
+        returns ()
+
+    @remote_function(can_handle_array=True)
+    def get_boundary_lnm(index=0,index_of_segment=0):
+        returns (lnm=0. | units.m)
+
+    @remote_function(can_handle_array=True)
+    def set_boundary_salinity(index=0,zindex=0,salinity=0. | units.psu,index_of_segment=0):
+        returns ()
+
+    @remote_function(can_handle_array=True)
+    def get_boundary_salinity(index=0,zindex=0,index_of_segment=0):
+        returns (salinity=0. | units.psu)
+
+    @remote_function(can_handle_array=True)
+    def set_boundary_temperature(index=0,zindex=0,temperature=0. | units.Celsius,index_of_segment=0):
+        returns ()
+
+    @remote_function(can_handle_array=True)
+    def get_boundary_temperature(index=0,zindex=0,index_of_segment=0):
+        returns (temperature=0. | units.Celsius)
+
     @remote_function
     def get_number_of_flow_boundary_segments():
         returns (n_elev_boundaries=0)
@@ -258,6 +282,27 @@ class AdcircInterface(CodeInterface,
         returns (use_interface_surface_heat_forcing='b')
     @remote_function
     def set_use_interface_surface_heat_forcing(use_interface_surface_heat_forcing='b'):
+        returns ()
+
+    @remote_function
+    def get_use_interface_lnm_boundary():
+        returns (use_interface_lnm_boundary='b')
+    @remote_function
+    def set_use_interface_lnm_boundary(use_interface_lnm_boundary='b'):
+        returns ()
+
+    @remote_function
+    def get_use_interface_salinity_boundary():
+        returns (use_interface_salinity_boundary='b')
+    @remote_function
+    def set_use_interface_salinity_boundary(use_interface_salinity_boundary='b'):
+        returns ()
+
+    @remote_function
+    def get_use_interface_temperature_boundary():
+        returns (use_interface_temperature_boundary='b')
+    @remote_function
+    def set_use_interface_temperature_boundary(use_interface_temperature_boundary='b'):
         returns ()
 
     @remote_function
@@ -327,6 +372,12 @@ class Adcirc(CommonCode):
           elif self.mode==self.MODE_3D and self.parameters.baroclinic_flag==True:
             IM=21
             IDEN=self.baroclinic_density_forcings[self.parameters.baroclinic_density_forcing] 
+          
+          if (self.parameters.use_interface_lnm_boundary or
+              self.parameters.use_interface_temperature_boundary or
+              self.parameters.use_interface_salinity_boundary 
+             ) and not (self.mode==self.MODE_3D and self.parameters.baroclinic_flag==True):
+               raise Exception("interface lnm, salinity or temperature boundary needs 3D baroclinic")
             
           if self.parameters.bottom_friction_law_3d == "noslip":
             KP=0.
@@ -368,9 +419,9 @@ class Adcirc(CommonCode):
                         NLTD=self.parameters.lateral_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
                         NVTD=self.parameters.vertical_temperature_diffusion_coefficient.value_in(units.m**2/units.s),
                         EQNSTATE=self.equations_of_state[self.parameters.equation_of_state],
-                        RES_BC_FLAG=0, # these three can be zero  because corresponding boundary
-                        BCFLAG_TEMP=0, # will be used depending on use_interface_.. parameters
-                        BCFLAG_LNM=0,
+                        RES_BC_FLAG=0, # these can be zero  because corresponding boundary
+                        BCFLAG_LNM=0,  # will be used depending on use_interface_.. parameters
+                        BCFLAG_TEMP=-1 if self.parameters.use_interface_surface_heat_forcing else 0, 
                         ALP1=self.parameters.time_weight_coefficient_coriolis,
                         ALP2=self.parameters.time_weight_coefficient_bottom_friction,
                         ALP3=self.parameters.time_weight_coefficient_vertical_diffusion,
@@ -693,6 +744,21 @@ class Adcirc(CommonCode):
             0.5,
             "before_set_interface_parameter"
         )
+        object.add_default_form_parameter(
+            "use_interface_lnm_boundary", 
+            "toggle the use of interface boundary conditions for the level of no motion (3D baroclinic runs)", 
+            False
+        )
+        object.add_default_form_parameter(
+            "use_interface_salinity_boundary", 
+            "toggle the use of interface boundary conditions for salinity (3D baroclinic runs)", 
+            False
+        )
+        object.add_default_form_parameter(
+            "use_interface_temperature_boundary", 
+            "toggle the use of interface boundary conditions for temperature (3D baroclinic runs)", 
+            False
+        )
         
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -773,7 +839,20 @@ class Adcirc(CommonCode):
         definition.add_getter('get_elevation_boundary_node', names=('node',))
         definition.add_getter('get_elevation_boundary_eta', names=('eta',))
         definition.add_setter('set_elevation_boundary_eta', names=('eta',))
+
+        if self.parameters.use_interface_lnm_boundary:
+            definition.add_getter('get_boundary_lnm', names=('lnm',))
+            definition.add_setter('set_boundary_lnm', names=('lnm',))
+
+        if self.parameters.use_interface_salinity_boundary:
+            definition.add_gridded_getter('get_boundary_salinity', 'get_firstlast_vertical_index',names=('salinity',))
+            definition.add_gridded_setter('set_boundary_salinity', 'get_firstlast_vertical_index',names=('salinity',))
+        if self.parameters.use_interface_temperature_boundary:
+            definition.add_gridded_getter('get_boundary_temperature', 'get_firstlast_vertical_index',names=('temperature',))
+            definition.add_gridded_setter('set_boundary_temperature', 'get_firstlast_vertical_index',names=('temperature',))
+
         definition.define_extra_keywords({'index_of_segment':index})
+
 
     def flow_boundaries(self):
         n=self.get_number_of_flow_boundary_segments()

@@ -13,8 +13,8 @@ module amuse_adcirc
   logical :: use_interface_tidal_forcing=.FALSE.
   
   logical :: use_interface_lnm_boundary=.FALSE.
-  logical :: use_interface_salt_boundary=.FALSE.
-  logical :: use_interface_temp_boundary=.FALSE.
+  logical :: use_interface_salinity_boundary=.FALSE.
+  logical :: use_interface_temperature_boundary=.FALSE.
   logical :: use_interface_surface_heat_forcing=.FALSE.
   
   real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:), PR(:), &
@@ -89,8 +89,8 @@ end subroutine
 
 subroutine AMUSE_salt_temp_boundary()
   use amuse_adcirc
-  if(use_interface_salt_boundary) call update_salt_boundary()
-  if(use_interface_temp_boundary) call update_temp_boundary()
+  if(use_interface_salinity_boundary) call update_salt_boundary()
+  if(use_interface_temperature_boundary) call update_temp_boundary()
 end subroutine
 
 subroutine AMUSE_surface_heat_forcing()
