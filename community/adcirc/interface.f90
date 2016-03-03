@@ -195,6 +195,44 @@ function set_use_interface_surface_heat_forcing(flag) result(ret)
   ret=0
 end function
 
+function get_use_interface_lnm_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  flag=use_interface_lnm_boundary
+  ret=0
+end function  
+function set_use_interface_lnm_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  use_interface_lnm_boundary=flag
+  ret=0
+end function
+
+function get_use_interface_salinity_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  flag=use_interface_salinity_boundary
+  ret=0
+end function  
+function set_use_interface_salinity_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  use_interface_salinity_boundary=flag
+  ret=0
+end function
+
+function get_use_interface_temperature_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  flag=use_interface_temperature_boundary
+  ret=0
+end function  
+function set_use_interface_temperature_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  use_interface_temperature_boundary=flag
+  ret=0
+end function
 
 function get_node_eta(ind,eta2_) result(ret)
   integer :: ind,ret
@@ -567,6 +605,94 @@ function set_elevation_boundary_eta(inode,eta,iseg) result(ret)
     return
   endif
   ESBIN(i)=eta
+  ret=0
+end function
+
+function get_boundary_lnm(inode,iseg,x_) result(ret)
+  integer :: ret, inode,iseg,index_node,i  
+  real*8 :: x_
+  i=sum(NVDLL(1:iseg-1))+inode
+  if(NBD(i).NE.NBDV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  x_=AMUSE_LNM(i)
+  ret=0
+end function
+
+function set_boundary_lnm(inode,x_,iseg) result(ret)
+  integer :: ret, inode,iseg,index_node,i  
+  real*8 :: x_
+  i=sum(NVDLL(1:iseg-1))+inode
+  if(NBD(i).NE.NBDV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+ AMUSE_LNM(i)=x_
+  ret=0
+end function
+
+function get_boundary_salinity(inode,zind,iseg,x_) result(ret)
+  integer :: ret, inode,iseg,index_node,i,zind  
+  real*8 :: x_
+  i=sum(NVDLL(1:iseg-1))+inode
+  if(NBD(i).NE.NBDV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  if(zind.LT.1.OR.zind.GT.NFEN) then
+    ret=-2
+    return
+  endif
+  x_=AMUSE_RESSAL(i,zind)
+  ret=0
+end function
+
+function set_boundary_salinity(inode,zind,x_,iseg) result(ret)
+  integer :: ret, inode,iseg,index_node,i,zind  
+  real*8 :: x_
+  i=sum(NVDLL(1:iseg-1))+inode
+  if(NBD(i).NE.NBDV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  if(zind.LT.1.OR.zind.GT.NFEN) then
+    ret=-2
+    return
+  endif
+  AMUSE_RESSAL(i,zind)=x_
+  ret=0
+end function
+
+function get_boundary_temperature(inode,zind,iseg,x_) result(ret)
+  integer :: ret, inode,iseg,index_node,i,zind  
+  real*8 :: x_
+  i=sum(NVDLL(1:iseg-1))+inode
+  if(NBD(i).NE.NBDV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  if(zind.LT.1.OR.zind.GT.NFEN) then
+    ret=-2
+    return
+  endif
+  x_=AMUSE_RESTEMP(i,zind)
+  ret=0
+end function
+
+function set_boundary_temperature(inode,zind,x_,iseg) result(ret)
+  integer :: ret, inode,iseg,index_node,i,zind  
+  real*8 :: x_
+  i=sum(NVDLL(1:iseg-1))+inode
+  if(NBD(i).NE.NBDV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  if(zind.LT.1.OR.zind.GT.NFEN) then
+    ret=-2
+    return
+  endif
+  AMUSE_RESTEMP(i,zind)=x_
   ret=0
 end function
 
