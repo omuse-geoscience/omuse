@@ -47,7 +47,7 @@ griddes_t dst_griddes;
 void print_remap_grid_info(remapgrid_t *grid);
 void print_remap_info(remapvars_t *rv);
 
-int remap_order = 0;
+int remap_order = 2;
 
 //for printing the map type as string
 const char *map_type_string[] = { "unknown", "conservative", "bilinear", "bicubic", "distwgt", "conserv_yac" };
@@ -172,34 +172,6 @@ void init_cdo_griddata(int *gridID, griddes_t griddes, remapgrid_t grid) {
 
 void compute_weights() {
 
-  remap_set_int(REMAP_NUM_SRCH_BINS, 720); //this is a setting that CDO also sets by default
-  int remap_extrapolate = FALSE;
-  rv.pinit = FALSE;
-  remap_grids_init(map_type, remap_extrapolate, gridID1, &src_grid, gridID2, &dst_grid);
-
-  int i=0;
-
-  if (map_type == MAP_TYPE_CONSERV) {
-    remap_order = 2;
-  }
-
-  //by default CDO ignores the grid mask, we're doing this to reproduce the same results as CDO
-  if (src_grid.mask) {
-    for (i=0; i<src_grid.size; i++) {
-      src_grid.mask[i] = 1;
-    }
-  }
-
-  src_grid.store_link_fast = FALSE;
-  src_grid.lextrapolate = FALSE;
-  src_grid.non_global = FALSE;
-  src_grid.lwrite_remap = FALSE;
-
-  dst_grid.store_link_fast = FALSE;
-  dst_grid.lextrapolate = FALSE;
-  dst_grid.non_global = FALSE;
-  dst_grid.lwrite_remap = FALSE;
-
   remap_vars_init(map_type, src_grid.size, dst_grid.size, &rv);
 
   rv.map_type = map_type;
@@ -239,12 +211,29 @@ int initialize_code() {
   dst_grid.cell_corner_lon = NULL;
   dst_grid.cell_corner_lat = NULL;
 
+  if      ( map_type == MAP_TYPE_CONSERV     ) rv.num_wts = 3;
+  else if ( map_type == MAP_TYPE_CONSERV_YAC ) rv.num_wts = 1;
+  else if ( map_type == MAP_TYPE_BILINEAR    ) rv.num_wts = 1;
+  else if ( map_type == MAP_TYPE_BICUBIC     ) rv.num_wts = 4;
+  else if ( map_type == MAP_TYPE_DISTWGT     ) rv.num_wts = 1;
+  else cdoAbort("Unknown mapping method!");
+  rv.pinit = FALSE;
+  rv.max_links = 0;
+  rv.num_links = 0;
+  rv.src_cell_add = (int *)0;
+  rv.tgt_cell_add = (int *)0;
+  rv.wts = NULL;
+
   return 0;
 }
 
 
 
 int commit_parameters() {
+
+  if (map_type == MAP_TYPE_CONSERV) {
+    remap_order = 2;
+  }
 
   //read either a weights file or grid files
   if (init_method == INIT_WEIGHTS_FILE) {
@@ -258,7 +247,58 @@ int commit_parameters() {
       init_cdo_griddata(&gridID2, dst_griddes, dst_grid);
     }
 
-    compute_weights();
+    remap_set_int(REMAP_NUM_SRCH_BINS, 720); //this is a setting that CDO also sets by default
+    int remap_extrapolate = FALSE;
+    rv.pinit = FALSE;
+    remap_grids_init(map_type, remap_extrapolate, gridID1, &src_grid, gridID2, &dst_grid);
+
+    int i=0;
+    //by default CDO ignores the grid mask, we're doing this to reproduce the same results as CDO
+    if (src_grid.mask) {
+      for (i=0; i<src_grid.size; i++) {
+        src_grid.mask[i] = 1;
+      }
+    }
+
+    src_grid.store_link_fast = FALSE;
+    src_grid.lextrapolate = FALSE;
+    src_grid.non_global = FALSE;
+    src_grid.lwrite_remap = FALSE;
+
+    dst_grid.store_link_fast = FALSE;
+    dst_grid.lextrapolate = FALSE;
+    dst_grid.non_global = FALSE;
+    dst_grid.lwrite_remap = FALSE;
+
+    if (rv.num_links == 0) {
+      compute_weights();
+    } else {
+      //weights have been set through the interface 
+      //check for as far as we can if this has been done correctly
+      if (rv.src_cell_add == (int *)0) {
+        fprintf(stderr, "Warning: Remapper not properly initialized, set_num_links has been called but src_address seems to be missing\n");
+      }
+      if (rv.tgt_cell_add == (int *)0) {
+        fprintf(stderr, "Warning: Remapper not properly initialized, set_num_links has been called but dst_address seems to be missing\n");
+      }
+      if (rv.wts == NULL) {
+        fprintf(stderr, "Warning: Remapper not properly initialized, set_num_links has been called but weights seem to be missing\n");
+      }
+
+      //perform the rest of the initialization
+      rv.max_links = rv.num_links;
+
+      rv.sort_add = TRUE;
+      rv.pinit = TRUE;
+      rv.map_type = map_type;
+      rv.norm_opt = NORM_OPT_FRACAREA;
+      rv.resize_increment = (int) (0.1 * MAX(src_grid.size, dst_grid.size));
+
+      rv.links.option    = FALSE;
+      rv.links.max_links = 0;
+      rv.links.num_blks  = 0;
+
+    }
   } else {
     fprintf(stderr, "Remapper not properly initialized, set either a weights file or source and destination grid files\n");
     return 1;
@@ -640,6 +680,77 @@ int perform_remap() {
 
 
 
+int get_num_links(int *num_links) {
+  *num_links = rv.num_links;
+  return 0;
+}
+int get_remap_links(int *index_i, int *src_address, int *dst_address, double *weight1, double *weight2, double *weight3, int n) {
+  int i;
+
+  for (i=0; i<n; i++) {
+    src_address[i] = rv.src_cell_add[index_i[i]];
+    dst_address[i] = rv.tgt_cell_add[index_i[i]];
+    weight1[i] = rv.wts[(index_i[i]*rv.num_wts)+0];
+    if (rv.num_wts > 1) {
+      weight2[i] = rv.wts[(index_i[i]*rv.num_wts)+1];
+      weight3[i] = rv.wts[(index_i[i]*rv.num_wts)+2];
+    }
+  }
+
+  return 0;
+}
+
+int set_num_links(int num_links) {
+  rv.num_links = num_links;
+  return 0;
+}
+int set_src_address(int *index_i, int *src_address, int n) {
+  int i=0;
+  if (rv.num_links == 0) {
+    fprintf(stderr, "Error: set num links first\n");
+  } else {
+    if (rv.src_cell_add == (int *)0) {
+      rv.src_cell_add = (int *)malloc(rv.num_links * sizeof(int));
+    }
+  }
+  for (i=0; i < n; i++) {
+    rv.src_cell_add[index_i[i]] = src_address[i];
+  }
+  return 0;
+}
+int set_dst_address(int *index_i, int *dst_address, int n) {
+  int i=0;
+  if (rv.num_links == 0) {
+    fprintf(stderr, "Error: set num links first\n");
+  } else {
+    if (rv.tgt_cell_add == (int *)0) {
+      rv.tgt_cell_add = (int *)malloc(rv.num_links * sizeof(int));
+    }
+  }
+  for (i=0; i < n; i++) {
+    rv.tgt_cell_add[index_i[i]] = dst_address[i];
+  }
+  return 0;
+}
+int set_weights(int *index_i, double *weight1, double *weight2, double *weight3, int n) {
+  int i=0;
+  if (rv.num_links == 0) {
+    fprintf(stderr, "Error: set num links first\n");
+  } else {
+    if (rv.wts == NULL) {
+      rv.wts = (double *)malloc(rv.num_links * rv.num_wts * sizeof(double));
+    }
+  }
+  for (i=0; i < n; i++) {
+    rv.wts[(index_i[i]*rv.num_wts)+0] = weight1[i];
+    if (rv.num_wts > 1) {
+        rv.wts[(index_i[i]*rv.num_wts)+1] = weight2[i];
+        rv.wts[(index_i[i]*rv.num_wts)+2] = weight3[i];
+    }
+  }
+  return 0;
+}
+
 
 
 
@@ -647,13 +758,12 @@ int perform_remap() {
 
 
 
-int get_num_links(int *num_links) {
-  *num_links = rv.num_links;
-  return 0;
-}
-int get_remap_links(int *index_i, int *src_address, int *dst_address, double *weights, int n) {
+/* This function does the same as get_remap_links but also tries
+ * to verify that a link exists for each destination grid cell
+ * when all the remap links are requested
+ */
+int check_remap_links(int *index_i, int *src_address, int *dst_address, double *weights, int n) {
   int i;
-  printf("get_remap_links() called n=%d\n", n);
 
   for (i=0; i<n; i++) {
     src_address[i] = rv.src_cell_add[index_i[i]];
@@ -661,23 +771,30 @@ int get_remap_links(int *index_i, int *src_address, int *dst_address, double *we
     weights[i] = rv.wts[index_i[i] * rv.num_wts];
   }
 
-  for (i=0; i<dst_grid.size; i++) {
-    dst_grid_values[i] = 2.0;
-  }
-  for (i=0; i<n; i++) {
-    dst_grid_values[dst_address[i]] = 0.0;
-  }
-
-  int error = 0;
-  for (i=0; i<dst_grid.size; i++) {
-    if (dst_grid_values[i] == 2.0) {
-      error++;
+  if (n == rv.num_links) {
+    for (i=0; i<dst_grid.size; i++) {
+      dst_grid_values[i] = 2.0;
+    }
+    for (i=0; i<n; i++) {
+      dst_grid_values[dst_address[i]] = 0.0;
+    }
+    int error = 0;
+    for (i=0; i<dst_grid.size; i++) {
+      if (dst_grid_values[i] == 2.0) {
+        error++;
+      }
+    }
+    if (error > 0) {
+      printf("number of missing destination grid cells in remapping = %d\n", error);
     }
   }
-  printf("number of missing destination grid cells in remapping = %d\n", error);
-
   return 0;
 }
+
+
+
+
+
 
 
 
