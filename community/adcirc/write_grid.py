@@ -340,7 +340,10 @@ class adcirc_grid_writer(object):
       x=nodes.lon.value_in(units.deg)
       y=nodes.lat.value_in(units.deg)      
     depth=nodes.depth.value_in(units.m)
-    element_nodes=elements.nodes+1
+    try:
+        element_nodes=elements.nodes+1
+    except:
+        element_nodes=numpy.column_stack((elements.n1,elements.n2,elements.n3))+1
     elev_boundary_nodes=[(b.nodes+1,0) for b in elevation_boundaries] # type = always zero atm
     flow_boundary_nodes=[(b.nodes+1,b[0].type) for b in flow_boundaries]
     self.write(x,y,depth,element_nodes,elev_boundary_nodes,flow_boundary_nodes)
