@@ -452,6 +452,8 @@ class POP(CommonCode):
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
+        object.add_property('get_timestep', public_name = "timestep")
+        object.add_property('get_timestep_next', public_name = "timestep_next")
     
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
@@ -674,7 +676,7 @@ class POP(CommonCode):
         object.add_setter('nodes3d', 'set_node3d_velocity_yvel', names = ('yvel',))
 
         #these are all on the U-grid
-        object.define_grid('forcings')
+        object.define_grid('forcings', axes_names=axes_names, grid_class=StructuredGrid)
         object.set_grid_range('forcings', 'get_firstlast_node')
         object.add_getter('forcings', 'get_node_coriolis_f', names=('coriolis_f',))
         object.add_setter('forcings', 'set_node_coriolis_f', names=('coriolis_f',))
