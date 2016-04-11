@@ -12,6 +12,28 @@ from amuse.datamodel.staggeredgrid import StaggeredGrid
 from omuse.units import units
 import numpy
 
+def compute_cell_corners(nodes=None, u_lon=None, u_lat=None):
+
+    if u_lon is None:
+        u_lon = nodes.lon.value_in(units.rad)
+    if u_lat is None:
+        u_lat = nodes.lat.value_in(units.rad)
+        
+    size=u_lon.shape
+
+    corners = numpy.zeros( (2, size[0]+1, size[1]+1) , dtype=numpy.double)
+ 
+    corners[1,1:,1:] = u_lat                    #u_lat is north east corner of t-cell
+    corners[1,0,1:] = u_lat[-1,:]               #copy last column to first column of corners
+    tiny = 1.0e-14
+    corners[1,:,0] = (-numpy.pi*0.5) + tiny     #mock-up latitudes of row 0
+
+    corners[0,1:,1:] = u_lon                    #u_lon is north east corner of t-cell
+    corners[0,0,1:] = u_lon[-1,:]               #copy last column to first column of corners
+    corners[0,:,0] = corners[0,:,1]             #copy row 1 of corners down to mocked-up row 0
+
+    return corners
+
 class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     
     """
@@ -620,39 +642,10 @@ class POP(CommonCode):
 
 
     def _compute_cell_corners(self, u_lon=None, u_lat=None):
-        size = self.get_domain_size()
-
-        #import itertools
-        #index_j = numpy.array([i[0] for i in itertools.product(range(1,size[1]+1), range(1,size[0]+1))])
-        #index_i = numpy.array([i[1] for i in itertools.product(range(1,size[1]+1), range(1,size[0]+1))])
-        #pos = self.get_node_position(index_i, index_j)
-        #u_lat = pos[0].value_in(units.rad).reshape(size)
-        #u_lon = pos[1].value_in(units.rad).reshape(size)
-
-        if u_lon is None:
-            u_lon = self.nodes.lon.value_in(units.rad)
-        if u_lat is None:
-            u_lat = self.nodes.lat.value_in(units.rad)
-
-        corners = numpy.zeros( (2, size[0]+1, size[1]+1) , dtype=numpy.double)
-        #corners = [[[0 for i in range(size[0]+1)] for j in range(size[1]+1)] for i in range(2)]
-        #corners = numpy.array(corners, dtype=numpy.double)
-
-        corners[1,1:,1:] = u_lat                    #u_lat is north east corner of t-cell
-        corners[1,0,1:] = u_lat[-1,:]               #copy last column to first column of corners
-        tiny = 1.0e-14
-        corners[1,:,0] = (-numpy.pi*0.5) + tiny     #mock-up latitudes of row 0
-
-        corners[0,1:,1:] = u_lon                    #u_lon is north east corner of t-cell
-        corners[0,0,1:] = u_lon[-1,:]               #copy last column to first column of corners
-        corners[0,:,0] = corners[0,:,1]             #copy row 1 of corners down to mocked-up row 0
-
-        return corners
-
+        return compute_cell_corners(self.nodes, u_lon,u_lat)
 
     def get_grid(self):
         return StaggeredGrid(self.elements, self.nodes, self._compute_cell_corners)
-
 
     def define_particle_sets(self, object):
         #for now we refer to the U grid as the nodes and T grid as the elements
