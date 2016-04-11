@@ -682,18 +682,18 @@ class POP(CommonCode):
         object.set_grid_range('elements', 'get_firstlast_node')
         object.add_getter('elements', 'get_element_position', names=('lat','lon'))
         object.add_getter('elements', 'get_element_depth', names=('depth',))
-        object.add_getter('elements', 'get_element_surface_state', names=('temp','salt'))
+        object.add_getter('elements', 'get_element_surface_state', names=('temperature','salinity'))
         object.add_getter('elements', 'get_element_surface_heat_flux', names=('surface_heat_flux',))
 
         #elements are on the T-grid
         object.define_grid('elements3d')
         object.set_grid_range('elements3d', 'get_firstlast_grid3d')
         object.add_getter('elements3d', 'get_element3d_position', names = ('lat','lon','z'))
-        object.add_getter('elements3d', 'get_element3d_temperature', names = ('temp',))
-        object.add_getter('elements3d', 'get_element3d_salinity', names = ('salt',))
+        object.add_getter('elements3d', 'get_element3d_temperature', names = ('temperature',))
+        object.add_getter('elements3d', 'get_element3d_salinity', names = ('salinity',))
         object.add_getter('elements3d', 'get_element3d_density', names = ('rho',))
-        object.add_setter('elements3d', 'set_element3d_temperature', names = ('temp',))
-        object.add_setter('elements3d', 'set_element3d_salinity', names = ('salt',))
+        object.add_setter('elements3d', 'set_element3d_temperature', names = ('temperature',))
+        object.add_setter('elements3d', 'set_element3d_salinity', names = ('salinity',))
         object.add_setter('elements3d', 'set_element3d_density', names = ('rho',))
 
 
