@@ -27,8 +27,9 @@ module amuse_adcirc
 
 contains
 
-subroutine update_elevation_boundary()
-  ETA2(NBD(1:NETA))=ESBIN(1:NETA)
+subroutine update_elevation_boundary(rampfactor)
+  real(SZ) :: rampfactor
+  ETA2(NBD(1:NETA))=rampfactor*ESBIN(1:NETA)
 end subroutine
 
 subroutine update_met_forcing()
@@ -66,9 +67,10 @@ end subroutine
 
 end module
 
-subroutine AMUSE_elevation_boundary() 
+subroutine AMUSE_elevation_boundary(rampfactor) 
   use amuse_adcirc
-  if(use_interface_elevation_boundary) call update_elevation_boundary()
+  REAL(SZ) :: rampfactor
+  if(use_interface_elevation_boundary) call update_elevation_boundary(rampfactor)
 end subroutine
 
 subroutine AMUSE_met_forcing()
