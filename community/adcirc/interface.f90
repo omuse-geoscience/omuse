@@ -580,12 +580,12 @@ end function
   
 function get_elevation_boundary_node(inode,iseg,index_node) result(ret)
   integer :: ret, inode,iseg,index_node  
-  index_node=NBDV(iseg,inode)
+  index_node=NBDV(iseg,inode)-1
   ret=0
 end function
 
 function get_elevation_boundary_eta(inode,iseg,eta) result(ret)
-  integer :: ret, inode,iseg,index_node,i  
+  integer :: ret, inode,iseg,i  
   real*8 :: eta
   i=sum(NVDLL(1:iseg-1))+inode
   if(NBD(i).NE.NBDV(iseg,inode)) then
@@ -597,7 +597,7 @@ function get_elevation_boundary_eta(inode,iseg,eta) result(ret)
 end function
 
 function set_elevation_boundary_eta(inode,eta,iseg) result(ret)
-  integer :: ret, inode,iseg,index_node,i  
+  integer :: ret, inode,iseg,i  
   real*8 :: eta
   i=sum(NVDLL(1:iseg-1))+inode
   if(NBD(i).NE.NBDV(iseg,inode)) then
@@ -609,7 +609,7 @@ function set_elevation_boundary_eta(inode,eta,iseg) result(ret)
 end function
 
 function get_boundary_lnm(inode,iseg,x_) result(ret)
-  integer :: ret, inode,iseg,index_node,i  
+  integer :: ret, inode,iseg,i  
   real*8 :: x_
   i=sum(NVDLL(1:iseg-1))+inode
   if(NBD(i).NE.NBDV(iseg,inode)) then
@@ -621,7 +621,7 @@ function get_boundary_lnm(inode,iseg,x_) result(ret)
 end function
 
 function set_boundary_lnm(inode,x_,iseg) result(ret)
-  integer :: ret, inode,iseg,index_node,i  
+  integer :: ret, inode,iseg,i  
   real*8 :: x_
   i=sum(NVDLL(1:iseg-1))+inode
   if(NBD(i).NE.NBDV(iseg,inode)) then
@@ -633,7 +633,7 @@ function set_boundary_lnm(inode,x_,iseg) result(ret)
 end function
 
 function get_boundary_salinity(inode,zind,iseg,x_) result(ret)
-  integer :: ret, inode,iseg,index_node,i,zind  
+  integer :: ret, inode,iseg,i,zind  
   real*8 :: x_
   i=sum(NVDLL(1:iseg-1))+inode
   if(NBD(i).NE.NBDV(iseg,inode)) then
@@ -649,7 +649,7 @@ function get_boundary_salinity(inode,zind,iseg,x_) result(ret)
 end function
 
 function set_boundary_salinity(inode,zind,x_,iseg) result(ret)
-  integer :: ret, inode,iseg,index_node,i,zind  
+  integer :: ret, inode,iseg,i,zind  
   real*8 :: x_
   i=sum(NVDLL(1:iseg-1))+inode
   if(NBD(i).NE.NBDV(iseg,inode)) then
@@ -665,7 +665,7 @@ function set_boundary_salinity(inode,zind,x_,iseg) result(ret)
 end function
 
 function get_boundary_temperature(inode,zind,iseg,x_) result(ret)
-  integer :: ret, inode,iseg,index_node,i,zind  
+  integer :: ret, inode,iseg,i,zind  
   real*8 :: x_
   i=sum(NVDLL(1:iseg-1))+inode
   if(NBD(i).NE.NBDV(iseg,inode)) then
@@ -681,7 +681,7 @@ function get_boundary_temperature(inode,zind,iseg,x_) result(ret)
 end function
 
 function set_boundary_temperature(inode,zind,x_,iseg) result(ret)
-  integer :: ret, inode,iseg,index_node,i,zind  
+  integer :: ret, inode,iseg,i,zind  
   real*8 :: x_
   i=sum(NVDLL(1:iseg-1))+inode
   if(NBD(i).NE.NBDV(iseg,inode)) then
@@ -710,7 +710,7 @@ end function
   
 function get_flow_boundary_node(inode,iseg,index_node) result(ret)
   integer :: ret, inode,iseg,index_node  
-  index_node=NBVV(iseg,inode)
+  index_node=NBVV(iseg,inode)-1
   ret=0
 end function
 

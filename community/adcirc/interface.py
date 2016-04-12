@@ -426,6 +426,8 @@ class Adcirc(CommonCode):
                         ALP2=self.parameters.time_weight_coefficient_bottom_friction,
                         ALP3=self.parameters.time_weight_coefficient_vertical_diffusion,
                         ALP4=self.parameters.time_weight_coefficient_transport,
+                        NRAMP=1 if self.parameters.use_ramping else 0,
+                        DRAMP=self.parameters.ramping_time.value_in(units.day)
                         )
           param.write()
         if self.parameters.use_interface_grid:
@@ -758,6 +760,18 @@ class Adcirc(CommonCode):
             "use_interface_temperature_boundary", 
             "toggle the use of interface boundary conditions for temperature (3D baroclinic runs)", 
             False
+        )
+        object.add_interface_parameter(
+            "use_ramping",
+            "whether to use ADCIRC internal (hyperbolic) ramping for elev and flux boundary, tidal potential, met and wave stress forcing.",
+            False,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "ramping_time",
+            "ramping time scale",
+            12 | units.hour,
+            "before_set_interface_parameter"
         )
         
     def define_properties(self, object):
