@@ -32,16 +32,18 @@ subroutine update_elevation_boundary(rampfactor)
   ETA2(NBD(1:NETA))=rampfactor*ESBIN(1:NETA)
 end subroutine
 
-subroutine update_met_forcing()
-  WSX2(1:NP)=WSX(1:NP)
-  WSY2(1:NP)=WSY(1:NP)
-  PR2(1:NP)=100*(reference_pressure+PR(1:NP))/(RHOWAT0*G)
+subroutine update_met_forcing(rampfactor)
+  real(SZ) :: rampfactor
+  WSX2(1:NP)=rampfactor*WSX(1:NP)
+  WSY2(1:NP)=rampfactor*WSY(1:NP)
+  PR2(1:NP)=100*(reference_pressure+rampfactor*PR(1:NP))/(RHOWAT0*G)
   NWS=OR(NWS,2**30)
 end subroutine
 
-subroutine update_wave_forcing()
-  WSX2(1:NP)=WSX2(1:NP)+RSNX(1:NP)
-  WSY2(1:NP)=WSY2(1:NP)+RSNY(1:NP)
+subroutine update_wave_forcing(rampfactor)
+  real(SZ) :: rampfactor  
+  WSX2(1:NP)=WSX2(1:NP)+rampfactor*RSNX(1:NP)
+  WSY2(1:NP)=WSY2(1:NP)+rampfactor*RSNY(1:NP)
 end subroutine
 
 subroutine update_tidal_forcing()
@@ -73,10 +75,11 @@ subroutine AMUSE_elevation_boundary(rampfactor)
   if(use_interface_elevation_boundary) call update_elevation_boundary(rampfactor)
 end subroutine
 
-subroutine AMUSE_met_forcing()
+subroutine AMUSE_met_forcing(rampfactor)
   use amuse_adcirc
-  if(use_interface_met_forcing) call update_met_forcing()
-  if(use_interface_wave_forcing) call update_wave_forcing()
+  REAL(SZ) :: rampfactor
+  if(use_interface_met_forcing) call update_met_forcing(rampfactor)
+  if(use_interface_wave_forcing) call update_wave_forcing(rampfactor)
 end subroutine
 
 subroutine AMUSE_tidal_forcing() 
