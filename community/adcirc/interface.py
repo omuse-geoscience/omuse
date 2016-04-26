@@ -426,8 +426,12 @@ class Adcirc(CommonCode):
                         ALP2=self.parameters.time_weight_coefficient_bottom_friction,
                         ALP3=self.parameters.time_weight_coefficient_vertical_diffusion,
                         ALP4=self.parameters.time_weight_coefficient_transport,
+                        H0=self.parameters.minimum_depth.value_in(units.m),
                         NRAMP=1 if self.parameters.use_ramping else 0,
-                        DRAMP=self.parameters.ramping_time.value_in(units.day)
+                        DRAMP=self.parameters.ramping_time.value_in(units.day),
+                        HBREAK=self.parameters.hybrid_bottom_friction_hbreak.value_in(units.m),
+                        FTHETA=8, # fixed atm
+                        FGAMMA=0.33333 # fixed atm
                         )
           param.write()
         if self.parameters.use_interface_grid:
@@ -771,6 +775,18 @@ class Adcirc(CommonCode):
             "ramping_time",
             "ramping time scale",
             12 | units.hour,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "minimum_depth",
+            "minimum depth or threshold water level for wetting/drying",
+            1. | units.m,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "hybrid_bottom_friction_hbreak",
+            "transition depth for hybrid bottom friction law ",
+            50 | units.m,
             "before_set_interface_parameter"
         )
         

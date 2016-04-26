@@ -38,4 +38,8 @@ def triangle_area(a, b, c):
     return E
 
 
-
+def triangle_area_points(lon1, lat1, lon2, lat2, lon3, lat3):
+    a = distance(lat1, lon1, lat2, lon2)
+    b = distance(lat2, lon2, lat3, lon3)
+    c = distance(lat3, lon3, lat1, lon1)
+    return triangle_area(a, b, c)
