@@ -42,6 +42,9 @@ module swan_interface
   logical ::  use_csigma_cfl_limiter=.FALSE., &
               use_ctheta_cfl_limiter=.FALSE.
 
+  real :: umin=1.
+  real :: rho_air=1.28
+
 contains
 
 include "getter_setters.f90"
@@ -84,6 +87,9 @@ function initialize_code(coord_, mode_, grid_,input_grid_) result(ret)
   if(grid_type.EQ."regular") OPTG=1
   if(grid_type.EQ."curvilinear") OPTG=3
   if(grid_type.EQ."unstructured") OPTG=5
+
+  umin=PWIND(12)
+  rho_air=PWIND(16)
   
 end function
 
@@ -369,6 +375,11 @@ function commit_parameters() result(ret)
   else
     PNUMS(35)=0
   endif
+
+  PWIND(12)=umin
+  PWIND(16)=rho_air
+  PWIND(17)=RHO
+  PWIND(9)=rho_air/RHO
 
   ret=0
 end function
