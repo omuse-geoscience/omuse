@@ -72,8 +72,10 @@ parameters={
     "use_ctheta_cfl_limiter" : dict(short="use_ctheta_cfl_limiter", dtype="bool", default=False , description="this option prevents an excessive directional turning at a single grid point or vertex due to a very coarse bathymetry or current locally",ptype="simple"),
     "max_iterations_stationary" : dict(short="mxitst", dtype="int32", default=50, description="maximum number of iterations for stationary calc.", ptype="simple"),
     "max_iterations_dynamic" : dict(short="mxitns", dtype="int32", default=1, description="maximum number of iterations for dynamic calc.", ptype="simple"),
-    "air_density" : dict(short="rho_air", dtype="float64", default=1.28 | units.g/units.cm**3, description="density of air", ptype="simple"),
+    "air_density" : dict(short="rho_air", dtype="float64", default=1.28 | units.kg/units.m**3, description="density of air", ptype="simple"),
     "minimum_wind_speed" : dict(short="umin", dtype="float64", default=1. | units.m/units.s, description="minimum wind speed", ptype="simple"),
+    "stationary_propagation_scheme_order" : dict(short="PROPSS", dtype="int32", default=2, description="order of propagation scheme for stationary calc (1=BSBT, 2= SORDUP)", ptype="simple"),    
+    "dynamic_propagation_scheme_order" : dict(short="PROPSN", dtype="int32", default=3, description="order of propagation scheme for stationary calc (1=BSBT, 2= S/L)", ptype="simple"),    
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
