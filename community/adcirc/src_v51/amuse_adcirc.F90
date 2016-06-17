@@ -2,12 +2,14 @@ module amuse_adcirc
   use sizes
   use GLOBAL
   use ADCIRC_Mod
-  use BOUNDARIES, only: NETA, NBD, NVDLL, NBDV, NOPE, NBOU, NVELL, NBVV, IBTYPE
+  use BOUNDARIES, only: NETA, NBD, NVDLL, NBDV, NOPE, NBOU, NVELL, NBVV, IBTYPE, &
+    NBV, NVEL, CSII,SIII, LBCODEI
   use MESH, only: NP, NE, X, Y,DP,SLAM,SFEA
   use GLOBAL_3DVS, only: NFEN,SIGMA,Q,WZ, RESSAL, RESTEMP, qsurfkp1, qsurf, SigT, Temp, Sal
   implicit none
 
   logical :: use_interface_elevation_boundary=.FALSE.
+  logical :: use_interface_flow_boundary=.FALSE.
   logical :: use_interface_met_forcing=.FALSE.
   logical :: use_interface_wave_forcing=.FALSE.
   logical :: use_interface_tidal_forcing=.FALSE.
@@ -18,7 +20,7 @@ module amuse_adcirc
   logical :: use_interface_surface_heat_forcing=.FALSE.
   
   real(SZ),allocatable ::   ESBIN(:), WSX(:),WSY(:), DETA_DT(:), PR(:), &
-                            RSNX(:), RSNY(:), TIP(:)
+                            RSNX(:), RSNY(:), TIP(:), FBQX(:), FBQY(:)
   
   real(SZ),allocatable ::   AMUSE_LNM(:), AMUSE_RESSAL(:,:), AMUSE_RESTEMP(:,:), &
                             AMUSE_HFLUX(:)
@@ -30,6 +32,12 @@ contains
 subroutine update_elevation_boundary(rampfactor)
   real(SZ) :: rampfactor
   ETA2(NBD(1:NETA))=rampfactor*ESBIN(1:NETA)
+end subroutine
+
+subroutine update_flow_boundary(rampfactor)
+  real(SZ) :: rampfactor
+! note the minus 
+  QN2(NBV(1:NVEL))=-rampfactor* (CSII(1:NVEL)*FBQX(1:NVEL)+SIII(1:NVEL)*FBQY(1:NVEL))
 end subroutine
 
 subroutine update_met_forcing(rampfactor)
@@ -73,6 +81,12 @@ subroutine AMUSE_elevation_boundary(rampfactor)
   use amuse_adcirc
   REAL(SZ) :: rampfactor
   if(use_interface_elevation_boundary) call update_elevation_boundary(rampfactor)
+end subroutine
+
+subroutine AMUSE_flow_boundary(rampfactor) 
+  use amuse_adcirc
+  REAL(SZ) :: rampfactor
+  if(use_interface_flow_boundary) call update_flow_boundary(rampfactor)
 end subroutine
 
 subroutine AMUSE_met_forcing(rampfactor)

@@ -249,11 +249,34 @@ class AdcircInterface(CodeInterface,
     def get_flow_boundary_type(index=0,index_of_segment=0):
         returns (node_type=0)
 
+    @remote_function(can_handle_array=True)
+    def set_flow_boundary_fluxx(index=0,flux_x=0. | units.m**2/units.s,index_of_segment=0):
+        returns ()
+
+    @remote_function(can_handle_array=True)
+    def get_flow_boundary_fluxx(index=0,index_of_segment=0):
+        returns (flux_x=0. | units.m**2/units.s)
+
+    @remote_function(can_handle_array=True)
+    def set_flow_boundary_fluxy(index=0,flux_y=0. | units.m**2/units.s,index_of_segment=0):
+        returns ()
+
+    @remote_function(can_handle_array=True)
+    def get_flow_boundary_fluxy(index=0,index_of_segment=0):
+        returns (flux_y=0. | units.m**2/units.s)
+
     @remote_function
     def get_use_interface_elevation_boundary():
         returns (use_interface_elevation_boundary='b')
     @remote_function
     def set_use_interface_elevation_boundary(use_interface_elevation_boundary='b'):
+        returns ()
+
+    @remote_function
+    def get_use_interface_flow_boundary():
+        returns (use_interface_flow_boundary='b')
+    @remote_function
+    def set_use_interface_flow_boundary(use_interface_flow_boundary='b'):
         returns ()
 
     @remote_function
@@ -477,6 +500,11 @@ class Adcirc(CommonCode):
         object.add_default_form_parameter(
             "use_interface_elevation_boundary", 
             "toggle the use of interface boundary conditions for the elevation specified boundaries", 
+            False
+        )
+        object.add_default_form_parameter(
+            "use_interface_flow_boundary", 
+            "toggle the use of interface boundary conditions for the flow specified boundaries", 
             False
         )
         object.add_default_form_parameter(
@@ -893,6 +921,12 @@ class Adcirc(CommonCode):
         definition.set_grid_range('get_firstlast_node_of_flow_boundary_segment') 
         definition.add_getter('get_flow_boundary_node', names=('node',))
         definition.add_getter('get_flow_boundary_type', names=('type',))
+
+        definition.add_getter('get_flow_boundary_fluxx', names=('flux_x',))
+        definition.add_setter('set_flow_boundary_fluxx', names=('flux_x',))
+        definition.add_getter('get_flow_boundary_fluxy', names=('flux_y',))
+        definition.add_setter('set_flow_boundary_fluxy', names=('flux_y',))
+
         definition.define_extra_keywords({'index_of_segment':index})
 
     def define_state(self, object):
