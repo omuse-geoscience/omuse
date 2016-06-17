@@ -24,13 +24,24 @@ function initialize_code() result(ret)
 end function
 
 function evolve_model(tend) result(ret)
-  integer :: ret
+  integer :: i,ret
   real(8) :: tend
   do while((ITIME_BGN-1)*DTDP+STATIM*86400.D0<tend-DTDP/2)
     call ADCIRC_Run(1)
   enddo
   DETA_DT(1:NP)=(ETA2(1:NP)-ETA1(1:NP))/DTDP
   if(.not.use_interface_elevation_boundary) ESBIN(1:NETA)=ETA2(NBD(1:NETA))
+  if(.not.use_interface_flow_boundary) then
+    FBQX(1:NVEL)=VV2(NBV(1:NVEL))*(DP(NBV(1:NVEL))+IFNLFA*ETA2(NBV(1:NVEL)))
+    FBQY(1:NVEL)=UU2(NBV(1:NVEL))*(DP(NBV(1:NVEL))+IFNLFA*ETA2(NBV(1:NVEL)))
+  else
+    do i=1, NVEL
+      if(LBCODEI(i).NE.2.AND.LBCODEI(i).NE.12.AND.LBCODEI(i).NE.22) then
+        FBQX(i)=VV2(NBV(i))*(DP(NBV(i))+IFNLFA*ETA2(NBV(i)))
+        FBQY(i)=UU2(NBV(i))*(DP(NBV(i))+IFNLFA*ETA2(NBV(i)))
+      endif
+    enddo
+  endif
   if(.not.use_interface_met_forcing) then
     WSX(1:NP)=WSX2(1:NP)
     WSY(1:NP)=WSY2(1:NP)  
@@ -51,6 +62,8 @@ end function
 
 subroutine ADCIRC_allocate_interface_storage()
   if(allocated(ESBIN)) deallocate(ESBIN)
+  if(allocated(FBQX)) deallocate(FBQX)
+  if(allocated(FBQY)) deallocate(FBQY)
   if(allocated(WSX)) deallocate(WSX)
   if(allocated(WSY)) deallocate(WSY)
   if(allocated(RSNX)) deallocate(RSNX)
@@ -59,10 +72,13 @@ subroutine ADCIRC_allocate_interface_storage()
   if(allocated(DETA_DT)) deallocate(DETA_DT)
   if(allocated(PR)) deallocate(PR)
   allocate( ESBIN(MNETA) )
+  allocate( FBQX(MNVEL),FBQY(MNVEL) )
   allocate( WSX(MNP),WSY(MNP), DETA_DT(MNP), PR(MNP) )
   allocate( RSNX(MNP),RSNY(MNP) )
   allocate( TIP(MNP) )
   ESBIN(:)=0.
+  FBQX(:)=0.
+  FBQY(:)=0.
   WSX(:)=0.
   WSY(:)=0.
   RSNX(:)=0.
@@ -140,6 +156,19 @@ function set_use_interface_elevation_boundary(flag) result(ret)
   integer :: ret
   logical flag
   use_interface_elevation_boundary=flag
+  ret=0
+end function  
+
+function get_use_interface_flow_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  flag=use_interface_flow_boundary
+  ret=0
+end function  
+function set_use_interface_flow_boundary(flag) result(ret)
+  integer :: ret
+  logical flag
+  use_interface_flow_boundary=flag
   ret=0
 end function  
 
@@ -608,6 +637,62 @@ function set_elevation_boundary_eta(inode,eta,iseg) result(ret)
   ret=0
 end function
 
+function get_flow_boundary_fluxx(inode,iseg,vx) result(ret)
+  integer :: ret, inode,iseg,i  
+  real*8 :: vx
+  i=sum(NVELL(1:iseg-1))+inode
+  if(NBV(i).NE.NBVV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  vx=FBQX(i)
+  ret=0
+end function
+
+function set_flow_boundary_fluxx(inode,vx,iseg) result(ret)
+  integer :: ret, inode,iseg,i  
+  real*8 :: vx
+  i=sum(NVELL(1:iseg-1))+inode
+  if(NBV(i).NE.NBVV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  if(LBCODEI(i).NE.2.AND.LBCODEI(i).NE.12.AND.LBCODEI(i).NE.22) then
+    ret=-2
+    return
+  endif
+  FBQX(i)=vx
+  ret=0
+end function
+
+function get_flow_boundary_fluxy(inode,iseg,vy) result(ret)
+  integer :: ret, inode,iseg,i  
+  real*8 :: vy
+  i=sum(NVELL(1:iseg-1))+inode
+  if(NBV(i).NE.NBVV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  vy=FBQY(i)
+  ret=0
+end function
+
+function set_flow_boundary_fluxy(inode,vy,iseg) result(ret)
+  integer :: ret, inode,iseg,i
+  real*8 :: vy
+  i=sum(NVELL(1:iseg-1))+inode
+  if(NBV(i).NE.NBVV(iseg,inode)) then
+    ret=-1
+    return
+  endif
+  if(LBCODEI(i).NE.2.AND.LBCODEI(i).NE.12.AND.LBCODEI(i).NE.22) then
+    ret=-2
+    return
+  endif
+  FBQY(i)=vy
+  ret=0
+end function
+
 function get_boundary_lnm(inode,iseg,x_) result(ret)
   integer :: ret, inode,iseg,i  
   real*8 :: x_
@@ -716,6 +801,10 @@ end function
 
 function get_flow_boundary_type(inode,iseg,type_) result(ret)
   integer :: ret, inode,iseg,type_  
+  if(IBTYPE(iseg).NE.LBCODEI(NBVV(iseg,inode))) then
+   ret=-1
+   return
+  endif
   type_=IBTYPE(iseg)
   ret=0
 end function
