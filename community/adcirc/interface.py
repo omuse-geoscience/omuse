@@ -456,7 +456,15 @@ class Adcirc(CommonCode):
                         FTHETA=8, # fixed atm
                         FGAMMA=0.33333 # fixed atm
                         )
-          param.write()
+          NETA=None
+          NFLUX=None
+          if self.parameters.use_interface_grid:
+            NETA=0
+            for b in self._elev_boundary: NETA+=len(b)
+            NFLUX=0
+            for b in self._flow_boundary: 
+              if b[0].type in [2,12,22,52]: NFLUX+=len(b)
+          param.write(NETA=NETA,NFLUX=NFLUX)
         if self.parameters.use_interface_grid:
           agw=adcirc_grid_writer(coordinates=self.coordinates,nodes=self._nodes,
             elements=self._elements, elevation_boundaries=self._elev_boundary,

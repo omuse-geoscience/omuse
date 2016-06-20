@@ -60,7 +60,9 @@ class adcirc_parameter_reader(object):
   def __init__(self,filename="fort.15"):
     self.filename=filename
   
-  def read_parameters(self,NETA=None):
+  def read_parameters(self,NETA=None, NFLUX=None):
+    if NFLUX is None: NFLUX=0
+    if NETA is None: NETA=0
     with adcirc_file_reader(self.filename,'r') as f:
       param=dict()
       param["RUNDES"]=f.read_string(32)    
@@ -161,19 +163,42 @@ class adcirc_parameter_reader(object):
         param["FF"].append(ff)
         param["FACE"].append(face)
       for i in range(param["NBFR"]):
-          if NETA is not None:
-            tag=f.read_string(10)
-            EMO=[]
-            EFA=[]
-            for i in range(NETA):
-              emo,efa=f.read_value(float,float)
-              EMO.append(emo)
-              EFA.append(efa)
-            param["BOUNDARY_FORCING_DATA"][tag]=(EMO,EFA)
-          else:
-            f.close()
-            raise Exception("expect NETA to be provided")
+        if NETA is None:
+          raise Exception("expect NETA to be provided")
+        tag=f.read_string(10)
+        EMO=[]
+        EFA=[]
+        for i in range(NETA):
+          emo,efa=f.read_value(float,float)
+          EMO.append(emo)
+          EFA.append(efa)
+        param["BOUNDARY_FORCING_DATA"][tag]=(EMO,EFA)
       param["ANGINN"]=f.read_value()
+      param["NFFR"]=0
+      if NFLUX>0:
+        param["NFFR"]=f.read_int()
+      param["FBOUNTAG"]=[]
+      param["FAMIGT"]=[]
+      param["FFF"]=[]
+      param["FFACE"]=[]
+      param["FLUX_BOUNDARY_FORCING_DATA"]=dict()
+      for i in range(param["NFFR"]):
+        param["FBOUNTAG"].append(f.read_string(10))
+        amig,ff,face=f.read_value(float,float,float)
+        param["FAMIGT"].append(amig)
+        param["FFF"].append(ff)
+        param["FFACE"].append(face)
+      for i in range(param["NFFR"]):
+        if NFLUX==0:
+          raise Exception("expect NFLUX>0 to be provided")
+        tag=f.read_string(10)
+        EMO=[]
+        EFA=[]
+        for i in range(NFLUX):
+          emo,efa=f.read_value(float,float)
+          EMO.append(emo)
+          EFA.append(efa)
+        param["FLUX_BOUNDARY_FORCING_DATA"][tag]=(EMO,EFA)        
 # dummy read
       f.read_value(int,float,float,int)
       NSTAE=f.read_int()
@@ -281,7 +306,8 @@ class adcirc_parameter_reader(object):
 #~ CORI
 #~ NTIF
 
-      
+    param["_NETA"]=NETA
+    param["_NFLUX"]=NFLUX
 
     self.parameters=param
     
@@ -314,12 +340,18 @@ class adcirc_grid_reader(object):
     NVEL=f.read_int(1)
     self.flow_spec_boundary_seg=f.read_boundary_segments(NBOU,NVEL)
     
+    NFLUX=0
+    for _type,seg in self.flow_spec_boundary_seg:
+      if _type in [2,12,22,52]: # 32
+        NFLUX+=len(seg)
+    
     param["NE"]=NE
     param["NP"]=NP
     param["NOPE"]=NOPE
     param["NBOU"]=NBOU
     param["NETA"]=NETA
     param["NVEL"]=NVEL
+    param["NFLUX"]=NFLUX
     self.parameters=param
         
     f.close()

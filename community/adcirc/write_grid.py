@@ -42,6 +42,7 @@ default_parameters={
  "CORI": dict(dtype=float , value=0.0, description="CORIOLIS PARAMETER: IGNORED IF NCOR = 1"),
  "NTIF": dict(dtype=int , value=0, description="TOTAL NUMBER OF TIDAL POTENTIAL CONSTITUENTS BEING FORCED"),
  "NBFR": dict(dtype=int , value=-1, description="TOTAL NUMBER OF FORCING FREQUENCIES ON OPEN BOUNDARIES"),
+ "NFFR": dict(dtype=int , value=-2, description="TOTAL NUMBER OF FORCING FREQUENCIES ON FLOW BOUNDARIES"),
  "ANGINN": dict(dtype=float , value=110.0, description="INNER ANGLE THRESHOLD"),
  "ITITER": dict(dtype=int, value=1, description="ALGEBRAIC SOLUTION PARAMETER: iterative or lumped"),
  "ISLDIA": dict(dtype=int, value=0, description="ALGEBRAIC SOLUTION PARAMETER: solver verbosity"),
@@ -125,7 +126,9 @@ class adcirc_parameter_writer(object):
   def __init__(self,filename="fort.15"):
     self.filename=filename
     self.parameters=get_default_parameter_set()
-  def write(self, NETA=None):
+  def write(self, NETA=0, NFLUX=None):
+    if NFLUX is None: NFLUX=0
+    if NETA is None: NETA=0
     with adcirc_file_writer(self.filename,'w') as f:
       param=self.parameters
       f.write_var(param["RUNDES"])    
@@ -204,6 +207,18 @@ class adcirc_parameter_writer(object):
             for emo,efa in zip(*data):
                 f.write_var(emo,efa)      
       f.write_var(param["ANGINN"])
+      if NFLUX>0:
+        f.write_var(param["NFFR"])
+      if param["NFFR"]>0:
+        for tag,amig,ff,face in zip(param["FBOUNTAG"],param["FAMIGT"],param["FFF"],param["FFACE"]):
+          f.write_var(tag)
+          f.write_var(amig,ff,face)
+        for tag,data in param["FLUX_BOUNDARY_FORCING_DATA"].items():
+            f.write_var(tag)
+            for qnam,qnph in zip(*data):
+                f.write_var(qnam,qnph)
+            #~ for qnam,qnph,enam,enph in zip(*data):
+                #~ f.write_var(qnam,qnph,enam,enph)
       f.write(outputblock1)
       f.write_var(param["ITITER"],param["ISLDIA"],
                   param["CONVCR"],param["ITMAX"])
@@ -231,9 +246,6 @@ class adcirc_parameter_writer(object):
           f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
           if param['RES_BC_FLAG'] not in range(-4,5):
             raise Exception("unexpected RES_BC_FLAG value")
-          if NETA is None: # assume NOPE > 0 if NETA>0
-            NETA=0
-            #~ raise Exception("expect NETA to be provided")
           if param['RES_BC_FLAG']<0:
             if abs(param['RES_BC_FLAG'])>=1 and NETA>0:
               f.write_var(param['RBCTIMEINC'])
