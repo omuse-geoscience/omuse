@@ -1,0 +1,29 @@
+#
+# Q-GCM system-specific macro v1.5.0
+# ==================================
+
+# dummy (AMUSE flags passed on)
+
+TPFLAGS = ${FFLAGS}
+DEBUGS = ${FFLAGS}
+
+MKLDIR ?= /opt/intel/composer_xe_2011_sp1.9.293//mkl/
+MKLPATH ?= ${MKLDIR}/lib/intel64
+MKLINCLUDE ?= ${MKLDIR}/include
+# LAPACK = -L${MKLPATH} -I${MKLINCLUDE} -Wl,--start-group ${MKLPATH}/libmkl_intel_lp64.a ${MKLPATH}/libmkl_sequential.a ${MKLPATH}/libmkl_core.a -Wl,--end-group -lpthread
+# version for single-thread testing:
+# For the sequential version, no RTL should be needed, but the
+# POSIX thread library (pthread) will be needed for thread-safety
+# Alternative workstation access to LAPACK/BLAS using the NAG library
+# LAPACK = -L${NAGDIR} -lnag_nag
+# Alternative provision of LAPACK/BLAS from the supplied source code
+# Set either LAPACK, or both of LAPSRC and LAPOBJ, but not all three
+LAPSRC = lasubs.f
+LAPOBJ = lasubs.o
+
+NCBASE = /home/inti/code/amuse/prerequisites/
+NCIDIR = ${NCBASE}/include
+NCDINC = ${NCIDIR}/netcdf.inc
+NCINCL = -I${NCIDIR}
+NCLINK = -L${NCBASE}/lib -lnetcdff -lnetcdf
+
