@@ -9,7 +9,7 @@ This repository contains the source tree for OMUSE.
 
 ### How do I get set up? ###
 
-To install first install [AMUSE](www.amusecode.org) from source. Then in the AMUSE trunk, clone the OMUSE
+To install first install [AMUSE](http://www.amusecode.org) from source. Then in the AMUSE trunk, clone the OMUSE
 source into /src, such that this directory contains src/amuse and src/omuse subdirectories. The community
 codes of OMUSE are not yet automatically build by the framework, so you need to build them manually by going into each of:
 
