@@ -24,7 +24,7 @@ q-gcm_%: % ;
 FFLAGS ?= -g -O2
 FFLAGS2=$(FFLAGS) -80 -fpp -std90
 
-worker_%: worker_code.f90 interface.o $(BUILDDIR)_%/libq-gcm.a 
+q-gcm_worker_%: worker_code.f90 interface.o $(BUILDDIR)_%/libq-gcm.a 
 	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR) -o q-gcm_$@ $^ $(LIBS) $(SC_FCLIBS) $(FS_LIBS)  $(LIBS)
  
  
