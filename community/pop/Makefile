@@ -8,8 +8,8 @@ MPIFC ?= mpif90
 #MPIFC = ifort -I/cm/shared/apps/mpich/ge/open64/64/3.1/include -L/cm/shared/apps/mpich/ge/open64/64/3.1/lib -lmpich 
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
-FCFLAGS+=-I/opt/local/include/ -fconvert=swap
-POPFFLAGS=-I/opt/local/include/ -O2 -Wall -fdefault-double-8 -fdefault-real-8 -fconvert=swap -fimplicit-none -fbounds-check
+FCFLAGS+=-fconvert=swap
+POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -fconvert=swap -fimplicit-none -fbounds-check
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
@@ -17,7 +17,7 @@ FCFLAGS+=-O2 -r8 -g -convert big_endian -assume byterecl
 POPFFLAGS=-O2 -r8 -g -convert big_endian -assume byterecl
 endif
 
-LDFLAGS  += -I/opt/local/include/ -lm $(MUSE_LD_FLAGS)
+LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
 POPARCH=amuse
 POPEXEDIR1=$(CURDIR)/src_320x384x40
