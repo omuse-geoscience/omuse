@@ -142,3 +142,29 @@ class QGCM(InCodeComponentImplementation):
     def __init__(self, mode="ocean_only", **options):
         InCodeComponentImplementation.__init__(self,  QGCMInterface(mode=mode,**options), **options)
 
+    def define_parameters(self, object):      
+        for param in parameters:
+            short=parameters[param]["short"]
+            ptype=parameters[param]["ptype"]
+            dtype=parameters[param]["dtype"]
+            getter="get_"+short
+            if ptype in ["simple","normal"]:
+              setter="set_"+short
+            else:
+              setter=None
+            if dtype!='bool':
+                object.add_method_parameter(
+                    getter,
+                    setter,
+                    param,
+                    parameters[param]["description"], 
+                    parameters[param]["default"]
+                )
+            else:
+                object.add_boolean_parameter(
+                    getter,
+                    setter,
+                    param,
+                    parameters[param]["description"], 
+                    parameters[param]["default"]
+                )
