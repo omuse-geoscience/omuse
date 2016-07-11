@@ -3,6 +3,8 @@ module qgcm_interface
 
 contains
 
+include "getter_setters.f90"
+
 function initialize_code() result(ret)
   integer :: ret
   ret=-2

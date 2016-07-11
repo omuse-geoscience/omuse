@@ -15,7 +15,9 @@ endif
 
 .SECONDARY:
 
-.PHONY: all $(BUILDDIR)_%/lib
+.PHONY: all $(BUILDDIR)_%/lib download
+
+all: download q-gcm_worker
 
 q-gcm_worker: ${TARGETS}
 
@@ -24,8 +26,8 @@ q-gcm_%: % ;
 FFLAGS ?= -g -O2
 FFLAGS2=$(FFLAGS) -80 -fpp -std90
 
-q-gcm_worker_%: worker_code.f90 interface.o $(BUILDDIR)_%/libq-gcm.a 
-	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR) -o q-gcm_$@ $^ $(LIBS) $(SC_FCLIBS) $(FS_LIBS)  $(LIBS)
+q-gcm_worker_%: worker_code.f90 getter_setters.f90 interface.o $(BUILDDIR)_%/libq-gcm.a 
+	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR) -o $@ $^ $(LIBS) $(SC_FCLIBS) $(FS_LIBS)  $(LIBS)
  
  
 $(BUILDDIR)_%:
@@ -67,6 +69,9 @@ worker_code.f90: interface.py $(AMUSE_INTERFACE_DEPS)
 %.o: %.f90 Makefile
 	$(MPIFC) $(FFLAGS)  -c -o $@ $< 
 
+getter_setters.f90: interface.py
+	python -c "import interface; interface.generate_getters_setters()"
+
 update_q-gcm: src/q-gcm
 	cd src/q-gcm; git pull
 
@@ -77,4 +82,9 @@ download: src/q-gcm
 
 clean:
 	-rm -Rf $(BUILDDIR)_*
+	-rm worker_code.f90 getter_setters.f90
 	-rm -f interface.o q-gcm_worker* *.mod
+
+distclean: clean
+	-rm -Rf src/q-gcm
+
