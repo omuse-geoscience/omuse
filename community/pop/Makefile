@@ -38,7 +38,7 @@ CODELIB1 = src_320x384x40/libpop.a
 CODELIB2 = src_3600x2400x42/libpop.a
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
-all: pop_worker_320x384x40 pop_worker_3600x2400x42
+all: eSalsa-POP pop_worker_320x384x40 pop_worker_3600x2400x42
 
 update: eSalsa-POP
 	cd eSalsa-POP; git pull
@@ -65,11 +65,11 @@ $(CODELIB2): src_3600x2400x42/POP_DomainSizeMod.F90
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
 
-pop_worker_320x384x40: worker_code.f90 $(CODELIB1) $(OBJS) interface.f90 eSalsa-POP
+pop_worker_320x384x40: worker_code.f90 $(CODELIB1) $(OBJS) interface.f90
 	$(MPIFC) $(POPINCPATH1) $(FCFLAGS) -c interface.f90 -o interface.o
 	$(MPIFC) $(POPINCPATH1) $(FCFLAGS) $(FS_FLAGS) $< interface.o $(CODELIB1) $(FS_LIBS) -o $@
 
-pop_worker_3600x2400x42: worker_code.f90 $(CODELIB2) $(OBJS) interface.f90 eSalsa-POP
+pop_worker_3600x2400x42: worker_code.f90 $(CODELIB2) $(OBJS) interface.f90
 	$(MPIFC) $(POPINCPATH2) $(FCFLAGS) -c interface.f90 -o interface.o 
 	$(MPIFC) $(POPINCPATH2) $(FCFLAGS) $(FS_FLAGS) $< interface.o $(CODELIB2) $(FS_LIBS) -o $@
 
