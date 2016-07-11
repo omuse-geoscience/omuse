@@ -24,7 +24,7 @@ update:
 
 dales:
 	mkdir -p $(BUILDDIR)
-	cd $(BUILDDIR); cmake -DCMAKE_Fortran_FLAGS=$(DALESFLAGS) ../dales-repo; make
+	cd $(BUILDDIR); cmake ../dales-repo; make
 
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
