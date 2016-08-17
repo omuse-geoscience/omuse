@@ -8,7 +8,7 @@ module dales_interface
 
     implicit none
 
-    character(256),         inputfile   ! Dales initializer input namelist file 
+    character(256),         inputfile   ! Dales initializer input namelist file
 
 contains
 
@@ -23,41 +23,46 @@ contains
     function get_input_file(ifile) result(ret)
         integer,intent(out)::           ret
         character(256),intent(out)::    ifile
+
         ifile=inputfile
         ret=0
     end function
 
     function initialize_code() result(ret)
-        integer :: ret
-        
+        integer,intent(out):: ret
+
         inputfile="namoptions"
         ret=0
     end function
 
     function commit_parameters() result(ret)
-        integer :: ret
-        
+        integer,intent(out) :: ret
+
         call initialize(inputfile)
         ret=0
     end function
 
     function recommit_parameters() result(ret)
-        integer :: ret
+        integer,intent(out) :: ret
+
         ret=-2
     end function
 
     function do_steps(n) result(ret)
-        integer :: i,ret
-        real(8) :: tend
+        integer,intent(out) :: ret
+        integer             :: i
+        real(8)             :: tend
         do i=1,n
             call step
         enddo
+        ret=0
     end function
 
     function cleanup_code() result(ret)
         integer :: ret
+
         call finalize
-        ret=0  
+        ret=0
     end function
 
 end module dales_interface
