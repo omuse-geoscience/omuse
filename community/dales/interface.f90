@@ -5,6 +5,7 @@
 module dales_interface
 
     use daleslib
+    use modglobal, only: rtimee,rdt
 
     implicit none
 
@@ -48,11 +49,14 @@ contains
         ret=-2
     end function
 
-    function do_steps(n) result(ret)
+    function evolve_model(tend) result(ret)
         integer,intent(out) :: ret
+        real(8),intent(in)  :: tend
         integer             :: i
-        real(8)             :: tend
-        do i=1,n
+! TODO: Fix this when Dales runs with adaptive time-stepping
+        do while(rtimee < tend - 0.5*rdt)
+! TODO: Make daleslib time step signature more useful (returns time step/end
+! time/etc.)
             call step
         enddo
         ret=0
