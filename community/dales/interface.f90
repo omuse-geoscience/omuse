@@ -4,17 +4,16 @@
 
 module dales_interface
 
-    use daleslib
     use modglobal, only: rtimee,rdt
 
     implicit none
 
-    character(256),         inputfile   ! Dales initializer input namelist file
+    character(256)::         inputfile   ! Dales initializer input namelist file
 
 contains
 
     function set_input_file(ifile) result(ret)
-        integer,intent(out)::          ret
+        integer::                      ret
         character(256),intent(in)::    ifile
 
         inputfile=ifile
@@ -22,7 +21,7 @@ contains
     end function
 
     function get_input_file(ifile) result(ret)
-        integer,intent(out)::           ret
+        integer::                       ret
         character(256),intent(out)::    ifile
 
         ifile=inputfile
@@ -30,27 +29,27 @@ contains
     end function
 
     function initialize_code() result(ret)
-        integer,intent(out):: ret
+        integer:: ret
 
         inputfile="namoptions"
         ret=0
     end function
 
     function commit_parameters() result(ret)
-        integer,intent(out) :: ret
+        integer:: ret
 
         call initialize(inputfile)
         ret=0
     end function
 
     function recommit_parameters() result(ret)
-        integer,intent(out) :: ret
+        integer:: ret
 
         ret=-2
     end function
 
     function evolve_model(tend) result(ret)
-        integer,intent(out) :: ret
+        integer             :: ret
         real(8),intent(in)  :: tend
         integer             :: i
 ! TODO: Fix this when Dales runs with adaptive time-stepping
