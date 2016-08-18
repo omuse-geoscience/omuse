@@ -22,7 +22,7 @@ patch:
 	diff -ruN $(ADCIRC_SRC)/work/makefile makefile > makefile.patch || exit 0
 
 distclean:
-	rm -rf ./adcirc_src
+	rm -rf ./adcirc_src ./makefile
 
 $(ADCIRC_SRC):
 	@echo "** make sure the (unpatched) ADCIRC source is in $(ADCIRC_SRC) **"
