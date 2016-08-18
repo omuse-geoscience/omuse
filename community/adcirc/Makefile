@@ -49,9 +49,9 @@ clean:
 	rm -f adcirc_worker 
 
 distclean: clean
-	make -C src/ -f makefile_prep distclean
 	make -C src/ LIBADC=libadcirc.a clobber
-
+	make -C src/ -f makefile_prep distclean
+	
 download:
 	make -C src/ -f makefile_prep download
 	
