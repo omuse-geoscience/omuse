@@ -11,20 +11,30 @@ LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
 SOURCEDIR = $(CURDIR)/dales-repo
 BUILDDIR = $(CURDIR)/dales-build
+INCLUDEDIR = $(BUILDDIR)/src
+
+CODE_LIB = $(BUILDDIR)/libdaleslib.a
 
 #DALESFLAGS := $(POPFFLAGS) $(NETCDF_FLAGS) $(NETCDFF_FLAGS) $(NETCDF_LIBS) $(NETCDFF_LIBS)
-#FS_FLAGS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
+FS_FLAGS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
-all: dales
+all: dales dales_worker
 
 update:
 	cd dales-repo; git pull
 
 dales:
 	mkdir -p $(BUILDDIR)
-	cd $(BUILDDIR); cmake ../dales-repo; make
+	cd $(BUILDDIR); cmake ../dales-repo; make; make install
+
+worker_code.f90: interface.py
+	$(CODE_GENERATOR) --type=f90 interface.py DalesInterface -o $@
+
+dales_worker: worker_code.f90 $(OBJS) interface.f90
+	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
+	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) -I$(AMUSE_DIR)/lib/stopcond $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
