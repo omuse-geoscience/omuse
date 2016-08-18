@@ -43,13 +43,13 @@ prep:
 	$(FC) $(FCFLAGS) -c -o $@ $<
 
 clean:
-	make -C src/ clean
+	-make -C src/ clean
 	rm -f *.pyc *.mod
 	rm -f interface.o adcirc_worker.f90 worker_code.f90
 	rm -f adcirc_worker 
 
 distclean: clean
-	make -C src/ LIBADC=libadcirc.a clobber
+	-make -C src/ LIBADC=libadcirc.a clobber
 	make -C src/ -f makefile_prep distclean
 	
 download:
