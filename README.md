@@ -28,6 +28,3 @@ In addition to the AMUSE dependencies, OMUSE needs/ can use the following packag
  + netCDF and netCDF for fortran and the python bindings
 
 ### Contribution guidelines ###
-
-At the moment, this repository is private, since it contains the source of ADCIRC, which is not 
-freely distributable.
