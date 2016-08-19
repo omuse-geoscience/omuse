@@ -61,6 +61,22 @@ contains
         ret=0
     end function
 
+    function get_timestep(dt) result(ret)
+        real(8),intent(out):: dt
+        integer            :: ret
+
+        dt=rdt
+        ret=0
+    end function
+
+    function get_model_time(t) result(ret)
+        real(8),intent(out):: t
+        integer::             ret
+
+        t=rtimee
+        ret=0
+    end function
+
     function cleanup_code() result(ret)
         integer :: ret
 
