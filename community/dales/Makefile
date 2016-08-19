@@ -16,7 +16,7 @@ INCLUDEDIR = $(BUILDDIR)/src
 CODE_LIB = $(BUILDDIR)/libdaleslib.a
 
 #DALESFLAGS := $(POPFFLAGS) $(NETCDF_FLAGS) $(NETCDFF_FLAGS) $(NETCDF_LIBS) $(NETCDFF_LIBS)
-FS_FLAGS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
+FS_LIBS += $(NETCDF_LIBS) $(NETCDFF_LIBS) $(SC_MPI_FCLIBS)
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
@@ -34,7 +34,7 @@ worker_code.f90: interface.py
 
 dales_worker: worker_code.f90 $(OBJS) interface.f90
 	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
-	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) -I$(AMUSE_DIR)/lib/stopcond $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
+	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
