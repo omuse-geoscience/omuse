@@ -4,11 +4,12 @@
 
 module dales_interface
 
+    use daleslib, only: initialize, step, finalize
     use modglobal, only: rtimee,rdt
 
     implicit none
 
-    character(256)::         inputfile   ! Dales initializer input namelist file
+    character(512)::         inputfile   ! Dales initializer input namelist file
 
 contains
 
@@ -31,13 +32,13 @@ contains
     function initialize_code() result(ret)
         integer:: ret
 
-        inputfile="namoptions"
+        inputfile="/home/vdoord/Software/amuse/src/omuse/community/dales/dales_repo/cases/example/namoptions.001"
         ret=0
     end function
 
     function commit_parameters() result(ret)
         integer:: ret
-
+        write(*,*) "Initializing with file ",inputfile
         call initialize(inputfile)
         ret=0
     end function
