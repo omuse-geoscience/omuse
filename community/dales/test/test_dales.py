@@ -1,8 +1,8 @@
 from amuse.community import *
 from amuse.test.amusetest import TestWithMPI
 
-from omuse.community.pop.interface import POPInterface
-from omuse.community.pop.interface import POP
+from omuse.community.dales.interface import DalesInterface
+from omuse.community.dales.interface import Dales
 
 from amuse.units import units
 
