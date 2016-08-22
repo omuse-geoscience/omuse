@@ -18,9 +18,9 @@ from nose.tools import nottest
 class DalesTests(TestWithMPI):
 
     #test the behavior of the state machine
-    @nottest
     def test1(self):
         instance = Dales(**default_options)
+        print "executing test..."
 
         self.assertEquals(instance.state_machine._current_state.name, 'UNINITIALIZED')
 
