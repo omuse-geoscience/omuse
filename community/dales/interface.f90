@@ -32,7 +32,7 @@ contains
     function initialize_code() result(ret)
         integer:: ret
 
-        inputfile="/home/vdoord/Software/amuse/src/omuse/community/dales/dales_repo/cases/example/namoptions.001"
+        inputfile="namoptions.001"
         ret=0
     end function
 
