@@ -31,9 +31,10 @@ class DalesInterface(CodeInterface,
 
     @remote_function
     def get_input_file():
-        returns (inputfile="s")
+        returns (input_file="s")
+
     @remote_function
-    def set_input_file(inputfile="namoptions"):
+    def set_input_file(input_file="namoptions"):
         returns ()
 
     @remote_function
@@ -55,12 +56,12 @@ class Dales(CommonCode):
         CommonCode.__init__(self,  DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
 
-    def commit_parameters(self):
-        self.overridden().commit_parameters()
+#    def commit_parameters(self):
+#        self.overridden().commit_parameters()
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
-            "filepath",
+            "input_file",
             "set the input file path",
             "namoptions"
         )
@@ -85,7 +86,7 @@ class Dales(CommonCode):
 
         object.add_method('INITIALIZED', 'assign_grid_and_boundary')
         object.add_method('INITIALIZED', 'before_set_interface_parameter')
-        object.add_method('INITIALIZED', 'set_rootdir')
+        object.add_method('INITIALIZED', 'set_input_file')
 
         for state in ["RUN","EDIT","EVOLVED"]:
           object.add_method(state,"get_model_time")
