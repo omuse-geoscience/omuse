@@ -6,8 +6,10 @@ from omuse.community.dales.interface import Dales
 
 from amuse.units import units
 
+default_options={}
+#default_options=dict(number_of_workers=4)
 #default_options=dict(channel_type="sockets",redirection="none")
-default_options=dict(redirection="none")
+#default_options=dict(redirection="none")
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -15,23 +17,32 @@ logging.getLogger("code").setLevel(logging.DEBUG)
 
 from nose.tools import nottest
 
-class DalesTests(TestWithMPI):
+class TestDalesInterface(TestWithMPI):
 
-    #test the behavior of the state machine
     def test1(self):
+
+        print "Test 1: start"
+
         instance = Dales(**default_options)
-        print "executing test..."
-
-        self.assertEquals(instance.state_machine._current_state.name, 'UNINITIALIZED')
-
-        #proceed to evolve
-        time = instance.get_model_time()
-        tend = time + instance.get_timestep_next()
-        instance.evolve_model(tend)
-
-        #check if we are in the expected state
-        self.assertEquals(instance.state_machine._current_state.name, 'EVOLVED')
-
+        instance.cleanup_code()
         instance.stop()
+    
+    def test2(self):
 
-        self.assertEquals(instance.state_machine._current_state.name, 'UNINITIALIZED')
+        print "Test 2: default input"
+
+        instance = DalesInterface(**default_options)
+        inputfile,err=instance.get_input_file()
+
+        self.assertEquals(inputfile,"namoptions")
+#        instance.cleanup_code()
+#        instance.stop()
+    
+    def test3(self):
+
+        print "Test 2: commit params"
+
+        instance = DalesInterface(**default_options)
+#        instance.commit_parameters()
+#        instance.cleanup_code()
+#        instance.stop()

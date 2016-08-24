@@ -17,8 +17,8 @@ program fortran_test
         write(*,*) "..success."
     endif
     
-    write(*,*) "Initializing dales instance..."
-    stat=commit_parameters()
+    write(*,*) "Exiting fortran interface code..."
+    stat=cleanup_code()
     if(stat/=0) then
         write(*,*) "...failed, stopping."
         return
