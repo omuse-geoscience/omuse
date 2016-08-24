@@ -4,12 +4,10 @@
 
 module dales_interface
 
-    use daleslib, only: initialize, step, finalize
-    use modglobal, only: rtimee,rdt
+    use daleslib, only: pre_initialize,initialize,step,finalize
+    use modglobal, only: rtimee,rdt,fname_options
 
     implicit none
-
-    character(512)::         inputfile   ! Dales initializer input namelist file
 
 contains
 
@@ -17,7 +15,7 @@ contains
         integer::                      ret
         character(256),intent(in)::    ifile
 
-        inputfile=ifile
+        fname_options=ifile
         ret=0
     end function
 
@@ -25,27 +23,27 @@ contains
         integer::                       ret
         character(256),intent(out)::    ifile
 
-        ifile=inputfile
+        ifile=fname_options
         ret=0
     end function
 
     function initialize_code() result(ret)
         integer:: ret
 
-        inputfile="namoptions.001"
+        fname_options="namoptions.001"
+        call pre_initialize
+        call initialize(fname_options)
         ret=0
     end function
 
     function commit_parameters() result(ret)
         integer:: ret
-        write(*,*) "Initializing with file ",inputfile
-        call initialize(inputfile)
+
         ret=0
     end function
 
     function recommit_parameters() result(ret)
         integer:: ret
-
         ret=-2
     end function
 
