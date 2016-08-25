@@ -6,6 +6,7 @@ from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
 
+from fortran_tools import FortranCodeGenerator
 
 from amuse.units import units
 
@@ -70,40 +71,7 @@ parameters={
  1.2d0     0.4d0            !! gpat(i)   = Reduced gravity for atmos. interface i (m s^-2)
 """
 
-_getter_string="""
-  function get_{0}(x) result(ret)
-    integer :: ret
-    {1} :: x
-    x={0}
-    ret=0
-  end function
-               """
-_setter_string="""
-  function set_{0}(x) result(ret)
-  integer :: ret
-    {1} :: x
-    {0}=x
-    ret=0
-  end function
-               """
-
-def parameter_getter_setters(filename="getter_setters.f90"):
-    filestring=""
-    py_to_f={"string" : "character(len=*) ", "float64" : "real*8", "float32" : "real", "int32" : "integer", "bool" : "logical"}
-    for par,d in parameters.iteritems():
-      if d["ptype"] in ["simple"]:
-        filestring+=_setter_string.format(d["short"],py_to_f[d["dtype"]])
-      if d["ptype"] in ["simple","getter"]:
-        filestring+=_getter_string.format(d["short"],py_to_f[d["dtype"]])
-    return filestring
-
-def generate_getters_setters(filename="getter_setters.f90"):
-    filestring=""
-    #~ filestring+=input_grid_string(_unstructured_input_grid_template)
-    #~ filestring+=input_grid_string(_regular_input_grid_template)
-    filestring+=parameter_getter_setters()
-    with open(filename,"w") as f:
-        f.write(filestring)
+code_generator=FortranCodeGenerator(parameters)
 
 class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
@@ -117,54 +85,26 @@ class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn
         return "q-gcm_worker_"+mode
 
     def __init__(self, **keyword_arguments):
-        mode=keyword_arguments["mode"]
+        mode=keyword_arguments.pop("mode", "ocean_only")
         CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **keyword_arguments)
         LiteratureReferencesMixIn.__init__(self)
 
-    for par,d in parameters.iteritems():
-        dtype=d["dtype"]
-        if hasattr(d["default"],"unit"):
-          unit=d["default"].unit.reference_string()
-        else:
-          unit="None"
-        short=d["short"]
-        ptype=d["ptype"]
-        exec("@legacy_function\ndef get_"+short+"():\n  function = LegacyFunctionSpecification()\n"
-            "  function.addParameter('"+short+"', dtype='"+dtype+"', direction=function.OUT, unit="+unit+")\n"
-            "  function.result_type = 'int32'\n  return function")
-        if ptype!="getter":
-          exec("@legacy_function\ndef set_"+short+"():\n  function = LegacyFunctionSpecification()\n"
-              "  function.addParameter('"+short+"', dtype='"+dtype+"', direction=function.IN, unit="+unit+")\n"
-              "  function.result_type = 'int32'\n  return function")
-
-
+    exec(code_generator.generate_interface_functions())
+    
 class QGCM(InCodeComponentImplementation):
-    def __init__(self, mode="ocean_only", **options):
-        InCodeComponentImplementation.__init__(self,  QGCMInterface(mode=mode,**options), **options)
+    def __init__(self, **options):
+        InCodeComponentImplementation.__init__(self,  QGCMInterface(**options), **options)
 
-    def define_parameters(self, object):      
-        for param in parameters:
-            short=parameters[param]["short"]
-            ptype=parameters[param]["ptype"]
-            dtype=parameters[param]["dtype"]
-            getter="get_"+short
-            if ptype in ["simple","normal"]:
-              setter="set_"+short
-            else:
-              setter=None
-            if dtype!='bool':
-                object.add_method_parameter(
-                    getter,
-                    setter,
-                    param,
-                    parameters[param]["description"], 
-                    parameters[param]["default"]
-                )
-            else:
-                object.add_boolean_parameter(
-                    getter,
-                    setter,
-                    param,
-                    parameters[param]["description"], 
-                    parameters[param]["default"]
-                )
+    def define_parameters(self, object):
+        code_generator.generate_parameter_definitions(object)
+
+    def define_state(self, object):
+        object.set_initial_state('UNINITIALIZED')
+        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+        #~ object.add_method('INITIALIZED', 'before_get_parameter')
+        object.add_method('INITIALIZED', 'before_set_parameter')
+        #~ object.add_method('END', 'before_get_parameter')
+        object.add_transition('!UNINITIALIZED!STOPPED', 'END', 'cleanup_code')
+        object.add_transition('END', 'STOPPED', 'stop', False)
+        object.add_method('STOPPED', 'stop')
+

@@ -70,7 +70,7 @@ worker_code.f90: interface.py $(AMUSE_INTERFACE_DEPS)
 	$(MPIFC) $(FFLAGS)  -c -o $@ $< 
 
 getter_setters.f90: interface.py
-	python -c "import interface; interface.generate_getters_setters()"
+	python -c "import interface; interface.code_generator.generate_getters_setters()"
 
 update_q-gcm: src/q-gcm
 	cd src/q-gcm; git pull
