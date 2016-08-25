@@ -26,9 +26,11 @@ q-gcm_%: % ;
 FFLAGS ?= -g -O2
 FFLAGS2=$(FFLAGS) -80 -fpp -std90
 
-q-gcm_worker_%: worker_code.f90 getter_setters.f90 interface.o $(BUILDDIR)_%/libq-gcm.a 
-	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR) -o $@ $^ $(LIBS) $(SC_FCLIBS) $(FS_LIBS)  $(LIBS)
+q-gcm_worker_%: worker_code.f90 $(BUILDDIR)_%/libq-gcm.a interface_%.o 
+	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR)_$* -o $@ $< interface_$*.o $(BUILDDIR)_$*/libq-gcm.a $(LIBS) $(SC_FCLIBS) $(FS_LIBS)  $(LIBS)
  
+interface_%.o: interface.f90 getter_setters.f90	Makefile $(BUILDDIR)_%/amuse_q-gcm.o
+	$(MPIFC) $(FFLAGS) -I$(BUILDDIR)_$*  -c -o $@ $< 
  
 $(BUILDDIR)_%:
 	-mkdir $@
@@ -56,11 +58,11 @@ $(BUILDDIR)_%/lib:
 #~ $(BUILDDIR)_%/libq-gcm.a: OBJS=$(shell ls $(BUILDDIR)_%/*.o )
 	ar crs $(BUILDDIR)_$*/libq-gcm.a $(OBJS)
 
-$(BUILDDIR)_%/amuse_q-gcm.o: src/amuse_q-gcm.F
+$(BUILDDIR)_%/amuse_q-gcm.o: src/amuse_q-gcm.F $(BUILDDIR)_%/make.config $(BUILDDIR)_%/libq-gcm.a
 ifeq ($(MAKEFILE_OPTIONS_FILE), )
 	make -C . $@ MAKEFILE_OPTIONS_FILE=$(BUILDDIR)_$*/make.config
 else
-	$(FC) $(FFLAGS2) -c -o $@ $< 
+	$(FC) $(FFLAGS2) $(QGOPTS) -I$(BUILDDIR)_$* -c -o $@ $< 
 endif  
 
 worker_code.f90: interface.py $(AMUSE_INTERFACE_DEPS)
