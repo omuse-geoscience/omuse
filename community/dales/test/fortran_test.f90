@@ -5,6 +5,7 @@ program fortran_test
     implicit none
 
     integer:: stat
+    real(8):: tend
 
     stat=0
 
@@ -15,6 +16,16 @@ program fortran_test
         return
     else
         write(*,*) "..success."
+    endif
+
+    write(*,*) "Running for a minute..."
+    tend=60
+    stat=evolve_model(tend)
+    if(stat/=0) then
+        write(*,*) "...failed, stopping."
+        return
+    else
+        write(*,*) "...success."
     endif
     
     write(*,*) "Exiting fortran interface code..."
