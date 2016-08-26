@@ -44,17 +44,14 @@ contains
 
     function recommit_parameters() result(ret)
         integer:: ret
-        ret=-2
+        ret=0
     end function
 
     function evolve_model(tend) result(ret)
         integer             :: ret
         real(8),intent(in)  :: tend
         integer             :: i
-! TODO: Fix this when Dales runs with adaptive time-stepping
-        do while(rtimee < tend - 0.5*rdt)
-! TODO: Make daleslib time step signature more useful (returns time step/end
-! time/etc.)
+        do while(rtimee < tend)
             call step
         enddo
         ret=0
@@ -81,6 +78,12 @@ contains
 
         call finalize
         write(*,*) "Done finalizing..."
+        ret=0
+    end function
+
+    function commit_grid() result(ret)
+        integer:: ret
+
         ret=0
     end function
 

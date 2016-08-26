@@ -6,7 +6,7 @@ from omuse.community.dales.interface import Dales
 
 from amuse.units import units
 
-default_options=dict(redirection="none")
+default_options={}
 #default_options=dict(number_of_workers=4)
 #default_options=dict(channel_type="sockets",redirection="none")
 #default_options=dict(redirection="none",debugger="gdb")
@@ -21,29 +21,43 @@ class TestDalesInterface(TestWithMPI):
 
     def test1(self):
 
-        print "Test 1: start"
+        print "Test 1: instantiate and clean up"
 
         instance = Dales(**default_options)
         instance.cleanup_code()
-
         instance.stop()
 
     def test2(self):
 
-        print "Test 2: start"
+        print "Test 2: instantiate with 4 workers and clean up"
 
-        instance = Dales(redirection="none",number_of_workers=4)
+        instance = Dales(number_of_workers=4)
         instance.cleanup_code()
-
         instance.stop()
     
-#    def test2(self):
-#
-#        print "Test 2: default input"
-#
-#        instance = Dales(**default_options)
-#        inputfile,err=instance.get_input_file()
-#
-#        self.assertEquals(inputfile,"namoptions.001")
-#        instance.cleanup_code()
-#        instance.stop()
+    def test3(self):
+
+        print "Test 3: instantiate, run one minute and clean up"
+
+        instance = Dales(redirection="none")
+        tim=instance.get_model_time()
+        instance.commit_grid()
+        instance.evolve_model(tim + (1 | units.minute))
+        newtim=instance.get_model_time()
+        self.assertTrue(newtim>=tim)
+        instance.cleanup_code()
+        instance.stop()
+
+    def test4(self):
+
+        print "Test 4: instantiate with 4 workers, run one minute and clean up"
+
+        instance = Dales(number_of_workers=4,redirection="none")
+        tim=instance.get_model_time()
+        instance.commit_grid()
+        instance.evolve_model(tim + (1 | units.minute))
+        newtim=instance.get_model_time()
+        self.assertTrue(newtim>=tim)
+        instance.cleanup_code()
+        instance.stop()
+    
