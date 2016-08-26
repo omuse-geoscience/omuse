@@ -49,6 +49,10 @@ class DalesInterface(CodeInterface,
     def evolve_model(tend=0. | units.s):
         pass
 
+    @remote_function
+    def commit_grid():
+        pass
+
 
 class Dales(CommonCode):
 
@@ -56,8 +60,8 @@ class Dales(CommonCode):
         CommonCode.__init__(self,  DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
 
-#    def commit_parameters(self):
-#        self.overridden().commit_parameters()
+    def commit_parameters(self):
+        self.overridden().commit_parameters()
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
@@ -77,6 +81,7 @@ class Dales(CommonCode):
         object.add_method('STOPPED', 'stop')
 
         object.add_transition('INITIALIZED','EDIT','commit_parameters')
+        object.add_transition('EDIT','RUN','commit_grid')
 
         #~ object.set_initial_state('UNINITIALIZED')
         #~ object.add_transition('!STOPPED', 'END', 'cleanup_code')
@@ -84,7 +89,6 @@ class Dales(CommonCode):
         #~ object.add_transition('END', 'STOPPED', 'stop', False)
         #~ object.add_method('STOPPED', 'stop')
 
-        object.add_method('INITIALIZED', 'assign_grid_and_boundary')
         object.add_method('INITIALIZED', 'before_set_interface_parameter')
         object.add_method('INITIALIZED', 'set_input_file')
 
