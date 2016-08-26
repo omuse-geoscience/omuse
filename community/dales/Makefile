@@ -42,8 +42,10 @@ test/fortran_test: test/fortran_test.f90 $(OBJS) interface.f90
 	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
 clean:
-	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
+	$(RM) -f *.so *.o *.pyc *.mod
+	$(RM) -f test/*.so test/*.o test/*.pyc test/*.mod
 	$(RM) -rf $(BUILDDIR)
+	$(RM) -f worker_code.* dales_worker test/fortran_test
 
 distclean: clean
 

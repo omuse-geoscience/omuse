@@ -4,8 +4,9 @@
 
 module dales_interface
 
-    use daleslib, only: pre_initialize,initialize,step,finalize
+    use daleslib, only: initialize,step,finalize
     use modglobal, only: rtimee,rdt,fname_options
+    use mpi, only: MPI_COMM_WORLD 
 
     implicit none
 
@@ -31,8 +32,7 @@ contains
         integer:: ret
 
         fname_options="namoptions.001"
-        call pre_initialize
-        call initialize(fname_options)
+        call initialize(fname_options,MPI_COMM_WORLD)
         ret=0
     end function
 
@@ -80,6 +80,7 @@ contains
         integer :: ret
 
         call finalize
+        write(*,*) "Done finalizing..."
         ret=0
     end function
 
