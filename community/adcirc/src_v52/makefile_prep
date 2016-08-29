@@ -2,7 +2,7 @@
 
 all:
 
-ADCIRC_VERSION=v51_52_07
+ADCIRC_VERSION=v52_30_02
 
 ADCIRC_SRC=../adcirc/adcirc_$(ADCIRC_VERSION)
 

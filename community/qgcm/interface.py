@@ -6,12 +6,17 @@ from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
 
+from fortran_tools import FortranCodeGenerator
 
 from amuse.units import units
 
 import subprocess 
 
 parameters={
+# grid parameters
+    "number_atmospheric_layers": dict(short="nla", dtype="int32", default="None", description="number of atmospheric layers", ptype="ro"),
+    "number_oceanic_layers": dict(short="nlo", dtype="int32", default="None", description="number of oceanic layers", ptype="ro"),
+# timestepping
     "atmosphere_timestep": dict(short="dta", dtype="float64", default=180. | units.s, description="atmospheric timestep", ptype="simple"),
     "timestep_ratio": dict(short="nstr", dtype="int32", default=3, description="timestep ratio oceanic dt/ atmospheric dt", ptype="simple"),
 # Physical parameters
@@ -42,68 +47,22 @@ parameters={
     "radiation_perturbation": dict(short="fspamp", dtype="float64", default=80 | units.W/units.m**2 , description="Radiation perturbation magnitude (W m^-2) (i.e. peak-trough variation, always +ve)", ptype="simple"),
     "optical_depth": dict(short="zm", dtype="float64", default=200. | units.m , description="Optical depth in a.m.l.  (m)", ptype="simple"),
     "adiabatic_lapse_rate": dict(short="gamma", dtype="float64", default=0.01 | units.K /units.m , description="Adiabatic lapse rate", ptype="simple"),
+    "optical_depth": dict(short="zopt", dtype="float64", default=None | units.m, ptype="vector", description="Optical depth in layers",length="nla"),
+# Oceanic QG layer parameters
+    "ocean_viscosity" : dict(short="ah2oc", dtype="float64", default=None | units.m**2/units.s, ptype="vector", description="horizontal viscosity coefficient of ocean layers ",length="nlo"),
+    "ocean_biharmonic_viscosity" : dict(short="ah4oc", dtype="float64", default=None | units.m**4/units.s, ptype="vector", description="horizontal biharmonic viscosity coefficient of ocean layers",length="nlo"),
+    "ocean_potential_temperature" : dict(short="tabsoc", dtype="float64", default=None | units.K, ptype="vector", description="potential temperature of ocean layers",length="nlo"),
+    "ocean_layer_thickness" : dict(short="hoc", dtype="float64", default=None | units.m, ptype="vector", description="thickness of ocean layers",length="nlo"),
+    "ocean_reduced_gravity" : dict(short="gpoc", dtype="float64", default=None | units.m, ptype="vector", description="reduced gravity for ocean interfaces",length="nlo1"),
+# atmospheric QG layer parameters
+    "atmosphere_biharmonic_viscosity" : dict(short="ah4at", dtype="float64", default=None | units.m**4/units.s, ptype="vector", description="horizontal biharmonic viscosity coefficient of atm. layers",length="nla"),
+    "atmosphere_temperature" : dict(short="tabsat", dtype="float64", default=None | units.K, ptype="vector", description="temperature of atm. layers",length="nla"),
+    "atmosphere_layer_thickness" : dict(short="hat", dtype="float64", default=None | units.m, ptype="vector", description="thickness of atm. layers",length="nla"),
+    "atmosphere_reduced_gravity" : dict(short="gpat", dtype="float64", default=None | units.m, ptype="vector", description="reduced gravity for atmospheric  interfaces",length="nla1"),
     #~ "Name": dict(short="fname", dtype="float64", default= , description=" ", ptype="simple"),
 }    
-"""  
- 2.0d4  2.0d4  3.0d4        !! zopt(k) = Optical depth in layer k (m)
-!!
-!! Oceanic QG layer parameters
-!! ---------------------------
-  0.0d0    0.0d0    0.0d0   !! ah2oc(k)  = Del-sqd coefft for ocean layer k (m^2 s^-1)
-!5.0d+9   5.0d+9   5.0d+9   !! ah4oc(k)  = Del-4th coefft for ocean layer k (m^4 s^-1)
- 2.0d+9   2.0d+9   2.0d+9   !! ah4oc(k)  = Del-4th coefft for ocean layer k (m^4 s^-1)
- 287.0d0  282.0d0  276.0d0  !! tabsoc(k) = Potential temp. of ocean layer k (K)
- 350.0d0  750.0d0 2900.0d0  !! hoc(k)    = Thickness of ocean layer k (m)
-!! 0.0500d0  0.0250d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
-!! 0.0400d0  0.0200d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
-!! 0.0350d0  0.0175d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
-!! 0.0300d0  0.0150d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
-!! 0.0250d0  0.0125d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
-!! 0.0200d0  0.0100d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
- 0.0150d0  0.0075d0         !! gpoc(i)   = Reduced gravity for ocean interface i (m s^-2)
-!!
-!! Atmospheric QG layer parameters
-!! -------------------------------
- 1.5d+14  1.5d+14  1.5d+14  !! ah4at(k)  = Del-4th coefft for atmos. layer k (m^4 s^-1)
- 330.0d0  340.0d0  350.0d0  !! tabsat(k) = Temperature for atmos. layer k (K)
- 2000.d0  3000.d0  4000.d0  !! hat(k)    = Thickness of atmos. layer k (m)
- 1.2d0     0.4d0            !! gpat(i)   = Reduced gravity for atmos. interface i (m s^-2)
-"""
 
-_getter_string="""
-  function get_{0}(x) result(ret)
-    integer :: ret
-    {1} :: x
-    x={0}
-    ret=0
-  end function
-               """
-_setter_string="""
-  function set_{0}(x) result(ret)
-  integer :: ret
-    {1} :: x
-    {0}=x
-    ret=0
-  end function
-               """
-
-def parameter_getter_setters(filename="getter_setters.f90"):
-    filestring=""
-    py_to_f={"string" : "character(len=*) ", "float64" : "real*8", "float32" : "real", "int32" : "integer", "bool" : "logical"}
-    for par,d in parameters.iteritems():
-      if d["ptype"] in ["simple"]:
-        filestring+=_setter_string.format(d["short"],py_to_f[d["dtype"]])
-      if d["ptype"] in ["simple","getter"]:
-        filestring+=_getter_string.format(d["short"],py_to_f[d["dtype"]])
-    return filestring
-
-def generate_getters_setters(filename="getter_setters.f90"):
-    filestring=""
-    #~ filestring+=input_grid_string(_unstructured_input_grid_template)
-    #~ filestring+=input_grid_string(_regular_input_grid_template)
-    filestring+=parameter_getter_setters()
-    with open(filename,"w") as f:
-        f.write(filestring)
+code_generator=FortranCodeGenerator(parameters)
 
 class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
@@ -117,28 +76,37 @@ class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn
         return "q-gcm_worker_"+mode
 
     def __init__(self, **keyword_arguments):
-        mode=keyword_arguments["mode"]
+        mode=keyword_arguments.pop("mode", "ocean_only")
         CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **keyword_arguments)
         LiteratureReferencesMixIn.__init__(self)
 
-    for par,d in parameters.iteritems():
-        dtype=d["dtype"]
-        if hasattr(d["default"],"unit"):
-          unit=d["default"].unit.reference_string()
-        else:
-          unit="None"
-        short=d["short"]
-        ptype=d["ptype"]
-        exec("@legacy_function\ndef get_"+short+"():\n  function = LegacyFunctionSpecification()\n"
-            "  function.addParameter('"+short+"', dtype='"+dtype+"', direction=function.OUT, unit="+unit+")\n"
-            "  function.result_type = 'int32'\n  return function")
-        if ptype!="getter":
-          exec("@legacy_function\ndef set_"+short+"():\n  function = LegacyFunctionSpecification()\n"
-              "  function.addParameter('"+short+"', dtype='"+dtype+"', direction=function.IN, unit="+unit+")\n"
-              "  function.result_type = 'int32'\n  return function")
+    exec(code_generator.generate_interface_functions())
 
+    def get_nlo1(self):
+      result=self.get_nlo()
+      result["nlo1"]=result["nlo"]-1
+      return result
 
+    def get_nla1(self):
+      result=self.get_nla()
+      result["nla1"]=result["nla"]-1
+      return result
+      
+    
 class QGCM(InCodeComponentImplementation):
-    def __init__(self, mode="ocean_only", **options):
-        InCodeComponentImplementation.__init__(self,  QGCMInterface(mode=mode,**options), **options)
+    def __init__(self, **options):
+        InCodeComponentImplementation.__init__(self,  QGCMInterface(**options), **options)
+
+    def define_parameters(self, object):
+        code_generator.generate_parameter_definitions(object)
+
+    def define_state(self, object):
+        object.set_initial_state('UNINITIALIZED')
+        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+        #~ object.add_method('INITIALIZED', 'before_get_parameter')
+        object.add_method('INITIALIZED', 'before_set_parameter')
+        #~ object.add_method('END', 'before_get_parameter')
+        object.add_transition('!UNINITIALIZED!STOPPED', 'END', 'cleanup_code')
+        object.add_transition('END', 'STOPPED', 'stop', False)
+        object.add_method('STOPPED', 'stop')
 
