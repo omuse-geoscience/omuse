@@ -1,0 +1,96 @@
+--- ../adcirc/adcirc_v51_52_07/work/makefile	2016-08-17 15:59:37.896207738 +0200
++++ makefile	2016-08-17 17:22:07.167950827 +0200
+@@ -1,5 +1,5 @@
+ SHELL:=/bin/sh
+-SRCDIR?=..
++SRCDIR=./adcirc_src/
+ #
+ #  Makefile to Build PADCIRC and its pre-processor 
+ #  University of Texas's parallel version of the Hydrodynamics
+@@ -17,7 +17,7 @@
+ #
+ $(warning (INFO) Guessing the type of platform ADCIRC will run on...)
+ 
+-NAME     := $(shell ./config.guess)
++NAME     := $(shell $(SRCDIR)/work/config.guess)
+ LIST     := $(subst -, ,$(NAME))
+ MACHINE  := $(word 1, $(LIST))
+ VENDOR   := $(word 2, $(LIST))
+@@ -27,9 +27,9 @@
+ 
+ PARALLEL_ADCIRC   := padcirc
+ $(warning (INFO) Name is $(NAME), Machine is $(MACHINE), Vendor is $(VENDOR), and OS is $(OS).)
+-include cmplrflags.mk
++include $(SRCDIR)/work/cmplrflags.mk
+ #Casey 090302: Include variables/flags from SWAN.
+-include ../swan/macros.inc
++include $(SRCDIR)/swan/macros.inc
+ 
+ ifneq ($(compiler),)
+ $(warning (INFO) The compiler variable in cmplrflags.mk is set to $(compiler).)
+@@ -181,6 +181,17 @@
+   endif
+   MSG_MOBJ:= $(O_DIR)messenger.o $(O_DIR)writer.o
+ endif
++#                                    libamuse_adcirc.a
++ifeq ($(BUILDTYPE),amuse) 
++  CF:= $(FC)
++  O_DIR:=odir3/
++  FFLAGS:= -g $(FFLAGS3) -DAMUSE $(DA) $(IMODS) $(O_DIR)
++  VPATH := $(SRCDIR):$(SRCDIR)/src:$(SRCDIR)/KDTREE2:$(SRCDIR)/wind:$(SRCDIR):$(SRCDIR)/prep 
++  ifeq ($(NETCDF),enable)
++    LIBS  := -L$(NETCDFHOME)/lib -lnetcdf $(FLIBS)
++  endif
++  MSG_MOBJ:= $(O_DIR)globalio.o
++endif
+ #                                      p15
+ ifeq ($(BUILDTYPE),p15)
+   CF:= $(PPFC)
+@@ -396,6 +407,9 @@
+ $(O_DIR)%.o  : %.F
+ 	$(CF) -c $(FFLAGS) -o $@  $<
+ 	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
++%.o  : %.F90
++	$(CF) -c $(filter-out $(FSO), $(FFLAGS) ) -o $@  $<
++	if [ "`echo *.mod`" != '*.mod' ]; then mv *.mod $(O_DIR); fi
+ 
+ # Casey 080106: Added the following rules for the unstructured SWAN.
+ $(O_DIR)%.o  : %.f
+@@ -512,6 +526,11 @@
+ 	ar $(ARFLAGS) $@  $(ADC_MOBJ) $(MSG_MOBJ) $(NA_MOBJ) $(GIO_MOBJ) $(AGIO_MOBJ) $(KDTREE_MOBJ) $(ADC_OBJ)
+ 	ar -ts $@
+ 
++   libamuse_adcirc.a :: $(O_DIR) $(ADC_MOBJ) $(MSG_MOBJ) $(NA_MOBJ) $(GIO_MOBJ) $(AGIO_MOBJ) $(KDTREE_MOBJ) $(filter-out $(O_DIR)mkdir.o, $(ADC_OBJ)) 
++	ar $(ARFLAGS) $@  $(filter-out $(O_DIR)driver.o , $(wildcard $(O_DIR)*.o)) 
++	ar -ts $@
++
++
+ #Casey 080106: Added the following lines.
+    adcswan :: $(O_DIR)
+ ifeq ($(NETCDF),enable)
+@@ -563,12 +582,12 @@
+ ########################## Misc Commands ####################################
+ 
+ clean:
+-	rm -f odir*/*.o  odir*/*.mod sizes.o
++	rm -f odir*/*.o  sizes.o  *.o libamuse_adcirc.a
+ 	rm -f  ../swan/*.f ../swan/*.for ../swan/*.f90
+ clobber:
+-	rm -r -f odir* 
++	rm -r -f odir* actualflags.txt
+ 	rm -f adcprep adcprep_be adcirc $(PARALLEL_ADCIRC) adcswan padcswan p15 owi22 build13 aswip \
+-           build12 buildstwave23 hot2asc inflate hstime sizes.o adcpost adccmp
++           build12 buildstwave23 hot2asc inflate hstime sizes.o adcpost adccmp libamuse_adcirc.a
+ 	rm -f  ../swan/*.f ../swan/*.for ../swan/*.f90
+ help:
+ 	@echo "This makefile supports the following:"
+@@ -607,6 +626,9 @@
+ 	  @echo "To cvs tag do: make cvstag TAG=V?_?"
+ 	endif
+ 
++# amuse module
++
++amuse_adcirc.o:  amuse_adcirc.F90
+ 
+ 
+ ########################## Defining the DAG  #################################

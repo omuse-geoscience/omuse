@@ -25,8 +25,8 @@ community/swan/src/amuse_swan.f90
 community/adcirc/fort.*
 community/adcirc/adcirc_worker
 community/adcirc/worker_code.f90
+community/adcirc/adcirc/adcirc*
 community/dales/dales-build/*
-
 syntax: glob
 ext/eddy_tracker/**.png
 community/pop/*.dat
