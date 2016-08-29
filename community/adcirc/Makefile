@@ -37,16 +37,23 @@ adcirc_worker: worker_code.f90 interface.o src/amuse_adcirc.o src/libamuse_adcir
 	$(MPIFC) $(FCFLAGS) $(SC_FLAGS) $(FS_FLAGS) $^ -o $@  $(LIBS) $(SC_FCLIBS) $(FS_LIBS)
 
 prep:
-	make -C src/ -f makefile_prep
+	make -C src/ -f makefile_prep patched_source
 
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c -o $@ $<
 
 clean:
-	make -C src/ clean
+	-make -C src/ clean
 	rm -f *.pyc *.mod
 	rm -f interface.o adcirc_worker.f90 worker_code.f90
 	rm -f adcirc_worker 
 
 distclean: clean
-	make -C src/ LIBADC=libadcirc.a clobber
+	-make -C src/ LIBADC=libadcirc.a clobber
+	make -C src/ -f makefile_prep distclean
+	
+download:
+	make -C src/ -f makefile_prep download
+	
+update:
+	make -C src/ -f makefile_prep update
