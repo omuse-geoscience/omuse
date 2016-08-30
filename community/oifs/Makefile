@@ -12,23 +12,22 @@ OIFSDIR=oifs40r1
 OIFSPATH=$(CURDIR)/$(OIFSDIR)
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
+OIFS_COMP = gnu
+OIFS_BUILD = opt
+OIFS_GRIB_API_DIR = /usr/local/
+OIFS_GRIB_API_LIB = -L/usr/local/lib -lgrib_api_f90 -lgrib_api
+OIFS_LAPACK_LIB = -L/usr/lib -llapack -lblas
 
 all: oifs
 
 update: oifs
 	cd $(OIFSDIR); git pull
 
+#       For some reason ssh access to the oifs repo doesn't work for me...
+#	git clone ssh://git@software.ecmwf.int:7999/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
 oifs:
-	git clone ssh://git@software.ecmwf.int:7999/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
-	cd $(OIFSDIR)
-	export OIFS_COMP=gnu
-	export OIFS_BUILD=opt
-	export OIFS_GRIB_API_DIR="/usr/local/"
-	export OIFS_GRIB_API_LIB="-L/usr/local/lib -lgrib_api_f90 -lgrib_api"
-	export OIFS_LAPACK_LIB="-L/usr/lib -llapack -lblas"
-	export PATH=$(PATH):$(OIFSPATH)/fcm/bin:$(OIFS_GRIB_API_DIR)/bin
-	cd $(OIFSDIR)
-	fcm make -v -j4 -f make/oifs.cfg
+	git clone https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
+	./$(OIFSDIR)/fcm/bin/fcm make -v -j4 -f $(OIFSDIR)/make/oifs.cfg
 
 #TODO: Clean oifs directory
 clean:
