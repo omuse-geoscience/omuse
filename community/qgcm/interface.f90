@@ -7,6 +7,9 @@ include "getter_setters.f90"
 
 function initialize_code() result(ret)
   integer :: ret
+  
+  call amuse_initialize
+  
   ret=0
 end function
 function commit_parameters() result(ret)
