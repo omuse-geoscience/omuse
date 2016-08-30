@@ -24,10 +24,11 @@ q-gcm_worker: ${TARGETS}
 q-gcm_%: % ;
 
 FFLAGS ?= -g -O2
-FFLAGS2=$(FFLAGS) -80 -fpp -std90
+FFLAGS2=$(FFLAGS) $(NETCDFF_FLAGS) -80 -fpp -std90
+LIBS+=$(NETCDFF_LIBS)
 
-q-gcm_worker_%: worker_code.f90 $(BUILDDIR)_%/libq-gcm.a interface_%.o 
-	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR)_$* -o $@ $< interface_$*.o $(BUILDDIR)_$*/libq-gcm.a $(LIBS) $(SC_FCLIBS) $(FS_LIBS)  $(LIBS)
+q-gcm_worker_%: worker_code.f90 $(BUILDDIR)_%/libq-gcm.a $(BUILDDIR)_%/q-gcm_utility.o $(BUILDDIR)_%/amuse_q-gcm.o interface_%.o 
+	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR)_$* -o $@ $< interface_$*.o $(BUILDDIR)_$*/amuse_q-gcm.o $(BUILDDIR)_$*/q-gcm_utility.o $(BUILDDIR)_$*/libq-gcm.a $(LIBS) $(SC_FCLIBS) $(FS_LIBS) $(LIBS)
  
 interface_%.o: interface.f90 getter_setters.f90	Makefile $(BUILDDIR)_%/amuse_q-gcm.o
 	$(MPIFC) $(FFLAGS) -I$(BUILDDIR)_$*  -c -o $@ $< 
@@ -49,11 +50,11 @@ $(BUILDDIR)_%/parameters_data.F: %_parameters_data.F | $(BUILDDIR)_%
 	cp $*_parameters_data.F $@
 
 $(BUILDDIR)_%/q-gcm: $(BUILDDIR)_%/Makefile $(BUILDDIR)_%/parameters_data.F 
-	make -C $(BUILDDIR)_$* q-gcm FC="$(FC)" FFLAGS="$(FFLAGS2)"
+	make -C $(BUILDDIR)_$* q-gcm FC="$(FC)" FFLAGS="$(FFLAGS2)" NETCDFF_PREFIX="$(NETCDFF_PREFIX)"
 
 $(BUILDDIR)_%/libq-gcm.a: $(BUILDDIR)_%/q-gcm $(BUILDDIR)_%/lib ;
 
-$(BUILDDIR)_%/lib: OBJS=$(filter-out  q-gcm.o,$(shell ls $(BUILDDIR)_$*/*.o ))
+$(BUILDDIR)_%/lib: OBJS=$(filter-out  $(BUILDDIR)_$*/q-gcm.o,$(shell ls $(BUILDDIR)_$*/*.o ))
 $(BUILDDIR)_%/lib: 
 #~ $(BUILDDIR)_%/libq-gcm.a: OBJS=$(shell ls $(BUILDDIR)_%/*.o )
 	ar crs $(BUILDDIR)_$*/libq-gcm.a $(OBJS)
@@ -62,8 +63,15 @@ $(BUILDDIR)_%/amuse_q-gcm.o: src/amuse_q-gcm.F $(BUILDDIR)_%/make.config $(BUILD
 ifeq ($(MAKEFILE_OPTIONS_FILE), )
 	make -C . $@ MAKEFILE_OPTIONS_FILE=$(BUILDDIR)_$*/make.config
 else
-	$(FC) $(FFLAGS2) $(QGOPTS) -I$(BUILDDIR)_$* -c -o $@ $< 
+	$(FC) $(FFLAGS2) $(QGOPTS) -I$(BUILDDIR)_$* $(NETCDFF_FLAGS) -c -o $@ $<
 endif  
+
+$(BUILDDIR)_%/q-gcm_utility.o: src/q-gcm_utility.F $(BUILDDIR)_%/make.config $(BUILDDIR)_%/libq-gcm.a
+ifeq ($(MAKEFILE_OPTIONS_FILE), )
+	make -C . $@ MAKEFILE_OPTIONS_FILE=$(BUILDDIR)_$*/make.config
+else
+	$(FC) $(FFLAGS2) $(QGOPTS) -I$(BUILDDIR)_$* $(NETCDFF_FLAGS) -c -o $@ $<
+endif
 
 worker_code.f90: interface.py $(AMUSE_INTERFACE_DEPS)
 	$(CODE_GENERATOR) --type=f90 --needs-mpi=false $< QGCMInterface -o $@
@@ -84,8 +92,8 @@ download: src/q-gcm
 
 clean:
 	-rm -Rf $(BUILDDIR)_*
-	-rm worker_code.f90 getter_setters.f90
-	-rm -f interface.o q-gcm_worker* *.mod
+	-rm -f worker_code.f90 getter_setters.f90
+	-rm -f interface*.o q-gcm_worker* *.mod
 
 distclean: clean
 	-rm -Rf src/q-gcm
