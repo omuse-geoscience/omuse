@@ -56,7 +56,7 @@
 
 *
 *     Local parameters
-      character (len=*), parameter :: subnam = 'q-gcm_main'
+      character (len=*), parameter :: subnam = 'amuse_q-gcm'
 *     Define I/O unit numbers:
 *     ipunit is for input.params
 *     odunit is for output directory
