@@ -1152,7 +1152,8 @@ c   atmospheric mixed layer thickness
       end subroutine init_grids
 
 
-      subroutine mainloop
+      subroutine mainloop(nsteps0, nsteps)
+      integer nsteps0, nsteps
 
 ****************    START OF MAIN TIMESTEPPING LOOP     ****************
 
