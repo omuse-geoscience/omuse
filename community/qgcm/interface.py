@@ -60,6 +60,10 @@ parameters={
     "atmosphere_layer_thickness" : dict(short="hat", dtype="float64", default=None | units.m, ptype="vector", description="thickness of atm. layers",length="nla"),
     "atmosphere_reduced_gravity" : dict(short="gpat", dtype="float64", default=None | units.m, ptype="vector", description="reduced gravity for atmospheric  interfaces",length="nla1"),
     #~ "Name": dict(short="fname", dtype="float64", default= , description=" ", ptype="simple"),
+# other parameters
+    "output_directory" : dict(short="outdir", dtype="string", default="outdata", ptype="simple", description="output directory"),
+    "ocean_topography_option" : dict(short="topocname", dtype="string", default="flat", ptype="simple", description="ocean topography option: flat, extant(=set in interface) or filename"),
+    "atmosphere_topography_option" : dict(short="topatname", dtype="string", default="flat", ptype="simple", description="atm. topography option: flat, extant(=set in interface) or filename"),
 }    
 
 code_generator=FortranCodeGenerator(parameters)
@@ -82,6 +86,18 @@ class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn
 
     exec(code_generator.generate_interface_functions())
 
+    @remote_function
+    def commit_grids():
+      returns ()
+
+    @remote_function
+    def get_model_time():
+      returns (model_time = 0. | units.day)
+
+    @remote_function
+    def evolve_model(tend = 0. | units.day):
+      returns ()
+
     def get_nlo1(self):
       result=self.get_nlo()
       result["nlo1"]=result["nlo"]-1
@@ -100,13 +116,19 @@ class QGCM(InCodeComponentImplementation):
     def define_parameters(self, object):
         code_generator.generate_parameter_definitions(object)
 
+    def define_properties(self, object):
+        object.add_property('get_time', public_name = "model_time")
+
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
         object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
+        object.add_transition('INITIALIZED', 'EDIT', 'commit_parameters')
+        object.add_transition('EDIT', 'RUN', 'commit_grids')
+        object.add_transition('RUN', 'EVOLVED', 'evolve_model')
         #~ object.add_method('INITIALIZED', 'before_get_parameter')
         object.add_method('INITIALIZED', 'before_set_parameter')
         #~ object.add_method('END', 'before_get_parameter')
-        object.add_transition('!UNINITIALIZED!STOPPED', 'END', 'cleanup_code')
+        object.add_transition('!UNINITIALIZED!STOPPED!INITIALIZED!PARAM', 'END', 'cleanup_code')
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
 

@@ -7,7 +7,7 @@
 !!
 !! Timing parameters
 !! -----------------
-trun=1.
+trun=1./365.          !! timestep in "years" 
 dta= 180.0D0          !! dta     = Atmos. timestep in seconds
 nstr= 3               !! nstr    = Timestep ratio dto/dta
 !!
@@ -21,7 +21,7 @@ rhooc= 1.0d3           !! rhooc   = Oceanic density     (kg m^-3)
 cpat= 1.0d3           !! cpat    = Atmos. specific heat capacity (J kg^-1 K^-1)
 cpoc= 4.0d3           !! cpoc    = Ocean  specific heat capacity (J kg^-1 K^-1)
 bccoat= 1.0d0           !! bccoat  = Mixed BC coefficient for atmos. (nondim.)
-bccoc= 0.20d0          !! bccooc  = Mixed BC coefficient for ocean  (nondim.)
+bccooc= 0.20d0          !! bccooc  = Mixed BC coefficient for ocean  (nondim.)
 xcexp= 1.0d0           !! xcexp   = coupling coefficient x
 ycexp= 1.0d0           !! ycexp   = coupling coefficient y
 !!
@@ -32,7 +32,7 @@ odiday= 5.00d0          !! odiday  = Ocean  data dump interval  (days)
 adiday= 5.00d0          !! adiday  = Atmos. data dump interval  (days)
 dgnday= 1.00d0          !! dgnday  = Diagnostics data dump interval (days)
 prtday= 5.00d0          !! prtday  = Print to std output interval (days)
-resday= 0.0d0           !! resday  = Restart dump interval  (days) (zero => off)
+resday= 5.0d0           !! resday  = Restart dump interval  (days) (zero => off)
 nsko= 2               !! nsko    = Subsampling interval for ocean output
 nska= 1               !! nska    = Subsampling interval for atmos. output
 dtavat= 0.25d0          !! dtavat  = Atmos. averaging interval (days) (zero => off)
@@ -80,6 +80,7 @@ gpat=(/ 1.2d0 ,    0.4d0 /)           !! gpat(i)   = Reduced gravity for atmos. 
 !! --------------------------------
 !! Initial state. Options are: zero, rbal or the name of a restart file
 name="zero"
+outdir="./outdata"
 !!./lastday.nc
 !! Ocean  topography. Options are: flat, define or the name of a file
 topocname="flat"
