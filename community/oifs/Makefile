@@ -26,7 +26,7 @@ update: oifs
 #       For some reason ssh access to the oifs repo doesn't work for me...
 #	git clone ssh://git@software.ecmwf.int:7999/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
 oifs:
-	git clone https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
+	git clone -b feature/crm https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
 	./$(OIFSDIR)/fcm/bin/fcm make -v -j4 -f $(OIFSDIR)/make/oifs.cfg
 
 #TODO: Clean oifs directory
