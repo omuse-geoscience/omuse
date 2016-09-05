@@ -128,7 +128,10 @@ class QGCM(InCodeComponentImplementation):
         #~ object.add_method('INITIALIZED', 'before_get_parameter')
         object.add_method('INITIALIZED', 'before_set_parameter')
         #~ object.add_method('END', 'before_get_parameter')
-        object.add_transition('!UNINITIALIZED!STOPPED!INITIALIZED!PARAM', 'END', 'cleanup_code')
+        object.add_transition('!UNINITIALIZED!STOPPED!INITIALIZED!EDIT', 'END', 'cleanup_code')
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
+        object.add_method('EVOLVED', 'evolve_model')
+
+
 
