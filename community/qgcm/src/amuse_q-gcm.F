@@ -1204,7 +1204,8 @@ c   atmospheric mixed layer thickness
 #endif
 
 *       Timestep done; do checking and diagnostics as necessary
-        ntdone = nt - nsteps0
+        ntdone=ntdone+1
+!        ntdone = nt - nsteps0
         tday = nt*dta/secday
         tyrs = nt*dta/secsyr
 

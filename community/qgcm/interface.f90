@@ -40,10 +40,18 @@ end function
 
 function evolve_model(tend) result(ret)
   integer :: ret
-  real*8 :: tend
-  
-  call mainloop(nsteps0, nsteps)
-  
+  real*8 :: tend,tnow
+
+  tnow=ntdone*dta/secday
+  if(tnow.LT.tend) then
+    ! calc number of timesteps, ensuring always a ocean step
+    nsteps=nsteps0+nstr*ceiling( secday*(tend-tnow)/(nstr*dta) )
+    print*, nt, nsteps0,nsteps
+    call mainloop(nsteps0, nsteps)
+    nsteps0=nsteps
+    print*, nt, nsteps0,nsteps,tday,ntdone
+    print*,"timestep done"
+  endif
   ret=0  
 end function
 
@@ -51,9 +59,7 @@ function commit_parameters() result(ret)
   integer :: ret
   
   call check_parameters()
-  
-  tnow=nsteps0
-  
+    
   ret=0
 end function
 
