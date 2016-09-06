@@ -1,5 +1,5 @@
 module qgcm_interface
-  use amuse_qgcm
+  use omuse_qgcm
 
   double precision :: begin_time=0.
 
@@ -23,7 +23,7 @@ end function
 function initialize_code() result(ret)
   integer :: ret
   
-  call amuse_initialize
+  call omuse_initialize
 
   call parameter_defaults
   

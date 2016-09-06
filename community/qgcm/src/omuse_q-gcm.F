@@ -1,4 +1,4 @@
-      module amuse_qgcm
+      module omuse_qgcm
       
       USE parameters
       USE atconst
@@ -56,7 +56,7 @@
 
 *
 *     Local parameters
-      character (len=*), parameter :: subnam = 'amuse_q-gcm'
+      character (len=*), parameter :: subnam = 'omuse_q-gcm'
 *     Define I/O unit numbers:
 *     ipunit is for input.params
 *     odunit is for output directory
@@ -107,7 +107,7 @@
 
       contains
 
-      subroutine amuse_initialize()
+      subroutine omuse_initialize()
       
       print *,' '
       write(*,*) ' Computational parameters:'
@@ -165,7 +165,7 @@
 !!$OMP END PARALLEL DO
 
 *     Read input parameters via included file
-*     skipped for AMUSE
+*     skipped for OMUSE
 *      INCLUDE './in_param.f'
 
 *     Specify configuration being used
@@ -209,7 +209,7 @@
       tauudiff = 0
 #endif
 
-      end subroutine amuse_initialize
+      end subroutine omuse_initialize
       
       subroutine check_parameters
 
