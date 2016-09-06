@@ -1,7 +1,10 @@
 module qgcm_interface
   use omuse_qgcm
 
-  double precision :: begin_time=0.
+  real*8 :: begin_time=0.
+
+  real*8 :: dpo_dt(nxpo,nypo,nlo) ! auxiliary for pom
+  real*8 :: dpa_dt(nxpa,nypa,nla) ! auxiliary for pom
 
 contains
 
