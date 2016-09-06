@@ -5,6 +5,7 @@ from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
+from amuse.datamodel import CartesianGrid
 
 from fortran_tools import FortranCodeGenerator
 
@@ -16,6 +17,8 @@ parameters={
 # grid parameters
     "number_atmospheric_layers": dict(short="nla", dtype="int32", default="None", description="number of atmospheric layers", ptype="ro"),
     "number_oceanic_layers": dict(short="nlo", dtype="int32", default="None", description="number of oceanic layers", ptype="ro"),
+    "number_ocean_grid_points_x" : dict(short="nxpo", dtype="int32", default="None", description="number of oceanic grid points in x direction", ptype="ro"),
+    "number_ocean_grid_points_y" : dict(short="nypo", dtype="int32", default="None", description="number of oceanic grid points in y direction", ptype="ro"),
 # timestepping
     "atmosphere_timestep": dict(short="dta", dtype="float64", default=180. | units.s, description="atmospheric timestep", ptype="simple"),
     "timestep_ratio": dict(short="nstr", dtype="int32", default=3, description="timestep ratio oceanic dt/ atmospheric dt", ptype="simple"),
@@ -66,7 +69,15 @@ parameters={
     "atmosphere_topography_option" : dict(short="topatname", dtype="string", default="flat", ptype="simple", description="atm. topography option: flat, extant(=set in interface) or filename"),
 }    
 
-code_generator=FortranCodeGenerator(parameters)
+ocean_grid_variables={
+    "ocean_dynamic_pressure" : dict(pyvar=["pressure"], forvar=["po"], ndim=3, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpo"),(1,"nypo"),(1,"nlo")]),
+    "ocean_dynamic_pressure_tendency" : dict(pyvar=["dpressure_dt"], forvar=["dpo_dt"], ndim=3, unit=units.m**2/units.s**3, index_ranges=[(1,"nxpo"),(1,"nypo"),(1,"nlo")]),
+    "ocean_vorticity" : dict(pyvar=["vorticity"], forvar=["qo"], ndim=3, unit=1/units.s, index_ranges=[(1,"nxpo"),(1,"nypo"),(1,"nlo")], vartype="ro"),
+}
+
+
+
+code_generator=FortranCodeGenerator(parameters, ocean_grid_variables)
 
 class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
@@ -113,6 +124,16 @@ class QGCM(InCodeComponentImplementation):
     def __init__(self, **options):
         InCodeComponentImplementation.__init__(self,  QGCMInterface(**options), **options)
 
+    def get_ocean_p_grid_range(self):
+        return 1,self.get_nxpo(),1,self.get_nypo()
+
+    def get_ocean_p_grid_position(self,i,j):
+        dxo=self.get_dxo()
+        return dxo*(i-1),dxo*(j-1)
+        
+    def get_nlo_range(self):
+        return 1, self.get_nlo()
+
     def define_parameters(self, object):
         code_generator.generate_parameter_definitions(object)
 
@@ -133,5 +154,32 @@ class QGCM(InCodeComponentImplementation):
         object.add_method('STOPPED', 'stop')
         object.add_method('EVOLVED', 'evolve_model')
 
+        for state in ['RUN','EVOLVED']:
+            object.add_method(state, 'before_new_set_instance')
 
+
+
+    def define_grids(self, object):
+        #~ code_generator.generate_grid_definitions(object)
+        
+        # ocean dynamic variables p-grid: po, dpo_dt, vorticity
+        object.define_grid('ocean_p_grid',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('ocean_p_grid', 'get_ocean_p_grid_range')
+        object.add_getter('ocean_p_grid', 'get_ocean_p_grid_position', names="xy")
+
+        object.add_gridded_getter('ocean_p_grid', 'get_po', "get_nlo_range", names=["pressure"])
+        object.add_gridded_setter('ocean_p_grid', 'get_po', "get_nlo_range", names=["pressure"])
+        object.add_gridded_getter('ocean_p_grid', 'get_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
+        object.add_gridded_setter('ocean_p_grid', 'get_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
+        object.add_gridded_getter('ocean_p_grid', 'get_qo', "get_nlo_range", names=["vorticity"])
+        object.add_getter('ocean_p_grid', 'get_dtopoc', "get_nlo_range", names=["vorticity"])
+        
+        
+    def commit_parameters(self):
+        self.overridden().commit_parameters()
+        handler=self.get_handler("DATASETS")
+        self.define_additional_grid_attributes(handler)
+
+    def define_additional_grid_attributes(self,object):
+        pass
 
