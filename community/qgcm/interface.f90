@@ -3,9 +3,6 @@ module qgcm_interface
 
   real*8 :: begin_time=0.
 
-  real*8 :: dpo_dt(nxpo,nypo,nlo) ! auxiliary for pom
-  real*8 :: dpa_dt(nxpa,nypa,nla) ! auxiliary for pom
-
 contains
 
 include "getter_setters.f90"
@@ -33,13 +30,30 @@ function initialize_code() result(ret)
   ret=0
 end function
 
-function commit_grids() result(ret)
+function initialize_grids() result(ret)
   integer :: ret
   
   call init_grids()
   
   ret=0
 end function
+
+function commit_grids() result(ret)
+  integer :: ret
+    
+  if(oceanonly.NE.1) then 
+    pam=pa-dpa_dt*dta
+    astm=ast-dast_dt*dta
+    hmixam=hmixa-dhmixa_dt*dta
+  endif
+  if(atmosonly.NE.1) then
+    pom=po-dpo_dt*dto
+    sstm=sst-dsst_dt*dto
+  endif    
+    
+  ret=0
+end function
+
 
 function evolve_model(tend) result(ret)
   integer :: ret
@@ -55,6 +69,17 @@ function evolve_model(tend) result(ret)
     print*, nt, nsteps0,nsteps,tday,ntdone
     print*,"timestep done"
   endif
+
+  if(oceanonly.NE.1) then 
+    dpa_dt=(pa-pam)/dta
+    dast_dt=(ast-astm)/dta
+    dhmixa_dt=(hmixa-hmixam)/dta
+  endif
+  if(atmosonly.NE.1) then
+    dpo_dt=(po-pom)/dto
+    dsst_dt=(sst-sstm)/dto
+  endif
+  
   ret=0  
 end function
 
