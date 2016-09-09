@@ -105,9 +105,41 @@
 !$   &        numthr,OMP_GET_NUM_THREADS,thrnum,OMP_GET_THREAD_NUM
 !$    logical dynadj,OMP_GET_DYNAMIC,nested,OMP_GET_NESTED
 
+! auxiliary omuse variables
+#ifndef atmos_only
+      real*8 :: dpo_dt(nxpo,nypo,nlo) ! auxiliary for pom
+#endif
+#ifndef ocean_only
+      real*8 :: dpa_dt(nxpa,nypa,nla) ! auxiliary for pam
+#endif
+      real*8 :: dsst_dt(nxto,nyto) ! auxiliary for sstm
+      real*8 :: dhmixa_dt(nxta,nyta) ! auxiliary for hmixa
+      real*8 :: dast_dt(nxta,nyta) ! auxiliary for ast
+
+#ifdef ocean_only
+      real*8 :: pa(1,1,1) ! dummies because interface.f90 expects them 
+      real*8 :: pam(1,1,1)
+      real*8 :: qa(1,1,1) ! 
+      real*8 :: dpa_dt(1,1,1) 
+
+#endif       
+#ifdef atmos_only
+      real*8 :: po(1,1,1) ! 
+      real*8 :: pom(1,1,1) ! 
+      real*8 :: qo(1,1,1) ! 
+      real*8 :: dpo_dt(1,1,1) !
+#endif       
+
+
       contains
 
       subroutine omuse_initialize()
+            
+      call initialize()
+      
+      end subroutine
+      
+      subroutine initialize()
       
       print *,' '
       write(*,*) ' Computational parameters:'
@@ -209,7 +241,7 @@
       tauudiff = 0
 #endif
 
-      end subroutine omuse_initialize
+      end subroutine initialize
       
       subroutine check_parameters
 

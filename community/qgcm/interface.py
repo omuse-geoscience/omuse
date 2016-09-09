@@ -19,6 +19,9 @@ parameters={
     "number_oceanic_layers": dict(short="nlo", dtype="int32", default="None", description="number of oceanic layers", ptype="ro"),
     "number_ocean_grid_points_x" : dict(short="nxpo", dtype="int32", default="None", description="number of oceanic grid points in x direction", ptype="ro"),
     "number_ocean_grid_points_y" : dict(short="nypo", dtype="int32", default="None", description="number of oceanic grid points in y direction", ptype="ro"),
+    "number_atmosphere_grid_points_x" : dict(short="nxpa", dtype="int32", default="None", description="number of atm. grid points in x direction", ptype="ro"),
+    "number_atmosphere_grid_points_y" : dict(short="nypa", dtype="int32", default="None", description="number of atm, grid points in y direction", ptype="ro"),
+
 # timestepping
     "atmosphere_timestep": dict(short="dta", dtype="float64", default=180. | units.s, description="atmospheric timestep", ptype="simple"),
     "timestep_ratio": dict(short="nstr", dtype="int32", default=3, description="timestep ratio oceanic dt/ atmospheric dt", ptype="simple"),
@@ -69,15 +72,28 @@ parameters={
     "atmosphere_topography_option" : dict(short="topatname", dtype="string", default="flat", ptype="simple", description="atm. topography option: flat, extant(=set in interface) or filename"),
 }    
 
-ocean_grid_variables={
+grid_variables={
     "ocean_dynamic_pressure" : dict(pyvar=["pressure"], forvar=["po"], ndim=3, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpo"),(1,"nypo"),(1,"nlo")]),
     "ocean_dynamic_pressure_tendency" : dict(pyvar=["dpressure_dt"], forvar=["dpo_dt"], ndim=3, unit=units.m**2/units.s**3, index_ranges=[(1,"nxpo"),(1,"nypo"),(1,"nlo")]),
     "ocean_vorticity" : dict(pyvar=["vorticity"], forvar=["qo"], ndim=3, unit=1/units.s, index_ranges=[(1,"nxpo"),(1,"nypo"),(1,"nlo")], vartype="ro"),
+    "ocean_topography" : dict(pyvar=["topography"], forvar=["dtopoc"], ndim=2, unit=units.m, index_ranges=[(1,"nxpo"),(1,"nypo")]),
+    "ocean_wind_stress" : dict(pyvar=["tau_x","tau_y"], forvar=["tauxo","tauyo"], ndim=2, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpo"),(1,"nypo")]),
+    "ocean_surface_heat_flux" : dict(pyvar=["surface_heat_flux"], forvar=["fnetoc"], ndim=2, unit=units.W/units.m**2, index_ranges=[(1,"nxto"),(1,"nyto")]),
+    "ocean_surface_temperature_anomaly" : dict(pyvar=["surface_temperature_anomaly"], forvar=["sst"], ndim=2, unit=units.C, index_ranges=[(1,"nxto"),(1,"nyto")]),
+    "ocean_surface_temperature_anomaly_tendency" : dict(pyvar=["dsurface_temperature_dt"], forvar=["dsst_dt"], ndim=2, unit=units.C/units.s, index_ranges=[(1,"nxto"),(1,"nyto")]),
+    "atmosphere_dynamic_pressure" : dict(pyvar=["pressure"], forvar=["pa"], ndim=3, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpa"),(1,"nypa"),(1,"nla")]),
+    "atmosphere_dynamic_pressure_tendency" : dict(pyvar=["dpressure_dt"], forvar=["dpa_dt"], ndim=3, unit=units.m**2/units.s**3, index_ranges=[(1,"nxpa"),(1,"nypa"),(1,"nla")]),
+    "atmosphere_vorticity" : dict(pyvar=["vorticity"], forvar=["qa"], ndim=3, unit=1/units.s, index_ranges=[(1,"nxpa"),(1,"nypa"),(1,"nla")], vartype="ro"),
+    "atmosphere_surface_temperature_anomaly" : dict(pyvar=["surface_temperature_anomaly"], forvar=["ast"], ndim=2, unit=units.C, index_ranges=[(1,"nxta"),(1,"nyta")]),
+    "atmosphere_surface_temperature_anomaly_tendency" : dict(pyvar=["dsurface_temperature_dt"], forvar=["dast_dt"], ndim=2, unit=units.C/units.s, index_ranges=[(1,"nxta"),(1,"nyta")]),
+    "atmosphere_mixed_layer_depth" : dict(pyvar=["mixed_layer_depth"], forvar=["hmixa"], ndim=2, unit=units.m, index_ranges=[(1,"nxta"),(1,"nyta")], vartype="ro"),
+    "atmosphere_mixed_layer_depth_tendency" : dict(pyvar=["dmixed_layer_depth_dt"], forvar=["dhmixa_dt"], ndim=2, unit=units.m/units.s, index_ranges=[(1,"nxta"),(1,"nyta")], vartype="ro"),
+
 }
 
 
 
-code_generator=FortranCodeGenerator(parameters, ocean_grid_variables)
+code_generator=FortranCodeGenerator(parameters, grid_variables)
 
 class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn):
     """
@@ -99,6 +115,10 @@ class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn
 
     @remote_function
     def commit_grids():
+      returns ()
+
+    @remote_function
+    def initialize_grids():
       returns ()
 
     @remote_function
@@ -124,13 +144,24 @@ class QGCM(InCodeComponentImplementation):
     def __init__(self, **options):
         InCodeComponentImplementation.__init__(self,  QGCMInterface(**options), **options)
 
-    def get_ocean_p_grid_range(self):
+    def get_ocean_P_grid_range(self):
         return 1,self.get_nxpo(),1,self.get_nypo()
+    def get_ocean_T_grid_range(self):
+        return 1,self.get_nxpo()-1,1,self.get_nypo()-1
+    def get_atmosphere_T_grid_range(self):
+        return 1,self.get_nxpa()-1,1,self.get_nypa()-1
 
-    def get_ocean_p_grid_position(self,i,j):
+    def get_ocean_P_grid_position(self,i,j):
         dxo=self.get_dxo()
         return dxo*(i-1),dxo*(j-1)
-        
+    def get_ocean_T_grid_position(self,i,j):
+        dxo=self.get_dxo()
+        return dxo*(i-0.5),dxo*(j-0.5)
+# fix offset!
+    def get_atmosphere_T_grid_position(self,i,j):
+        dxa=self.get_dxa()
+        return dxa*(i-0.5),dxa*(j-0.5)
+
     def get_nlo_range(self):
         return 1, self.get_nlo()
 
@@ -143,13 +174,14 @@ class QGCM(InCodeComponentImplementation):
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
         object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
-        object.add_transition('INITIALIZED', 'EDIT', 'commit_parameters')
+        object.add_transition('INITIALIZED', 'PARAM', 'commit_parameters')
+        object.add_transition('PARAM', 'EDIT', 'initialize_grids')
         object.add_transition('EDIT', 'RUN', 'commit_grids')
         object.add_transition('RUN', 'EVOLVED', 'evolve_model')
         #~ object.add_method('INITIALIZED', 'before_get_parameter')
         object.add_method('INITIALIZED', 'before_set_parameter')
         #~ object.add_method('END', 'before_get_parameter')
-        object.add_transition('!UNINITIALIZED!STOPPED!INITIALIZED!EDIT', 'END', 'cleanup_code')
+        object.add_transition('!UNINITIALIZED!STOPPED!INITIALIZED!PARAM!EDIT', 'END', 'cleanup_code')
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
         object.add_method('EVOLVED', 'evolve_model')
@@ -157,22 +189,49 @@ class QGCM(InCodeComponentImplementation):
         for state in ['RUN','EVOLVED']:
             object.add_method(state, 'before_new_set_instance')
 
+        # if grids var po, dpo_dt etc are touched then go back to state EDIT
 
 
     def define_grids(self, object):
         #~ code_generator.generate_grid_definitions(object)
         
         # ocean dynamic variables p-grid: po, dpo_dt, vorticity
-        object.define_grid('ocean_p_grid',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
-        object.set_grid_range('ocean_p_grid', 'get_ocean_p_grid_range')
-        object.add_getter('ocean_p_grid', 'get_ocean_p_grid_position', names="xy")
+        object.define_grid('ocean_P_grid',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('ocean_P_grid', 'get_ocean_P_grid_range')
+        object.add_getter('ocean_P_grid', 'get_ocean_P_grid_position', names="xy")
 
-        object.add_gridded_getter('ocean_p_grid', 'get_po', "get_nlo_range", names=["pressure"])
-        object.add_gridded_setter('ocean_p_grid', 'get_po', "get_nlo_range", names=["pressure"])
-        object.add_gridded_getter('ocean_p_grid', 'get_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
-        object.add_gridded_setter('ocean_p_grid', 'get_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
-        object.add_gridded_getter('ocean_p_grid', 'get_qo', "get_nlo_range", names=["vorticity"])
-        object.add_getter('ocean_p_grid', 'get_dtopoc', "get_nlo_range", names=["vorticity"])
+        object.add_gridded_getter('ocean_P_grid', 'get_po', "get_nlo_range", names=["pressure"])
+        object.add_gridded_setter('ocean_P_grid', 'set_po', "get_nlo_range", names=["pressure"])
+        object.add_gridded_getter('ocean_P_grid', 'get_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
+        object.add_gridded_setter('ocean_P_grid', 'set_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
+        object.add_gridded_getter('ocean_P_grid', 'get_qo', "get_nlo_range", names=["vorticity"])
+        object.add_getter('ocean_P_grid', 'get_dtopoc', names=["topography"])
+        
+        object.define_grid('ocean_P_grid_forcings',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('ocean_P_grid_forcings', 'get_ocean_P_grid_range')
+        object.add_getter('ocean_P_grid_forcings', 'get_ocean_P_grid_position', names="xy")
+
+        object.add_getter('ocean_P_grid_forcings', 'get_tauxo', names=["tau_x"])
+        object.add_getter('ocean_P_grid_forcings', 'get_tauyo', names=["tau_y"])
+        object.add_setter('ocean_P_grid_forcings', 'set_tauxo', names=["tau_x"])
+        object.add_setter('ocean_P_grid_forcings', 'set_tauyo', names=["tau_y"])
+        
+        object.define_grid('ocean_T_grid_forcings',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('ocean_T_grid_forcings', 'get_ocean_T_grid_range')
+        object.add_getter('ocean_T_grid_forcings', 'get_ocean_T_grid_position', names="xy")
+
+        object.add_getter('ocean_T_grid_forcings', 'get_fnetoc', names=["surface_heat_flux"])
+        object.add_setter('ocean_T_grid_forcings', 'set_fnetoc', names=["surface_heat_flux"])
+
+        object.define_grid('atmosphere_T_grid',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('atmosphere_T_grid', 'get_atmosphere_T_grid_range')
+        object.add_getter('atmosphere_T_grid', 'get_atmosphere_T_grid_position', names="xy")
+
+        object.add_getter('atmosphere_T_grid', 'get_hmixa', names=["mixed_layer_depth"])
+        object.add_getter('atmosphere_T_grid', 'get_dhmixa_dt', names=["dmixed_layer_depth_dt"])
+        object.add_setter('atmosphere_T_grid', 'set_hmixa', names=["mixed_layer_depth"])
+        object.add_setter('atmosphere_T_grid', 'set_dhmixa_dt', names=["dmixed_layer_depth_dt"])
+
         
         
     def commit_parameters(self):
