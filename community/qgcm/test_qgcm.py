@@ -190,6 +190,6 @@ class TestRestartQGCM(TestWithMPI):
 
       d=s.ocean_P_grid.pressure-s1.ocean_P_grid.pressure
       print "abs diff in pressure:", abs(d).max()
-      self.assertAlmostEquals(abs(d).max().number,1.19865228854e-12,12)
+      self.assertAlmostRelativeEquals(abs(d).max().number,1.19865228854e-12,11)
       # value from stand alone restart!
 
