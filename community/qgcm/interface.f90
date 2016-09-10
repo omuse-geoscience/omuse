@@ -33,7 +33,7 @@ end function
 function initialize_grids() result(ret)
   integer :: ret
   
-  call init_grids()
+  call init_topo_rad_state
   
   ret=0
 end function
@@ -50,6 +50,10 @@ function commit_grids() result(ret)
     pom=po-dpo_dt*dto
     sstm=sst-dsst_dt*dto
   endif    
+  
+  tini=begin_time/secsyr
+
+  call init_grids()
     
   ret=0
 end function
@@ -59,7 +63,7 @@ function evolve_model(tend) result(ret)
   integer :: ret
   real*8 :: tend,tnow
 
-  tnow=ntdone*dta/secday
+  tnow=tday
   if(tnow.LT.tend) then
     ! calc number of timesteps, ensuring always a ocean step
     nsteps=nsteps0+nstr*ceiling( secday*(tend-tnow)/(nstr*dta) )

@@ -9,7 +9,7 @@ from amuse.datamodel import CartesianGrid
 
 from fortran_tools import FortranCodeGenerator
 
-from amuse.units import units
+from omuse.units import units
 
 import subprocess 
 
@@ -21,8 +21,8 @@ parameters={
     "number_ocean_grid_points_y" : dict(short="nypo", dtype="int32", default="None", description="number of oceanic grid points in y direction", ptype="ro"),
     "number_atmosphere_grid_points_x" : dict(short="nxpa", dtype="int32", default="None", description="number of atm. grid points in x direction", ptype="ro"),
     "number_atmosphere_grid_points_y" : dict(short="nypa", dtype="int32", default="None", description="number of atm, grid points in y direction", ptype="ro"),
-
 # timestepping
+    "begin_time" : dict(short="begin_time", dtype="float64", default=0. | units.s, description="start time of simulation", ptype="simple"),
     "atmosphere_timestep": dict(short="dta", dtype="float64", default=180. | units.s, description="atmospheric timestep", ptype="simple"),
     "timestep_ratio": dict(short="nstr", dtype="int32", default=3, description="timestep ratio oceanic dt/ atmospheric dt", ptype="simple"),
 # Physical parameters
@@ -79,13 +79,13 @@ grid_variables={
     "ocean_topography" : dict(pyvar=["topography"], forvar=["dtopoc"], ndim=2, unit=units.m, index_ranges=[(1,"nxpo"),(1,"nypo")]),
     "ocean_wind_stress" : dict(pyvar=["tau_x","tau_y"], forvar=["tauxo","tauyo"], ndim=2, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpo"),(1,"nypo")]),
     "ocean_surface_heat_flux" : dict(pyvar=["surface_heat_flux"], forvar=["fnetoc"], ndim=2, unit=units.W/units.m**2, index_ranges=[(1,"nxto"),(1,"nyto")]),
-    "ocean_surface_temperature_anomaly" : dict(pyvar=["surface_temperature_anomaly"], forvar=["sst"], ndim=2, unit=units.C, index_ranges=[(1,"nxto"),(1,"nyto")]),
-    "ocean_surface_temperature_anomaly_tendency" : dict(pyvar=["dsurface_temperature_dt"], forvar=["dsst_dt"], ndim=2, unit=units.C/units.s, index_ranges=[(1,"nxto"),(1,"nyto")]),
+    "ocean_surface_temperature_anomaly" : dict(pyvar=["surface_temperature_anomaly"], forvar=["sst"], ndim=2, unit=units.Celsius, index_ranges=[(1,"nxto"),(1,"nyto")]),
+    "ocean_surface_temperature_anomaly_tendency" : dict(pyvar=["dsurface_temperature_dt"], forvar=["dsst_dt"], ndim=2, unit=units.Celsius/units.s, index_ranges=[(1,"nxto"),(1,"nyto")]),
     "atmosphere_dynamic_pressure" : dict(pyvar=["pressure"], forvar=["pa"], ndim=3, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpa"),(1,"nypa"),(1,"nla")]),
     "atmosphere_dynamic_pressure_tendency" : dict(pyvar=["dpressure_dt"], forvar=["dpa_dt"], ndim=3, unit=units.m**2/units.s**3, index_ranges=[(1,"nxpa"),(1,"nypa"),(1,"nla")]),
     "atmosphere_vorticity" : dict(pyvar=["vorticity"], forvar=["qa"], ndim=3, unit=1/units.s, index_ranges=[(1,"nxpa"),(1,"nypa"),(1,"nla")], vartype="ro"),
-    "atmosphere_surface_temperature_anomaly" : dict(pyvar=["surface_temperature_anomaly"], forvar=["ast"], ndim=2, unit=units.C, index_ranges=[(1,"nxta"),(1,"nyta")]),
-    "atmosphere_surface_temperature_anomaly_tendency" : dict(pyvar=["dsurface_temperature_dt"], forvar=["dast_dt"], ndim=2, unit=units.C/units.s, index_ranges=[(1,"nxta"),(1,"nyta")]),
+    "atmosphere_surface_temperature_anomaly" : dict(pyvar=["surface_temperature_anomaly"], forvar=["ast"], ndim=2, unit=units.Celsius, index_ranges=[(1,"nxta"),(1,"nyta")]),
+    "atmosphere_surface_temperature_anomaly_tendency" : dict(pyvar=["dsurface_temperature_dt"], forvar=["dast_dt"], ndim=2, unit=units.Celsius/units.s, index_ranges=[(1,"nxta"),(1,"nyta")]),
     "atmosphere_mixed_layer_depth" : dict(pyvar=["mixed_layer_depth"], forvar=["hmixa"], ndim=2, unit=units.m, index_ranges=[(1,"nxta"),(1,"nyta")], vartype="ro"),
     "atmosphere_mixed_layer_depth_tendency" : dict(pyvar=["dmixed_layer_depth_dt"], forvar=["dhmixa_dt"], ndim=2, unit=units.m/units.s, index_ranges=[(1,"nxta"),(1,"nyta")], vartype="ro"),
 
@@ -169,7 +169,7 @@ class QGCM(InCodeComponentImplementation):
         code_generator.generate_parameter_definitions(object)
 
     def define_properties(self, object):
-        object.add_property('get_time', public_name = "model_time")
+        object.add_property('get_model_time', public_name = "model_time")
 
     def define_state(self, object):
         object.set_initial_state('UNINITIALIZED')
@@ -178,17 +178,19 @@ class QGCM(InCodeComponentImplementation):
         object.add_transition('PARAM', 'EDIT', 'initialize_grids')
         object.add_transition('EDIT', 'RUN', 'commit_grids')
         object.add_transition('RUN', 'EVOLVED', 'evolve_model')
-        #~ object.add_method('INITIALIZED', 'before_get_parameter')
-        object.add_method('INITIALIZED', 'before_set_parameter')
+        object.add_method('PARAM', 'before_get_parameter')
+        #~ object.add_method('INITIALIZED', 'before_set_parameter')
         #~ object.add_method('END', 'before_get_parameter')
         object.add_transition('!UNINITIALIZED!STOPPED!INITIALIZED!PARAM!EDIT', 'END', 'cleanup_code')
         object.add_transition('END', 'STOPPED', 'stop', False)
         object.add_method('STOPPED', 'stop')
         object.add_method('EVOLVED', 'evolve_model')
 
-        for state in ['RUN','EVOLVED']:
+        for state in ["EDIT",'RUN','EVOLVED']:
             object.add_method(state, 'before_new_set_instance')
 
+        object.add_method("EDIT","set_po")
+        object.add_method("EDIT","set_dpo_dt")
         # if grids var po, dpo_dt etc are touched then go back to state EDIT
 
 
@@ -199,13 +201,22 @@ class QGCM(InCodeComponentImplementation):
         object.define_grid('ocean_P_grid',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
         object.set_grid_range('ocean_P_grid', 'get_ocean_P_grid_range')
         object.add_getter('ocean_P_grid', 'get_ocean_P_grid_position', names="xy")
-
         object.add_gridded_getter('ocean_P_grid', 'get_po', "get_nlo_range", names=["pressure"])
         object.add_gridded_setter('ocean_P_grid', 'set_po', "get_nlo_range", names=["pressure"])
         object.add_gridded_getter('ocean_P_grid', 'get_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
         object.add_gridded_setter('ocean_P_grid', 'set_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
         object.add_gridded_getter('ocean_P_grid', 'get_qo', "get_nlo_range", names=["vorticity"])
         object.add_getter('ocean_P_grid', 'get_dtopoc', names=["topography"])
+
+        object.define_grid('ocean_T_grid',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('ocean_T_grid', 'get_ocean_T_grid_range')
+        object.add_getter('ocean_T_grid', 'get_ocean_T_grid_position', names="xy")
+        object.add_getter('ocean_T_grid', 'get_sst', names=["surface_temperature_anomaly"])
+        object.add_setter('ocean_T_grid', 'set_sst', names=["surface_temperature_anomaly"])
+        object.add_getter('ocean_T_grid', 'get_dsst_dt', names=["dsurface_temperature_anomaly_dt"])
+        object.add_setter('ocean_T_grid', 'set_dsst_dt', names=["dsurface_temperature_anomaly_dt"])
+
+
         
         object.define_grid('ocean_P_grid_forcings',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
         object.set_grid_range('ocean_P_grid_forcings', 'get_ocean_P_grid_range')
@@ -229,8 +240,8 @@ class QGCM(InCodeComponentImplementation):
 
         object.add_getter('atmosphere_T_grid', 'get_hmixa', names=["mixed_layer_depth"])
         object.add_getter('atmosphere_T_grid', 'get_dhmixa_dt', names=["dmixed_layer_depth_dt"])
-        object.add_setter('atmosphere_T_grid', 'set_hmixa', names=["mixed_layer_depth"])
-        object.add_setter('atmosphere_T_grid', 'set_dhmixa_dt', names=["dmixed_layer_depth_dt"])
+        #~ object.add_setter('atmosphere_T_grid', 'set_hmixa', names=["mixed_layer_depth"])
+        #~ object.add_setter('atmosphere_T_grid', 'set_dhmixa_dt', names=["dmixed_layer_depth_dt"])
 
         
         

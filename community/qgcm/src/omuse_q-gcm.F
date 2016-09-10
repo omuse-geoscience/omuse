@@ -594,7 +594,7 @@
 
       end subroutine check_parameters
 
-      subroutine init_grids
+      subroutine init_topo_rad_state
 
 *     Topography section
 *     ==================
@@ -652,6 +652,10 @@ c   atmospheric mixed layer thickness
         close (11)
 #endif
       endif
+
+      end subroutine init_topo_rad_state
+      
+      subroutine init_grids
 
 *     Derive run length and interval parameters
 *     -----------------------------------------
