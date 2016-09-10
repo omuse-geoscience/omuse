@@ -14,6 +14,8 @@ from omuse.units import units
 import subprocess 
 
 parameters={
+    "coriolis_f" : dict(short="fnot", dtype="float64", default=0. | units.rad/units.s, description="coriolis frequency", ptype="ro"),
+    "coriolis_beta" : dict(short="beta", dtype="float64", default=0. | units.rad/units.s/units.m, description="coriolis beta parameter", ptype="ro"),
 # grid parameters
     "number_atmospheric_layers": dict(short="nla", dtype="int32", default="None", description="number of atmospheric layers", ptype="ro"),
     "number_oceanic_layers": dict(short="nlo", dtype="int32", default="None", description="number of oceanic layers", ptype="ro"),
@@ -59,18 +61,19 @@ parameters={
     "ocean_biharmonic_viscosity" : dict(short="ah4oc", dtype="float64", default=None | units.m**4/units.s, ptype="vector", description="horizontal biharmonic viscosity coefficient of ocean layers",length="nlo"),
     "ocean_potential_temperature" : dict(short="tabsoc", dtype="float64", default=None | units.K, ptype="vector", description="potential temperature of ocean layers",length="nlo"),
     "ocean_layer_thickness" : dict(short="hoc", dtype="float64", default=None | units.m, ptype="vector", description="thickness of ocean layers",length="nlo"),
-    "ocean_reduced_gravity" : dict(short="gpoc", dtype="float64", default=None | units.m, ptype="vector", description="reduced gravity for ocean interfaces",length="nlo1"),
+    "ocean_reduced_gravity" : dict(short="gpoc", dtype="float64", default=None | units.m/units.s**2, ptype="vector", description="reduced gravity for ocean interfaces",length="nlo1"),
 # atmospheric QG layer parameters
     "atmosphere_biharmonic_viscosity" : dict(short="ah4at", dtype="float64", default=None | units.m**4/units.s, ptype="vector", description="horizontal biharmonic viscosity coefficient of atm. layers",length="nla"),
     "atmosphere_temperature" : dict(short="tabsat", dtype="float64", default=None | units.K, ptype="vector", description="temperature of atm. layers",length="nla"),
     "atmosphere_layer_thickness" : dict(short="hat", dtype="float64", default=None | units.m, ptype="vector", description="thickness of atm. layers",length="nla"),
-    "atmosphere_reduced_gravity" : dict(short="gpat", dtype="float64", default=None | units.m, ptype="vector", description="reduced gravity for atmospheric  interfaces",length="nla1"),
+    "atmosphere_reduced_gravity" : dict(short="gpat", dtype="float64", default=None | units.m/units.s**2, ptype="vector", description="reduced gravity for atmospheric  interfaces",length="nla1"),
     #~ "Name": dict(short="fname", dtype="float64", default= , description=" ", ptype="simple"),
 # other parameters
     "output_directory" : dict(short="outdir", dtype="string", default="outdata", ptype="simple", description="output directory"),
     "ocean_topography_option" : dict(short="topocname", dtype="string", default="flat", ptype="simple", description="ocean topography option: flat, extant(=set in interface) or filename"),
     "atmosphere_topography_option" : dict(short="topatname", dtype="string", default="flat", ptype="simple", description="atm. topography option: flat, extant(=set in interface) or filename"),
-}    
+    "use_interface_forcings" : dict( short="use_interface_forcings", dtype="bool", default=False, ptype="simple", description="flag to use interface for forcings, otherwise proper avges.nc file must be present"),
+ }    
 
 grid_variables={
     "ocean_dynamic_pressure" : dict(pyvar=["pressure"], forvar=["po"], ndim=3, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpo"),(1,"nypo"),(1,"nlo")]),
@@ -206,7 +209,7 @@ class QGCM(InCodeComponentImplementation):
         object.add_gridded_getter('ocean_P_grid', 'get_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
         object.add_gridded_setter('ocean_P_grid', 'set_dpo_dt', "get_nlo_range", names=["dpressure_dt"])
         object.add_gridded_getter('ocean_P_grid', 'get_qo', "get_nlo_range", names=["vorticity"])
-        object.add_getter('ocean_P_grid', 'get_dtopoc', names=["topography"])
+        #~ object.add_getter('ocean_P_grid', 'get_dtopoc', names=["topography"])
 
         object.define_grid('ocean_T_grid',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
         object.set_grid_range('ocean_T_grid', 'get_ocean_T_grid_range')
@@ -226,6 +229,8 @@ class QGCM(InCodeComponentImplementation):
         object.add_getter('ocean_P_grid_forcings', 'get_tauyo', names=["tau_y"])
         object.add_setter('ocean_P_grid_forcings', 'set_tauxo', names=["tau_x"])
         object.add_setter('ocean_P_grid_forcings', 'set_tauyo', names=["tau_y"])
+        object.add_getter('ocean_P_grid_forcings', 'get_dtopoc', names=["topography"])
+        object.add_setter('ocean_P_grid_forcings', 'set_dtopoc', names=["topography"])
         
         object.define_grid('ocean_T_grid_forcings',axes_names = "xy", grid_class=CartesianGrid,state_guard="before_new_set_instance")
         object.set_grid_range('ocean_T_grid_forcings', 'get_ocean_T_grid_range')

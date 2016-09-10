@@ -107,27 +107,27 @@
 
 ! auxiliary omuse variables
 #ifndef atmos_only
-      real*8 :: dpo_dt(nxpo,nypo,nlo) ! auxiliary for pom
+      double precision :: dpo_dt(nxpo,nypo,nlo) ! auxiliary for pom
 #endif
 #ifndef ocean_only
-      real*8 :: dpa_dt(nxpa,nypa,nla) ! auxiliary for pam
+      double precision :: dpa_dt(nxpa,nypa,nla) ! auxiliary for pam
 #endif
-      real*8 :: dsst_dt(nxto,nyto) ! auxiliary for sstm
-      real*8 :: dhmixa_dt(nxta,nyta) ! auxiliary for hmixa
-      real*8 :: dast_dt(nxta,nyta) ! auxiliary for ast
+      double precision :: dsst_dt(nxto,nyto) ! auxiliary for sstm
+      double precision :: dhmixa_dt(nxta,nyta) ! auxiliary for hmixa
+      double precision :: dast_dt(nxta,nyta) ! auxiliary for ast
 
 #ifdef ocean_only
-      real*8 :: pa(1,1,1) ! dummies because interface.f90 expects them 
-      real*8 :: pam(1,1,1)
-      real*8 :: qa(1,1,1) ! 
-      real*8 :: dpa_dt(1,1,1) 
+      double precision :: pa(1,1,1) ! dummies because interface.f90 expects them 
+      double precision :: pam(1,1,1)
+      double precision :: qa(1,1,1) ! 
+      double precision :: dpa_dt(1,1,1) 
 
 #endif       
 #ifdef atmos_only
-      real*8 :: po(1,1,1) ! 
-      real*8 :: pom(1,1,1) ! 
-      real*8 :: qo(1,1,1) ! 
-      real*8 :: dpo_dt(1,1,1) !
+      double precision :: po(1,1,1) ! 
+      double precision :: pom(1,1,1) ! 
+      double precision :: qo(1,1,1) ! 
+      double precision :: dpo_dt(1,1,1) !
 #endif       
 
 
@@ -655,7 +655,7 @@ c   atmospheric mixed layer thickness
 
       end subroutine init_topo_rad_state
       
-      subroutine init_grids
+      subroutine init_grids1
 
 *     Derive run length and interval parameters
 *     -----------------------------------------
@@ -768,6 +768,22 @@ c   atmospheric mixed layer thickness
      &             nxpa, nypa, nla, ddynat, 1)
 #endif
 
+  201 format(a,9i13)
+  203 format(a,9f13.3)
+  204 format(a,9f13.4)
+  205 format(a,9f13.5)
+  206 format(a,9f13.6)
+  207 format(a,9f13.7)
+  213 format(a,1p,9d13.3)
+* 214 format(a,1p,9d13.4)
+  215 format(a,1p,9d13.5)
+* 225 format(a,i2,a,9f13.5)
+* 226 format(a,i2,a,9f13.6)
+
+      end subroutine init_grids1
+
+      subroutine read_forcings
+      
 !! Read in mean ocean temperature if we're in atmosphere only mode
 #ifdef atmos_only
 #  ifdef use_netcdf
@@ -843,6 +859,9 @@ c   atmospheric mixed layer thickness
       endif
 #  endif
 #endif
+      end subroutine read_forcings
+
+      subroutine init_grids2
 
 !! Next section is for the xcexp experiments
 !! There are a few options which require adjustments to
@@ -1185,7 +1204,7 @@ c   atmospheric mixed layer thickness
 * 225 format(a,i2,a,9f13.5)
 * 226 format(a,i2,a,9f13.6)
 
-      end subroutine init_grids
+      end subroutine init_grids2
 
 
       subroutine mainloop(nsteps0, nsteps)
