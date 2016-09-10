@@ -3,6 +3,8 @@ module qgcm_interface
 
   real*8 :: begin_time=0.
 
+  logical :: use_interface_forcings=.FALSE.
+
 contains
 
 include "getter_setters.f90"
@@ -53,8 +55,10 @@ function commit_grids() result(ret)
   
   tini=begin_time/secsyr
 
-  call init_grids()
-    
+  call init_grids1
+  if(.not.use_interface_forcings) call read_forcings
+  call init_grids2
+  
   ret=0
 end function
 
