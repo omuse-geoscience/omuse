@@ -101,9 +101,13 @@
 #endif
 
 *     Extra variables for OpenMP
-!$    integer nprocs,OMP_GET_NUM_PROCS,nthmax,OMP_GET_MAX_THREADS,
-!$   &        numthr,OMP_GET_NUM_THREADS,thrnum,OMP_GET_THREAD_NUM
-!$    logical dynadj,OMP_GET_DYNAMIC,nested,OMP_GET_NESTED
+!$    integer nprocs,nthmax,numthr,thrnum
+!$    logical dynadj,nested
+
+!$    integer, external :: OMP_GET_NUM_PROCS,OMP_GET_MAX_THREADS,
+!$   &        OMP_GET_NUM_THREADS,OMP_GET_THREAD_NUM
+!$    logical, external :: OMP_GET_DYNAMIC,OMP_GET_NESTED
+
 
 ! auxiliary omuse variables
 #ifndef atmos_only
