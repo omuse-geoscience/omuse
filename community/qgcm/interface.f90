@@ -35,13 +35,15 @@ end function
 function initialize_grids() result(ret)
   integer :: ret
   
-  call init_topo_rad_state
+!~   call init_topo_rad_state
   
   ret=0
 end function
 
 function commit_grids() result(ret)
   integer :: ret
+   
+  call init_topo_rad_state
     
   if(oceanonly.NE.1) then 
     pam=pa-dpa_dt*dta
