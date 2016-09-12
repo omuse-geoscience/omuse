@@ -35,8 +35,8 @@ parameters={
     "ocean_density": dict(short="rhooc", dtype="float64", default=1000. | units.kg/units.m**3 , description="Ocean density ", ptype="simple"),
     "atmosphere_heat_capacity": dict(short="cpat", dtype="float64", default=1000. | units.J/units.kg/units.K , description="Atmos. specific heat capacity", ptype="simple"),
     "ocean_heat_capacity": dict(short="cpoc", dtype="float64", default=4000. | units.J/units.kg/units.K , description="Ocean specific heat capacity", ptype="simple"),
-    "atmosphere_mixed_bc_coeff": dict(short="bccoat", dtype="float64", default=1. , description="Mixed BC coefficient for atmos.", ptype="simple"),
-    "ocean_mixed_bc_coeff": dict(short="bccooc", dtype="float64", default=0.2 , description="Mixed BC coefficient for ocean", ptype="simple"),
+    "atmosphere_mixed_bc_coeff": dict(short="bccoat", dtype="float64", default=1. , description="Mixed BC coefficient for atmos. (0=freeslip, >2 ~ no-slip)", ptype="simple"),
+    "ocean_mixed_bc_coeff": dict(short="bccooc", dtype="float64", default=0.2 , description="Mixed BC coefficient for ocean (0=freeslip, >2 ~ no-slip)", ptype="simple"),
     "coupling_coeff_x": dict(short="xcexp", dtype="float64", default=1. , description="coupling coefficient x", ptype="simple"),
     "coupling_coeff_y": dict(short="ycexp", dtype="float64", default=1. , description="coupling coefficient y", ptype="simple"),
 # Mixed layer parameters
@@ -181,8 +181,8 @@ class QGCM(InCodeComponentImplementation):
         object.add_transition('PARAM', 'EDIT', 'initialize_grids')
         object.add_transition('EDIT', 'RUN', 'commit_grids')
         object.add_transition('RUN', 'EVOLVED', 'evolve_model')
-        object.add_method('PARAM', 'before_get_parameter')
-        #~ object.add_method('INITIALIZED', 'before_set_parameter')
+        object.add_method('!UNINITIALIZED', 'before_get_parameter')
+        object.add_method('INITIALIZED', 'before_set_parameter')
         #~ object.add_method('END', 'before_get_parameter')
         object.add_transition('!UNINITIALIZED!STOPPED!INITIALIZED!PARAM!EDIT', 'END', 'cleanup_code')
         object.add_transition('END', 'STOPPED', 'stop', False)
