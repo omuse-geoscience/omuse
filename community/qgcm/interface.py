@@ -107,7 +107,7 @@ class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn
     use_modules = ['qgcm_interface',]
 
     def name_of_the_worker(self, mode):
-        return "q-gcm_worker_"+mode
+        return "qgcm_worker_"+mode
 
     def __init__(self, **keyword_arguments):
         mode=keyword_arguments.pop("mode", "ocean_only")
