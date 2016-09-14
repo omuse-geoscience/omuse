@@ -32,11 +32,9 @@ LIBS+=$(NETCDFF_LIBS)
 
 .PHONY: all $(BUILDDIR)_%/lib download
 
-all: qgcm_worker
-
 qgcm_worker: src/q-gcm  ${TARGETS}
 	
-qgcm_worker_%: worker_code.f90 $(BUILDDIR)_%/libq-gcm.a $(BUILDDIR)_%/q-gcm_utility.o $(BUILDDIR)_%/omuse_q-gcm.o interface_%.o 
+${TARGETS}: qgcm_worker_%: worker_code.f90 $(BUILDDIR)_%/libq-gcm.a $(BUILDDIR)_%/q-gcm_utility.o $(BUILDDIR)_%/omuse_q-gcm.o interface_%.o 
 	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR)_$* -o $@ $< interface_$*.o $(BUILDDIR)_$*/omuse_q-gcm.o $(BUILDDIR)_$*/q-gcm_utility.o $(BUILDDIR)_$*/libq-gcm.a $(LIBS) $(SC_FCLIBS) $(FS_LIBS) $(LIBS)
  
 interface_%.o: interface.f90 getter_setters.f90	default_param.f90 Makefile $(BUILDDIR)_%/omuse_q-gcm.o
