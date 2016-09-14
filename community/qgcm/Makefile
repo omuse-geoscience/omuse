@@ -14,18 +14,18 @@ include $(MAKEFILE_OPTIONS_FILE)
 endif
 
 FFLAGS ?= -g -O2
+FFLAGS2=$(FFLAGS) $(NETCDFF_FLAGS)
 
 ifneq (,$(findstring gfortran, $(notdir $(FC))))
 MODFLAG=-J
-FFLAGS+=-ffixed-line-length-80 -fimplicit-none -std=legacy
+FFLAGS2+=-ffixed-line-length-80 -fimplicit-none -std=legacy
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
 MODFLAG=-module
-FFLAGS+=-80 -fpp -std90
+FFLAGS2+=-80 -fpp -std90
 endif
 
-FFLAGS2=$(FFLAGS) $(NETCDFF_FLAGS)
 LIBS+=$(NETCDFF_LIBS)
 
 
@@ -33,11 +33,12 @@ LIBS+=$(NETCDFF_LIBS)
 
 .PHONY: all $(BUILDDIR)_%/lib download
 
-all: download q-gcm_worker
+all: q-gcm_worker
 
-q-gcm_worker: ${TARGETS}
+q-gcm_worker: src/q-gcm
+	make -C . ${TARGETS}
 
-q-gcm_%: % ;
+#~ q-gcm_%: % ;
 
 q-gcm_worker_%: worker_code.f90 $(BUILDDIR)_%/libq-gcm.a $(BUILDDIR)_%/q-gcm_utility.o $(BUILDDIR)_%/omuse_q-gcm.o interface_%.o 
 	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR)_$* -o $@ $< interface_$*.o $(BUILDDIR)_$*/omuse_q-gcm.o $(BUILDDIR)_$*/q-gcm_utility.o $(BUILDDIR)_$*/libq-gcm.a $(LIBS) $(SC_FCLIBS) $(FS_LIBS) $(LIBS)
@@ -97,10 +98,16 @@ getter_setters.f90: interface.py
 update_q-gcm: src/q-gcm
 	cd src/q-gcm; git pull
 
-src/q-gcm:
+download:
 	cd src;git clone -b omuse https://github.com/ipelupessy/q-gcm.git
 
-download: src/q-gcm
+ifdef DOWNLOAD_CODES
+src/q-gcm: download
+else
+src/q-gcm:
+	@echo "ERROR: need to download qgcm, but DOWNLOAD_CODES is not set" 
+	@false 
+endif
 
 clean:
 	-rm -Rf $(BUILDDIR)_*
