@@ -3,12 +3,6 @@
 AMUSE_DIR?=../../../..
 -include $(AMUSE_DIR)/config.mk
 
-#MPICXX   ?= mpicxx
-MPICXX   = g++ $(MPI_CFLAGS) $(MPI_CXXLIBS)
-FC = gfortran 
-CC = g++ $(MPI_CFLAGS) $(MPI_CXXLIBS)
-
-
 CFLAGS   += -Wall -g
 CXXFLAGS += $(CFLAGS)
 LDFLAGS  += -lm $(MUSE_LD_FLAGS)
