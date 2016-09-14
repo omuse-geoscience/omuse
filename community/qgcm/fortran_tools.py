@@ -41,7 +41,7 @@ class FortranCodeGenerator(object):
 
     _grid_getter_template="""
       function get_{0}({2},{0}_out_,n) result(ret)
-      integer :: n,{3},k
+      integer :: n,{3},k,ret
       {1} :: {0}_out_(n)
       ret=0
       do k=1,n
@@ -53,7 +53,7 @@ class FortranCodeGenerator(object):
 
     _grid_setter_template="""
       function set_{0}({2},{0}_in_,n) result(ret)
-      integer :: n,{3},k
+      integer :: n,{3},k,ret
       {1} :: {0}_in_(n)
       ret=0
       do k=1,n
