@@ -43,7 +43,16 @@ all: eSalsa-POP pop_worker_320x384x40 pop_worker_3600x2400x42
 update: eSalsa-POP
 	cd eSalsa-POP; git pull
 
+ifdef DOWNLOAD_CODES
 eSalsa-POP:
+	make -C . download
+else
+eSalsa-POP:
+	@echo "ERROR: need to download eSalsa-POP, but DOWNLOAD_CODES is not set" 
+	@false 
+endif
+
+download:
 	git clone -b amuse https://github.com/NLeSC/eSalsa-POP.git
 
 clean:
