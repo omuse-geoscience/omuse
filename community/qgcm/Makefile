@@ -13,13 +13,21 @@ ifneq ($(MAKEFILE_OPTIONS_FILE), )
 include $(MAKEFILE_OPTIONS_FILE)
 endif
 
+FFLAGS ?= -g -O2
+
 ifneq (,$(findstring gfortran, $(notdir $(FC))))
 MODFLAG=-J
+FFLAGS+=-ffixed-line-length-80 -fimplicit-none -std=legacy
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
 MODFLAG=-module
+FFLAGS+=-80 -fpp -std90
 endif
+
+FFLAGS2=$(FFLAGS) $(NETCDFF_FLAGS)
+LIBS+=$(NETCDFF_LIBS)
+
 
 .SECONDARY:
 
@@ -30,10 +38,6 @@ all: download q-gcm_worker
 q-gcm_worker: ${TARGETS}
 
 q-gcm_%: % ;
-
-FFLAGS ?= -g -O2
-FFLAGS2=$(FFLAGS) $(NETCDFF_FLAGS) -80 -fpp -std90
-LIBS+=$(NETCDFF_LIBS)
 
 q-gcm_worker_%: worker_code.f90 $(BUILDDIR)_%/libq-gcm.a $(BUILDDIR)_%/q-gcm_utility.o $(BUILDDIR)_%/omuse_q-gcm.o interface_%.o 
 	$(MPIFC) $(FFLAGS) $(SC_FLAGS) $(FS_FLAGS) $(LDFLAGS) -I$(BUILDDIR)_$* -o $@ $< interface_$*.o $(BUILDDIR)_$*/omuse_q-gcm.o $(BUILDDIR)_$*/q-gcm_utility.o $(BUILDDIR)_$*/libq-gcm.a $(LIBS) $(SC_FCLIBS) $(FS_LIBS) $(LIBS)
