@@ -28,15 +28,13 @@ endif
 
 LIBS+=$(NETCDFF_LIBS)
 
-
 .SECONDARY:
 
 .PHONY: all $(BUILDDIR)_%/lib download
 
 all: qgcm_worker
 
-qgcm_worker: src/q-gcm
-	make -C . ${TARGETS}
+qgcm_worker: src/q-gcm  ${TARGETS}
 	
 qgcm_%: % ;
 
@@ -85,6 +83,8 @@ ifeq ($(MAKEFILE_OPTIONS_FILE), )
 else
 	$(FC) $(FFLAGS2) $(QGOPTS) -I$(BUILDDIR)_$* $(NETCDFF_FLAGS) -c -o $@ $<
 endif
+
+$(SRCDIR)/Makefile: src/q-gcm
 
 worker_code.f90: interface.py $(AMUSE_INTERFACE_DEPS)
 	$(CODE_GENERATOR) --type=f90 --needs-mpi=false $< QGCMInterface -o $@
