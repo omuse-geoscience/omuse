@@ -7,6 +7,14 @@ CLASSNAME=SwanInterface
 
 FCFLAGS+= -O2
 
+ifneq (,$(findstring gfortran, $(notdir $(FC))))
+FCFLAGS+=-fopenmp
+endif
+
+ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
+FCFLAGS+=-openmp
+endif
+
 FCINCS = -I./src/ -I./src/work/
 
 all: src/libamuse_swan.a src/amuse_swan.o swan_worker
