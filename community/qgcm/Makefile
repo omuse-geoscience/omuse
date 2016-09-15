@@ -13,7 +13,7 @@ ifneq ($(MAKEFILE_OPTIONS_FILE), )
 include $(MAKEFILE_OPTIONS_FILE)
 endif
 
-FFLAGS ?= -g -O2
+FFLAGS ?= -g -O2 $(OPENMP_FCFLAGS)
 FFLAGS2=$(FFLAGS) $(NETCDFF_FLAGS)
 
 ifneq (,$(findstring gfortran, $(notdir $(FC))))

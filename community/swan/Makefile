@@ -7,13 +7,7 @@ CLASSNAME=SwanInterface
 
 FCFLAGS+= -O2
 
-ifneq (,$(findstring gfortran, $(notdir $(FC))))
-FCFLAGS+=-fopenmp
-endif
-
-ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
-FCFLAGS+=-openmp
-endif
+FCFLAGS+=$(OPENMP_FCFLAGS)
 
 FCINCS = -I./src/ -I./src/work/
 
