@@ -27,10 +27,13 @@ update: oifslib
 #       For some reason ssh access to the oifs repo doesn't work for me...
 #	git clone ssh://git@software.ecmwf.int:7999/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
 oifslib:
-	git clone -b feature/crm https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
+	git clone -b oifslib https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
 
 oifssrc:
 	./$(OIFSDIR)/fcm/bin/fcm make -v -j4 -f $(OIFSDIR)/make/oifs.cfg
+	mkdir -p $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib
+	ar rcs $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/o/*.o 
+	
 
 #TODO: Clean oifs directory
 clean:
