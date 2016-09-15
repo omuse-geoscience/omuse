@@ -1,5 +1,6 @@
 module qgcm_interface
   use omuse_qgcm
+  implicit none
 
   real*8 :: begin_time=0.
 

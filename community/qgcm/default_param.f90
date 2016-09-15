@@ -7,7 +7,7 @@
 !!
 !! Timing parameters
 !! -----------------
-trun=1./365.          !! timestep in "years" 
+trun=30./365.          !! timestep in "years" 
 dta= 180.0D0          !! dta     = Atmos. timestep in seconds
 nstr= 3               !! nstr    = Timestep ratio dto/dta
 !!

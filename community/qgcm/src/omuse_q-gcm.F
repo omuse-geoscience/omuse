@@ -27,7 +27,7 @@
       USE vorsubs
       USE xfosubs, ONLY : xforc
       USE eigmode
-      USE valsubs
+      USE omuse_valsubs
       USE radsubs
       USE topsubs
 #ifdef use_netcdf
