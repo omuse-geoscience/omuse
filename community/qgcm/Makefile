@@ -73,11 +73,11 @@ else
 	$(FC) $(FFLAGS2) $(QGOPTS) $(MODFLAG) $(BUILDDIR)_$* -I$(BUILDDIR)_$* $(NETCDFF_FLAGS) -c -o $@ $<
 endif  
 
-$(BUILDDIR)_%/q-gcm_utility.o: src/q-gcm_utility.F $(BUILDDIR)_%/make.config $(BUILDDIR)_%/libq-gcm.a
+$(BUILDDIR)_%/q-gcm_utility.o: src/q-gcm_utility.F src/omuse_valsubs.F $(BUILDDIR)_%/make.config $(BUILDDIR)_%/libq-gcm.a
 ifeq ($(MAKEFILE_OPTIONS_FILE), )
 	make -C . $@ MAKEFILE_OPTIONS_FILE=$(BUILDDIR)_$*/make.config
 else
-	$(FC) $(FFLAGS2) $(QGOPTS) -I$(BUILDDIR)_$* $(NETCDFF_FLAGS) -c -o $@ $<
+	$(FC) $(FFLAGS2) $(QGOPTS) $(MODFLAG) $(BUILDDIR)_$* -I$(BUILDDIR)_$* $(NETCDFF_FLAGS) -c -o $@ $<
 endif
 
 $(SRCDIR)/Makefile: src/q-gcm

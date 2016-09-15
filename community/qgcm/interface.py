@@ -73,6 +73,7 @@ parameters={
     "ocean_topography_option" : dict(short="topocname", dtype="string", default="flat", ptype="simple", description="ocean topography option: flat, extant(=set in interface) or filename"),
     "atmosphere_topography_option" : dict(short="topatname", dtype="string", default="flat", ptype="simple", description="atm. topography option: flat, extant(=set in interface) or filename"),
     "use_interface_forcings" : dict( short="use_interface_forcings", dtype="bool", default=False, ptype="simple", description="flag to use interface for forcings, otherwise proper avges.nc file must be present"),
+    "check_interface_heights" : dict( short="hcheck", dtype="bool", default=True, ptype="simple", description="whether to check consistency of solution with layer heights"),
  }    
 
 grid_variables={

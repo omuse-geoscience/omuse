@@ -1,5 +1,7 @@
 c subroutines from q-gcm.F
 
+#include "omuse_valsubs.F"
+
 c***********************************************************************
 c
       SUBROUTINE ipbget (buffer, iounit)
