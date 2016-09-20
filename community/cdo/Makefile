@@ -36,7 +36,7 @@ distclean: clean
 
 $(CODE):
 	tar zxf cdo-current.tar.gz
-	ln -s `tar --exclude="*/*" -tf cdo-current.tar.gz` src
+	ln -s `tar -tf cdo-current.tar.gz | awk -F/ '{print $1;exit}'` src
 	cd $(CODE); ./configure --disable-openmp --with-netcdf=$(NETCDF_PREFIX) FC="$(FC)" FCFLAGS="$(FCFLAGS)"
 	cd .; ./make_patches.py patch
 	cp script.ar $(CODE)/src/script.ar
