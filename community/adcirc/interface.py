@@ -372,6 +372,9 @@ class Adcirc(CommonCode):
           else:
             self._parameters=param.parameters
 
+          if self.parameters.calculate_coriolis and not self.coordinates=="spherical":
+            raise Exception("calculate_coriolis needs spherical coordinates")
+
           if self.parameters.bottom_friction_law not in self.bottom_friction_laws:
             raise Exception("invalid/ unimplemented bottom friction law: %s"%self.parameters.bottom_friction_law)
           if self.parameters.bottom_friction_law_3d not in self.bottom_friction_laws_3d:
@@ -411,6 +414,7 @@ class Adcirc(CommonCode):
           NFEN=len(self.parameters.sigma_levels) if self.parameters.vertical_grid_type=="user" else self.parameters.number_of_vertical_levels
           param.update( IM=IM,
                         IDEN=IDEN,
+                        NCOR=1 if self.parameters.calculate_coriolis else 0,
                         ESLM=self.parameters.A_H.value_in(units.m**2/units.s),
                         SLAM0=trigo.in_deg(self.parameters.central_longitude),
                         SFEA0=trigo.in_deg(self.parameters.central_latitude),
@@ -551,6 +555,12 @@ class Adcirc(CommonCode):
             "use_predictor_corrector",
             "flag for use of predictor corrector integrator",
             True,
+            "before_set_interface_parameter"
+        ) 
+        object.add_interface_parameter(
+            "calculate_coriolis",
+            "flag to let adcirc calculate coriolis frequence (needs spherical coordinates)",
+            False,
             "before_set_interface_parameter"
         ) 
         object.add_interface_parameter(
