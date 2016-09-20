@@ -44,7 +44,7 @@ $(CODE):
 $(CODELIB): $(CODE)
 	make -C $(CODE) 
 	make -C $(CODE)/src libcdo-cdolib.a
-	cd $(CODE)/src/; ar -M < script.ar
+	cd $(CODE)/src/; ar rvsT ./libcdo-amuse.a libcdo-cdolib.a .libs/libcdo.a
 	cd $(CODE)/src/; ranlib libcdo-amuse.a
 
 worker_code.cc: interface.py worker_code.h
