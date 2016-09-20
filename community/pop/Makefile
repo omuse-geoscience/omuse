@@ -7,6 +7,8 @@ MPIFC ?= mpif90
 
 #MPIFC = ifort -I/cm/shared/apps/mpich/ge/open64/64/3.1/include -L/cm/shared/apps/mpich/ge/open64/64/3.1/lib -lmpich 
 
+TARGETS := $(patsubst src_%, pop_worker_%, ${shell ls -d src_*})
+
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
 FCFLAGS+=-fconvert=swap
 POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -fconvert=swap -fimplicit-none -fbounds-check
@@ -20,25 +22,16 @@ endif
 LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
 POPARCH=amuse
-POPEXEDIR1=$(CURDIR)/src_320x384x40
-POPEXEDIR2=$(CURDIR)/src_3600x2400x42
 POPDIR=$(CURDIR)/eSalsa-POP
 
 POPFFLAGS := $(POPFFLAGS) $(NETCDF_FLAGS) $(NETCDFF_FLAGS) $(NETCDF_LIBS) $(NETCDFF_LIBS)
 FS_FLAGS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
 
-
-
-
-POPINCPATH1 = -Isrc_320x384x40/compile/
-POPINCPATH2 = -Isrc_3600x2400x42/compile/
-
-#OBJS = interface.o 
-CODELIB1 = src_320x384x40/libpop.a
-CODELIB2 = src_3600x2400x42/libpop.a
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
-all: eSalsa-POP pop_worker_320x384x40 pop_worker_3600x2400x42
+.PHONY: all download src_%/lib
+
+all: eSalsa-POP $(TARGETS)
 
 update: eSalsa-POP
 	cd eSalsa-POP; git pull
@@ -58,29 +51,19 @@ download:
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
 	$(RM) *~ worker_code worker_code.f90 
-	make -C $(POPEXEDIR1) clean POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR1) POPDIR=$(POPDIR)
-	make -C $(POPEXEDIR2) clean POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR2) POPDIR=$(POPDIR)
+	$(RM) -rf src_*/compile
+	$(RM) -f src_*/libpop.a
 	rm -f pop_worker_*
 
 distclean: clean
 	rm -rf eSalsa-POP
 
-$(CODELIB1): src_320x384x40/POP_DomainSizeMod.F90
-	make -C $(POPEXEDIR1) POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR1) POPDIR=$(POPDIR) AMUSE_DIR="$(realpath $(AMUSE_DIR))" POPFFLAGS="$(POPFFLAGS)" MPIFC="$(MPIFC)"
-
-$(CODELIB2): src_3600x2400x42/POP_DomainSizeMod.F90
-	make -C $(POPEXEDIR2) POPARCH=$(POPARCH) POPEXEDIR=$(POPEXEDIR2) POPDIR=$(POPDIR) AMUSE_DIR="$(realpath $(AMUSE_DIR))" POPFFLAGS="$(POPFFLAGS)" MPIFC="$(MPIFC)"
+src_%/libpop.a: src_%/POP_DomainSizeMod.F90 eSalsa-POP
+	make -C src_$* POPARCH=$(POPARCH) POPEXEDIR="$(CURDIR)/src_$*" POPDIR="$(POPDIR)" AMUSE_DIR="$(realpath $(AMUSE_DIR))" POPFFLAGS="$(POPFFLAGS)" MPIFC="$(MPIFC)"
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
 
-pop_worker_320x384x40: worker_code.f90 $(CODELIB1) $(OBJS) interface.f90
-	$(MPIFC) $(POPINCPATH1) $(FCFLAGS) -c interface.f90 -o interface.o
-	$(MPIFC) $(POPINCPATH1) $(FCFLAGS) $(FS_FLAGS) $< interface.o $(CODELIB1) $(FS_LIBS) -o $@
-
-pop_worker_3600x2400x42: worker_code.f90 $(CODELIB2) $(OBJS) interface.f90
-	$(MPIFC) $(POPINCPATH2) $(FCFLAGS) -c interface.f90 -o interface.o 
-	$(MPIFC) $(POPINCPATH2) $(FCFLAGS) $(FS_FLAGS) $< interface.o $(CODELIB2) $(FS_LIBS) -o $@
-
-
-
+$(TARGETS): pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
+	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) -c interface.f90 -o interface_$*.o 
+	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) $(FS_FLAGS) $< interface_$*.o src_$*/libpop.a $(FS_LIBS) -o $@
