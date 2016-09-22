@@ -53,7 +53,7 @@ worker_code.h: interface.py
 
 remapper_worker: worker_code.o $(CODELIB) $(OBJS)
 	$(eval $(shell grep '\-luuid' cdo-1.7.0rc5/libcdi/Makefile))
-	$(MPICXX) $(CXXFLAGS) -z muldefs $< $(OBJS) $(CODELIB) $(CODELIB) $(CDILIB)  -lm -lz $(NETCDF_LIBS) $(UUID_C_LIB) $(OPENMP_CFLAGS) -o $@
+	$(MPICXX) $(CXXFLAGS) $< $(OBJS) $(CODELIB) $(CODELIB) $(CDILIB)  -lm -lz $(NETCDF_LIBS) $(UUID_C_LIB) $(OPENMP_CFLAGS) -o $@
 
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<
