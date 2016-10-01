@@ -12,6 +12,7 @@ default_options={}
 #default_options=dict(redirection="none",debugger="gdb")
 
 import logging
+import numpy
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("code").setLevel(logging.DEBUG)
 
@@ -61,3 +62,15 @@ class TestDalesInterface(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
     
+    def test5(self):
+
+        print "Test 5: instantiate, run 10 seconds and retrieve temperature profile"
+
+        instance = Dales(number_of_workers=4,redirection="none")
+        tim=instance.get_model_time()
+        instance.commit_grid()
+        instance.evolve_model(tim + (5 | units.s))
+        profile=instance.get_profile_field(numpy.arange(1,96))
+        print "The retrieved profile is:",profile
+        instance.cleanup_code()
+        instance.stop()

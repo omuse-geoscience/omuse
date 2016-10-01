@@ -20,14 +20,14 @@ class DalesInterface(CodeInterface,
     DALES - Dutch Atmospheric Large Eddy Simulation
 
     """
-    use_modules=['StoppingConditions','dales_interface']
+    use_modules=["StoppingConditions","dales_interface"]
 
     def __init__(self, **options):
         CodeInterface.__init__(self, name_of_the_worker = self.name_of_the_worker(), **options)
         LiteratureReferencesMixIn.__init__(self)
 
     def name_of_the_worker(self):
-        return 'dales_worker'
+        return "dales_worker"
 
     @remote_function
     def get_input_file():
@@ -35,7 +35,7 @@ class DalesInterface(CodeInterface,
 
     @remote_function
     def set_input_file(input_file="namoptions"):
-        returns ()
+        pass
 
     @remote_function
     def get_model_time():
@@ -46,11 +46,23 @@ class DalesInterface(CodeInterface,
         returns (dt=0. | units.s)
 
     @remote_function
-    def evolve_model(tend=0. | units.s):
+    def commit_grid():
         pass
 
+    @remote_function(must_handle_array=True)
+    def get_profile_field(k=0):
+        returns (temp=0.| units.K)
+
+    @remote_function(must_handle_array=True)
+    def get_layer_field(i=0,j=0,k=0):
+        returns (temp=0.| units.K)
+
+    @remote_function(must_handle_array=True)
+    def get_volume_field(i=0,j=0,k=0):
+        returns (temp=0.| units.K)
+
     @remote_function
-    def commit_grid():
+    def evolve_model(tend=0. | units.s):
         pass
 
 
@@ -71,30 +83,28 @@ class Dales(CommonCode):
         )
 
     def define_state(self, object):
-        object.set_initial_state('UNINITIALIZED')
-        object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
-        object.add_method('!UNINITIALIZED', 'before_get_parameter')
-        object.add_method('!UNINITIALIZED', 'before_set_parameter')
-        object.add_method('END', 'before_get_parameter')
-        object.add_transition('!UNINITIALIZED!STOPPED', 'END', 'cleanup_code')
-        object.add_transition('END', 'STOPPED', 'stop', False)
-        object.add_method('STOPPED', 'stop')
+        object.set_initial_state("UNINITIALIZED")
+        object.add_transition("UNINITIALIZED", "INITIALIZED", "initialize_code")
+        object.add_method("UNINITIALIZED", "before_get_parameter")
+        object.add_method("!UNINITIALIZED", "before_set_parameter")
+        object.add_method("END", "before_get_parameter")
+        object.add_transition("!UNINITIALIZED!STOPPED", "END", "cleanup_code")
+        object.add_transition("END", "STOPPED", "stop", False)
+        object.add_method("STOPPED", 'stop')
 
-        object.add_transition('INITIALIZED','EDIT','commit_parameters')
-        object.add_transition('EDIT','RUN','commit_grid')
+        object.add_transition("INITIALIZED","EDIT","commit_parameters")
+        object.add_transition("EDIT","RUN","commit_grid")
 
-        #~ object.set_initial_state('UNINITIALIZED')
-        #~ object.add_transition('!STOPPED', 'END', 'cleanup_code')
-        #~ object.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize_code')
-        #~ object.add_transition('END', 'STOPPED', 'stop', False)
-        #~ object.add_method('STOPPED', 'stop')
-
-        object.add_method('INITIALIZED', 'before_set_interface_parameter')
-        object.add_method('INITIALIZED', 'set_input_file')
+        object.add_method("INITIALIZED", "before_set_interface_parameter")
+        object.add_method("INITIALIZED", "set_input_file")
 
         for state in ["RUN","EDIT","EVOLVED"]:
           object.add_method(state,"get_model_time")
           object.add_method(state,"get_timestep")
+          object.add_method(state,"get_profile_field")
+          object.add_method(state,"get_layer_field")
+          object.add_method(state,"get_volume_field")
 
-        object.add_transition('RUN', 'EVOLVED', 'evolve_model', False)
-        object.add_method('EVOLVED', 'evolve_model')
+        object.add_transition("RUN", "EVOLVED", "evolve_model", False)
+        object.add_method("EVOLVED", "evolve_model")
+

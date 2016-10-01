@@ -27,7 +27,7 @@ program fortran_test
     else
         write(*,*) "...success."
     endif
-    
+
     write(*,*) "Exiting fortran interface code..."
     stat=cleanup_code()
     if(stat/=0) then
