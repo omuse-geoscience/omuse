@@ -34,12 +34,12 @@ worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py DalesInterface -o $@
 
 dales_worker: worker_code.f90 $(OBJS) interface.f90
-	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
-	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
+	$(MPIFC) $(FCFLAGS) -fdefault-real-8 -I$(INCLUDEDIR) -c interface.f90 -o interface.o
+	$(MPIFC) $(FCFLAGS) -fdefault-real-8 -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
 test/fortran_test: test/fortran_test.f90 $(OBJS) interface.f90
-	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
-	$(MPIFC) $(FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
+	$(MPIFC) $(FCFLAGS) -fdefault-real-8 -I$(INCLUDEDIR) -c interface.f90 -o interface.o
+	$(MPIFC) $(FCFLAGS) -fdefault-real-8 -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
 clean:
 	$(RM) -f *.so *.o *.pyc *.mod
