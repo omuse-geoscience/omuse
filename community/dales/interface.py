@@ -11,6 +11,8 @@ from amuse import datamodel
 
 from amuse.units import trigo
 
+import numpy
+
 class DalesInterface(CodeInterface,
                      CommonCodeInterface,
                      StoppingConditionInterface,
@@ -49,10 +51,34 @@ class DalesInterface(CodeInterface,
     def commit_grid():
         pass
 
+# getter functions for vertical profiles - slab averages
+# these take a dummy array as input, and return output of the same length
     @remote_function(must_handle_array=True)
     def get_profile_field(k=0):
-        returns (temp=0.| units.K)
+        returns (out=0.| units.K)
 
+    @remote_function(must_handle_array=True)
+    def get_profile_U(k=0):
+        returns (out=0.| units.m / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_profile_V(k=0):
+        returns (out=0.| units.m / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_profile_W(k=0):
+        returns (out=0.| units.m / units.s)
+        
+    @remote_function(must_handle_array=True)
+    def get_profile_THL(k=0):
+        returns (out=0.| units.K)
+        
+    @remote_function(must_handle_array=True)
+    def get_profile_QT(k=0):
+        returns (out=0.)
+# # #
+
+        
     @remote_function(must_handle_array=True)
     def get_layer_field(i=0,j=0,k=0):
         returns (temp=0.| units.K)
@@ -65,9 +91,19 @@ class DalesInterface(CodeInterface,
     def evolve_model(tend=0. | units.s):
         pass
 
+    def get_profile(self, field_id):
+        profile = self.get_profile_field(field_id, numpy.arange(1,96))
+        return profile
 
+    
 class Dales(CommonCode):
-
+    # these defs match those in daleslib.f90
+    FIELDID_U=1
+    FIELDID_V=2
+    FIELDID_W=3
+    FIELDID_THL=4
+    FIELDID_QT=5
+    
     def __init__(self,**options):
         CommonCode.__init__(self,  DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
