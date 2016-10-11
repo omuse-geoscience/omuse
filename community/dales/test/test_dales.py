@@ -69,8 +69,32 @@ class TestDalesInterface(TestWithMPI):
         instance = Dales(number_of_workers=4,redirection="none")
         tim=instance.get_model_time()
         instance.commit_grid()
-        instance.evolve_model(tim + (5 | units.s))
+        instance.evolve_model(tim + (10 | units.s))
         profile=instance.get_profile_field(numpy.arange(1,96))
         print "The retrieved profile is:",profile
         instance.cleanup_code()
         instance.stop()
+
+    def test6(self):
+        print "Test 6: instantiate, run 2 seconds and retrieve temperature profile using higher-level interface"
+
+        instance = Dales(number_of_workers=4,redirection="none")
+        tim=instance.get_model_time()
+        instance.commit_grid()
+        instance.evolve_model(tim + (2 | units.s))
+
+        temp = numpy.zeros(100)
+        
+        print "The retrieved U profile is:", instance.get_profile_U(temp)
+        print "The retrieved V profile is:", instance.get_profile_V(temp)
+        print "The retrieved W profile is:", instance.get_profile_W(temp)
+        print 
+
+        print "The retrieved THL profile is:", instance.get_profile_THL(temp)
+        print "The retrieved QT profile is:", instance.get_profile_QT(temp)
+        
+
+        instance.cleanup_code()
+        instance.stop()
+
+            

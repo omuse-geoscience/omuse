@@ -6,7 +6,9 @@ module dales_interface
 
     use daleslib, only: initialize,step,finalize,get_field_layer_avg,&
                        &allocate_z_axis,allocate_2d,allocate_3d,&
-                       &get_field_2d,get_field_3d,my_task,master_task
+                       &get_field_2d,get_field_3d,my_task,master_task,&
+                       FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT
+    
     !TODO: Expose everything so this module only depends on daleslib
     use modglobal, only: rtimee,rdt,fname_options
     use mpi, only: MPI_COMM_WORLD
@@ -121,24 +123,78 @@ contains
     end function
 
     function get_profile_field(g_k,a,n) result(ret)
-        implicit none
+      implicit none
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret,j
+      
+      ret=get_field_layer_avg(5,tmp1Dz)
+      if(ret/=0) then
+         return
+      endif
+      if(my_task==master_task) then
+         do j=1,n
+            a(j)=tmp1Dz(g_k(j))
+         enddo
+      endif
+    end function get_profile_field
 
-        integer, intent(in)                 :: n
-        integer, dimension(n), intent(in)   :: g_k
-        real, dimension(n), intent(out)     :: a
-        integer                             :: ret,j
+!!!!! get functions for vertical profiles / slab averages
+    !   g_k is a dummy array
+    !   a is the returned result
+    !   n is the array length     - TODO : pass n to get_field_layer_avg, don't return too many layers
+    function get_profile_U(g_k, a, n) result(ret)
+      implicit none
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+      
+      ret = get_field_layer_avg(FIELDID_U,a)
+    end function get_profile_U
 
-        ret=get_field_layer_avg(5,tmp1Dz)
-        if(ret/=0) then
-            return
-        endif
-        if(my_task==master_task) then
-            do j=1,n
-                a(j)=tmp1Dz(g_k(j))
-            enddo
-        endif
-    end function
+    function get_profile_V(g_k, a, n) result(ret)
+      implicit none
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+      
+      ret = get_field_layer_avg(FIELDID_V,a)
+    end function get_profile_V
+ 
+    function get_profile_W(g_k, a, n) result(ret)
+      implicit none
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+      
+      ret = get_field_layer_avg(FIELDID_W,a)
+    end function get_profile_W
 
+    function get_profile_THL(g_k, a, n) result(ret)
+      implicit none
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+      
+      ret = get_field_layer_avg(FIELDID_THL,a)
+    end function get_profile_THL
+
+    function get_profile_QT(g_k, a, n) result(ret)
+      implicit none
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+      
+      ret = get_field_layer_avg(FIELDID_QT,a)
+    end function get_profile_QT
+!!! end of vertical profile getters
+    
     function get_layer_field(g_i,g_j,k,a,n) result(ret)
         implicit none
     
