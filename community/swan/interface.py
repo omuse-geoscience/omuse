@@ -76,6 +76,7 @@ parameters={
     "minimum_wind_speed" : dict(short="umin", dtype="float64", default=1. | units.m/units.s, description="minimum wind speed", ptype="simple"),
     "stationary_propagation_scheme_order" : dict(short="PROPSS", dtype="int32", default=2, description="order of propagation scheme for stationary calc (1=BSBT, 2= SORDUP)", ptype="simple"),    
     "dynamic_propagation_scheme_order" : dict(short="PROPSN", dtype="int32", default=3, description="order of propagation scheme for stationary calc (1=BSBT, 2= S/L)", ptype="simple"),    
+    "turbulent_viscosity_factor" : dict(short="ctb", dtype="float64", default=0.01, description="prefactor in turbulent dissipation formula (0.01)", ptype="simple"),    
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
@@ -110,7 +111,8 @@ input_grid_variables={
     "depth" : dict(pyvar=["depth"], forvar=["depth"], igrid=1, unit=units.m),
     "water_level" : dict(pyvar=["water_level"], forvar=["wlevl"], igrid=7, unit=units.m),
     "current" : dict(pyvar=["vx","vy"], forvar=["uxb","uyb"], igrid=2, unit=units.m/units.s),
-    "wind" : dict(pyvar=["wind_vx","wind_vy"], forvar=["wxi","wyi"], igrid=5, unit=units.m/units.s)
+    "wind" : dict(pyvar=["wind_vx","wind_vy"], forvar=["wxi","wyi"], igrid=5, unit=units.m/units.s),
+    "turbulent_visc" : dict(pyvar=["visc"], forvar=["turbf"], igrid=12, unit=units.m**2/units.s),
 }
 
 _regular_input_grid_template="""

@@ -44,6 +44,7 @@ module swan_interface
 
   real :: umin=1.
   real :: rho_air=1.28
+  real :: ctb=0.01
 
 contains
 
@@ -90,6 +91,7 @@ function initialize_code(coord_, mode_, grid_,input_grid_) result(ret)
 
   umin=PWIND(12)
   rho_air=PWIND(16)
+  ctb=PTURBV(1)
   
 end function
 
@@ -261,7 +263,7 @@ function initialize_input_grids() result(ret)
     if(ret.NE.0) return
     IF (ALLOCATED(TURBF)) DEALLOCATE(TURBF)
     ALLOCATE(TURBF(MXG(12)*MYG(12)))
-    TURBF(12)=0
+    TURBF=0
     LEDS(12)=2
   endif
   
@@ -323,7 +325,9 @@ function commit_parameters() result(ret)
     ENDIF
   endif
   if(use_input_turbulent_visc) then
+    ITURBV = 1
     VARTUR = .TRUE.
+    PTURBV(2) = -1
     IF (JTURB2.LE.1) THEN
       MCMVAR = MCMVAR + 2
       JTURB2 = MCMVAR - 1
@@ -380,6 +384,8 @@ function commit_parameters() result(ret)
   PWIND(16)=rho_air
   PWIND(17)=RHO
   PWIND(9)=rho_air/RHO
+
+  PTURBV(1)=ctb
 
   ret=0
 end function
