@@ -83,16 +83,20 @@ class TestDalesInterface(TestWithMPI):
         instance.commit_grid()
         instance.evolve_model(tim + (2 | units.s))
 
-        temp = numpy.zeros(100)
         
-        print "The retrieved U profile is:", instance.get_profile_U(temp)
-        print "The retrieved V profile is:", instance.get_profile_V(temp)
-        print "The retrieved W profile is:", instance.get_profile_W(temp)
+        print "The retrieved U profile is:", instance.get_profile_U()
+        print "The retrieved V profile is:", instance.get_profile_V()
+        print "The retrieved W profile is:", instance.get_profile_W()
         print 
 
-        print "The retrieved THL profile is:", instance.get_profile_THL(temp)
-        print "The retrieved QT profile is:", instance.get_profile_QT(temp)
-        
+        print "The retrieved THL profile is:", instance.get_profile_THL()
+        print "The retrieved QT profile is:", instance.get_profile_QT()
+        print "The retrieved zf levels:", instance.get_zf()
+        print "The retrieved zh levels:", instance.get_zh()
+
+        i,j,k,xsize,ysize = instance.get_params_grid()
+        print "Grid size", (i, j, k)
+        print "Horizontal extent of model", (xsize,ysize)
 
         instance.cleanup_code()
         instance.stop()

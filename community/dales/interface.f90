@@ -144,7 +144,7 @@ contains
     !   g_k is a dummy array
     !   a is the returned result
     !   n is the array length     - TODO : pass n to get_field_layer_avg, don't return too many layers
-    function get_profile_U(g_k, a, n) result(ret)
+    function get_profile_U_(g_k, a, n) result(ret)
       implicit none
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -152,9 +152,9 @@ contains
       integer                             :: ret
       
       ret = get_field_layer_avg(FIELDID_U,a)
-    end function get_profile_U
+    end function get_profile_U_
 
-    function get_profile_V(g_k, a, n) result(ret)
+    function get_profile_V_(g_k, a, n) result(ret)
       implicit none
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -162,9 +162,9 @@ contains
       integer                             :: ret
       
       ret = get_field_layer_avg(FIELDID_V,a)
-    end function get_profile_V
+    end function get_profile_V_
  
-    function get_profile_W(g_k, a, n) result(ret)
+    function get_profile_W_(g_k, a, n) result(ret)
       implicit none
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -172,9 +172,9 @@ contains
       integer                             :: ret
       
       ret = get_field_layer_avg(FIELDID_W,a)
-    end function get_profile_W
+    end function get_profile_W_
 
-    function get_profile_THL(g_k, a, n) result(ret)
+    function get_profile_THL_(g_k, a, n) result(ret)
       implicit none
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -182,9 +182,9 @@ contains
       integer                             :: ret
       
       ret = get_field_layer_avg(FIELDID_THL,a)
-    end function get_profile_THL
+    end function get_profile_THL_
 
-    function get_profile_QT(g_k, a, n) result(ret)
+    function get_profile_QT_(g_k, a, n) result(ret)
       implicit none
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -192,8 +192,58 @@ contains
       integer                             :: ret
       
       ret = get_field_layer_avg(FIELDID_QT,a)
-    end function get_profile_QT
+    end function get_profile_QT_
+
+     function get_zf_(g_k, a, n) result(ret)
+       use modglobal, only: zf
+      implicit none
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+      integer                             :: i
+
+      do i = 1, n
+         a(i) = zf(i)
+      end do 
+      ret = 0
+    end function get_zf_
+
+    function get_zh_(g_k, a, n) result(ret)
+      use modglobal, only: zh
+      implicit none
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+      integer                             :: i
+      
+      do i = 1, n
+         a(i) = zh(i)
+      end do
+      ret = 0
+    end function get_zh_
+
 !!! end of vertical profile getters
+
+!!! get simulation parameters    
+    function get_params_grid (i,j,k,X,Y) result(ret)
+      use modglobal, only: itot,jtot,kmax,xsize,ysize
+      implicit none
+      integer, intent(out)                :: i,j,k
+      real, intent(out)                   :: X,Y
+      integer                             :: ret
+      
+      i=itot
+      j=jtot
+      k=kmax
+      X=xsize
+      Y=ysize
+      ret = 0
+    end function get_params_grid
+
+
+    
     
     function get_layer_field(g_i,g_j,k,a,n) result(ret)
         implicit none
