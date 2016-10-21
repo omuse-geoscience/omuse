@@ -76,7 +76,7 @@ class TestDalesInterface(TestWithMPI):
         instance.stop()
 
     def test6(self):
-        print "Test 6: instantiate, run 2 seconds and retrieve temperature profile using higher-level interface"
+        print "Test 6: instantiate, run 2 seconds and retrieve profiles"
 
         instance = Dales(number_of_workers=4,redirection="none")
         tim=instance.get_model_time()
@@ -102,3 +102,41 @@ class TestDalesInterface(TestWithMPI):
         instance.stop()
 
             
+    def test7(self):
+        print "Test 7: instantiate, set a forcing, run 2 seconds and retrieve profiles"
+
+        instance = Dales(number_of_workers=4,redirection="none")
+        tim=instance.get_model_time()
+        instance.commit_grid()
+
+        #print "Number of height levels:", instance.k
+        #tend = numpy.arange(instance.k)*.01
+        #print ('U_tend in python', tend)
+        #instance.set_tendency_U(tend)
+
+        tend = numpy.zeros(instance.k)
+        tend[5] = -.1
+        tend[6] = -.2   # layer 9 sees the most effect of this
+        tend[7] = -.1
+
+        instance.set_tendency_U(tend)
+        
+        instance.evolve_model(tim + (30 | units.s))
+
+        
+        print "The retrieved U profile is:", instance.get_profile_U()
+        print "The retrieved V profile is:", instance.get_profile_V()
+        #print "The retrieved W profile is:", instance.get_profile_W()
+        print 
+
+        #print "The retrieved THL profile is:", instance.get_profile_THL()
+        print "The retrieved QT profile is:", instance.get_profile_QT()
+        #print "The retrieved zf levels:", instance.get_zf()
+        #print "The retrieved zh levels:", instance.get_zh()
+
+        i,j,k,xsize,ysize = instance.get_params_grid()
+        print "Grid size", (i, j, k)
+        print "Horizontal extent of model", (xsize,ysize)
+
+        instance.cleanup_code()
+        instance.stop()

@@ -85,6 +85,25 @@ class DalesInterface(CodeInterface,
     def get_zh_(k=0):
         returns (out=0. | units.m)
 
+# setter functions for vertical tendencies / forcings
+    @remote_function(must_handle_array=True)
+    def set_tendency_U(a=0.):
+        returns () 
+
+    @remote_function(must_handle_array=True)
+    def set_tendency_V(a=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_tendency_THL(a=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_tendency_QT(a=0.):
+        returns ()
+
+
+        
 # # #
     @remote_function()
     def get_params_grid():

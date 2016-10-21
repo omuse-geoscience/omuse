@@ -143,7 +143,7 @@ contains
 !!!!! get functions for vertical profiles / slab averages
     !   g_k is a dummy array
     !   a is the returned result
-    !   n is the array length     - TODO : pass n to get_field_layer_avg, don't return too many layers
+    !   n is the array length    
     function get_profile_U_(g_k, a, n) result(ret)
       implicit none
       integer, intent(in)                 :: n
@@ -226,6 +226,50 @@ contains
 
 !!! end of vertical profile getters
 
+!!!!! set functions for vertical tendency vectors
+    !   a is the profile to set
+    !   n is the array length - assumed to be the number of layers in the model   
+    function set_tendency_U(a, n) result(ret)
+      use  daleslib, only:  set_field_tendency
+      implicit none
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer                             :: ret
+      
+      ret = set_field_tendency(FIELDID_U,a)
+    end function set_tendency_U
+    
+    function set_tendency_V(a, n) result(ret)
+      use  daleslib, only:  set_field_tendency
+      implicit none
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer                             :: ret
+      
+      ret = set_field_tendency(FIELDID_V,a)
+    end function set_tendency_V
+
+    function set_tendency_THL(a, n) result(ret)
+      use  daleslib, only:  set_field_tendency
+      implicit none
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer                             :: ret
+      
+      ret = set_field_tendency(FIELDID_THL,a)
+    end function set_tendency_THL
+
+    function set_tendency_QT(a, n) result(ret)
+      use  daleslib, only:  set_field_tendency
+      implicit none
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer                             :: ret
+      
+      ret = set_field_tendency(FIELDID_QT,a)
+    end function set_tendency_QT
+    
+    
 !!! get simulation parameters    
     function get_params_grid (i,j,k,X,Y) result(ret)
       use modglobal, only: itot,jtot,kmax,xsize,ysize
