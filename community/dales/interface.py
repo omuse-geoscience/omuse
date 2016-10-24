@@ -53,9 +53,7 @@ class DalesInterface(CodeInterface,
 
 # getter functions for vertical profiles - slab averages
 # these take a dummy array as input, and return output of the same length
-    @remote_function(must_handle_array=True)
-    def get_profile_field(k=0):
-        returns (out=0.| units.K)
+ 
 
     @remote_function(must_handle_array=True)
     def get_profile_U_(k=0):
@@ -77,6 +75,8 @@ class DalesInterface(CodeInterface,
     def get_profile_QT_(k=0):
         returns (out=0.)
 
+# getter functions for height levels
+# these take a dummy array as input, and return output of the same length
     @remote_function(must_handle_array=True)
     def get_zf_(k=0):
         returns (out=0. | units.m)
@@ -102,20 +102,34 @@ class DalesInterface(CodeInterface,
     def set_tendency_QT(a=0.):
         returns ()
 
+# getter functions for 3D fields usning index arrays
+    @remote_function(must_handle_array=True)
+    def get_field_U(g_i=0,g_j=0,g_k=0):
+        returns (a=0. | units.m / units.s)
 
+    @remote_function(must_handle_array=True)
+    def get_field_V(g_i=0,g_j=0,g_k=0):
+        returns (a=0. | units.m / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_field_W(g_i=0,g_j=0,g_k=0):
+        returns (a=0. | units.m / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_field_THL(g_i=0,g_j=0,g_k=0):
+        returns (a=0. | units.K)
+
+    @remote_function(must_handle_array=True)
+    def get_field_QT(g_i=0,g_j=0,g_k=0):
+        returns (a=0.)
+
+    
         
 # # #
     @remote_function()
     def get_params_grid():
         returns (i=1, j=1, k=1, xsize=1.0 | units.m, ysize=1.0 | units.m)
 
-    @remote_function(must_handle_array=True)
-    def get_layer_field(i=0,j=0,k=0):
-        returns (temp=0.| units.K)
-
-    @remote_function(must_handle_array=True)
-    def get_volume_field(i=0,j=0,k=0):
-        returns (temp=0.| units.K)
 
     @remote_function
     def evolve_model(tend=0. | units.s):
@@ -124,22 +138,12 @@ class DalesInterface(CodeInterface,
     
     
 class Dales(CommonCode):
-    # these defs match those in daleslib.f90
-    FIELDID_U=1
-    FIELDID_V=2
-    FIELDID_W=3
-    FIELDID_THL=4
-    FIELDID_QT=5
-    
     # grid size
     itot = None
     jtot = None
     k    = None
     xsize = None
     ysize = None
-
-    
-
     
     def __init__(self,**options):
         CommonCode.__init__(self,  DalesInterface(**options), **options)
@@ -208,6 +212,36 @@ class Dales(CommonCode):
 
     def get_zh(self):
         return self.get_zh_(numpy.zeros(self.k))
+
+    # retrieve a 3D field
+    # field is 'U', 'V', 'W', 'THL', 'QT'
+    def get_field(self, field, imin=0, imax=None, jmin=0, jmax=None, kmin=0, kmax=None):
+        if imax is None:
+            imax = self.itot
+        if jmax is None:
+            jmax = self.jtot
+        if kmax is None:
+            kmax = self.k    
+
+        #build index arrays
+        points = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
+        points = points.reshape(3, -1)
+        i,j,k = points
+            
+        if field == 'U':
+            field = self.get_field_U(i,j,k)
+        elif field == 'V':
+            field = self.get_field_V(i,j,k)
+        elif field == 'W':
+            field = self.get_field_W(i,j,k)
+        elif field == 'THL':
+            field = self.get_field_THL(i,j,k)
+        elif field == 'QT':
+            field = self.get_field_QT(i,j,k)
+        else:
+            print('get_field called with undefined field', field)
+            
+        return field.reshape ((imax-imin, jmax-jmin, kmax-kmin))
 
 
     # get parameters from the fortran code, store them in the Dales interface object
