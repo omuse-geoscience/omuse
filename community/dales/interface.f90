@@ -10,7 +10,7 @@ module dales_interface
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, &
                       gatherlayeravg, gathervol
-    use modfields, only: u0,v0,w0,thl0,qt0
+    use modfields, only: u0,v0,w0,thl0,qt0,ql0
     use modglobal, only: i1,j1,k1,itot,jtot,kmax
     
     !TODO: Expose everything so this module only depends on daleslib
@@ -116,9 +116,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      !call gatherlayeravg3(u0(2:i1, 2:j1, :), a)
-      call gatherlayeravg(u0, a)
-      !ret = get_field_layer_avg(FIELDID_U,a)
+      ret = gatherlayeravg(u0(2:i1, 2:j1, :), a)
     end function get_profile_U_
 
     function get_profile_V_(g_k, a, n) result(ret)
@@ -127,9 +125,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      !call gatherlayeravg3(v0(2:i1, 2:j1, :), a)
-      call gatherlayeravg(v0, a)
-      !ret = get_field_layer_avg(FIELDID_V,a)
+      ret = gatherlayeravg(v0(2:i1, 2:j1, :), a)
     end function get_profile_V_
  
     function get_profile_W_(g_k, a, n) result(ret)
@@ -138,9 +134,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      !call gatherlayeravg3(w0(2:i1, 2:j1, :), a)
-      call gatherlayeravg(w0, a)
-      !ret = get_field_layer_avg(FIELDID_W,a)
+      ret = gatherlayeravg(w0(2:i1, 2:j1, :), a)
     end function get_profile_W_
 
     function get_profile_THL_(g_k, a, n) result(ret)
@@ -149,9 +143,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      !call gatherlayeravg3(thl0(2:i1, 2:j1, :), a)
-      call gatherlayeravg(thl0, a)
-      !ret = get_field_layer_avg(FIELDID_THL,a)
+      ret = gatherlayeravg(thl0(2:i1, 2:j1, :), a)
     end function get_profile_THL_
 
     function get_profile_QT_(g_k, a, n) result(ret)
@@ -160,22 +152,27 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      !call gatherlayeravg3(qt0(2:i1, 2:j1, :), a)
-      call gatherlayeravg(qt0, a)
-      !ret = get_field_layer_avg(FIELDID_QT,a)
+      ret = gatherlayeravg(qt0(2:i1, 2:j1, :), a)
     end function get_profile_QT_
 
+    function get_profile_QL_(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+
+      ret = gatherlayeravg(ql0(2:i1, 2:j1, :), a)
+    end function get_profile_QL_
+
+    
      function get_zf_(g_k, a, n) result(ret)
        use modglobal, only: zf
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
-      integer                             :: i
 
-      do i = 1, n
-         a(i) = zf(i)
-      end do 
+      a = zf
       ret = 0
     end function get_zf_
 
@@ -185,11 +182,8 @@ contains
       integer, dimension(n), intent(in)   :: g_k
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
-      integer                             :: i
-      
-      do i = 1, n
-         a(i) = zh(i)
-      end do
+
+      a = zh
       ret = 0
     end function get_zh_
 
@@ -203,6 +197,7 @@ contains
       real, dimension(n), intent(in)      :: a
       integer                             :: ret
       u_tend = a
+      ret = 0
     end function set_tendency_U
     
     function set_tendency_V(a, n) result(ret)
@@ -210,6 +205,7 @@ contains
       real, dimension(n), intent(in)      :: a
       integer                             :: ret
       v_tend = a
+      ret = 0
     end function set_tendency_V
 
     function set_tendency_THL(a, n) result(ret)
@@ -217,6 +213,7 @@ contains
       real, dimension(n), intent(in)      :: a
       integer                             :: ret
       thl_tend = a
+      ret = 0
     end function set_tendency_THL
 
     function set_tendency_QT(a, n) result(ret)
@@ -224,6 +221,7 @@ contains
       real, dimension(n), intent(in)      :: a
       integer                             :: ret
       qt_tend = a
+      ret = 0
     end function set_tendency_QT
 !!! end of vertical tendency setters
 
@@ -233,7 +231,7 @@ contains
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
-       ret = gathervol(g_i,g_j,g_k,a,n,u0)
+       ret = gathervol(g_i,g_j,g_k,a,n,u0(2:i1,2:j1,1:kmax))
     end function get_field_U
 
     function get_field_V(g_i,g_j,g_k,a,n) result(ret)
@@ -241,7 +239,7 @@ contains
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
-       ret = gathervol(g_i,g_j,g_k,a,n,v0)
+       ret = gathervol(g_i,g_j,g_k,a,n,v0(2:i1,2:j1,1:kmax))
     end function get_field_V
 
     function get_field_W(g_i,g_j,g_k,a,n) result(ret)
@@ -249,7 +247,7 @@ contains
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
-       ret = gathervol(g_i,g_j,g_k,a,n,w0)
+       ret = gathervol(g_i,g_j,g_k,a,n,w0(2:i1,2:j1,1:kmax))
      end function get_field_W
 
      function get_field_THL(g_i,g_j,g_k,a,n) result(ret)
@@ -257,7 +255,7 @@ contains
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
-       ret = gathervol(g_i,g_j,g_k,a,n,thl0)
+       ret = gathervol(g_i,g_j,g_k,a,n,thl0(2:i1,2:j1,1:kmax))
      end function get_field_THL
 
      function get_field_QT(g_i,g_j,g_k,a,n) result(ret)
@@ -265,11 +263,20 @@ contains
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
-       ret = gathervol(g_i,g_j,g_k,a,n,qt0)
+       ret = gathervol(g_i,g_j,g_k,a,n,qt0(2:i1,2:j1,1:kmax))
      end function get_field_QT
+
+     function get_field_QL(g_i,g_j,g_k,a,n) result(ret)
+      integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,ql0(2:i1,2:j1,1:kmax))
+     end function get_field_QL
+
+     
 !!! end of full 3D field getter functions
     
-
     
     
 !!! get simulation parameters    

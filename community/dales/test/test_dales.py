@@ -12,6 +12,7 @@ default_options={}
 #default_options=dict(redirection="none",debugger="gdb")
 
 import logging
+import pickle
 import numpy
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("code").setLevel(logging.DEBUG)
@@ -199,6 +200,8 @@ class TestDalesInterface(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
+        
+
     def test9(self):
         print "Test 9: get 3D data and compare with slab averages"
 
@@ -214,7 +217,7 @@ class TestDalesInterface(TestWithMPI):
         tend[5] = -1
         instance.set_tendency_U(tend)
         
-        instance.evolve_model(tim + (5 | units.s))
+        instance.evolve_model(tim + (180 | units.s))
         
         def getU(imin=0, imax=instance.itot, jmin=0, jmax=instance.jtot, kmin=0, kmax=instance.k):
             points = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
@@ -255,6 +258,7 @@ class TestDalesInterface(TestWithMPI):
         THL3 = instance.get_field('THL')
         QT3  = instance.get_field('QT')
 
+        
         # calculate own slab averages of 3D profiles
         U3a   = numpy.mean(U3, axis=(0,1))
         V3a   = numpy.mean(V3, axis=(0,1))
@@ -270,7 +274,9 @@ class TestDalesInterface(TestWithMPI):
         rmsQT   = rms(QT,  QT3a)
         
         print 'RMS errors (U, V, W, THL, QT)', rmsU, rmsV, rmsW, rmsTHL, rmsQT
-
+        print THL3 [0, 0, 0:4]
+#        print instance.get_field('THL', imin)
+        
         assert rmsU   < 1e-12 | units.m / units.s
         assert rmsV   < 1e-12 | units.m / units.s
         assert rmsW   < 1e-12 | units.m / units.s
@@ -280,6 +286,59 @@ class TestDalesInterface(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
-        
 
-   
+    def test10(self):
+        fileName = 'reference-data/test10.pkl'
+        save = False
+        
+        print "Test 10: get 3D data, compare with stored reference"
+
+        # summed root mean square difference between vectors a and b
+        def rmsSum(a, b):
+            return numpy.sqrt(((a-b)**2).sum())
+        
+        instance = Dales(number_of_workers=1,redirection="none")
+        tim=instance.get_model_time()
+        instance.commit_grid()
+
+       # tend = numpy.zeros(instance.k)
+       # tend[5] = -1
+       # instance.set_tendency_U(tend)
+        
+        instance.evolve_model(tim + (300 | units.s))
+
+        # get 3D profiles
+        U3   = instance.get_field('U')
+        V3   = instance.get_field('V')
+        W3   = instance.get_field('W')
+        THL3 = instance.get_field('THL')
+        QT3  = instance.get_field('QT')
+
+        if save:
+            outFile = open(fileName, 'wb')
+            pkl = (U3, V3, W3, THL3, QT3)
+            pickle.dump(pkl, outFile)
+            print('Saved reference profiles in', fileName)
+        else:
+            inFile = open(fileName, 'rb')
+            pkl = pickle.load(inFile)
+            U3p, V3p, W3p, THL3p, QT3p = pkl
+            rmsU   = rmsSum(U3, U3p)
+            rmsV   = rmsSum(V3, V3p)
+            rmsW   = rmsSum(W3, W3p)
+            rmsTHL = rmsSum(THL3, THL3p)
+            rmsQT  = rmsSum(QT3, QT3p)
+            
+            print 'RMS errors (U, V, W, THL, QT)', rmsU, rmsV, rmsW, rmsTHL, rmsQT
+        
+            assert rmsU   < 1e-9 | units.m / units.s
+            assert rmsV   < 1e-9 | units.m / units.s
+            assert rmsW   < 1e-9 | units.m / units.s
+            assert rmsTHL < 1e-9 | units.K
+            assert rmsQT  < 1e-9
+        
+        instance.cleanup_code()
+        instance.stop()
+
+
+
