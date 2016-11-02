@@ -75,6 +75,10 @@ class DalesInterface(CodeInterface,
     def get_profile_QT_(k=0):
         returns (out=0.)
 
+    @remote_function(must_handle_array=True)
+    def get_profile_QL_(k=0):
+        returns (out=0.)
+
 # getter functions for height levels
 # these take a dummy array as input, and return output of the same length
     @remote_function(must_handle_array=True)
@@ -121,6 +125,10 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_field_QT(g_i=0,g_j=0,g_k=0):
+        returns (a=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_field_QL(g_i=0,g_j=0,g_k=0):
         returns (a=0.)
 
     
@@ -207,6 +215,9 @@ class Dales(CommonCode):
     def get_profile_QT(self):
         return self.get_profile_QT_(numpy.zeros(self.k))
 
+    def get_profile_QL(self):
+        return self.get_profile_QL_(numpy.zeros(self.k))
+    
     def get_zf(self):
         return self.get_zf_(numpy.zeros(self.k))
 
