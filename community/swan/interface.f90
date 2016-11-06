@@ -45,6 +45,7 @@ module swan_interface
   real :: umin=1.
   real :: rho_air=1.28
   real :: ctb=0.01
+  real :: under_relaxation_factor=0.0
 
 contains
 
@@ -386,6 +387,8 @@ function commit_parameters() result(ret)
   PWIND(9)=rho_air/RHO
 
   PTURBV(1)=ctb
+  
+  PNUMS(30)=under_relaxation_factor
 
   ret=0
 end function
