@@ -77,6 +77,8 @@ parameters={
     "stationary_propagation_scheme_order" : dict(short="PROPSS", dtype="int32", default=2, description="order of propagation scheme for stationary calc (1=BSBT, 2= SORDUP)", ptype="simple"),    
     "dynamic_propagation_scheme_order" : dict(short="PROPSN", dtype="int32", default=3, description="order of propagation scheme for stationary calc (1=BSBT, 2= S/L)", ptype="simple"),    
     "turbulent_viscosity_factor" : dict(short="ctb", dtype="float64", default=0.01, description="prefactor in turbulent dissipation formula (0.01)", ptype="simple"),    
+    "maximum_error_level" : dict(short="maxerr", dtype="int32", default=1, description="maximum internal error level allowed (1)", ptype="simple"),    
+    "under_relaxation_factor" : dict(short="under_relaxation_factor", dtype="float64", default=0., description="stationary under relaxation alpha (0 - 0.01)", ptype="simple"),    
 #            "parameter_name" : dict(short="abrev.", dtype="float64", default=0 , description=""),
             }
 
