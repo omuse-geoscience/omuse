@@ -2,7 +2,11 @@
 
 module openifs_interface
 
-    use ifslib, only: static_init, initialize, istart, istop, step, finalize
+    use ifslib, only: static_init, initialize, itime, finalize, get_gp_field,&
+                     &get_gp_geom, get_gp_field_columns, TEMPERATURE
+    use yomct0, only: nstart,nstop
+    use yomct3, only: nstep
+    use yomdyn, only: tstep
 
     implicit none
 
@@ -34,22 +38,39 @@ module openifs_interface
 
         end function
 
-        function evolve_model() result(ret)
+        function evolve_model(tend) result(ret)
 
-            integer:: ret,ii
-            logical:: istat
+            real(8), intent(in)::   tend
+            integer::               ret,ii
+            logical::               istat
 
-            ret=0
-            istat=.true.
-            do ii=istart,istop
+            ret = 0
+            if(istep >= nstop) then
+                ret = 1
+                return
+            endif
+            istat = .true.
+            do while(jstep*tstep <= tend)
                 call step(istat)
                 if(.not.istat) then
-                    ret=1
+                    ret = 1
                     exit
                 endif
             enddo
 
         end function evolve_model
+
+        function get_field_T(g_i,g_k,a,n,k) result(ret)
+
+            integer, intent(in)::                   n,k
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real, dimension(n), intent(out)::       a
+            integer::                               ret
+
+            ret = 0
+            call get_gp_field_columns(a,n,g_i,TEMPERATURE)
+
+        end function get_field_T
 
         function cleanup_code() result(ret)
 
