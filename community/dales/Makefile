@@ -28,7 +28,8 @@ update:
 dales: 
 	mkdir -p $(BUILDDIR)
 #	cd $(BUILDDIR); cmake ../dales-repo; make; make install
-	cd $(BUILDDIR); cmake ../dales-repo -DCMAKE_BUILD_TYPE=Debug; make ; make install
+#	cd $(BUILDDIR); cmake ../dales-repo -DCMAKE_BUILD_TYPE=Debug; make ; make install
+	cd $(BUILDDIR); cmake ../dales-repo -DCMAKE_BUILD_TYPE=Release; make ; make install	
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py DalesInterface -o $@

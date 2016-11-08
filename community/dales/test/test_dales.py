@@ -305,7 +305,7 @@ class TestDalesInterface(TestWithMPI):
        # tend[5] = -1
        # instance.set_tendency_U(tend)
         
-        instance.evolve_model(tim + (300 | units.s))
+        instance.evolve_model(tim + (300 | units.s), exactEnd=0)
 
         # get 3D profiles
         U3   = instance.get_field('U')
