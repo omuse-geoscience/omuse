@@ -20,7 +20,7 @@ program fortran_test
 
     write(*,*) "Running for a minute..."
     tend=60
-    stat=evolve_model(tend)
+    stat=evolve_model(tend, 0)
     if(stat/=0) then
         write(*,*) "...failed, stopping."
         return

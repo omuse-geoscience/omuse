@@ -79,6 +79,14 @@ class DalesInterface(CodeInterface,
     def get_profile_QL_(k=0):
         returns (out=0.)
 
+    @remote_function(must_handle_array=True)
+    def get_profile_E12_(k=0):
+        returns (out=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_profile_T_(k=0):
+        returns (out=0. | units.K)
+
 # getter functions for height levels
 # these take a dummy array as input, and return output of the same length
     @remote_function(must_handle_array=True)
@@ -131,16 +139,25 @@ class DalesInterface(CodeInterface,
     def get_field_QL(g_i=0,g_j=0,g_k=0):
         returns (a=0.)
 
-    
+    @remote_function(must_handle_array=True)
+    def get_field_E12(g_i=0,g_j=0,g_k=0):
+        returns (a=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_field_T(g_i=0,g_j=0,g_k=0):
+        returns (a=0.| units.K)
+
         
 # # #
     @remote_function()
     def get_params_grid():
         returns (i=1, j=1, k=1, xsize=1.0 | units.m, ysize=1.0 | units.m)
 
-
+    #exactEnd: if true, step exactly to tend,
+    # otherwise, step past tend with normal time steps (default)
+    # the end time form namoptions is effective only if exactEnd is false
     @remote_function
-    def evolve_model(tend=0. | units.s):
+    def evolve_model(tend=0. | units.s, exactEnd=0):
         pass
 
     
@@ -217,6 +234,12 @@ class Dales(CommonCode):
 
     def get_profile_QL(self):
         return self.get_profile_QL_(numpy.zeros(self.k))
+
+    def get_profile_E12(self):
+        return self.get_profile_E12_(numpy.zeros(self.k))
+
+    def get_profile_T(self):
+        return self.get_profile_T_(numpy.zeros(self.k))
     
     def get_zf(self):
         return self.get_zf_(numpy.zeros(self.k))
@@ -225,7 +248,7 @@ class Dales(CommonCode):
         return self.get_zh_(numpy.zeros(self.k))
 
     # retrieve a 3D field
-    # field is 'U', 'V', 'W', 'THL', 'QT'
+    # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_field(self, field, imin=0, imax=None, jmin=0, jmax=None, kmin=0, kmax=None):
         if imax is None:
             imax = self.itot
@@ -249,6 +272,12 @@ class Dales(CommonCode):
             field = self.get_field_THL(i,j,k)
         elif field == 'QT':
             field = self.get_field_QT(i,j,k)
+        elif field == 'QL':
+            field = self.get_field_QL(i,j,k)
+        elif field == 'E12':
+            field = self.get_field_E12(i,j,k)
+        elif field == 'T':
+            field = self.get_field_T(i,j,k)            
         else:
             print('get_field called with undefined field', field)
             
