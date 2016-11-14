@@ -61,14 +61,8 @@ class OpenIFSInterface(CodeInterface,
     # Utility method returning the gridpoint latitudes.
     # Argument is assumed to be the full horizontal range.
     @remote_function(must_handle_array=True)
-    def get_gridpoint_lats_(i = 0):
-        returns (out = 0. | units.rad)
-
-    # Utility method returning the gridpoint longitudes.
-    # Argument is assumed to be the full horizontal range.
-    @remote_function(must_handle_array=True)
-    def get_gridpoint_lons_(i = 0):
-        returns (out = 0. | units.rad)
+    def get_gridpoints(i = 0):
+        returns (lats = 0. | units.rad,lons = 0. | units.rad)
 
     # Returns the horizontal and vertical index ranges
     @remote_function
@@ -114,7 +108,7 @@ class OpenIFS(CommonCode):
         object.add_transition("END","STOPPED","stop",False)
         object.add_method("STOPPED","stop")
         object.add_transition("INITIALIZED","EDIT","commit_parameters")
-        object.add_transition("EDIT","RUN"."commit_grid")
+        object.add_transition("EDIT","RUN","commit_grid")
         object.add_transition("INITIALIZED","before_set_interface_parameter")
         object.add_transition("RUN","EVOLVED","evolve_model",False)
         for state in ["RUN","EDIT","EVOLVED"]:

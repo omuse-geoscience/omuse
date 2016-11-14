@@ -2,11 +2,15 @@
 
 module openifs_interface
 
-    use ifslib, only: static_init, initialize, itime, finalize, get_gp_field,&
-                     &get_gp_geom, get_gp_field_columns, TEMPERATURE
-    use yomct0, only: nstart,nstop
-    use yomct3, only: nstep
-    use yomdyn, only: tstep
+    use ifslib,     only: static_init, initialize, itime, finalize, get_gp_field,&
+                        & get_gp_geom, get_gp_field_columns, get_gp_field, TEMPERATURE,&
+                        & istep, jstep, step
+    use yomct0,     only: nstart,nstop
+    use yomct3,     only: nstep
+    use yomdyn,     only: tstep
+    use yommp0,     only: myproc
+    use yomgem,     only: ngptotg
+    use yomdimv,    only: nflevg
 
     implicit none
 
@@ -17,7 +21,7 @@ module openifs_interface
             integer:: ret
 
             call static_init()
-            ret=0
+            ret = 0
 
         end function initialize_code
 
@@ -26,7 +30,15 @@ module openifs_interface
             integer:: ret
 
             call initialize()
-            ret=0
+            ret = 0
+
+        end function
+
+        function commit_grid() result(ret)
+
+            integer:: ret
+
+            ret = 0
 
         end function
 
@@ -34,7 +46,38 @@ module openifs_interface
 
             integer:: ret
 
-            ret=0
+            ret = 0
+
+        end function
+
+        function get_timestep(dt) result(ret)
+
+            real(8), intent(out)::   dt
+            integer::                ret
+
+            dt = tstep
+            ret = 0
+
+        end function
+
+        function get_grid_sizes(nxy,nz) result(ret)
+
+            integer, intent(out)::   nxy,nz
+            integer::                ret
+
+            nxy = ngptotg
+            nz = nflevg
+            ret = 0
+
+        end function
+
+        function get_model_time(t) result(ret)
+
+            real(8), intent(out)::  t
+            integer::               ret
+
+            t = itime
+            ret = 0
 
         end function
 
@@ -60,23 +103,87 @@ module openifs_interface
 
         end function evolve_model
 
-        function get_field_T(g_i,g_k,a,n,k) result(ret)
+        function get_gridpoints(g_i,lats,lons,n) result(ret)
 
-            integer, intent(in)::                   n,k
-            integer, dimension(n), intent(in)::     g_i,g_k
-            real, dimension(n), intent(out)::       a
-            integer::                               ret
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    lats(n),lons(n)
+            real(8), allocatable::                  b(:),c(:)
+            integer::                               ret,i
+
+            if(myproc == 0) then
+                allocate(b(ngptotg),c(ngptotg))
+            endif
 
             ret = 0
-            call get_gp_field_columns(a,n,g_i,TEMPERATURE)
+            call get_gp_geom(b,c)
+            
+            if(myproc == 0) then
+                do i = 1,n
+                    lats(i) = b(g_i(i))
+                    lons(i) = c(g_i(i))
+                enddo
+            endif
 
-        end function get_field_T
+            end function
+
+
+        function get_field_T_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            real(8), allocatable::                  b(:,:)
+            integer::                               ret,ii
+
+            if(myproc == 0) then
+                allocate(b(ngptotg,nflevg))
+            endif
+            
+            ret = 0
+            call get_gp_field(b,TEMPERATURE)
+            
+            if(myproc == 0) then
+                do ii = 1,n
+                    a(ii) = b(g_i(ii),g_k(ii))
+                enddo
+                deallocate(b)
+            endif
+
+        end function get_field_T_
+
+        function get_profiles_T_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            real(8), allocatable::                  b(:,:)
+            integer::                               ret,i,ii,k
+
+            if(myproc == 0) then
+                allocate(b(n,nflevg))
+            endif
+            
+            ret = 0
+            call get_gp_field_columns(b,n,g_i,TEMPERATURE)
+            
+            if(myproc == 0) then
+                do i = 1,size(g_i)
+                    do k = 1,nflevg
+                        a(ii) = b(g_i(ii),k)
+                        ii = ii + 1
+                    enddo
+                enddo
+                deallocate(b)
+            endif
+
+        end function get_profiles_T_
 
         function cleanup_code() result(ret)
 
             integer:: ret
 
-            ret=0
+            ret = 0
             call finalize()
 
         end function
