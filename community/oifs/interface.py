@@ -1,15 +1,15 @@
-import os.path
+import os
+import numpy
+
 from omuse.units import units
-from amuse.community.interface.common import CommonCodeInterface, CommonCode
+from amuse.community.interface.common import CommonCodeInterface,CommonCode
 from amuse.support.interface import InCodeComponentImplementation
 from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
-from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
+from amuse.community.interface.stopping_conditions import StoppingConditionInterface,StoppingConditions
 from amuse import datamodel
-
-from amuse.units import trigo
 
 class OpenIFSInterface(CodeInterface,
                        CommonCodeInterface,
@@ -92,30 +92,31 @@ class OpenIFS(CommonCode):
 
     # Commit grid, reads grid size and fills geometry cache
     def commit_grid(self):
-        self.overridden.commit_grid()
         self.itot,self.ktot = self.get_grid_sizes()
-        self.latitudes = self.get_gridpoint_lats_(numpy.zeros(self.itot))
-        self.longitudes = self.get_gridpoint_lons_(numpy.zeros(self.itot))
+        #self.latitudes,self.longitudes = self.get_gridpoints(numpy.zeros(self.itot))
+        self.overridden().commit_grid()
 
     # State machine definition
     def define_state(self, object):
         object.set_initial_state("UNINITIALIZED")
+
         object.add_transition("UNINITIALIZED","INITIALIZED","initialize_code")
+        object.add_transition("!UNINITIALIZED!STOPPED","END","cleanup_code")
+        object.add_transition("END","STOPPED","stop",False)
+        object.add_transition("INITIALIZED","EDIT","commit_parameters")
+        object.add_transition("EDIT","RUN","commit_grid")
+        object.add_transition("RUN","EVOLVED","evolve_model",False)
+
+        object.add_method("INITIALIZED","before_set_interface_parameter")
         object.add_method("UNINITIALIZED","before_get_parameter")
         object.add_method("!UNINITIALIZED","before_set_parameter")
         object.add_method("END","before_get_parameter")
-        object.add_transition("!UNINITIALIZED!STOPPED","END","cleanup_code")
-        object.add_transition("END","STOPPED","stop",False)
         object.add_method("STOPPED","stop")
-        object.add_transition("INITIALIZED","EDIT","commit_parameters")
-        object.add_transition("EDIT","RUN","commit_grid")
-        object.add_transition("INITIALIZED","before_set_interface_parameter")
-        object.add_transition("RUN","EVOLVED","evolve_model",False)
         for state in ["RUN","EDIT","EVOLVED"]:
             object.add_method(state,"get_model_time")
             object.add_method(state,"get_timestep")
-#            object.add_method(state,"get_profiles")
-#            object.add_method(state,"get_field")
+            object.add_method(state,"get_profiles_T")
+            object.add_method(state,"get_field_T")
         object.add_method("EVOLVED","evolve_model")
 
     # Returns the vertical temperature profiles at the gridpoint index array i
