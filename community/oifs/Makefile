@@ -5,7 +5,7 @@ AMUSE_DIR?=../../../..
 
 MPIFC ?= mpif90
 
-FCFLAGS += -fopenmp
+FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m64 -fconvert=big-endian
 
 LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
@@ -16,7 +16,7 @@ OIFSDIR=oifslib
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 	
 export OIFS_COMP = gnu
-export OIFS_BUILD = opt
+export OIFS_BUILD = noopt
 export OIFS_GRIB_API_DIR = /usr/local/
 export OIFS_GRIB_API_LIB = -L/usr/local/lib -lgrib_api_f90 -lgrib_api
 export OIFS_LAPACK_LIB = -L/usr/lib -llapack -lblas

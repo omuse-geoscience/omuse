@@ -21,6 +21,8 @@ module openifs_interface
             integer:: ret
 
             call static_init()
+            call initialize('TEST')
+
             ret = 0
 
         end function initialize_code
@@ -29,7 +31,6 @@ module openifs_interface
 
             integer:: ret
 
-            call initialize()
             ret = 0
 
         end function
