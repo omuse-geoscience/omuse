@@ -93,7 +93,8 @@ class OpenIFS(CommonCode):
     # Commit grid, reads grid size and fills geometry cache
     def commit_grid(self):
         self.itot,self.ktot = self.get_grid_sizes()
-        #self.latitudes,self.longitudes = self.get_gridpoints(numpy.zeros(self.itot))
+        indices = numpy.array([i for i in numpy.arange(0,self.itot)])
+        self.latitudes,self.longitudes = self.get_gridpoints(indices)
         self.overridden().commit_grid()
 
     # State machine definition

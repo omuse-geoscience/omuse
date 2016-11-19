@@ -112,17 +112,17 @@ module openifs_interface
             real(8), allocatable::                  b(:),c(:)
             integer::                               ret,i
 
-            if(myproc == 0) then
+            if(myproc == 1) then
                 allocate(b(ngptotg),c(ngptotg))
             endif
 
             ret = 0
             call get_gp_geom(b,c)
             
-            if(myproc == 0) then
+            if(myproc == 1) then
                 do i = 1,n
-                    lats(i) = b(g_i(i))
-                    lons(i) = c(g_i(i))
+                    lats(i) = b(g_i(i) + 1)
+                    lons(i) = c(g_i(i) + 1)
                 enddo
             endif
 
@@ -137,14 +137,14 @@ module openifs_interface
             real(8), allocatable::                  b(:,:)
             integer::                               ret,ii
 
-            if(myproc == 0) then
+            if(myproc == 1) then
                 allocate(b(ngptotg,nflevg))
             endif
             
             ret = 0
             call get_gp_field(b,TEMPERATURE)
             
-            if(myproc == 0) then
+            if(myproc == 1) then
                 do ii = 1,n
                     a(ii) = b(g_i(ii),g_k(ii))
                 enddo
@@ -161,14 +161,14 @@ module openifs_interface
             real(8), allocatable::                  b(:,:)
             integer::                               ret,i,ii,k
 
-            if(myproc == 0) then
+            if(myproc == 1) then
                 allocate(b(n,nflevg))
             endif
             
             ret = 0
             call get_gp_field_columns(b,n,g_i,TEMPERATURE)
             
-            if(myproc == 0) then
+            if(myproc == 1) then
                 do i = 1,size(g_i)
                     do k = 1,nflevg
                         a(ii) = b(g_i(ii),k)
