@@ -1,0 +1,2 @@
+Tests have only been proven to work with the mpich implementation of MPI-2. To run them with newer (3.x) versions of
+mpich, type: "mpiexec nosetests"
