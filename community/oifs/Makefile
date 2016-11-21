@@ -38,8 +38,8 @@ worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py OpenIFSInterface -o $@
 
 openifs_worker: worker_code.f90 $(OBJS) interface.f90
-	$(MPIFC) $(FCFLAGS) -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include -c interface.f90 -o interface.o
-	$(MPIFC) $(FCFLAGS) -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(FS_LIBS) $(SC_FCLIBS) -o $@
+	$(MPIFC) $(FCFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include -c interface.f90 -o interface.o
+	$(MPIFC) $(FCFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(FS_LIBS) $(SC_FCLIBS) -o $@
 
 #TODO: Clean oifs directory
 clean:
