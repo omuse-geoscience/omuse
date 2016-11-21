@@ -79,6 +79,9 @@ class OpenIFSInterface(CodeInterface,
 # OpenIFS class implementation
 class OpenIFS(CommonCode):
 
+    inputfile = "fort.4"
+    backupfile = "fort.4.bkp"
+
     # Constructor
     def __init__(self,**options):
         self.stopping_conditions = StoppingConditions(self)
@@ -86,14 +89,14 @@ class OpenIFS(CommonCode):
         self.ktot = 0
         self.latitudes = None
         self.longitudes = None
-        if(not os.path.exists("fort.4")):
+        if(not os.path.exists(inputfile)):
             raise Exception("File fort.4 not found. Creating an openIFS model from scratch is not supported yet.")
         else:
-            os.rename("fort.4","fort.4.bkp")
-            self.params = f90nml.read("fort.4.bkp")
-            self.params["NAMPAR0"][0]["NPROC"] = options.get("number_of_workers",1)
-            self.params.write("fort.4")
-        CommonCode.__init__(self,  OpenIFSInterface(**options), **options)
+            os.rename(inputfile,backupfile)
+            self.params = f90nml.read(backupfile)
+            self.patch = {"NAMPAR0":{"NPROC":options.get("number_of_workers",1)}}
+            f90nml.patch(backupfile,self.patch,inputfile)
+        CommonCode.__init__(self,OpenIFSInterface(**options),**options)
 
     # Commit run parameters, not implemented yet
     def commit_parameters(self):
@@ -107,10 +110,10 @@ class OpenIFS(CommonCode):
         self.overridden().commit_grid()
 
     def cleanup_code(self):
-        if(os.path.exists("fort.4.bkp") and os.path.exists("fort.4")):
-            os.remove("fort.4")
-        if(os.path.exists("fort.4.bkp")):
-            os.rename("fort.4.bkp","fort.4")
+        if(os.path.exists(backupfile) and os.path.exists(inputfile)):
+            os.remove(inputfile)
+        if(os.path.exists(backupfile)):
+            os.rename(backupfile,inputfile)
         self.overridden().cleanup_code()
 
     # State machine definition
