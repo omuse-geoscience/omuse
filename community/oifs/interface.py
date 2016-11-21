@@ -1,5 +1,7 @@
 import os
 import numpy
+import f90nml
+import shutil
 
 from omuse.units import units
 from amuse.community.interface.common import CommonCodeInterface,CommonCode
@@ -79,12 +81,19 @@ class OpenIFS(CommonCode):
 
     # Constructor
     def __init__(self,**options):
-        CommonCode.__init__(self,  OpenIFSInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
         self.itot = 0
         self.ktot = 0
         self.latitudes = None
         self.longitudes = None
+        if(not os.path.exists("fort.4")):
+            raise Exception("File fort.4 not found. Creating an openIFS model from scratch is not supported yet.")
+        else:
+            os.rename("fort.4","fort.4.bkp")
+            self.params = f90nml.read("fort.4.bkp")
+            self.params["NAMPAR0"][0]["NPROC"] = options.get("number_of_workers",1)
+            self.params.write("fort.4")
+        CommonCode.__init__(self,  OpenIFSInterface(**options), **options)
 
     # Commit run parameters, not implemented yet
     def commit_parameters(self):
@@ -96,6 +105,13 @@ class OpenIFS(CommonCode):
         indices = numpy.array([i for i in numpy.arange(0,self.itot)])
         self.latitudes,self.longitudes = self.get_gridpoints(indices)
         self.overridden().commit_grid()
+
+    def cleanup_code(self):
+        if(os.path.exists("fort.4.bkp") and os.path.exists("fort.4")):
+            os.remove("fort.4")
+        if(os.path.exists("fort.4.bkp")):
+            os.rename("fort.4.bkp","fort.4")
+        self.overridden().cleanup_code()
 
     # State machine definition
     def define_state(self, object):
