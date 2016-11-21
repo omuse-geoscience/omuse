@@ -2,9 +2,9 @@
 
 module openifs_interface
 
-    use ifslib,     only: static_init, initialize, itime, finalize, get_gp_field,&
-                        & get_gp_geom, get_gp_field_columns, get_gp_field, TEMPERATURE,&
-                        & istep, jstep, step
+    use ifslib,     only: static_init, initialize, finalize, get_gp_field,&
+                        & get_gp_geom, get_gp_field_columns, get_gp_field,& 
+                        & TEMPERATURE, jstep, step
     use yomct0,     only: nstart,nstop
     use yomct3,     only: nstep
     use yomdyn,     only: tstep
@@ -77,7 +77,7 @@ module openifs_interface
             real(8), intent(out)::  t
             integer::               ret
 
-            t = itime
+            t = jstep*tstep
             ret = 0
 
         end function
@@ -89,7 +89,7 @@ module openifs_interface
             logical::               istat
 
             ret = 0
-            if(istep >= nstop) then
+            if(jstep >= nstop) then
                 ret = 1
                 return
             endif
@@ -146,7 +146,7 @@ module openifs_interface
             
             if(myproc == 1) then
                 do ii = 1,n
-                    a(ii) = b(g_i(ii),g_k(ii))
+                    a(ii) = b(g_i(ii) + 1,g_k(ii) + 1)
                 enddo
                 deallocate(b)
             endif
@@ -171,7 +171,7 @@ module openifs_interface
             if(myproc == 1) then
                 do i = 1,size(g_i)
                     do k = 1,nflevg
-                        a(ii) = b(g_i(ii),k)
+                        a(ii) = b(g_i(ii) + 1,k)
                         ii = ii + 1
                     enddo
                 enddo

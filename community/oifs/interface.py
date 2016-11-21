@@ -89,13 +89,13 @@ class OpenIFS(CommonCode):
         self.ktot = 0
         self.latitudes = None
         self.longitudes = None
-        if(not os.path.exists(inputfile)):
+        if(not os.path.exists(OpenIFS.inputfile)):
             raise Exception("File fort.4 not found. Creating an openIFS model from scratch is not supported yet.")
         else:
-            os.rename(inputfile,backupfile)
-            self.params = f90nml.read(backupfile)
+            os.rename(OpenIFS.inputfile,OpenIFS.backupfile)
+            self.params = f90nml.read(OpenIFS.backupfile)
             self.patch = {"NAMPAR0":{"NPROC":options.get("number_of_workers",1)}}
-            f90nml.patch(backupfile,self.patch,inputfile)
+            f90nml.patch(OpenIFS.backupfile,self.patch,OpenIFS.inputfile)
         CommonCode.__init__(self,OpenIFSInterface(**options),**options)
 
     # Commit run parameters, not implemented yet
@@ -110,10 +110,10 @@ class OpenIFS(CommonCode):
         self.overridden().commit_grid()
 
     def cleanup_code(self):
-        if(os.path.exists(backupfile) and os.path.exists(inputfile)):
-            os.remove(inputfile)
-        if(os.path.exists(backupfile)):
-            os.rename(backupfile,inputfile)
+        if(os.path.exists(OpenIFS.backupfile) and os.path.exists(OpenIFS.inputfile)):
+            os.remove(OpenIFS.inputfile)
+        if(os.path.exists(OpenIFS.backupfile)):
+            os.rename(OpenIFS.backupfile,OpenIFS.inputfile)
         self.overridden().cleanup_code()
 
     # State machine definition
@@ -145,4 +145,6 @@ class OpenIFS(CommonCode):
 
     # Returns the full temperature array
     def get_field_T(self):
-        return self.get_field_T_(numpy.zeros(self.itot),numpy.zeros(self.ktot))
+        pts = numpy.mgrid[0:self.itot,0:self.ktot]
+        i,k = pts.reshape(2,-1)
+        return self.get_field_T_(i,k).reshape((self.itot,self.ktot))
