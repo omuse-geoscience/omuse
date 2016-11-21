@@ -26,8 +26,8 @@ community/adcirc/fort.*
 community/adcirc/adcirc_worker
 community/adcirc/worker_code.f90
 community/adcirc/adcirc/adcirc*
+community/dales/dales-build/*
 community/oifs/oifs40r1/*
-
 syntax: glob
 ext/eddy_tracker/**.png
 community/pop/*.dat
