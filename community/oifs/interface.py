@@ -48,20 +48,77 @@ class OpenIFSInterface(CodeInterface,
     def commit_grid():
         pass
 
-    # Utility method returning vertical temperature profiles.
-    # Second argument is assumed to be the full vertical range
+    # Utility method returning the full u-component flow field
     @remote_function(must_handle_array=True)
-    def get_profiles_T_(i = 0,k = 0):
-        returns (out = 0. | units.K)
+    def get_field_U_(i = 0,k = 0):
+        returns (out = 0. | units.m / units.s)
 
-    # Utility method returning the full temperature field.
-    # Both arguments are assumed to be resp. horizontal and vertical full index ranges
+    # Utility method returning vertical u-component flow profiles
+    @remote_function(must_handle_array=True)
+    def get_profiles_U_(i = 0,k = 0):
+        returns (out = 0. | units.m / units.s)
+
+    # Utility method returning the full v-component flow field
+    @remote_function(must_handle_array=True)
+    def get_field_V_(i = 0,k = 0):
+        returns (out = 0. | units.m / units.s)
+
+    # Utility method returning vertical v-component flow profiles
+    @remote_function(must_handle_array=True)
+    def get_profiles_V_(i = 0,k = 0):
+        returns (out = 0. | units.m / units.s)
+
+    # Utility method returning the full temperature field
     @remote_function(must_handle_array=True)
     def get_field_T_(i = 0,k = 0):
         returns (out = 0. | units.K)
 
-    # Utility method returning the gridpoint latitudes.
-    # Argument is assumed to be the full horizontal range.
+    # Utility method returning vertical temperature profiles
+    @remote_function(must_handle_array=True)
+    def get_profiles_T_(i = 0,k = 0):
+        returns (out = 0. | units.K)
+
+    # Utility method returning the specific humidity field
+    @remote_function(must_handle_array=True)
+    def get_field_SH_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning vertical specific humidity profiles
+    @remote_function(must_handle_array=True)
+    def get_profiles_SH_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning the liquid water content field
+    @remote_function(must_handle_array=True)
+    def get_field_QL_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning vertical liquid water content profiles
+    @remote_function(must_handle_array=True)
+    def get_profiles_QL_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning the ice water content field
+    @remote_function(must_handle_array=True)
+    def get_field_QI_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning vertical ice water content profiles
+    @remote_function(must_handle_array=True)
+    def get_profiles_QI_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning the ozone field
+    @remote_function(must_handle_array=True)
+    def get_field_O3_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning vertical ozone profiles
+    @remote_function(must_handle_array=True)
+    def get_profiles_O3_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning the gridpoint latitudes and longitudes.
     @remote_function(must_handle_array=True)
     def get_gridpoints(i = 0):
         returns (lats = 0. | units.rad,lons = 0. | units.rad)
@@ -135,16 +192,52 @@ class OpenIFS(CommonCode):
         for state in ["RUN","EDIT","EVOLVED"]:
             object.add_method(state,"get_model_time")
             object.add_method(state,"get_timestep")
-            object.add_method(state,"get_profiles_T")
-            object.add_method(state,"get_field_T")
+            object.add_method(state,"get_volume_field")
+            object.add_method(state,"get_profile_field")
         object.add_method("EVOLVED","evolve_model")
 
-    # Returns the vertical temperature profiles at the gridpoint index array i
-    def get_profiles_T(self,i):
-        return self.get_profiles_T_(i,numpy.zeros(self.ktot))
+    def get_field(self,fid,i,k):
+        if(fid == "U"):
+            return self.get_field_U_(i,k)
+        elif(fid == "V"):
+            return self.get_field_V_(i,k)
+        elif(fid == "T"):
+            return self.get_field_T_(i,k)
+        elif(fid == "SH"):
+            return self.get_field_SH_(i,k)
+        elif(fid == "QL"):
+            return self.get_field_QL_(i,k)
+        elif(fid == "QI"):
+            return self.get_field_QI_(i,k)
+        elif(fid == "O3"):
+            return self.get_field_O3_(i,k)
+        else:
+            raise Exception("Unknown atmosphere prognostic field identidier:",fid)
 
-    # Returns the full temperature array
-    def get_field_T(self):
+    def get_volume_field(self,fid):
         pts = numpy.mgrid[0:self.itot,0:self.ktot]
         i,k = pts.reshape(2,-1)
-        return self.get_field_T_(i,k).reshape((self.itot,self.ktot))
+        return self.get_field(fid,i,k).reshape((self.itot,self.ktot))
+
+    def get_layer_field(self,fid,layerindex):
+        i,k = numpy.arange(0,self.itot),numpy.full([self.itot],layerindex)
+        return self.get_field(fid,i,k)
+
+    def get_profile(self,fid,colindex):
+        i,k = numpy.full([self.ktot],colindex),numpy.arange(0,self.ktot)
+        if(fid == "U"):
+            return self.get_profiles_U_(i,k)
+        elif(fid == "V"):
+            return self.get_profiles_V_(i,k)
+        elif(fid == "T"):
+            return self.get_profiles_T_(i,k)
+        elif(fid == "SH"):
+            return self.get_profiles_SH_(i,k)
+        elif(fid == "QL"):
+            return self.get_profiles_QL_(i,k)
+        elif(fid == "QI"):
+            return self.get_profiles_QI_(i,k)
+        elif(fid == "O3"):
+            return self.get_profiles_O3_(i,k)
+        else:
+            raise Exception("Unknown atmosphere prognostic field identidier:",fid)

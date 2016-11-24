@@ -26,15 +26,14 @@ def plotmovie(frames,steps):
     y = oifs.latitudes.value_in(units.deg)
     fig = plot.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
+    ax.set_xlabel("lon")
+    ax.set_ylabel("lat")
     m = Basemap(lat_0=-90,lat_1=90,lon_0=180,resolution='c')
     m.drawcoastlines()
     def update(i):
         t = oifs.get_model_time()
         oifs.evolve_model(t + (steps/frames)*oifs.get_timestep())
-        temp = oifs.get_field_T().value_in(units.K)
-        z = temp[:,oifs.ktot-1]
+        z = oifs.get_layer_field("SH",oifs.ktot-1)
         plot.scatter(x,y,c = z,s = 150,cmap = plot.cm.coolwarm,edgecolors = "none")
     a = movie.FuncAnimation(fig,update,frames=frames,repeat=False)
     plot.show()
