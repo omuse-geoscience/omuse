@@ -4,7 +4,9 @@ module openifs_interface
 
     use ifslib,     only: static_init, initialize, finalize, get_gp_field,&
                         & get_gp_geom, get_gp_field_columns, get_gp_field,& 
-                        & TEMPERATURE, jstep, step
+                        & jstep, step, U_COMPONENT, V_COMPONENT, TEMPERATURE,&
+                        & SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
+                        & OZONE
     use yomct0,     only: nstart,nstop
     use yomct3,     only: nstep
     use yomdyn,     only: tstep
@@ -112,11 +114,15 @@ module openifs_interface
             real(8), allocatable::                  b(:),c(:)
             integer::                               ret,i
 
+            ret = 0
+
             if(myproc == 1) then
-                allocate(b(ngptotg),c(ngptotg))
+                allocate(b(ngptotg),c(ngptotg),stat=ret)
+                if(ret/=0) then
+                    return
+                endif
             endif
 
-            ret = 0
             call get_gp_geom(b,c)
             
             if(myproc == 1) then
@@ -126,23 +132,102 @@ module openifs_interface
                 enddo
             endif
 
-            end function
+        end function
 
+        function get_field_U_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,U_COMPONENT)
+
+        end function get_field_U_
+
+        function get_field_V_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,V_COMPONENT)
+
+        end function get_field_V_
 
         function get_field_T_(g_i,g_k,a,n) result(ret)
 
             integer, intent(in)::                   n
             integer, dimension(n), intent(in)::     g_i,g_k
             real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,TEMPERATURE)
+
+        end function get_field_T_
+
+        function get_field_SH_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,SPEC_HUMIDITY)
+
+        end function get_field_SH_
+
+        function get_field_QL_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,LIQ_WATER)
+
+        end function get_field_QL_
+
+        function get_field_QI_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,ICE_WATER)
+
+        end function get_field_QI_
+
+        function get_field_O3_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,OZONE)
+
+        end function get_field_O3_
+
+        function get_field(g_i,g_k,a,n,fldid) result(ret)
+
+            integer, intent(in)::                   n,fldid
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
             real(8), allocatable::                  b(:,:)
             integer::                               ret,ii
 
+            ret = 0
             if(myproc == 1) then
-                allocate(b(ngptotg,nflevg))
+                allocate(b(ngptotg,nflevg),stat=ret)
+                if(ret/=0) then
+                    return
+                endif
             endif
             
-            ret = 0
-            call get_gp_field(b,TEMPERATURE)
+            call get_gp_field(b,fldid)
             
             if(myproc == 1) then
                 do ii = 1,n
@@ -151,21 +236,24 @@ module openifs_interface
                 deallocate(b)
             endif
 
-        end function get_field_T_
+        end function get_field
 
-        function get_profiles_T_(g_i,g_k,a,n) result(ret)
+        function get_profiles(g_i,g_k,a,n,fldid) result(ret)
 
-            integer, intent(in)::                   n
+            integer, intent(in)::                   n,fldid
             integer, dimension(n), intent(in)::     g_i,g_k
             real(8), dimension(n), intent(out)::    a(n)
             real(8), allocatable::                  b(:,:)
             integer::                               ret,i,ii,k
 
+            ret = 0
             if(myproc == 1) then
-                allocate(b(n,nflevg))
+                allocate(b(n,nflevg),stat=ret)
+                if(ret/=0) then
+                    return
+                endif
             endif
             
-            ret = 0
             call get_gp_field_columns(b,n,g_i,TEMPERATURE)
             
             if(myproc == 1) then
@@ -178,7 +266,84 @@ module openifs_interface
                 deallocate(b)
             endif
 
+        end function get_profiles
+
+        function get_profiles_U_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+            
+            ret = get_profiles(g_i,g_k,a,n,U_COMPONENT)
+
+        end function get_profiles_U_
+
+        function get_profiles_V_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+            
+            ret = get_profiles(g_i,g_k,a,n,V_COMPONENT)
+
+        end function get_profiles_V_
+
+        function get_profiles_T_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+            
+            ret = get_profiles(g_i,g_k,a,n,TEMPERATURE)
+
         end function get_profiles_T_
+
+        function get_profiles_SH_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+            
+            ret = get_profiles(g_i,g_k,a,n,SPEC_HUMIDITY)
+
+        end function get_profiles_SH_
+
+        function get_profiles_QL_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+            
+            ret = get_profiles(g_i,g_k,a,n,LIQ_WATER)
+
+        end function get_profiles_QL_
+
+        function get_profiles_QI_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+            
+            ret = get_profiles(g_i,g_k,a,n,ICE_WATER)
+
+        end function get_profiles_QI_
+
+        function get_profiles_O3_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+            
+            ret = get_profiles(g_i,g_k,a,n,OZONE)
+
+        end function get_profiles_O3_
 
         function cleanup_code() result(ret)
 
