@@ -53,19 +53,9 @@ class OpenIFSInterface(CodeInterface,
     def get_field_U_(i = 0,k = 0):
         returns (out = 0. | units.m / units.s)
 
-    # Utility method returning vertical u-component flow profiles
-    @remote_function(must_handle_array=True)
-    def get_profiles_U_(i = 0,k = 0):
-        returns (out = 0. | units.m / units.s)
-
     # Utility method returning the full v-component flow field
     @remote_function(must_handle_array=True)
     def get_field_V_(i = 0,k = 0):
-        returns (out = 0. | units.m / units.s)
-
-    # Utility method returning vertical v-component flow profiles
-    @remote_function(must_handle_array=True)
-    def get_profiles_V_(i = 0,k = 0):
         returns (out = 0. | units.m / units.s)
 
     # Utility method returning the full temperature field
@@ -73,19 +63,9 @@ class OpenIFSInterface(CodeInterface,
     def get_field_T_(i = 0,k = 0):
         returns (out = 0. | units.K)
 
-    # Utility method returning vertical temperature profiles
-    @remote_function(must_handle_array=True)
-    def get_profiles_T_(i = 0,k = 0):
-        returns (out = 0. | units.K)
-
     # Utility method returning the specific humidity field
     @remote_function(must_handle_array=True)
     def get_field_SH_(i = 0,k = 0):
-        returns (out = 0.)
-
-    # Utility method returning vertical specific humidity profiles
-    @remote_function(must_handle_array=True)
-    def get_profiles_SH_(i = 0,k = 0):
         returns (out = 0.)
 
     # Utility method returning the liquid water content field
@@ -93,29 +73,14 @@ class OpenIFSInterface(CodeInterface,
     def get_field_QL_(i = 0,k = 0):
         returns (out = 0.)
 
-    # Utility method returning vertical liquid water content profiles
-    @remote_function(must_handle_array=True)
-    def get_profiles_QL_(i = 0,k = 0):
-        returns (out = 0.)
-
     # Utility method returning the ice water content field
     @remote_function(must_handle_array=True)
     def get_field_QI_(i = 0,k = 0):
         returns (out = 0.)
 
-    # Utility method returning vertical ice water content profiles
-    @remote_function(must_handle_array=True)
-    def get_profiles_QI_(i = 0,k = 0):
-        returns (out = 0.)
-
     # Utility method returning the ozone field
     @remote_function(must_handle_array=True)
     def get_field_O3_(i = 0,k = 0):
-        returns (out = 0.)
-
-    # Utility method returning vertical ozone profiles
-    @remote_function(must_handle_array=True)
-    def get_profiles_O3_(i = 0,k = 0):
         returns (out = 0.)
 
     # Utility method returning the gridpoint latitudes and longitudes.
@@ -223,21 +188,6 @@ class OpenIFS(CommonCode):
         i,k = numpy.arange(0,self.itot),numpy.full([self.itot],layerindex)
         return self.get_field(fid,i,k)
 
-    def get_profile(self,fid,colindex):
+    def get_profile_field(self,fid,colindex):
         i,k = numpy.full([self.ktot],colindex),numpy.arange(0,self.ktot)
-        if(fid == "U"):
-            return self.get_profiles_U_(i,k)
-        elif(fid == "V"):
-            return self.get_profiles_V_(i,k)
-        elif(fid == "T"):
-            return self.get_profiles_T_(i,k)
-        elif(fid == "SH"):
-            return self.get_profiles_SH_(i,k)
-        elif(fid == "QL"):
-            return self.get_profiles_QL_(i,k)
-        elif(fid == "QI"):
-            return self.get_profiles_QI_(i,k)
-        elif(fid == "O3"):
-            return self.get_profiles_O3_(i,k)
-        else:
-            raise Exception("Unknown atmosphere prognostic field identidier:",fid)
+        return self.get_field(fid,i,k)
