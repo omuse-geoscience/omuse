@@ -79,6 +79,14 @@ function evolve_model(tend) result(ret)
     nsteps0=nsteps
     print*, nt, nsteps0,nsteps,tday,ntdone
     print*,"timestep done"
+    print*, "time:", tday
+    print*, "d4 diss", sum(ah4doc)
+    print*, "bottom drag", btdgoc
+    print*, "wind", utauoc
+    print*, "pe_t", sum(ddtpeoc)
+    print*, "ke_t", sum(ddtkeoc)
+    print*, "sum:", sum(ddtkeoc)-(sum(ddtpeoc)+utauoc-btdgoc-sum(ah4doc))
+    print*, "hfmloc:", hfmloc
   endif
 
   if(oceanonly.NE.1) then 
