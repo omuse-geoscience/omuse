@@ -106,6 +106,17 @@ module openifs_interface
 
         end function evolve_model
 
+        function evolve_model_single_step() result(ret)
+          integer::               ret
+          logical::               istat
+
+          ret = 0
+          call step(istat)
+          if(.not.istat) then
+             ret = 1
+          endif
+        end function evolve_model_single_step
+          
         function get_gridpoints(g_i,lats,lons,n) result(ret)
 
             integer, intent(in)::                   n
