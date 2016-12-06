@@ -98,6 +98,10 @@ class OpenIFSInterface(CodeInterface,
     def evolve_model(tend = 0. | units.s):
         pass
 
+    @remote_function
+    def evolve_model_single_step():
+        pass
+
 # OpenIFS class implementation
 class OpenIFS(CommonCode):
 
@@ -106,18 +110,24 @@ class OpenIFS(CommonCode):
 
     # Constructor
     def __init__(self,**options):
+        print('__init__')
+        
         self.stopping_conditions = StoppingConditions(self)
         self.itot = 0
         self.ktot = 0
         self.latitudes = None
         self.longitudes = None
+        
         if(not os.path.exists(OpenIFS.inputfile)):
+            print('inputfile:' + OpenIFS.inputfile)
+            print('cwd:' + os.getcwd())
             raise Exception("File fort.4 not found. Creating an openIFS model from scratch is not supported yet.")
-        else:
+        else:            
             os.rename(OpenIFS.inputfile,OpenIFS.backupfile)
             self.params = f90nml.read(OpenIFS.backupfile)
             self.patch = {"NAMPAR0":{"NPROC":options.get("number_of_workers",1)}}
             f90nml.patch(OpenIFS.backupfile,self.patch,OpenIFS.inputfile)
+            print('***** Done patching ', OpenIFS.inputfile)
         CommonCode.__init__(self,OpenIFSInterface(**options),**options)
 
     # Commit run parameters, not implemented yet
