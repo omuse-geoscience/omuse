@@ -9,8 +9,8 @@ module dales_interface
                        my_task,master_task,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, &
-                      gatherlayeravg, gathervol
-    use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0
+                       gatherlayeravg, gathervol, localindex
+    use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0, um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax
     
     !TODO: Expose everything so this module only depends on daleslib
@@ -270,30 +270,30 @@ contains
 !!! getter functions for full 3D fields - using index arrays
     function get_field_U(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
-       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
-       real,    dimension(n), intent(out)  :: a
-       integer                             :: ret
-       ret = gathervol(g_i,g_j,g_k,a,n,u0(2:i1,2:j1,1:kmax))
+      integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+      real,    dimension(n), intent(out)  :: a
+      integer                             :: ret
+      ret = gathervol(g_i,g_j,g_k,a,n,u0(2:i1,2:j1,1:kmax))
     end function get_field_U
 
     function get_field_V(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
-       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
-       real,    dimension(n), intent(out)  :: a
-       integer                             :: ret
-       ret = gathervol(g_i,g_j,g_k,a,n,v0(2:i1,2:j1,1:kmax))
+      integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+      real,    dimension(n), intent(out)  :: a
+      integer                             :: ret
+      ret = gathervol(g_i,g_j,g_k,a,n,v0(2:i1,2:j1,1:kmax))
     end function get_field_V
 
     function get_field_W(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
-       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
-       real,    dimension(n), intent(out)  :: a
-       integer                             :: ret
-       ret = gathervol(g_i,g_j,g_k,a,n,w0(2:i1,2:j1,1:kmax))
-     end function get_field_W
+      integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+      real,    dimension(n), intent(out)  :: a
+      integer                             :: ret
+      ret = gathervol(g_i,g_j,g_k,a,n,w0(2:i1,2:j1,1:kmax))
+    end function get_field_W
 
      function get_field_THL(g_i,g_j,g_k,a,n) result(ret)
-      integer, intent(in)                 :: n
+       integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
@@ -301,7 +301,7 @@ contains
      end function get_field_THL
 
      function get_field_QT(g_i,g_j,g_k,a,n) result(ret)
-      integer, intent(in)                 :: n
+       integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
@@ -309,7 +309,7 @@ contains
      end function get_field_QT
 
      function get_field_QL(g_i,g_j,g_k,a,n) result(ret)
-      integer, intent(in)                 :: n
+       integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
@@ -317,22 +317,100 @@ contains
      end function get_field_QL
 
      function get_field_E12(g_i,g_j,g_k,a,n) result(ret)
-      integer, intent(in)                 :: n
+       integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
        ret = gathervol(g_i,g_j,g_k,a,n,e120(2:i1,2:j1,1:kmax))
      end function get_field_E12
-
+     
      function get_field_T(g_i,g_j,g_k,a,n) result(ret)
-      integer, intent(in)                 :: n
+       integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
        ret = gathervol(g_i,g_j,g_k,a,n,tmp0(2:i1,2:j1,1:kmax))
      end function get_field_T
+     !!! end of full 3D field getter functions
      
-!!! end of full 3D field getter functions
+     !!! setter functions for full 3D fields - using index arrays
+     !!! these functions set BOTH the -m and the -0 fields
+     function set_field_U(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                  :: n
+       integer, dimension(n), intent(in)    :: g_i,g_j,g_k
+       real,    dimension(n), intent(in)    :: a
+       integer                              :: ret, m, i, j, k
+       print *, 'set_field_U'
+
+       
+       do m = 1,n
+          if (localindex(g_i(m), g_j(m), g_k(m), i, j, k) /= 0) then
+             print *, ' setting (', i, j, k, ') <- ', a(m)
+             um(i,j,k) = a(m)
+             u0(i,j,k) = a(m)
+          endif
+       enddo
+     end function set_field_U
+
+     function set_field_V(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                  :: n
+       integer, dimension(n), intent(in)    :: g_i,g_j,g_k
+       real,    dimension(n), intent(in)    :: a
+       integer                              :: ret, m, i, j, k
+
+       do m = 1,n
+          if (localindex(g_i(m), g_j(m), g_k(m), i, j, k) /= 0) then
+             vm(i,j,k) = a(m)
+             v0(i,j,k) = a(m)
+          endif
+       enddo
+     end function set_field_V
+
+     function set_field_W(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                  :: n
+       integer, dimension(n), intent(in)    :: g_i,g_j,g_k
+       real,    dimension(n), intent(in)    :: a
+       integer                              :: ret, m, i, j, k
+
+       do m = 1,n
+          if (localindex(g_i(m), g_j(m), g_k(m), i, j, k) /= 0) then
+             wm(i,j,k) = a(m)
+             w0(i,j,k) = a(m)
+          endif
+       enddo
+     end function set_field_W
+
+     function set_field_THL(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                  :: n
+       integer, dimension(n), intent(in)    :: g_i,g_j,g_k
+       real,    dimension(n), intent(in)    :: a
+       integer                              :: ret, m, i, j, k
+
+       do m = 1,n
+          if (localindex(g_i(m), g_j(m), g_k(m), i, j, k) /= 0) then
+             thlm(i,j,k) = a(m)
+             thl0(i,j,k) = a(m)
+          endif
+       enddo
+
+     end function set_field_THL
+    
+
+     function set_field_QT(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                  :: n
+       integer, dimension(n), intent(in)    :: g_i,g_j,g_k
+       real,    dimension(n), intent(in)    :: a
+       integer                              :: ret, m, i, j, k
+
+       do m = 1,n
+          if (localindex(g_i(m), g_j(m), g_k(m), i, j, k) /= 0) then
+             qtm(i,j,k) = a(m)
+             qt0(i,j,k) = a(m)
+          endif
+       enddo
+     end function set_field_QT    
+     !!! end of setter functions for 3D fields
+
     
     
     

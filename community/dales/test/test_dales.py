@@ -14,6 +14,8 @@ default_options={}
 import logging
 import pickle
 import numpy
+import numpy.random
+
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("code").setLevel(logging.DEBUG)
 
@@ -209,7 +211,7 @@ class TestDalesInterface(TestWithMPI):
         def rms(a, b):
             return numpy.sqrt(((a-b)**2).mean())
         
-        instance = Dales(number_of_workers=1,redirection="none")
+        instance = Dales(number_of_workers=2,redirection="none")
         tim=instance.get_model_time()
         instance.commit_grid()
 
@@ -289,7 +291,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test10(self):
         fileName = 'reference-data/test10.pkl'
-        save = False
+        save = False #True
         
         print "Test 10: get 3D data, compare with stored reference"
 
@@ -342,3 +344,46 @@ class TestDalesInterface(TestWithMPI):
 
 
 
+    def test11(self):
+        print("Test 11: set 3D data, get it back, compare")
+
+        def drop_units(name, a):
+            fieldunits = {
+                'U'   : units.m / units.s,
+                'V'   : units.m / units.s,
+                'W'   : units.m / units.s,
+                'THL' : units.K,
+            }
+            if name in fieldunits:
+                return a.value_in(fieldunits[name])
+            else:
+                return a
+            
+        def testSingle(i,j,k):
+            a = numpy.random.random((1,1,1))
+            b = dales.get_field(field, i, i+1, j, j+1, k, k+1)
+            b = drop_units(field, b)
+            dales.set_field(field, a, i, None, j, None, k, None)
+            c = dales.get_field(field, i, i+1, j, j+1, k, k+1)
+            c = drop_units(field, c)
+            print field, (i,j,k), 'was:', b, 'set: ', a, 'get:', c
+            assert(a == c)
+            
+        for n in (1,2,4):
+            print ' --- ', n, 'dales workers --- '
+            dales = Dales(number_of_workers=n,redirection="none")
+            dales.commit_grid()
+
+            # set random grid elements for all fields, read back
+            for s in range(0,50):
+                for field in ('U', 'V', 'W', 'THL', 'QT'):
+                    i = numpy.random.randint(0,dales.itot)
+                    j = numpy.random.randint(0,dales.jtot)
+                    k = numpy.random.randint(0,dales.k)
+                    testSingle(i, j, k)
+            
+
+
+            
+            dales.cleanup_code()
+            dales.stop()
