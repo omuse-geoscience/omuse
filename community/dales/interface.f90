@@ -340,12 +340,10 @@ contains
        integer, dimension(n), intent(in)    :: g_i,g_j,g_k
        real,    dimension(n), intent(in)    :: a
        integer                              :: ret, m, i, j, k
-       print *, 'set_field_U'
-
-       
+       !print *, 'set_field_U'      
        do m = 1,n
           if (localindex(g_i(m), g_j(m), g_k(m), i, j, k) /= 0) then
-             print *, ' setting (', i, j, k, ') <- ', a(m)
+             ! print *, ' setting (', i, j, k, ') <- ', a(m)
              um(i,j,k) = a(m)
              u0(i,j,k) = a(m)
           endif
