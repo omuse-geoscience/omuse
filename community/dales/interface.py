@@ -309,17 +309,14 @@ class Dales(CommonCode):
 
     # set a 3D field
     # field is 'U', 'V', 'W', 'THL', 'QT'
-    def set_field(self, field, a, imin=0, imax=None, jmin=0, jmax=None, kmin=0, kmax=None):
-        # if max index are omitted, set them from the size of a 
-        if imax is None:
-            #imax = self.itot
-            imax = imin + a.shape[0]
-        if jmax is None:
-            #jmax = self.jtot
-            jmax = jmin + a.shape[1]
-        if kmax is None:
-            #kmax = self.k
-            kmax = kmin + a.shape[2]
+    def set_field(self, field, a, imin=0, jmin=0, kmin=0):
+        if numpy.isscalar(a):
+            a = numpy.array([[[a]]])
+
+        # set max indices from the size of a 
+        imax = imin + a.shape[0]
+        jmax = jmin + a.shape[1]
+        kmax = kmin + a.shape[2]
 
         #build index arrays
         points = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
@@ -328,10 +325,10 @@ class Dales(CommonCode):
 
         a = a.reshape(-1) # make a one-dimensional
                           # numpy uses C ordering by default - last index varies fastest
-        print('i', i)
-        print('j', j)
-        print('k', k)
-        print('a', a)
+        #print('i', i)
+        #print('j', j)
+        #print('k', k)
+        #print('a', a)
         
         if field == 'U':
             self.set_field_U(i,j,k,a)
@@ -344,7 +341,7 @@ class Dales(CommonCode):
         elif field == 'QT':
             self.set_field_QT(i,j,k,a)
         else:
-            print('get_field called with undefined field', field)
+            print('set_field called with undefined field', field)
                 
 
 
