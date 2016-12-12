@@ -147,6 +147,30 @@ class DalesInterface(CodeInterface,
     def get_field_T(g_i=0,g_j=0,g_k=0):
         returns (a=0.| units.K)
 
+    # setter functions for 3D fields usning index arrays
+    @remote_function(must_handle_array=True)
+    def set_field_U(g_i=0,g_j=0,g_k=0,a=0.):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_field_V(g_i=0,g_j=0,g_k=0,a=0.):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_field_W(g_i=0,g_j=0,g_k=0,a=0.):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_field_THL(g_i=0,g_j=0,g_k=0,a=0.):
+        returns()
+        
+    @remote_function(must_handle_array=True)
+    def set_field_QT(g_i=0,g_j=0,g_k=0,a=0.):
+        returns()
+
+#    @remote_function(must_handle_array=True)
+#    def set_field_E12(g_i=0,g_j=0,g_k=0,a=0.):
+#        returns()
         
 # # #
     @remote_function()
@@ -282,6 +306,68 @@ class Dales(CommonCode):
             print('get_field called with undefined field', field)
             
         return field.reshape ((imax-imin, jmax-jmin, kmax-kmin))
+
+    # set a 3D field
+    # field is 'U', 'V', 'W', 'THL', 'QT'
+    def set_field(self, field, a, imin=0, jmin=0, kmin=0):
+        if numpy.isscalar(a):
+            a = numpy.array([[[a]]])
+
+        # set max indices from the size of a 
+        imax = imin + a.shape[0]
+        jmax = jmin + a.shape[1]
+        kmax = kmin + a.shape[2]
+
+        #build index arrays
+        points = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
+        points = points.reshape(3, -1)
+        i,j,k = points
+
+        a = a.reshape(-1) # make a one-dimensional
+                          # numpy uses C ordering by default - last index varies fastest
+        #print('i', i)
+        #print('j', j)
+        #print('k', k)
+        #print('a', a)
+        
+        if field == 'U':
+            self.set_field_U(i,j,k,a)
+        elif field == 'V':
+            self.set_field_V(i,j,k,a)
+        elif field == 'W':
+            self.set_field_W(i,j,k,a)
+        elif field == 'THL':
+            self.set_field_THL(i,j,k,a)
+        elif field == 'QT':
+            self.set_field_QT(i,j,k,a)
+        else:
+            print('set_field called with undefined field', field)
+                
+
+
+    # retrieve a 1D vertical profile - wrapper function consistent with get_field
+    # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
+    def get_profile(self, field):
+        if field == 'U':
+            profile = self.get_profile_U_(numpy.zeros(self.k))
+        elif field == 'V':
+            profile = self.get_profile_V_(numpy.zeros(self.k))
+        elif field == 'W':
+            profile = self.get_profile_W_(numpy.zeros(self.k))
+        elif field == 'THL':
+            profile = self.get_profile_THL_(numpy.zeros(self.k))
+        elif field == 'QT':
+            profile = self.get_profile_QT_(numpy.zeros(self.k))
+        elif field == 'QL':
+            profile = self.get_profile_QL_(numpy.zeros(self.k))
+        elif field == 'E12':
+            profile = self.get_profile_E12_(numpy.zeros(self.k))
+        elif field == 'T':
+            profile = self.get_profile_T_(numpy.zeros(self.k))
+        else:
+            print('get_profile called with undefined field', field)
+            
+        return profile
 
 
     # get parameters from the fortran code, store them in the Dales interface object
