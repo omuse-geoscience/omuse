@@ -50,8 +50,13 @@ class OpenIFSInterface(CodeInterface,
 
     # Utility method returning the full u-component flow field
     @remote_function(must_handle_array=True)
-    def get_field_P_(i = 0,k = 0):
-        returns (out = 0. | units.m / units.s)
+    def get_field_Pfull_(i = 0,k = 0):
+        returns (out = 0. | units.Pa)
+
+    # Utility method returning the full u-component flow field
+    @remote_function(must_handle_array=True)
+    def get_field_Phalf_(i = 0,k = 0):
+        returns (out = 0. | units.Pa)
 
     # Utility method returning the full u-component flow field
     @remote_function(must_handle_array=True)
@@ -116,18 +121,18 @@ class OpenIFS(CommonCode):
     # Constructor
     def __init__(self,**options):
         print('__init__')
-        
+
         self.stopping_conditions = StoppingConditions(self)
         self.itot = 0
         self.ktot = 0
         self.latitudes = None
         self.longitudes = None
-        
+
         if(not os.path.exists(OpenIFS.inputfile)):
             print('inputfile:' + OpenIFS.inputfile)
             print('cwd:' + os.getcwd())
             raise Exception("File fort.4 not found. Creating an openIFS model from scratch is not supported yet.")
-        else:            
+        else:
             os.rename(OpenIFS.inputfile,OpenIFS.backupfile)
             self.params = f90nml.read(OpenIFS.backupfile)
             self.patch = {"NAMPAR0":{"NPROC":options.get("number_of_workers",1)}}
@@ -177,8 +182,10 @@ class OpenIFS(CommonCode):
         object.add_method("EVOLVED","evolve_model")
 
     def get_field(self,fid,i,k):
-        if(fid == "P"):
-            return self.get_field_P_(i,k)
+        if(fid == "Pfull"):
+            return self.get_field_Pfull_(i,k)
+        if(fid == "Phalf"):
+            return self.get_field_Phalf_(i,k)
         if(fid == "U"):
             return self.get_field_U_(i,k)
         elif(fid == "V"):
@@ -197,7 +204,7 @@ class OpenIFS(CommonCode):
             raise Exception("Unknown atmosphere prognostic field identidier:",fid)
 
     def get_volume_field(self,fid):
-        ktop = (self.ktot + 1) if fid == "P" else self.ktot
+        ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
         pts = numpy.mgrid[0:self.itot,0:ktop]
         i,k = pts.reshape(2,-1)
         return self.get_field(fid,i,k).reshape((self.itot,ktop))
@@ -207,6 +214,6 @@ class OpenIFS(CommonCode):
         return self.get_field(fid,i,k)
 
     def get_profile_field(self,fid,colindex):
-        ktop = (self.ktot + 1) if fid == "P" else self.ktot
+        ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
         i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
         return self.get_field(fid,i,k)

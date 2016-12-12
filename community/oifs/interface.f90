@@ -4,7 +4,7 @@ module openifs_interface
 
     use ifslib,     only: static_init, initialize, finalize, get_gp_field,&
                         & get_gp_geom, get_gp_field_columns, get_gp_field,& 
-                        & jstep, step, PRESSURE, WIND_U, WIND_V, TEMPERATURE,&
+                        & jstep, step, PFULL, PHALF, WIND_U, WIND_V, TEMPERATURE,&
                         & SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
                         & OZONE
     use yomct0,     only: nstart,nstop
@@ -145,16 +145,27 @@ module openifs_interface
 
         end function
 
-        function get_field_P_(g_i,g_k,a,n) result(ret)
+        function get_field_Pfull_(g_i,g_k,a,n) result(ret)
 
             integer, intent(in)::                   n
             integer, dimension(n), intent(in)::     g_i,g_k
             real(8), dimension(n), intent(out)::    a(n)
             integer::                               ret
 
-            ret = get_field(g_i,g_k,a,n,PRESSURE)
+            ret = get_field(g_i,g_k,a,n,PFULL)
 
-        end function get_field_P_
+        end function get_field_Pfull_
+
+        function get_field_Phalf_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,PHALF)
+
+        end function get_field_Phalf_
 
         function get_field_U_(g_i,g_k,a,n) result(ret)
 
@@ -243,7 +254,7 @@ module openifs_interface
 
             ret = 0
             if(myproc == 1) then
-                if(fldid == PRESSURE) then
+                if(fldid == PHALF) then
                     allocate(b(ngptotg,nflevg+1),stat=ret)
                 else
                     allocate(b(ngptotg,nflevg),stat=ret)
