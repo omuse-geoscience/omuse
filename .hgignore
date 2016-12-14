@@ -14,9 +14,13 @@ community/pop/eSalsa-POP/*
 community/pop/old/*
 community/pop/data/*
 community/pop/slurm-*.out
+community/pop/worker_code.f90
 community/cdo/grids/tripole-3600x2400.nc
 community/cdo/src/*
 community/cdo/cdo-1.7.0rc/*
+community/cdo/remapper_worker
+community/cdo/worker_code.cc
+community/cdo/worker_code.h
 community/swan/src/work/*
 community/swan/worker_code.f90
 community/swan/swan_worker
