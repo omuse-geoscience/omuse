@@ -111,6 +111,7 @@ module openifs_interface
           logical::               istat
 
           ret = 0
+          istat = .true.
           call step(istat)
           if(.not.istat) then
              ret = 1
