@@ -9,7 +9,7 @@ module dales_interface
                        my_task,master_task,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, &
-                       gatherlayeravg, gathervol, localindex
+                       gatherlayeravg, gathervol, localindex, gatherLWP
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0, um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax
     
@@ -71,10 +71,10 @@ contains
     ! returns 1 if the end of the simulation was reached (timeleft == 0)
     !
     ! EXPERIMENTAL: if exactEnd is nonzero,
-    !               set timeleft so that the timestepping finishes exactly at tend
+    !               set dt_lim so that the timestepping finishes exactly at tend
     !               then the end time from namoptions is not used.
     !
-    !  .or. rk3step < 3) SHOULD BE USED TO FIISH A FULL TIME STEP BEFORE EXITING ??
+    !  .or. rk3step < 3) SHOULD BE USED TO FINISH A FULL TIME STEP BEFORE EXITING ??
     !                    but it breaks the current result test, which was stored without this.
     !                    see program.f90: main loop - while(timeleft>0 .or. rk3step < 3)
     
@@ -84,14 +84,14 @@ contains
         integer,intent(in)  :: exactEnd
         integer             :: i
 
-        ! set timeleft according to tend
-        ! comment out to respect endtime in namoptions
-        if (exactEnd /= 0) then
-           dt_lim = min(dt_lim, (int(tend/tres) - timee))
-        endif
-
         print *, 'evolve_model'
         do while((rtimee < tend .and. timeleft > 0)) ! .or. rk3step < 3)
+
+           if (exactEnd /= 0) then
+              ! set dt_lim to finish at tend (or before)
+              dt_lim = min(dt_lim, (int(tend/tres) - timee))
+           endif
+        
            call step
 !           print *, '  ', 'rtimee=',rtimee, 'timeleft=',timeleft, 'rk3step=',rk3step, 'rdt=',rdt           
         enddo
@@ -332,6 +332,15 @@ contains
        ret = gathervol(g_i,g_j,g_k,a,n,tmp0(2:i1,2:j1,1:kmax))
      end function get_field_T
      !!! end of full 3D field getter functions
+
+     ! getter function for LWP - a 2D field
+     function get_field_LWP(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherLWP(g_i,g_j,a,n,ql0(2:i1,2:j1,1:kmax))
+     end function get_field_LWP
      
      !!! setter functions for full 3D fields - using index arrays
      !!! these functions set BOTH the -m and the -0 fields
