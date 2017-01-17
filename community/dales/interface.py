@@ -197,6 +197,8 @@ class Dales(CommonCode):
     k    = None
     xsize = None
     ysize = None
+    dx = None
+    dy = None
     
     def __init__(self,**options):
         CommonCode.__init__(self,  DalesInterface(**options), **options)
@@ -383,6 +385,11 @@ class Dales(CommonCode):
 
 
     # get parameters from the fortran code, store them in the Dales interface object
+    # called from commit_grid()
     def get_params(self):
         self.itot,self.jtot,self.k,self.xsize,self.ysize = self.get_params_grid()
+        self.dx = self.xsize/self.itot
+        self.dy = self.ysize/self.jtot
+        self.zf = self.get_zf()
+        self.zh = self.get_zh()
         
