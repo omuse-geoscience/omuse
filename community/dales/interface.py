@@ -48,6 +48,18 @@ class DalesInterface(CodeInterface,
         returns (dt=0. | units.s)
 
     @remote_function
+    def set_surface_pressure(p = 1.0e5 | units.Pa):
+        pass
+
+    @remote_function
+    def set_tendency_surface_pressure(p = 1.0e5 | units.Pa):
+        pass
+    
+    @remote_function
+    def get_surface_pressure():
+        returns (p=0.| units.Pa)
+    
+    @remote_function
     def commit_grid():        
         pass
 
@@ -87,6 +99,7 @@ class DalesInterface(CodeInterface,
     def get_profile_T_(k=0):
         returns (out=0. | units.K)
 
+
 # getter functions for height levels
 # these take a dummy array as input, and return output of the same length
     @remote_function(must_handle_array=True)
@@ -97,6 +110,16 @@ class DalesInterface(CodeInterface,
     def get_zh_(k=0):
         returns (out=0. | units.m)
 
+    @remote_function(must_handle_array=True)
+    def get_presf_(k=0):
+        returns (out=0. | units.Pa)
+
+    @remote_function(must_handle_array=True)
+    def get_presh_(k=0):
+        returns (out=0. | units.Pa)
+
+
+        
 # setter functions for vertical tendencies / forcings
     @remote_function(must_handle_array=True)
     def set_tendency_U(a=0.):
@@ -277,6 +300,13 @@ class Dales(CommonCode):
     def get_zh(self):
         return self.get_zh_(numpy.zeros(self.k))
 
+    def get_presh(self):
+        return self.get_presh_(numpy.zeros(self.k))
+
+    def get_presf(self):
+        return self.get_presf_(numpy.zeros(self.k))
+
+    
     # retrieve a 3D field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_field(self, field, imin=0, imax=None, jmin=0, jmax=None, kmin=0, kmax=None):

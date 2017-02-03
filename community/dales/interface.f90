@@ -8,10 +8,12 @@ module dales_interface
                        allocate_z_axis,allocate_2d,allocate_3d,&
                        my_task,master_task,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
-                       u_tend, v_tend, thl_tend, qt_tend, &
+                       u_tend, v_tend, thl_tend, qt_tend, ps_tend, &
                        gatherlayeravg, gathervol, localindex, gatherLWP
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0, um,vm,wm,thlm,qtm
-    use modglobal, only: i1,j1,k1,itot,jtot,kmax
+    use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
+    use modsurfdata, only: ps, qts
+    use modsurface, only: qtsurf
     
     !TODO: Expose everything so this module only depends on daleslib
     use modglobal, only: rtimee,rdt,fname_options,timeleft,tres,timee,rk3step,dt_lim
@@ -122,7 +124,31 @@ contains
 
         t=rtimee
         ret=0
-    end function
+    end function get_model_time
+
+    function set_surface_pressure(p) result(ret)
+      real(8),intent(in)::  p
+      integer::             ret
+
+      ps = p
+
+      ! modtimedep calls qtsurf to update surface values after changing ps, so we'll do the same
+      if (lmoist) then
+         call qtsurf
+      else
+         qts = 0.
+      endif
+      
+      ret = 0
+    end function set_surface_pressure
+
+    function get_surface_pressure(p) result(ret)
+      real(8),intent(out)::  p
+      integer::             ret
+
+      p = ps
+    end function get_surface_pressure
+    
 
     function commit_grid() result(ret)
         integer::             ret
@@ -229,6 +255,30 @@ contains
       ret = 0
     end function get_zh_
 
+    function get_presf_(g_k, a, n) result(ret)
+      use modfields, only: presf
+      integer, intent(in)                  :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+
+      a = presf
+      ret = 0
+    end function get_presf_
+
+    function get_presh_(g_k, a, n) result(ret)
+      use modfields, only: presh
+      integer, intent(in)                  :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+
+      a = presh
+      ret = 0
+    end function get_presh_
+    
+
+    
 !!! end of vertical profile getters
 
 !!!!! set functions for vertical tendency vectors
@@ -265,6 +315,16 @@ contains
       qt_tend = a
       ret = 0
     end function set_tendency_QT
+
+    function set_tendency_surface_pressure(p_tend) result(ret)
+      real(8),intent(in)::  p_tend
+      integer::             ret
+
+      ps_tend = p_tend
+      
+      ret = 0
+    end function set_tendency_surface_pressure
+  
 !!! end of vertical tendency setters
 
 !!! getter functions for full 3D fields - using index arrays
