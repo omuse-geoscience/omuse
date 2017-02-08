@@ -1,5 +1,5 @@
---- cdo-1.7.0rc5/src/Makefile	2015-11-10 13:43:05.359171039 +0100
-+++ src_original/src/Makefile	2015-09-09 11:57:00.931344449 +0200
+--- cdo-1.7.0rc5/src/Makefile	2017-02-08 13:18:05.883553560 +0100
++++ src_original/src/Makefile	2016-12-14 21:29:52.949609436 +0100
 @@ -774,6 +774,22 @@
  	@rm -f cdo$(EXEEXT)
  	$(AM_V_CCLD)$(cdo_LINK) $(cdo_OBJECTS) $(cdo_LDADD) $(LIBS)

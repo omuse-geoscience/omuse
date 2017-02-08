@@ -18,7 +18,7 @@ source_dir = "src_original/src/"
 target_dir = code + "/src/" 
 patch_dir = "patches/"
 
-files = ["Makefile", "remap_scrip_io.c", "remap_conserv_scrip.c" ]
+files = ["Makefile", "remap_scrip_io.c", "remap_conserv_scrip.c", "EOFs.c" ]
 
 def make_patches(filename):
     command = 'diff' + " -I [C/]" + ' -u ' + target_dir + filename + " " + source_dir + filename + ' > ' + patch_dir + filename + ".patch"
