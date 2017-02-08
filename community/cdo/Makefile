@@ -19,10 +19,10 @@ CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 all: remapper_worker
 
-patches:
+patches: src_original
 	$(RM) -rf $(CODE)
 	tar zxf cdo-current.tar.gz
-	cd $(CODE); ./configure --with-netcdf=$(NETCDF_PREFIX)
+	cd $(CODE); ./configure --disable-openmp --with-threads=no --with-netcdf=$(NETCDF_PREFIX) F77="$(FC)" FC="$(FC)" FCFLAGS="$(FCFLAGS)" LDFLAGS="$(LDFLAGS) $(NETCDF_LIBS)"
 	cd .; ./make_patches.py diff
 	$(RM) -rf $(CODE)
 
@@ -57,5 +57,8 @@ remapper_worker: worker_code.o $(CODELIB) $(OBJS)
 
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<
+
+src_original:
+	$(error copy the patched source to src_original first)
 
 .PHONY: patches 
