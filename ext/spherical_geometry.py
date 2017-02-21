@@ -6,6 +6,7 @@ sin=trigo.sin
 cos=trigo.cos
 tan=trigo.tan
 atan2=trigo.arctan2
+atan=trigo.arctan
 sqrt=numpy.sqrt
 
 def distance(lat1, lon1, lat2, lon2, R=1):
@@ -48,9 +49,21 @@ def triangle_area(a, b, c, R=1):
     return R**2*E
 
 if __name__=="__main__":
+    R=1| units.Rearth
     lon1=0. | units.deg
     lat1=0. | units.deg
     lon2=1. | units.deg
     lat2=0. | units.deg
-    print distance(lat1,lon1,lat2,lon2, R= 1| units.Rearth).in_(units.km)
+    print distance(lat1,lon1,lat2,lon2, R=R).in_(units.km)
 
+    lon1=0. | units.deg
+    lat1=0. | units.deg
+    lon2=90. | units.deg
+    lat2=0. | units.deg
+    lon3=0. | units.deg
+    lat3=90. | units.deg    
+    d1=distance(lat1,lon1,lat2,lon2)
+    d2=distance(lat2,lon2,lat3,lon3)
+    d3=distance(lat3,lon3,lat1,lon1)
+    print d1,d2,d3
+    print triangle_area(d1,d2,d3,R=R)/4/trigo.pi/R**2
