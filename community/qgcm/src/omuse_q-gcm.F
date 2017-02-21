@@ -138,6 +138,12 @@
       contains
 
       subroutine omuse_initialize()
+      
+      dpo_dt=0
+      dpa_dt=0
+      dsst_dt=0
+      dhmixa_dt=0
+      dast_dt=0
             
       call initialize()
       
