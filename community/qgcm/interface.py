@@ -130,6 +130,13 @@ class QGCMInterface(CodeInterface, CommonCodeInterface,LiteratureReferencesMixIn
       returns (model_time = 0. | units.day)
 
     @remote_function
+    def get_ocean_time():
+      returns (model_time = 0. | units.s)
+    @remote_function
+    def get_ocean_prev_time():
+      returns (model_time = 0. | units.s)
+
+    @remote_function
     def evolve_model(tend = 0. | units.day):
       returns ()
 
