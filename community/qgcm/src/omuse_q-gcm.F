@@ -110,6 +110,7 @@
 
 
 ! auxiliary omuse variables
+      double precision :: tocean, tos, tosm! ocean state timers
 #ifndef atmos_only
       double precision :: dpo_dt(nxpo,nypo,nlo) ! auxiliary for pom
 #endif
@@ -1218,6 +1219,7 @@ c   atmospheric mixed layer thickness
 
 
       subroutine mainloop(nsteps0, nsteps)
+      double precision :: told
       integer nsteps0, nsteps
 
 ****************    START OF MAIN TIMESTEPPING LOOP     ****************
@@ -1244,6 +1246,16 @@ c   atmospheric mixed layer thickness
 
 *         Step ocean qg model
           call qgostep
+
+*         step omuse timers
+          told=tos
+          tos=tosm+2*dto
+          tosm=told
+          tocean=tocean+(tos-tosm)
+          if(tosm.GT.2*dto) then
+            tosm=tosm-2*dto
+            tos=tos-2*dto
+          endif
 
 *         Invert pv into oceanic pressures
           call ocinvq
@@ -1329,6 +1341,8 @@ c   atmospheric mixed layer thickness
         if ( mod(nt-1,25*nstr).eq.0 ) then
 *         Average oceanic time levels
 *         ---------------------------
+          tocean=tocean-(tos-tosm)/2
+          tos=(tos+tosm)/2
 !$OMP PARALLEL DEFAULT (NONE)
 !$OMP&         PRIVATE (i,j,k)
 !$OMP&         SHARED  (qo,qom,po,pom,sst,sstm)
