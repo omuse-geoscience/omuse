@@ -92,7 +92,12 @@ grid_variables={
     "atmosphere_surface_temperature_anomaly_tendency" : dict(pyvar=["dsurface_temperature_dt"], forvar=["dast_dt"], ndim=2, unit=units.Celsius/units.s, index_ranges=[(1,"nxta"),(1,"nyta")]),
     "atmosphere_mixed_layer_depth" : dict(pyvar=["mixed_layer_depth"], forvar=["hmixa"], ndim=2, unit=units.m, index_ranges=[(1,"nxta"),(1,"nyta")], vartype="ro"),
     "atmosphere_mixed_layer_depth_tendency" : dict(pyvar=["dmixed_layer_depth_dt"], forvar=["dhmixa_dt"], ndim=2, unit=units.m/units.s, index_ranges=[(1,"nxta"),(1,"nyta")], vartype="ro"),
-
+# variables needed for (exact, consistent) restarts
+    "ocean_dynamic_pressure_prev" : dict(pyvar=["pressure_prev"], forvar=["pom"], ndim=3, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpo"),(1,"nypo"),(1,"nlo")]),
+    "ocean_surface_temperature_anomaly_prev" : dict(pyvar=["surface_temperature_anomaly_prev"], forvar=["sstm"], ndim=2, unit=units.Celsius, index_ranges=[(1,"nxto"),(1,"nyto")]),
+    "atmosphere_dynamic_pressure_prev" : dict(pyvar=["pressure_prev"], forvar=["pam"], ndim=3, unit=units.m**2/units.s**2, index_ranges=[(1,"nxpa"),(1,"nypa"),(1,"nla")]),
+    "atmosphere_surface_temperature_anomaly_prev" : dict(pyvar=["surface_temperature_anomaly_prev"], forvar=["astm"], ndim=2, unit=units.Celsius, index_ranges=[(1,"nxta"),(1,"nyta")]),
+    "atmosphere_mixed_layer_depth_prev" : dict(pyvar=["mixed_layer_depth_prev"], forvar=["hmixam"], ndim=2, unit=units.m, index_ranges=[(1,"nxta"),(1,"nyta")], vartype="ro"),
 }
 
 

@@ -65,18 +65,18 @@ function commit_grids() result(ret)
   tos=begin_time
   tosm=begin_time-dto
 
-!  tas=begin_time
-!  tasm=begin_time-dta
+  tas=begin_time
+  tasm=begin_time-dta
 
   if(oceanonly.NE.1) then 
-    pam=pa-dpa_dt*dta
-    astm=ast-dast_dt*dta
-    hmixam=hmixa-dhmixa_dt*dta
+    pam=pa-dpa_dt*(tas-tasm)
+    astm=ast-dast_dt*(tas-tasm)
+    hmixam=hmixa-dhmixa_dt*(tas-tasm)
   endif
   if(atmosonly.NE.1) then
     pom=po-dpo_dt*(tos-tosm)
     sstm=sst-dsst_dt*(tos-tosm)
-  endif    
+  endif
   
   tini=begin_time/secsyr
 
@@ -135,17 +135,7 @@ function evolve_model(tend) result(ret)
     print*,"timestep done"
     ret=print_diag()
   endif
-
-  if(oceanonly.NE.1) then 
-    dpa_dt=(pa-pam)/dta
-    dast_dt=(ast-astm)/dta
-    dhmixa_dt=(hmixa-hmixam)/dta
-  endif
-  if(atmosonly.NE.1) then
-    dpo_dt=(po-pom)/(tos-tosm)
-    dsst_dt=(sst-sstm)/(tos-tosm)
-  endif
-  
+    
   ret=0  
 end function
 
