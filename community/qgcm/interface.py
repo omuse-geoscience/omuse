@@ -199,6 +199,9 @@ class QGCM(InCodeComponentImplementation):
 
         for state in ["EDIT",'RUN','EVOLVED']:
             object.add_method(state, 'before_new_set_instance')
+        for state in ['RUN','EVOLVED']:
+            object.add_method(state, "get_tauxo")
+            object.add_method(state, "get_tauyo")
 
         object.add_method("EDIT","set_po")
         object.add_method("EDIT","set_dpo_dt")
