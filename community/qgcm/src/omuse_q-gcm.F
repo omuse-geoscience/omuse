@@ -1408,7 +1408,7 @@ c   atmospheric mixed layer thickness
 *       Suppress computational mode of leapfrog scheme
 *       ==============================================
 #ifndef atmos_only
-        if ( mod(nt-1,25*nstr).eq.0 ) then
+        if ( (oalpha.EQ.0.).AND.mod(nt-1,25*nstr).eq.0 ) then
 *         Average oceanic time levels
 *         ---------------------------
           tocean=tocean-(tos-tosm)/2

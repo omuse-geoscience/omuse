@@ -135,6 +135,16 @@ function evolve_model(tend) result(ret)
     print*,"timestep done"
     ret=print_diag()
   endif
+
+  if(oceanonly.NE.1) then 
+    dpa_dt=(pa-pam)/dta
+    dast_dt=(ast-astm)/dta
+    dhmixa_dt=(hmixa-hmixam)/dta
+  endif
+  if(atmosonly.NE.1) then
+    dpo_dt=(po-pom)/dto
+    dsst_dt=(sst-sstm)/dto
+  endif
     
   ret=0  
 end function
