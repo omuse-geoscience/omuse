@@ -9,6 +9,12 @@
       PUBLIC
       SAVE
 
+*     additional (settable and code visible) parameters
+      double precision :: oalpha=0.0 
+      
+*     oalpha is the ( oceanic) alpha of the robert-asselin filter
+*     if non-zero averaging to suppress computational model will be disabled
+
 *     Hogg 2006 configuration
 
 *     User settable grid parameters:

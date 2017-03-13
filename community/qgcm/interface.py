@@ -74,6 +74,7 @@ parameters={
     "atmosphere_topography_option" : dict(short="topatname", dtype="string", default="flat", ptype="simple", description="atm. topography option: flat, extant(=set in interface) or filename"),
     "use_interface_forcings" : dict( short="use_interface_forcings", dtype="bool", default=False, ptype="simple", description="flag to use interface for forcings, otherwise proper avges.nc file must be present"),
     "check_interface_heights" : dict( short="hcheck", dtype="bool", default=True, ptype="simple", description="whether to check consistency of solution with layer heights"),
+    "ocean_ra_alpha" : dict( short="oalpha", dtype="float64", default=0.0, ptype="simple", description="Robert-Asselin filter alpha parameter for ocean (0.01-1) "),
  }    
 
 grid_variables={
