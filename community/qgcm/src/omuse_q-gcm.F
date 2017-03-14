@@ -1229,26 +1229,17 @@ c   atmospheric mixed layer thickness
 
         if ( mod(nt,nstr).eq.1 ) then
 
-*         save old po state in dpodt, dsst_dt
-!$OMP PARALLEL DEFAULT (NONE)
-!$OMP&         PRIVATE (i,j,k)
-!$OMP&         SHARED  (pom,sstm,dpo_dt,dsst_dt)
-!$OMP       DO SCHEDULE (STATIC)
-            do j=1,nypo
-              do i=1,nxpo
-                dpo_dt(i,j,1:3) = pom(i,j,1:3)
-                dsst_dt(i,j) = sstm(i,j)
-              enddo
-            enddo
-!$OMP       END DO
-!$OMP     END PARALLEL
-
 *         Compute forcing fields, if on ocean step
 #ifndef ocean_only
           call xforc
 #endif
 
 #ifndef atmos_only
+
+* a consistent calculation independent of averaging, filtering 
+* of dpo_dt, dsst_dt etc can be made here by saving po in dpo_dt 
+* and differencing (po-dpo_dt)/tdto after ocqbdy, currently removed
+
 *         Step ocean mixed layer
           call oml
 #    ifdef qoc_diag
@@ -1278,40 +1269,11 @@ c   atmospheric mixed layer thickness
 *         Compute pv on ocean boundaries (mixed condition)
           call ocqbdy (qo, po)
 
-* compute derivatives
-!$OMP PARALLEL DEFAULT (NONE)
-!$OMP&         PRIVATE (i,j,k)
-!$OMP&         SHARED  (po,sst,dpo_dt,dsst_dt,tdto)
-!$OMP       DO SCHEDULE (STATIC)
-            do j=1,nypo
-              do i=1,nxpo
-                dpo_dt(i,j,1:3) = (po(i,j,1:3)-dpo_dt(i,j,1:3))/tdto
-                dsst_dt(i,j) = (sst(i,j)-dsst_dt(i,j))/tdto
-              enddo
-            enddo
-!$OMP       END DO
-!$OMP     END PARALLEL
-
 #endif /* not atmos_only */
 
         endif
 
 #ifndef ocean_only
-*         save old pa state in dpadt, dast_dt
-!$OMP PARALLEL DEFAULT (NONE)
-!$OMP&         PRIVATE (i,j,k)
-!$OMP&         SHARED  (pam,astm,hmixam,dpa_dt,dast_dt,dhmixa_dt)
-!$OMP       DO SCHEDULE (STATIC)
-            do j=1,nypo
-              do i=1,nxpo
-                dpa_dt(i,j,1:3) = pam(i,j,1:3)
-                dast_dt(i,j) = astm(i,j)
-                dhmixa_dt(i,j) = hmixam(i,j)
-              enddo
-            enddo
-!$OMP       END DO
-!$OMP     END PARALLEL
-
 *       Step atmospheric mixed layer
         call aml
 
@@ -1332,22 +1294,6 @@ c   atmospheric mixed layer thickness
 
 *       Compute pv on atmosphere zonal boundary (mixed condition)
         call atqzbd (qa, pa)
-
-* compute derivatives
-!$OMP PARALLEL DEFAULT (NONE)
-!$OMP&         PRIVATE (i,j,k)
-!$OMP&         SHARED  (pa,ast,hmixa,dpa_dt,dast_dt,dhmixa_dt,tdta)
-!$OMP       DO SCHEDULE (STATIC)
-            do j=1,nypa
-              do i=1,nxpa
-                dpa_dt(i,j,1:3) = (pa(i,j,1:3)-dpa_dt(i,j,1:3))/tdta
-                dast_dt(i,j) = (ast(i,j)-dast_dt(i,j))/tdta
-                dhmixa_dt(i,j) = (hmixa(i,j)-dhmixa_dt(i,j))/tdta
-              enddo
-            enddo
-!$OMP       END DO
-!$OMP     END PARALLEL
-
 #endif
 
 *       Timestep done; do checking and diagnostics as necessary
