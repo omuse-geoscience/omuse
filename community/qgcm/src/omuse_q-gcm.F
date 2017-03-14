@@ -1656,5 +1656,5 @@ c   atmospheric mixed layer thickness
       end module
 
 ! include diagnostic routines
-#include 'qocdiag.F'
+#include "qocdiag.F"
 
