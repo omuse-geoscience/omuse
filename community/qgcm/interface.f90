@@ -87,39 +87,6 @@ function commit_grids() result(ret)
   ret=0
 end function
 
-function print_diag() result(ret)
-  integer :: ret
-  real*8 :: qt2dif(3),qt4dif(3),qotjac(3),qotent(3),dqdt(3)
-
-  print*, "time:", tday
-  print*, "d2 diss", sum(ah2doc)
-  print*, "d4 diss", sum(ah4doc)
-  print*, "bottom drag", btdgoc
-  print*, "wind", utauoc
-  print*, "pe_t", sum(ddtpeoc)
-  print*, "ke_t", sum(ddtkeoc)
-  print*, "ke", sum(kealoc)
-  print*, "pe", sum(0.5*rhooc*gpoc*et2moc)
-  print*, "hfmloc ", hfmloc
-  print*, "hfluxes ", slhfav, oradav
-  print*, "hfluxes2 ", arocav, arlaav
-  print*, "entrainment ",  pkenoc, centoc
-  
-  call qt4dif_int(qt2dif,qt4dif,qotjac,qotent,dqdt)
-  qt2dif=rhooc*hoc*qt2dif*ocnorm/fnot
-  print*, "qt2dif", sum(qt2dif)
-  qt4dif=rhooc*hoc*qt4dif*ocnorm/fnot
-  print*, "qt4dif", sum(qt4dif)
-  qotjac=rhooc*hoc*qotjac*ocnorm/fnot
-  print*, "qotjac", sum(qotjac)
-  qotent=rhooc*hoc*qotent*ocnorm/fnot
-  print*, "qotent", sum(qotent), utauoc-btdgoc
-  dqdt=rhooc*hoc*dqdt*ocnorm/fnot
-  print*, "dqdt", sum(dqdt)
-  print*, "sum:", sum(ddtkeoc)-(sum(ddtpeoc)+utauoc-btdgoc-sum(ah4doc))
-  ret=0
-end function
-
 function evolve_model(tend) result(ret)
   integer :: ret
   real*8 :: tend,tnow
