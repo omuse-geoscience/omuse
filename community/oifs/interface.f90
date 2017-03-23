@@ -2,11 +2,13 @@
 
 module openifs_interface
 
-    use ifslib,     only: static_init, initialize, finalize, get_gp_field,&
-                        & get_gp_geom, get_gp_field_columns, get_gp_field,& 
+    use ifslib,     only: static_init, initialize, finalize, get_gp_geom,& 
                         & jstep, step, PFULL, PHALF, WIND_U, WIND_V, TEMPERATURE,&
                         & SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
                         & OZONE
+    use spcrmlib,   only: step_until_cloud_scheme,step_cloud_scheme,step_from_cloud_scheme,&
+                        & gettends,get_cur_field,settend,set_sp_mask,spcrminit,spcrmclean,&
+                        & tendcml,settend
     use yomct0,     only: nstart,nstop
     use yomct3,     only: nstep
     use yomdyn,     only: tstep
@@ -24,6 +26,7 @@ module openifs_interface
 
             call static_init()
             call initialize('TEST')
+            call spcrminit()
 
             ret = 0
 
@@ -107,6 +110,7 @@ module openifs_interface
         end function evolve_model
 
         function evolve_model_single_step() result(ret)
+
           integer::               ret
           logical::               istat
 
@@ -116,7 +120,50 @@ module openifs_interface
           if(.not.istat) then
              ret = 1
           endif
+
         end function evolve_model_single_step
+
+        function evolve_model_until_cloud_scheme() result(ret)
+
+          integer::               ret
+          logical::               istat
+
+          ret = 0
+          istat = .true.
+          call step_until_cloud_scheme(istat)
+          if(.not.istat) then
+             ret = 1
+          endif
+
+        end function evolve_model_until_cloud_scheme
+
+        function evolve_model_from_cloud_scheme() result(ret)
+
+          integer::               ret
+          logical::               istat
+
+          ret = 0
+          istat = .true.
+          call step_from_cloud_scheme(istat)
+          if(.not.istat) then
+             ret = 1
+          endif
+
+        end function evolve_model_from_cloud_scheme
+
+        function evolve_model_cloud_scheme() result(ret)
+
+          integer::               ret
+          logical::               istat
+
+          ret = 0
+          istat = .true.
+          call step_cloud_scheme()
+          if(.not.istat) then
+             ret = 1
+          endif
+
+        end function evolve_model_cloud_scheme
           
         function get_gridpoints(g_i,lats,lons,n) result(ret)
 
@@ -265,7 +312,7 @@ module openifs_interface
                 endif
             endif
             
-            call get_gp_field(b,fldid)
+            call get_cur_field(b,fldid)
             
             if(myproc == 1) then
                 do ii = 1,n
@@ -276,12 +323,77 @@ module openifs_interface
 
         end function get_field
 
+        function get_tendency(g_i,g_k,a,n,fldid) result(ret)
+
+            integer, intent(in)::                   n,fldid
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            real(8), allocatable::                  b(:,:)
+            integer::                               ret,ii
+
+            ret = 0
+            if(myproc == 1) then
+                if(fldid == PHALF) then
+                    allocate(b(ngptotg,nflevg+1),stat=ret)
+                else
+                    allocate(b(ngptotg,nflevg),stat=ret)
+                endif
+                if(ret/=0) then
+                    return
+                endif
+            endif
+            
+            call gettends(b,fldid,tendcml)
+            
+            if(myproc == 1) then
+                do ii = 1,n
+                    a(ii) = b(g_i(ii) + 1,g_k(ii) + 1)
+                enddo
+                deallocate(b)
+            endif
+
+        end function get_tendency
+
+        function set_mask(g_i,n) result(ret)
+
+            integer, dimension(n), intent(in)::     g_i
+            integer, intent(in)::                   n
+            integer::                               ret
+
+            ret = 0
+            call set_sp_mask(g_i,n,.TRUE.)
+
+        end function set_mask
+
+        function reset_mask(g_i,n) result(ret)
+
+            integer, dimension(n), intent(in)::     g_i
+            integer, intent(in)::                   n
+            integer::                               ret
+
+            ret = 0
+            call set_sp_mask(g_i,n,.FALSE.)
+
+        end function reset_mask
+
+        function set_tendency(i,vals,n,fldid) result(ret)
+
+            integer, intent(in)::                   i,n,fldid
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = 0
+            call settend(i,fldid,vals)
+
+        end function set_tendency
+
         function cleanup_code() result(ret)
 
             integer:: ret
 
             ret = 0
             call finalize()
+            call spcrmclean()
 
         end function
 
