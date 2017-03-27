@@ -88,7 +88,7 @@ class OpenIFSInterface(CodeInterface,
     def get_field_QI_(i = 0,k = 0):
         returns (out = 0.)
 
-    # Utility method returning the ice water content field
+    # Utility method returning the cloud coverage field
     @remote_function(must_handle_array=True)
     def get_field_A_(i = 0,k = 0):
         returns (out = 0.)
@@ -98,35 +98,66 @@ class OpenIFSInterface(CodeInterface,
     def get_field_O3_(i = 0,k = 0):
         returns (out = 0.)
 
-    # Utility method returning the full u-component flow field
+    # Utility method returning the full u-component tendency
     @remote_function(must_handle_array=True)
     def get_tendency_U_(i = 0,k = 0):
         returns (out = 0. | units.m / units.s)
 
-    # Utility method returning the full v-component flow field
+    # Utility method returning the full v-component tendency
     @remote_function(must_handle_array=True)
     def get_tendency_V_(i = 0,k = 0):
         returns (out = 0. | units.m / units.s)
 
-    # Utility method returning the full temperature field
+    # Utility method returning the full temperature tendency
     @remote_function(must_handle_array=True)
     def get_tendency_T_(i = 0,k = 0):
         returns (out = 0. | units.K)
 
-    # Utility method returning the specific humidity field
+    # Utility method returning the specific humidity tendency
     @remote_function(must_handle_array=True)
     def get_tendency_SH_(i = 0,k = 0):
         returns (out = 0.)
 
-    # Utility method returning the ice water content field
+    # Utility method returning the cloud coverage tendency
     @remote_function(must_handle_array=True)
     def get_tendency_A_(i = 0,k = 0):
         returns (out = 0.)
 
-    # Utility method returning the ozone field
+    # Utility method returning the ozone tendency
     @remote_function(must_handle_array=True)
     def get_tendency_O3_(i = 0,k = 0):
         returns (out = 0.)
+
+
+    # Utility method returning the full u-component tendency
+    @remote_function(must_handle_array=True)
+    def set_tendency_U_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method returning the full v-component tendency
+    @remote_function(must_handle_array=True)
+    def set_tendency_V_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method returning the full temperature tendency
+    @remote_function(must_handle_array=True)
+    def get_tendency_T_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method returning the specific humidity tendency
+    @remote_function(must_handle_array=True)
+    def get_tendency_SH_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method returning the cloud coverage tendency
+    @remote_function(must_handle_array=True)
+    def get_tendency_A_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method returning the ozone tendency
+    @remote_function(must_handle_array=True)
+    def get_tendency_O3_(i = 0,k = 0,v = 0.):
+        pass
 
     # Utility method returning the gridpoint latitudes and longitudes.
     @remote_function(must_handle_array=True)
