@@ -508,7 +508,7 @@ module openifs_interface
 
         end function set_tendency_A_
 
-        function set_tendency_O3_(g_i,g_k,n,vals) result(ret)
+        function set_tendency_O3_(g_i,g_k,vals,n) result(ret)
 
             integer, intent(in)::                   n
             integer, dimension(n), intent(in)::     g_i,g_k
