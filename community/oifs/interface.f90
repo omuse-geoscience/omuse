@@ -453,14 +453,102 @@ module openifs_interface
 
         end function reset_mask
 
-        function set_tendency(i,vals,n,fldid) result(ret)
+        function set_tendency_U_(g_i,g_k,vals,n) result(ret)
 
-            integer, intent(in)::                   i,n,fldid
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
             real(8), dimension(n), intent(in)::     vals
             integer::                               ret
 
+            ret = set_tendency(g_i,g_k,vals,n,WIND_U)
+
+        end function set_tendency_U_
+
+        function set_tendency_V_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_tendency(g_i,g_k,vals,n,WIND_V)
+
+        end function set_tendency_V_
+
+        function set_tendency_T_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_tendency(g_i,g_k,vals,n,TEMPERATURE)
+
+        end function set_tendency_T_
+
+        function set_tendency_SH_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_tendency(g_i,g_k,vals,n,SPEC_HUMIDITY)
+
+        end function set_tendency_SH_
+
+        function set_tendency_A_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_tendency(g_i,g_k,vals,n,CLOUD_FRACTION)
+
+        end function set_tendency_A_
+
+        function set_tendency_O3_(g_i,g_k,n,vals) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_tendency(g_i,g_k,vals,n,OZONE)
+
+        end function set_tendency_O3_
+
+        function set_tendency(g_i,g_k,vals,n,fldid) result(ret)
+
+            integer, intent(in)::                   n,fldid
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret,i,nvals
+            integer, allocatable::                  klevs(:)
+
             ret = 0
-            call settend(i,fldid,vals)
+            nvals = 0
+
+            allocate(klevs(nflevg))
+
+            do i = 1,n
+                nvals = nvals + 1
+                if(nvals > nflevg) then
+                    ret = 1
+                    return
+                endif
+                klevs(nvals) = g_k(i)
+                if(i == n) then
+                    call settend(g_i(i),klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    nvals = 0
+                elseif(g_i(i + 1) /= g_i(i)) then
+                    call settend(g_i(i),klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    nvals = 0
+                endif
+            enddo
+
+            deallocate(klevs)
 
         end function set_tendency
 
