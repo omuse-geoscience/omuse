@@ -88,9 +88,44 @@ class OpenIFSInterface(CodeInterface,
     def get_field_QI_(i = 0,k = 0):
         returns (out = 0.)
 
+    # Utility method returning the ice water content field
+    @remote_function(must_handle_array=True)
+    def get_field_A_(i = 0,k = 0):
+        returns (out = 0.)
+
     # Utility method returning the ozone field
     @remote_function(must_handle_array=True)
     def get_field_O3_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning the full u-component flow field
+    @remote_function(must_handle_array=True)
+    def get_tendency_U_(i = 0,k = 0):
+        returns (out = 0. | units.m / units.s)
+
+    # Utility method returning the full v-component flow field
+    @remote_function(must_handle_array=True)
+    def get_tendency_V_(i = 0,k = 0):
+        returns (out = 0. | units.m / units.s)
+
+    # Utility method returning the full temperature field
+    @remote_function(must_handle_array=True)
+    def get_tendency_T_(i = 0,k = 0):
+        returns (out = 0. | units.K)
+
+    # Utility method returning the specific humidity field
+    @remote_function(must_handle_array=True)
+    def get_tendency_SH_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning the ice water content field
+    @remote_function(must_handle_array=True)
+    def get_tendency_A_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning the ozone field
+    @remote_function(must_handle_array=True)
+    def get_tendency_O3_(i = 0,k = 0):
         returns (out = 0.)
 
     # Utility method returning the gridpoint latitudes and longitudes.
@@ -108,8 +143,24 @@ class OpenIFSInterface(CodeInterface,
     def evolve_model(tend = 0. | units.s):
         pass
 
+    # Single step model evolution
     @remote_function
     def evolve_model_single_step():
+        pass
+
+    # Single step model evolution, returns when cloud scheme is reached
+    @remote_function
+    def evolve_model_until_cloud_scheme():
+        pass
+
+    # Single step model evolution, only executes the IFS cloud scheme
+    @remote_function
+    def evolve_model_cloud_scheme():
+        pass
+
+    # Single step model evolution, enters time step function after cloud scheme
+    @remote_function
+    def evolve_model_from_cloud_scheme():
         pass
 
 # OpenIFS class implementation
@@ -180,13 +231,17 @@ class OpenIFS(CommonCode):
             object.add_method(state,"get_volume_field")
             object.add_method(state,"get_profile_field")
         object.add_method("EVOLVED","evolve_model")
+        object.add_method("EVOLVED","evolve_model_single_step")
+        object.add_method("EVOLVED","evolve_model_until_cloud_scheme")
+        object.add_method("EVOLVED","evolve_model_cloud_scheme")
+        object.add_method("EVOLVED","evolve_model_from_cloud_scheme")
 
     def get_field(self,fid,i,k):
         if(fid == "Pfull"):
             return self.get_field_Pfull_(i,k)
-        if(fid == "Phalf"):
+        elif(fid == "Phalf"):
             return self.get_field_Phalf_(i,k)
-        if(fid == "U"):
+        elif(fid == "U"):
             return self.get_field_U_(i,k)
         elif(fid == "V"):
             return self.get_field_V_(i,k)
@@ -198,6 +253,8 @@ class OpenIFS(CommonCode):
             return self.get_field_QL_(i,k)
         elif(fid == "QI"):
             return self.get_field_QI_(i,k)
+        elif(fid == "A"):
+            return self.get_field_A_(i,k)
         elif(fid == "O3"):
             return self.get_field_O3_(i,k)
         else:
@@ -217,3 +274,34 @@ class OpenIFS(CommonCode):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
         i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
         return self.get_field(fid,i,k)
+
+    def get_tendency(self,fid,i,k):
+        if(fid == "U"):
+            return self.get_tendency_U_(i,k)
+        elif(fid == "V"):
+            return self.get_tendency_V_(i,k)
+        elif(fid == "T"):
+            return self.get_tendency_T_(i,k)
+        elif(fid == "SH"):
+            return self.get_tendency_SH_(i,k)
+        elif(fid == "A"):
+            return self.get_tendency_A_(i,k)
+        elif(fid == "O3"):
+            return self.get_tendency_O3_(i,k)
+        else:
+            raise Exception("Unknown atmosphere tendency field identidier:",fid)
+
+    def get_volume_tendency(self,fid):
+        ktop = self.ktot
+        pts = numpy.mgrid[0:self.itot,0:ktop]
+        i,k = pts.reshape(2,-1)
+        return self.get_tendency(fid,i,k).reshape((self.itot,ktop))
+
+    def get_layer_tendency(self,fid,layerindex):
+        i,k = numpy.arange(0,self.itot),numpy.full([self.itot],layerindex)
+        return self.get_tendency(fid,i,k)
+
+    def get_profile_tendency(self,fid,colindex):
+        ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
+        i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
+        return self.get_tendency(fid,i,k)
