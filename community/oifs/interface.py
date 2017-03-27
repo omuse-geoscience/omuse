@@ -128,35 +128,44 @@ class OpenIFSInterface(CodeInterface,
     def get_tendency_O3_(i = 0,k = 0):
         returns (out = 0.)
 
-
-    # Utility method returning the full u-component tendency
+    # Utility method setting the u-component tendency
     @remote_function(must_handle_array=True)
     def set_tendency_U_(i = 0,k = 0,v = 0.):
         pass
 
-    # Utility method returning the full v-component tendency
+    # Utility method setting the v-component tendency
     @remote_function(must_handle_array=True)
     def set_tendency_V_(i = 0,k = 0,v = 0.):
         pass
 
-    # Utility method returning the full temperature tendency
+    # Utility method setting the temperature tendency
     @remote_function(must_handle_array=True)
-    def get_tendency_T_(i = 0,k = 0,v = 0.):
+    def set_tendency_T_(i = 0,k = 0,v = 0.):
         pass
 
-    # Utility method returning the specific humidity tendency
+    # Utility method setting the specific humidity tendency
     @remote_function(must_handle_array=True)
-    def get_tendency_SH_(i = 0,k = 0,v = 0.):
+    def set_tendency_SH_(i = 0,k = 0,v = 0.):
         pass
 
-    # Utility method returning the cloud coverage tendency
+    # Utility method setting the cloud coverage tendency
     @remote_function(must_handle_array=True)
-    def get_tendency_A_(i = 0,k = 0,v = 0.):
+    def set_tendency_A_(i = 0,k = 0,v = 0.):
         pass
 
-    # Utility method returning the ozone tendency
+    # Utility method setting the ozone tendency
     @remote_function(must_handle_array=True)
-    def get_tendency_O3_(i = 0,k = 0,v = 0.):
+    def set_tendency_O3_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting a superparametrization mask
+    @remote_function(must_handle_array=True)
+    def set_mask(i = 0):
+        pass
+
+    # Utility method resetting a superparametrization mask
+    @remote_function(must_handle_array=True)
+    def reset_mask(i = 0):
         pass
 
     # Utility method returning the gridpoint latitudes and longitudes.
