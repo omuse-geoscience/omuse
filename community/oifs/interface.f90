@@ -281,6 +281,17 @@ module openifs_interface
 
         end function get_field_QI_
 
+        function get_field_A_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,CLOUD_FRACTION)
+
+        end function get_field_A_
+
         function get_field_O3_(g_i,g_k,a,n) result(ret)
 
             integer, intent(in)::                   n
@@ -322,6 +333,72 @@ module openifs_interface
             endif
 
         end function get_field
+
+        function get_tendency_U_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_tendency(g_i,g_k,a,n,WIND_U)
+
+        end function get_tendency_U_
+
+        function get_tendency_V_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_tendency(g_i,g_k,a,n,WIND_V)
+
+        end function get_tendency_V_
+
+        function get_tendency_T_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_tendency(g_i,g_k,a,n,TEMPERATURE)
+
+        end function get_tendency_T_
+
+        function get_tendency_SH_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_tendency(g_i,g_k,a,n,SPEC_HUMIDITY)
+
+        end function get_tendency_SH_
+
+        function get_tendency_A_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_tendency(g_i,g_k,a,n,CLOUD_FRACTION)
+
+        end function get_tendency_A_
+
+        function get_tendency_O3_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_tendency(g_i,g_k,a,n,OZONE)
+
+        end function get_tendency_O3_
 
         function get_tendency(g_i,g_k,a,n,fldid) result(ret)
 
