@@ -259,6 +259,7 @@ class OpenIFS(CommonCode):
         object.add_transition("INITIALIZED","EDIT","commit_parameters")
         object.add_transition("EDIT","RUN","commit_grid")
         object.add_transition("RUN","EVOLVED","evolve_model",False)
+        object.add_transition("RUN","EVOLVED","evolve_model_single_step",False)
 
         object.add_method("INITIALIZED","before_set_interface_parameter")
         object.add_method("UNINITIALIZED","before_get_parameter")
@@ -331,6 +332,22 @@ class OpenIFS(CommonCode):
         else:
             raise Exception("Unknown atmosphere tendency field identidier:",fid)
 
+    def set_tendency(self,fid,i,k,v):
+        if(fid == "U"):
+            return self.set_tendency_U_(i,k,v)
+        elif(fid == "V"):
+            return self.set_tendency_V_(i,k,v)
+        elif(fid == "T"):
+            return self.set_tendency_T_(i,k,v)
+        elif(fid == "SH"):
+            return self.set_tendency_SH_(i,k,v)
+        elif(fid == "A"):
+            return self.set_tendency_A_(i,k,v)
+        elif(fid == "O3"):
+            return self.set_tendency_O3_(i,k,v)
+        else:
+            raise Exception("Unknown atmosphere tendency field identidier:",fid)
+
     def get_volume_tendency(self,fid):
         ktop = self.ktot
         pts = numpy.mgrid[0:self.itot,0:ktop]
@@ -345,3 +362,8 @@ class OpenIFS(CommonCode):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
         i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
         return self.get_tendency(fid,i,k)
+
+    def set_profile_tendency(self,fid,colindex, v):
+        ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
+        i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
+        self.set_tendency(fid,i,k,v)
