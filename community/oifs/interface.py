@@ -118,6 +118,16 @@ class OpenIFSInterface(CodeInterface,
     def get_tendency_SH_(i = 0,k = 0):
         returns (out = 0.)
 
+    # Utility method returning the liquid water content tendency
+    @remote_function(must_handle_array=True)
+    def get_tendency_QL_(i = 0,k = 0):
+        returns (out = 0.)
+
+    # Utility method returning the ice water content tendency
+    @remote_function(must_handle_array=True)
+    def get_tendency_QI_(i = 0,k = 0):
+        returns (out = 0.)
+
     # Utility method returning the cloud coverage tendency
     @remote_function(must_handle_array=True)
     def get_tendency_A_(i = 0,k = 0):
@@ -146,6 +156,16 @@ class OpenIFSInterface(CodeInterface,
     # Utility method setting the specific humidity tendency
     @remote_function(must_handle_array=True)
     def set_tendency_SH_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting the liquid water tendency
+    @remote_function(must_handle_array=True)
+    def set_tendency_QL_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting the ice water tendency
+    @remote_function(must_handle_array=True)
+    def set_tendency_QI_(i = 0,k = 0,v = 0.):
         pass
 
     # Utility method setting the cloud coverage tendency
@@ -324,6 +344,10 @@ class OpenIFS(CommonCode):
             return self.get_tendency_T_(i,k)
         elif(fid == "SH"):
             return self.get_tendency_SH_(i,k)
+        elif(fid == "QL"):
+            return self.get_tendency_SH_(i,k)
+        elif(fid == "QI"):
+            return self.get_tendency_SH_(i,k)
         elif(fid == "A"):
             return self.get_tendency_A_(i,k)
         elif(fid == "O3"):
@@ -345,3 +369,4 @@ class OpenIFS(CommonCode):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
         i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
         return self.get_tendency(fid,i,k)
+
