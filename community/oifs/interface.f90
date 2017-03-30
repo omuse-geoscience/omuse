@@ -378,6 +378,28 @@ module openifs_interface
 
         end function get_tendency_SH_
 
+        function get_tendency_QL_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_tendency(g_i,g_k,a,n,LIQ_WATER)
+
+        end function get_tendency_QL_
+
+        function get_tendency_QI_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_tendency(g_i,g_k,a,n,ICE_WATER)
+
+        end function get_tendency_QI_
+
         function get_tendency_A_(g_i,g_k,a,n) result(ret)
 
             integer, intent(in)::                   n
@@ -496,6 +518,28 @@ module openifs_interface
             ret = set_tendency(g_i,g_k,vals,n,SPEC_HUMIDITY)
 
         end function set_tendency_SH_
+
+        function set_tendency_QL_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_tendency(g_i,g_k,vals,n,LIQ_WATER)
+
+        end function set_tendency_QL_
+
+        function set_tendency_QI_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_tendency(g_i,g_k,vals,n,ICE_WATER)
+
+        end function set_tendency_QI_
 
         function set_tendency_A_(g_i,g_k,vals,n) result(ret)
 
