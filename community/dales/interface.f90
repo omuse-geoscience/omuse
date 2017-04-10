@@ -10,10 +10,11 @@ module dales_interface
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, ps_tend, &
                        gatherlayeravg, gathervol, localindex, gatherLWP
-    use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0, um,vm,wm,thlm,qtm
+    use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0,sv0,um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, qts
     use modsurface, only: qtsurf
+    use modmicrodata, only: iqr
     
     !TODO: Expose everything so this module only depends on daleslib
     use modglobal, only: rtimee,rdt,fname_options,timeleft,tres,timee,rk3step,dt_lim
@@ -401,6 +402,17 @@ contains
        integer                             :: ret
        ret = gatherLWP(g_i,g_j,a,n,ql0(2:i1,2:j1,1:kmax))
      end function get_field_LWP
+
+     ! Rain water path - like LWP but for rain water
+     ! get it from sv0(:,:,:,iqr)
+     function get_field_RWP(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherLWP(g_i,g_j,a,n,sv0(2:i1,2:j1,1:kmax,iqr))
+     end function get_field_RWP
+
      
      !!! setter functions for full 3D fields - using index arrays
      !!! these functions set BOTH the -m and the -0 fields

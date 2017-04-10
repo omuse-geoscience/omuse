@@ -31,3 +31,6 @@ community/oifs/oifs40r1/*
 syntax: glob
 ext/eddy_tracker/**.png
 community/pop/*.dat
+community/dales/dales-repo/*
+community/oifs/oifslib/*
+community/spifs/*
