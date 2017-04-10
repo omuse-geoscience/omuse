@@ -172,6 +172,10 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_field_LWP(g_i=0,g_j=0):
+        returns (a=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_field_RWP(g_i=0,g_j=0):
         returns (a=0.) 
 
     # setter functions for 3D fields usning index arrays
@@ -318,7 +322,7 @@ class Dales(CommonCode):
             kmax = self.k    
 
         #build index arrays
-        if field in ('LWP',):  # 2D field
+        if field in ('LWP','RWP'):  # 2D field
             points = numpy.mgrid[imin:imax, jmin:jmax]
             points = points.reshape(2, -1)
             i,j = points
@@ -345,6 +349,9 @@ class Dales(CommonCode):
             field = self.get_field_T(i,j,k)
         elif field == 'LWP':                              # LWP - 2D field, k ignored
             field = self.get_field_LWP(i,j)   
+            return field.reshape ((imax-imin, jmax-jmin)) # separate return here, to reshape to 2D
+        elif field == 'RWP':                              # RWP - 2D field, k ignored
+            field = self.get_field_RWP(i,j)   
             return field.reshape ((imax-imin, jmax-jmin)) # separate return here, to reshape to 2D 
         else:
             print('get_field called with undefined field', field)
