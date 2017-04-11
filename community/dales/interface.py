@@ -99,6 +99,11 @@ class DalesInterface(CodeInterface,
     def get_profile_T_(k=0):
         returns (out=0. | units.K)
 
+    # getter for cloud fraction. Uses the index array to define slabs.
+    @remote_function(must_handle_array=True)
+    def get_cloudfraction(k=0):
+        returns (out=0.)
+
 
 # getter functions for height levels
 # these take a dummy array as input, and return output of the same length
