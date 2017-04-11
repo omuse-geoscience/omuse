@@ -87,7 +87,7 @@ contains
         integer,intent(in)  :: exactEnd
         integer             :: i
 
-        print *, 'evolve_model'
+        ! print *, 'evolve_model'
         do while((rtimee < tend .and. timeleft > 0)) ! .or. rk3step < 3)
 
            if (exactEnd /= 0) then
@@ -394,7 +394,7 @@ contains
      end function get_field_T
      !!! end of full 3D field getter functions
 
-     ! getter function for LWP - a 2D field
+     ! getter function for LWP - a 2D field, vertical integral of ql
      function get_field_LWP(g_i,g_j,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j
@@ -402,6 +402,15 @@ contains
        integer                             :: ret
        ret = gatherLWP(g_i,g_j,a,n,ql0(2:i1,2:j1,1:kmax))
      end function get_field_LWP
+
+     ! getter function for TWP - Total Water Path - 2D field, vertical integral of qt
+     function get_field_TWP(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherLWP(g_i,g_j,a,n,qt0(2:i1,2:j1,1:kmax))
+     end function get_field_TWP
 
      ! Rain water path - like LWP but for rain water
      ! get it from sv0(:,:,:,iqr)
