@@ -9,7 +9,7 @@ module dales_interface
                        my_task,master_task,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, ps_tend, &
-                       gatherlayeravg, gathervol, localindex, gatherLWP
+                       gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0,sv0,um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, qts
@@ -232,9 +232,8 @@ contains
       
       ret = gatherlayeravg(tmp0(2:i1, 2:j1, :), a)
     end function get_profile_T_
-
     
-     function get_zf_(g_k, a, n) result(ret)
+    function get_zf_(g_k, a, n) result(ret)
        use modglobal, only: zf
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -277,7 +276,22 @@ contains
       a = presh
       ret = 0
     end function get_presh_
-    
+
+
+    ! Cloud fraction getter
+    ! Note: in contrast to the other profile getters,
+    ! this one relies on g_k to define slabs
+    ! the result a has the same length as g_k
+    function get_cloudfraction(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+      
+      ret = gatherCloudFrac(ql0(2:i1, 2:j1, :), g_k, a)
+    end function get_cloudfraction    
+
+
 
     
 !!! end of vertical profile getters
