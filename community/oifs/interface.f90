@@ -15,7 +15,8 @@ module openifs_interface
     use yommp0,     only: myproc
     use yomgem,     only: ngptotg
     use yomdimv,    only: nflevg
-
+    USE yomlun,     only: nulout
+    
     implicit none
 
     contains
@@ -460,8 +461,9 @@ module openifs_interface
             integer::                               ret
 
             ret = 0
-            call set_sp_mask(g_i,n,.TRUE.)
-
+            write (NULOUT,*) "calling set_sp_mask", g_i
+            call set_sp_mask(g_i+1,n,.TRUE.)
+            ! convert to Fortran indexing
         end function set_mask
 
         function reset_mask(g_i,n) result(ret)
@@ -471,8 +473,8 @@ module openifs_interface
             integer::                               ret
 
             ret = 0
-            call set_sp_mask(g_i,n,.FALSE.)
-
+            call set_sp_mask(g_i+1,n,.FALSE.)
+            ! convert to Fortran indexing
         end function reset_mask
 
         function set_tendency_U_(g_i,g_k,vals,n) result(ret)
@@ -576,18 +578,20 @@ module openifs_interface
 
             allocate(klevs(nflevg))
 
+            ! convert from sequence of point to setting vertical profiles
+            ! needs testing with multiple 
             do i = 1,n
                 nvals = nvals + 1
                 if(nvals > nflevg) then
                     ret = 1
                     return
                 endif
-                klevs(nvals) = g_k(i)
+                klevs(nvals) = g_k(i) + 1 ! to Fortran indexing (g_k)
                 if(i == n) then
-                    call settend(g_i(i),klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
-                    nvals = 0
+                    call settend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    nvals = 0           ! to fortran indexing (g_i)
                 elseif(g_i(i + 1) /= g_i(i)) then
-                    call settend(g_i(i),klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    call settend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
                     nvals = 0
                 endif
             enddo
