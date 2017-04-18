@@ -12,8 +12,7 @@ program fortran_test
     write(*,*) "Initializing fortran interface code..."
     stat=initialize_code()
     if(stat/=0) then
-        write(*,*) "...failed, stopping."
-        return
+        stop "...failed, stopping."
     else
         write(*,*) "..success."
     endif
@@ -22,8 +21,7 @@ program fortran_test
     tend=60
     stat=evolve_model(tend, 0)
     if(stat/=0) then
-        write(*,*) "...failed, stopping."
-        return
+        stop "...failed, stopping."
     else
         write(*,*) "...success."
     endif
@@ -31,8 +29,7 @@ program fortran_test
     write(*,*) "Exiting fortran interface code..."
     stat=cleanup_code()
     if(stat/=0) then
-        write(*,*) "...failed, stopping."
-        return
+        stop "...failed, stopping."
     else
         write(*,*) "..success."
     endif

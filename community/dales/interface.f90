@@ -148,6 +148,7 @@ contains
       integer::             ret
 
       p = ps
+      ret = 0
     end function get_surface_pressure
     
 
@@ -452,6 +453,7 @@ contains
              u0(i,j,k) = a(m)
           endif
        enddo
+       ret = 0
      end function set_field_U
 
      function set_field_V(g_i,g_j,g_k,a,n) result(ret)
@@ -466,6 +468,7 @@ contains
              v0(i,j,k) = a(m)
           endif
        enddo
+       ret = 0
      end function set_field_V
 
      function set_field_W(g_i,g_j,g_k,a,n) result(ret)
@@ -480,6 +483,7 @@ contains
              w0(i,j,k) = a(m)
           endif
        enddo
+       ret = 0
      end function set_field_W
 
      function set_field_THL(g_i,g_j,g_k,a,n) result(ret)
@@ -494,7 +498,7 @@ contains
              thl0(i,j,k) = a(m)
           endif
        enddo
-
+       ret = 0
      end function set_field_THL
     
 
@@ -510,6 +514,7 @@ contains
              qt0(i,j,k) = a(m)
           endif
        enddo
+       ret = 0
      end function set_field_QT    
      !!! end of setter functions for 3D fields
 

@@ -20,6 +20,20 @@ FS_LIBS += $(NETCDF_LIBS) $(NETCDFF_LIBS) $(SC_MPI_FCLIBS)
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
+
+# OWN_FCFLAGS are extra compilation flags specific to Dales. Currently used for the size of 'real'
+  # gnu:
+OWN_FCFLAGS=-fdefault-real-8
+
+# intel fortran. FC is set in the Amuse configuration.
+# Amuse supplies -O2
+ifeq ($(FC),ifort)
+  OWN_FCFLAGS=-r8 -xHost
+endif
+
+
+
+
 all: dales dales_worker test/fortran_test
 
 update:
@@ -35,12 +49,12 @@ worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py DalesInterface -o $@
 
 dales_worker: worker_code.f90 $(OBJS) interface.f90 dales
-	$(MPIFC) $(FCFLAGS) -fdefault-real-8 -I$(INCLUDEDIR) -c interface.f90 -o interface.o
-	$(MPIFC) $(FCFLAGS) -fdefault-real-8 -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
+	$(MPIFC) $(FCFLAGS) $(OWN_FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
+	$(MPIFC) $(FCFLAGS) $(OWN_FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
 test/fortran_test: test/fortran_test.f90 $(OBJS) interface.f90 dales
-	$(MPIFC) $(FCFLAGS) -fdefault-real-8 -I$(INCLUDEDIR) -c interface.f90 -o interface.o
-	$(MPIFC) $(FCFLAGS) -fdefault-real-8 -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
+	$(MPIFC) $(FCFLAGS) $(OWN_FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
+	$(MPIFC) $(FCFLAGS) $(OWN_FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
 clean:
 	$(RM) -f *.so *.o *.pyc *.mod
