@@ -19,23 +19,23 @@ module openifs_interface
     
     implicit none
 
+      character(len = 256) :: exp_name = 'TEST'
     contains
 
+
         function initialize_code() result(ret)
-
             integer:: ret
-
             call static_init()
-            call initialize('TEST')
-            call spcrminit()
 
             ret = 0
 
         end function initialize_code
 
         function commit_parameters() result(ret)
-
             integer:: ret
+            !exp_name is used as part of the input file names
+            call initialize(exp_name) 
+            call spcrminit()
 
             ret = 0
 
@@ -66,6 +66,18 @@ module openifs_interface
             ret = 0
 
         end function
+
+        function set_exp_name(str) result(ret)
+
+            character(len=*), intent(in)::   str
+            integer                     ::   ret
+
+            exp_name = str
+            ret = 0
+
+        end function
+
+
 
         function get_grid_sizes(nxy,nz) result(ret)
 
