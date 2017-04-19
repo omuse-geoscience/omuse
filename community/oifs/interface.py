@@ -43,6 +43,11 @@ class OpenIFSInterface(CodeInterface,
     def get_timestep():
         returns (dt = 0. | units.s)
 
+    # set the experiment name, used as part of the input file names
+    @remote_function
+    def set_exp_name(str='a'):
+        pass
+
     # Inserts grid, not yet implemented
     @remote_function
     def commit_grid():
