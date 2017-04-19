@@ -9,17 +9,27 @@ FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m6
 
 LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
-FS_LIBS += -lgrib_api_f90 -lgrib_api -llapack -lblas
+OIFS_GRIB_API_DIR  ?= /usr/local/
+export OIFS_GRIB_API_DIR 
+export OIFS_GRIB_API_LIB = -L$(OIFS_GRIB_API_DIR)/lib -lgrib_api_f90 -lgrib_api
+export OIFS_LAPACK_LIB = -L/usr/lib -llapack -lblas
+
+FS_LIBS += -L$(OIFS_GRIB_API_DIR)/lib -lgrib_api_f90 -lgrib_api -llapack -lblas
 
 OIFSDIR=oifslib
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
-	
+
+# choose compiler 
+ifeq ($(FC),ifort)
+export OIFS_COMP = intel
+else
 export OIFS_COMP = gnu
+endif
+
 export OIFS_BUILD = noopt
-export OIFS_GRIB_API_DIR = /usr/local/
-export OIFS_GRIB_API_LIB = -L/usr/local/lib -lgrib_api_f90 -lgrib_api
-export OIFS_LAPACK_LIB = -L/usr/lib -llapack -lblas
+
+
 
 all: oifslib oifssrc openifs_worker
 
@@ -46,6 +56,7 @@ clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
 	$(RM) *~ worker_code worker_code.f90 
 	rm -f oifs_worker_*
+	rm oifslib/make/$(OIFS_COMP)-$(OIFS_BUILD) -rf
 
 distclean: clean
 	rm -rf $(OIFSDIR)
