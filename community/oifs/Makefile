@@ -11,23 +11,23 @@ LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
 OIFS_GRIB_API_DIR  ?= /usr/local/
 export OIFS_GRIB_API_DIR 
-export OIFS_GRIB_API_LIB = -L$(OIFS_GRIB_API_DIR)/lib -lgrib_api_f90 -lgrib_api
-export OIFS_LAPACK_LIB = -L/usr/lib -llapack -lblas
+export OIFS_GRIB_API_LIB ?= -L$(OIFS_GRIB_API_DIR)/lib -lgrib_api_f90 -lgrib_api
+export OIFS_LAPACK_LIB ?= -L/usr/lib -llapack -lblas
 
-FS_LIBS += -L$(OIFS_GRIB_API_DIR)/lib -lgrib_api_f90 -lgrib_api -llapack -lblas
+FS_LIBS +=  $(OIFS_GRIB_API_LIB)  $(OIFS_LAPACK_LIB)
 
 OIFSDIR=oifslib
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
-# choose compiler 
+# choose compiler - if not specified already using environment variables
 ifeq ($(FC),ifort)
-export OIFS_COMP = intel
+export OIFS_COMP ?= intel
 else
-export OIFS_COMP = gnu
+export OIFS_COMP ?= gnu
 endif
 
-export OIFS_BUILD = noopt
+export OIFS_BUILD ?= noopt
 
 
 
