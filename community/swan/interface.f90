@@ -287,7 +287,7 @@ end function
 
 function commit_parameters() result(ret)
   integer :: ret
-
+  ret=0
   TIMCO=begin_time
 
   if(.not.use_input_depth) then
@@ -395,8 +395,8 @@ end function
 
 function initialize_boundary() result(ret)
   integer :: ret
-
   CHARACTER(len=255) :: cwd
+  ret=0
 
   call getcwd(cwd)
 
