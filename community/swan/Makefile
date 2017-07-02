@@ -16,7 +16,7 @@ all: src/libamuse_swan.a src/amuse_swan.o swan_worker
 src/libamuse_swan.a: 
 	make -C src/ libamuse_swan.a MPIFC="$(MPIFC)"
 
-src/amuse_swan.o: src/amuse_swan.ftn90
+src/amuse_swan.o: src/libamuse_swan.a src/amuse_swan.ftn90
 	make -C src/ amuse_swan.o MPIFC="$(MPIFC)"
 
 worker_code.f90: interface.py
@@ -28,7 +28,7 @@ swan_worker: worker_code.f90 interface.o src/amuse_swan.o src/libamuse_swan.a
 %.o: %.f90
 	$(FC) $(FCFLAGS) $(FCINCS) -c -o $@ $<
 
-interface.o: interface.f90 getter_setters.f90
+interface.o: interface.f90 getter_setters.f90 src/amuse_swan.o src/libamuse_swan.a
 	$(FC) $(FCFLAGS) $(FCINCS) -c -o $@ interface.f90
 
 getter_setters.f90: interface.py
