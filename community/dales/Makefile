@@ -30,9 +30,13 @@ CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 ifeq ($(FC),ifort)
   DALES_FCFLAGS ?= -r8 -xHost
+  SYST?=localpc_ifort
+  export SYST
 endif
 ifeq ($(FC),gfortran)
   DALES_FCFLAGS ?= -fdefault-real-8
+  SYST?=gfortran
+  export SYST
 endif
 
 
