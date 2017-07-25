@@ -38,10 +38,10 @@ endif
 
 all: dales dales_worker test/fortran_test
 
-update:
+update: dales-repo
 	cd dales-repo; git pull
 
-dales: 
+dales: dales-repo
 	mkdir -p $(BUILDDIR)
 #	cd $(BUILDDIR); cmake ../dales-repo; make; make install
 #	cd $(BUILDDIR); cmake ../dales-repo -DCMAKE_BUILD_TYPE=Debug; make ; make install
@@ -50,7 +50,7 @@ dales:
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py DalesInterface -o $@
 
-dales_worker: worker_code.f90 $(OBJS) interface.f90 dales
+dales_worker: worker_code.f90 $(OBJS) interface.f90 dales dales-repo
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
@@ -66,3 +66,15 @@ clean:
 
 distclean: clean
 
+
+download:
+	git clone https://github.com/goord/dales.git dales-repo
+
+ifdef DOWNLOAD_CODES
+dales-repo:
+	make -C . download
+else
+dales-repo:
+	@echo "ERROR: need to download Dales, but DOWNLOAD_CODES is not set" 
+	@false 
+endif
