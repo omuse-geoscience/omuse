@@ -190,7 +190,7 @@ rhs = -beta0*0.5*d*beta_term(2,:,:) &
     & +(tau/(rho*H))*0.5*d*wind_term(2,:,:)*phi1z0 &
     & -0.25*d*d*d*d*jac_term1LP0 &                                               !one extra d*d due to vis in jacobian.f 
     & -0.25*d*d*d*d*jac_term0LP1 &                                               !one extra d*d due to vis in jacobian.f 
-    & +0.25*d*d*d*d*jac_term01*(lambda1**2) &                                    !one extra d*d due to vis in jacobian.f 
+    & +0.25*d*d*jac_term01*(lambda1**2) &                                    !one extra d*d due to vis in jacobian.f 
     & -0.25*d*d*d*d*jac_term1LP1*e111 &                                          !one extra d*d due to vis in jacobian.f 
     & -R_H*d*d*vis_bot_prev(2,:,:) &
     & +A_H*d*d*d*d*vis_lat_prev(2,:,:)

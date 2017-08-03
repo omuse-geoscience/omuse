@@ -21,7 +21,7 @@ MKLINCLUDE ?= ${MKLDIR}/include
 LAPSRC = lasubs.f
 LAPOBJ = lasubs.o
 
-NCBASE = /home/inti/code/amuse/prerequisites/
+NCBASE = $(NETCDFF_PREFIX)
 NCIDIR = ${NCBASE}/include
 NCDINC = ${NCIDIR}/netcdf.inc
 NCINCL = -I${NCIDIR}
