@@ -101,7 +101,7 @@ endif
 
 $(TARGETX): depends
 	@echo "  GNUmakefile is making target '$(TARGETX)'"
-	@gmake -f $(POPDIR)/build/compile.mk POPEXEDIR=$(POPEXEDIR) POPDIR=$(POPDIR) OPTIMIZE=$(OPTIMIZE) 
+	@make -f $(POPDIR)/build/compile.mk POPEXEDIR=$(POPEXEDIR) POPDIR=$(POPDIR) OPTIMIZE=$(OPTIMIZE) 
 
 
 #----------------------------------------------------------------------------
@@ -113,7 +113,7 @@ $(TARGETX): depends
 depends: preprocess
 	@echo "$(POPEXEDIR) $(POPDIR)"
 	@echo "$(POPARCH) automatically generating dependencies for compiling"
-	@gmake -f $(POPDIR)/build/depends.mk POPEXEDIR=$(POPEXEDIR) OPTIMIZE=$(OPTIMIZE)
+	@make -f $(POPDIR)/build/depends.mk POPEXEDIR=$(POPEXEDIR) OPTIMIZE=$(OPTIMIZE)
 
 #----------------------------------------------------------------------------
 #
@@ -123,7 +123,7 @@ depends: preprocess
 
 preprocess: dirs
 	@echo "$(POPARCH) preprocess POP source"
-	@gmake -f $(POPDIR)/build/preprocess.mk
+	@make -f $(POPDIR)/build/preprocess.mk
 
 #----------------------------------------------------------------------------
 #

@@ -73,6 +73,24 @@ def square_domain(L=1.,N=10):
       #~ boundaries.add_particle(boundary)
     #~ return nodes,elements,boundaries
 
+def unstructured_square_domain_sets(L=1000 | units.km,N=10):
+    x,y,triangles,boundaries=square_domain(N=N)
+    nodes=UnstructuredGrid(len(x))
+    elements=UnstructuredGrid(len(triangles))
+    nb=map(lambda x:len(x),boundaries)
+    bnodes=numpy.zeros(numpy.sum(nb)-3, dtype='i')
+    bnodes[:nb[0]]=boundaries[0][:]
+    bnodes[nb[0]:nb[0]+nb[1]-1]=boundaries[1][1:]
+    bnodes[nb[0]+nb[1]-1:nb[0]+nb[1]+nb[2]-2]=boundaries[2][1:]
+    bnodes[nb[0]+nb[1]+nb[2]-2:]=boundaries[3][1:]
+    boundary=UnstructuredGrid(numpy.sum(nb)-3)
+    nodes.x=x*L
+    nodes.y=y*L
+    elements.nodes=triangles
+    boundary.nodes=bnodes
+    boundary.type=0
+    return nodes,elements,[], [boundary]
+
 def unstructured_square_domain(L=1000 | units.km,N=10):
     x,y,triangles,edges=square_domain(N=N)
     nodes=UnstructuredGrid(len(x))

@@ -2,12 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-using namespace std;
-
 
 #define restrict __restrict__
-
-extern "C" {
 
 #include "src/libcdi/src/cdi.h"
 #include "src/src/cdo.h"
@@ -15,8 +11,6 @@ extern "C" {
 #include "src/src/grid.h"
 #include "src/src/remap.h"
 #include "src/src/griddes.h"
-
-}
 
 #undef malloc
 #undef free
@@ -47,7 +41,7 @@ griddes_t dst_griddes;
 void print_remap_grid_info(remapgrid_t *grid);
 void print_remap_info(remapvars_t *rv);
 
-int remap_order = 2;
+extern int remap_order;
 
 //for printing the map type as string
 const char *map_type_string[] = { "unknown", "conservative", "bilinear", "bicubic", "distwgt", "conserv_yac" };
