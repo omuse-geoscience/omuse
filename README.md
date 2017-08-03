@@ -29,5 +29,6 @@ In addition to the AMUSE dependencies, OMUSE needs/ can use the following packag
 
 ### Contribution guidelines ###
 
-Contributed code/ code interfaces are welcome. A primer for interfacing a code and other documentation can be found on the amuse website
-(www.amusecode.org)
+Contributions are welcome. Note that most framework development happens at the AMUSE [repository](https://github.com/amusecode/amuse)
+A primer for writing code interfaces and other documentation can be found on the amuse website
+(www.amusecode.org).

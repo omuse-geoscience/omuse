@@ -57,9 +57,9 @@ ifeq ($(UNAMES),Darwin)
     F90 := gfortran
 #   F90 := gfortran -fdefault-real-8
     CPP := gfortran -cpp
-    MAKE := /opt/local/bin/gmake
+    MAKE := make
 
 endif
 
-F90 := gfortran -g -fdefault-real-8
+F90 := gfortran -g -O2 -fdefault-real-8
 CPP := gfortran -cpp

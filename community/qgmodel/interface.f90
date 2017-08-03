@@ -245,7 +245,7 @@ function initialize_leapfrog() result(ret)
   integer :: ret,i
 
 ! naive initialization of psi_2
-!  psi_2=psi_1
+  psi_2=psi_1
   chi_prev=0.
 ! note in principle the only way to restart consistently is by writing and
 ! reading psi_2 and chi_prev! 

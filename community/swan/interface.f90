@@ -44,6 +44,8 @@ module swan_interface
 
   real :: umin=1.
   real :: rho_air=1.28
+  real :: ctb=0.01
+  real :: under_relaxation_factor=0.0
 
 contains
 
@@ -90,6 +92,7 @@ function initialize_code(coord_, mode_, grid_,input_grid_) result(ret)
 
   umin=PWIND(12)
   rho_air=PWIND(16)
+  ctb=PTURBV(1)
   
 end function
 
@@ -261,7 +264,7 @@ function initialize_input_grids() result(ret)
     if(ret.NE.0) return
     IF (ALLOCATED(TURBF)) DEALLOCATE(TURBF)
     ALLOCATE(TURBF(MXG(12)*MYG(12)))
-    TURBF(12)=0
+    TURBF=0
     LEDS(12)=2
   endif
   
@@ -284,7 +287,7 @@ end function
 
 function commit_parameters() result(ret)
   integer :: ret
-
+  ret=0
   TIMCO=begin_time
 
   if(.not.use_input_depth) then
@@ -323,7 +326,9 @@ function commit_parameters() result(ret)
     ENDIF
   endif
   if(use_input_turbulent_visc) then
+    ITURBV = 1
     VARTUR = .TRUE.
+    PTURBV(2) = -1
     IF (JTURB2.LE.1) THEN
       MCMVAR = MCMVAR + 2
       JTURB2 = MCMVAR - 1
@@ -381,13 +386,17 @@ function commit_parameters() result(ret)
   PWIND(17)=RHO
   PWIND(9)=rho_air/RHO
 
+  PTURBV(1)=ctb
+  
+  PNUMS(30)=under_relaxation_factor
+
   ret=0
 end function
 
 function initialize_boundary() result(ret)
   integer :: ret
-
   CHARACTER(len=255) :: cwd
+  ret=0
 
   call getcwd(cwd)
 

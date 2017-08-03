@@ -1,25 +1,3 @@
-c***********************************************************************
-c     Q-GCM Version 1.5.0 : last modified 02/07/2013
-c***********************************************************************
-c
-c     Copyright 2013 Jeff Blundell, Andy Hogg and Bill Dewar.
-c     This file is part of Q-GCM.
-c
-c     Q-GCM is free software: you can redistribute it and/or modify
-c     it under the terms of the GNU General Public License as
-c     published by the Free Software Foundation, either version 3
-c     of the License, or (at your option) any later version.
-c
-c     Q-GCM is distributed in the hope that it will be useful,
-c     but WITHOUT ANY WARRANTY; without even the implied warranty
-c     of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-c     See the GNU General Public License for more details.
-c
-c     You should have received a copy of the GNU General Public License
-c     along with Q-GCM.  If not, see <http://www.gnu.org/licenses/>.
-c
-c***********************************************************************
-c
       MODULE parameters
 
 *     Contains all array dimensioning parameters, and the physical
@@ -37,24 +15,14 @@ c
 *     oalpha is the ( oceanic) alpha of the robert-asselin filter
 *     if non-zero averaging to suppress computational model will be disabled
 
-*     The parameters below are for the North Atlantic configuration
-*     Atmosphere = 30720 km x 7680 km; Ocean = 4800 km x 4800 km.
-
-*     Array dimensioning parameters and position of ocean in atmosphere
-*     -----------------------------------------------------------------
+*     Hogg 2006 configuration
 
 *     User settable grid parameters:
       integer :: nxta,nyta,nla,nxaooc,nyaooc,ndxr,nlo
 *     Atmosphere
-      PARAMETER ( nxta =  384, nyta =  96, nla = 3 )  !! 80 km atmosphere
-!!    PARAMETER ( nxta =  512, nyta = 128, nla = 3 )  !! 60 km atmosphere
-!!    PARAMETER ( nxta =  768, nyta = 192, nla = 3 )  !! 40 km atmosphere
-!!    PARAMETER ( nxta = 1536, nyta = 384, nla = 3 )  !! 20 km atmosphere
+      PARAMETER ( nxta =  288, nyta = 225, nla = 3 )
 *     Ocean
-      PARAMETER ( nxaooc =  60, nyaooc =  60, ndxr = 16, nlo = 3 )  !! 80 km atm.
-!!    PARAMETER ( nxaooc =  80, nyaooc =  80, ndxr = 12, nlo = 3 )  !! 60 km atm.
-!!    PARAMETER ( nxaooc = 120, nyaooc = 120, ndxr =  8, nlo = 3 )  !! 40 km atm.
-!!    PARAMETER ( nxaooc = 240, nyaooc = 240, ndxr =  4, nlo = 3 )  !! 20 km atm.
+      PARAMETER ( nxaooc = nxta, nyaooc =  75, ndxr = 4, nlo = 3 )
 
 *     nxta, nyta are the numbers of atmospheric gridcells W/E and N/S.
 *     nxaooc, nyaooc are the numbers of atmospheric gridcells over
@@ -100,7 +68,7 @@ c
 *     Rotation parameters (for both atmosphere and ocean)
 *     ---------------------------------------------------
       double precision :: fnot,beta
-      PARAMETER ( fnot = 9.37456D-05, beta = 1.75360D-11 )  !! 40 North
+      PARAMETER ( fnot = -1.19467D-04, beta = 1.31301D-11 )  !! 55 South
 
 *     fnot is the Coriolis parameter at the
 *     central latitude of the domain (rad s^-1)
