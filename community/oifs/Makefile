@@ -7,12 +7,13 @@ MPIFC ?= mpif90
 
 FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m64 -fconvert=big-endian
 
-LDFLAGS  += -lm $(MUSE_LD_FLAGS)
+#LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
 OIFS_GRIB_API_DIR  ?= /usr/local/
 export OIFS_GRIB_API_DIR 
 export OIFS_GRIB_API_LIB ?= -L$(OIFS_GRIB_API_DIR)/lib -lgrib_api_f90 -lgrib_api
-export OIFS_LAPACK_LIB ?= -L/usr/lib -llapack -lblas
+#export OIFS_LAPACK_LIB ?= -L/usr/lib -llapack -lblas # the -L path causes problems. 
+export OIFS_LAPACK_LIB ?= -llapack -lblas
 
 FS_LIBS +=  $(OIFS_GRIB_API_LIB)  $(OIFS_LAPACK_LIB)
 
