@@ -357,6 +357,22 @@ class OpenIFS(CommonCode):
         i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
         return self.get_field(fid,i,k)
 
+    # like get_profile_field, but gets several columns at once
+    def get_profile_fields(self,fid,colindex):
+        ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
+
+        i,k = numpy.meshgrid(colindex,numpy.arange(ktop),indexing='ij')
+        i,k = i.reshape(-1), k.reshape(-1) #i = a,a,a,...,b,b,b,...   if colindex = [a, b, ...] 
+                                           #k = 1,2,3,...,1,2,3,...
+
+        #print('get_profile_fields', colindex)
+        #print(i)
+        #print(k)
+        f = self.get_field(fid,i,k)
+        f = f.reshape((len(colindex),-1))
+        #print (f)
+        return f
+
     def get_tendency(self,fid,i,k):
         if(fid == "U"):
             return self.get_tendency_U_(i,k)
