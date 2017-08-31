@@ -243,7 +243,8 @@ class OpenIFS(CommonCode):
         self.ktot = 0
         self.latitudes = None
         self.longitudes = None
-
+        self.exp_name = 'TEST'
+        
         if(not os.path.exists(OpenIFS.inputfile)):
             print('inputfile:' + OpenIFS.inputfile)
             print('cwd:' + os.getcwd())
@@ -258,6 +259,7 @@ class OpenIFS(CommonCode):
 
     # Commit run parameters, not implemented yet
     def commit_parameters(self):
+        self.set_exp_name(self.exp_name)
         self.overridden().commit_parameters()
 
     # Commit grid, reads grid size and fills geometry cache
