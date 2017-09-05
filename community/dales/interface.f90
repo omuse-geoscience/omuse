@@ -26,6 +26,8 @@ module dales_interface
     real(8),allocatable::tmp2Dxy(:,:)
     real(8),allocatable::tmp3D(:,:,:)
 
+    integer :: MPI_local_comm = MPI_COMM_WORLD
+    
 contains
 
     function set_input_file(ifile) result(ret)
@@ -34,7 +36,7 @@ contains
 
         fname_options=ifile
         ret=0
-    end function
+    end function set_input_file
 
     function get_input_file(ifile) result(ret)
         integer::                       ret
@@ -42,13 +44,24 @@ contains
 
         ifile=fname_options
         ret=0
-    end function
+    end function get_input_file
 
+      ! set the working directory of the process. 
+      ! returns 0 on success
+    function set_workdir(directory) result(ret)
+      integer::                      ret
+      character(256),intent(in)::   directory
+      CALL chdir(directory, ret)
+      write(*,*) "Dales worker changing directory to", directory, "status:", ret
+    end function set_workdir
+    
+    
     function initialize_code() result(ret)
         integer:: ret
-
+        
         fname_options="namoptions.001"
-        call initialize(fname_options,MPI_COMM_WORLD)
+
+        call initialize(fname_options,MPI_local_comm)
         ret=0
     end function
 

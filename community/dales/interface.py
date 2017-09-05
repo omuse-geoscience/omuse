@@ -27,7 +27,7 @@ class DalesInterface(CodeInterface,
     def __init__(self, **options):
         CodeInterface.__init__(self, name_of_the_worker = self.name_of_the_worker(), **options)
         LiteratureReferencesMixIn.__init__(self)
-
+        
     def name_of_the_worker(self):
         return "dales_worker"
 
@@ -39,6 +39,10 @@ class DalesInterface(CodeInterface,
     def set_input_file(input_file="namoptions"):
         pass
 
+    @remote_function
+    def set_workdir(directory="./"):
+        pass
+    
     @remote_function
     def get_model_time():
         returns (time=0.| units.s)
@@ -240,6 +244,12 @@ class Dales(CommonCode):
         CommonCode.__init__(self,  DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
 
+        print ("DalesInterface.__init__", options)
+        if 'workdir' in options:
+            print('Dales.__init__() : setting workdir.')
+            self.set_workdir(options['workdir'])
+
+        
     def commit_parameters(self):
         self.overridden().commit_parameters()
 
