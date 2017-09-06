@@ -19,7 +19,9 @@ module openifs_interface
     
     implicit none
 
-      character(len = 256) :: exp_name = 'TEST'
+    character(len = 256)    :: exp_name = 'TEST'
+    integer                 :: MPI_local_comm = MPI_COMM_WORLD
+
     contains
 
 
@@ -34,7 +36,11 @@ module openifs_interface
         function commit_parameters() result(ret)
             integer:: ret
             !exp_name is used as part of the input file names
-            call initialize(exp_name) 
+            if(MPI_local_comm == MPI_COMM_WORLD) then
+                call initialize(exp_name)
+            else
+                call initialize(exp_name,MPI_local_comm)
+            endif
             call spcrminit()
 
             ret = 0
