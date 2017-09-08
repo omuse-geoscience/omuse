@@ -16,6 +16,7 @@ module openifs_interface
     use yomgem,     only: ngptotg
     use yomdimv,    only: nflevg
     USE yomlun,     only: nulout
+    use mpi, only: MPI_COMM_WORLD
     
     implicit none
 
@@ -23,12 +24,25 @@ module openifs_interface
     integer                 :: MPI_local_comm = MPI_COMM_WORLD
 
     contains
-
+      
+        ! set the working directory of the process. 
+      ! returns 0 on success
+        function set_workdir(directory) result(ret)
+          integer::                    ret
+          character(256),intent(in)::  directory
+          CALL chdir(directory, ret)
+          write(*,*) "OpenIFS worker changing directory to", directory, "status:", ret
+        end function set_workdir
 
         function initialize_code() result(ret)
             integer:: ret
-            call static_init()
 
+            if(MPI_local_comm == MPI_COMM_WORLD) then
+               call static_init()
+            else
+               call static_init(MPI_local_comm)
+            end if
+         
             ret = 0
 
         end function initialize_code
@@ -36,11 +50,8 @@ module openifs_interface
         function commit_parameters() result(ret)
             integer:: ret
             !exp_name is used as part of the input file names
-            if(MPI_local_comm == MPI_COMM_WORLD) then
-                call initialize(exp_name)
-            else
-                call initialize(exp_name,MPI_local_comm)
-            endif
+            call initialize(exp_name)
+            
             call spcrminit()
 
             ret = 0
