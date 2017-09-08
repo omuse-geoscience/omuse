@@ -33,6 +33,10 @@ class OpenIFSInterface(CodeInterface,
     def name_of_the_worker(self):
         return "openifs_worker"
 
+    @remote_function
+    def set_workdir(directory="./"):
+        pass    
+    
     # Returns model internal time in sec.
     @remote_function
     def get_model_time():
@@ -244,18 +248,32 @@ class OpenIFS(CommonCode):
         self.latitudes = None
         self.longitudes = None
         self.exp_name = 'TEST'
+
+        CommonCode.__init__(self,OpenIFSInterface(**options),**options)
         
-        if(not os.path.exists(OpenIFS.inputfile)):
-            print('inputfile:' + OpenIFS.inputfile)
+        #if workdir is given, assume inputfile, backupfile are relative to workdir 
+        #TODO should store the changed file names - they are used in cleanup_code
+        inputfile  = OpenIFS.inputfile
+        backupfile = OpenIFS.backupfile
+        if 'workdir' in options:
+            print('OpenIFS.__init__() : setting workdir.')
+            self.set_workdir(options['workdir'])
+            inputfile  = os.path.join(options['workdir'], inputfile)
+            backupfile = os.path.join(options['workdir'], backupfile)
+            
+        if not os.path.exists(inputfile):
+            print('inputfile:' + inputfile)
             print('cwd:' + os.getcwd())
             raise Exception("File fort.4 not found. Creating an openIFS model from scratch is not supported yet.")
         else:
-            os.rename(OpenIFS.inputfile,OpenIFS.backupfile)
-            self.params = f90nml.read(OpenIFS.backupfile)
+            os.rename(inputfile,backupfile)
+            self.params = f90nml.read(backupfile)
             self.patch = {"NAMPAR0":{"NPROC":options.get("number_of_workers",1)}}
-            f90nml.patch(OpenIFS.backupfile,self.patch,OpenIFS.inputfile)
-            print('***** Done patching ', OpenIFS.inputfile)
-        CommonCode.__init__(self,OpenIFSInterface(**options),**options)
+            f90nml.patch(backupfile,self.patch,inputfile)
+            print('***** Done patching ', inputfile)
+
+
+
 
     # Commit run parameters, not implemented yet
     def commit_parameters(self):
