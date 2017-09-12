@@ -256,8 +256,8 @@ class OpenIFS(CommonCode):
         inputfile  = OpenIFS.inputfile
         backupfile = OpenIFS.backupfile
         if 'workdir' in options:
-            print('OpenIFS.__init__() : setting workdir.')
-            self.set_workdir(options['workdir'])
+            # print('OpenIFS.__init__() : setting workdir.')
+            self.set_workdir(options['workdir'])            
             inputfile  = os.path.join(options['workdir'], inputfile)
             backupfile = os.path.join(options['workdir'], backupfile)
             
