@@ -246,7 +246,7 @@ class Dales(CommonCode):
 
         print ("DalesInterface.__init__", options)
         if 'workdir' in options:
-            print('Dales.__init__() : setting workdir.')
+            # print('Dales.__init__() : setting workdir.')
             self.set_workdir(options['workdir'])
 
         

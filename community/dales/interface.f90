@@ -49,9 +49,13 @@ contains
       ! set the working directory of the process. 
       ! returns 0 on success
     function set_workdir(directory) result(ret)
+      #if defined (__INTEL_COMPILER)
+      USE IFPORT   ! for intel chdir function.
+      #endif
+
       integer::                      ret
       character(256),intent(in)::   directory
-      CALL chdir(directory, ret)
+      ret = chdir(directory)  
       write(*,*) "Dales worker changing directory to", directory, "status:", ret
     end function set_workdir
     
