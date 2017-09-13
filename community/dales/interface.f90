@@ -49,9 +49,9 @@ contains
       ! set the working directory of the process. 
       ! returns 0 on success
     function set_workdir(directory) result(ret)
-      #if defined (__INTEL_COMPILER)
+#if defined (__INTEL_COMPILER)
       USE IFPORT   ! for intel chdir function.
-      #endif
+#endif
 
       integer::                      ret
       character(256),intent(in)::   directory
