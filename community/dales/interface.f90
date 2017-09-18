@@ -56,7 +56,7 @@ contains
       integer::                      ret
       character(256),intent(in)::   directory
       ret = chdir(directory)  
-      write(*,*) "Dales worker changing directory to", directory, "status:", ret
+      !write(*,*) "Dales worker changing directory to", directory, "status:", ret
     end function set_workdir
     
     
