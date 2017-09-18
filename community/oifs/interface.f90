@@ -35,7 +35,7 @@ module openifs_interface
           integer::                    ret
           character(256),intent(in)::  directory
           ret = chdir(directory)  
-          write(*,*) "OpenIFS worker changing directory to", directory, "status:", ret
+          !write(*,*) "OpenIFS worker changing directory to", directory, "status:", ret
         end function set_workdir
 
         function initialize_code() result(ret)
