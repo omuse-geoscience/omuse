@@ -369,12 +369,12 @@ class OpenIFS(CommonCode):
         return self.get_field(fid,i,k).reshape((self.itot,ktop))
 
     def get_layer_field(self,fid,layerindex):
-        i,k = numpy.arange(0,self.itot),numpy.full([self.itot],layerindex)
+        i,k = numpy.arange(0,self.itot),numpy.ones([self.itot])*layerindex
         return self.get_field(fid,i,k)
 
     def get_profile_field(self,fid,colindex):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
-        i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
+        i,k = numpy.ones([ktop])*colindex,numpy.arange(0,ktop)
         return self.get_field(fid,i,k)
 
     # like get_profile_field, but gets several columns at once
@@ -420,15 +420,15 @@ class OpenIFS(CommonCode):
         return self.get_tendency(fid,i,k).reshape((self.itot,ktop))
 
     def get_layer_tendency(self,fid,layerindex):
-        i,k = numpy.arange(0,self.itot),numpy.full([self.itot],layerindex)
+        i,k = numpy.arange(0,self.itot),numpy.ones([self.itot])*layerindex
         return self.get_tendency(fid,i,k)
 
     def get_profile_tendency(self,fid,colindex):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
-        i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
+        i,k = numpy.ones([ktop])*colindex,numpy.arange(0,ktop)
         return self.get_tendency(fid,i,k)
 
     def set_profile_tendency(self,fid,colindex, v):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
-        i,k = numpy.full([ktop],colindex),numpy.arange(0,ktop)
+        i,k = numpy.ones([ktop])*colindex,numpy.arange(0,ktop)
         self.set_tendency(fid,i,k,v)
