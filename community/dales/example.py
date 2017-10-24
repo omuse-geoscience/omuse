@@ -10,9 +10,9 @@
 from amuse.community import *
 from omuse.community.dales.interface import Dales
 
-#import logging
-#logging.basicConfig(level=logging.DEBUG)
-#logging.getLogger("code").setLevel(logging.DEBUG)
+#~ import logging
+#~ logging.basicConfig(level=logging.DEBUG)
+#~ logging.getLogger("code").setLevel(logging.DEBUG)
 
 import numpy
 import os
@@ -21,16 +21,12 @@ import shutil
 
 dales_procs=2
 
-
 inputdir = os.path.abspath(os.path.join(os.path.dirname(__file__),"dales-repo/cases/bomex"))
 workdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dales-work')
 
-dales=None
 copied_files=[]
 
-
 def init(inputdir, workdir):
-    global dales
 
     try:
         os.makedirs(workdir) # Create workdir
@@ -49,28 +45,30 @@ def init(inputdir, workdir):
             copied_files.append(os.path.join(workdir,f))
 
     os.chdir(workdir)
-    dales = Dales(number_of_workers=dales_procs,redirection="none", channel_type='sockets')
-    #debugger='gdb'
-
+    dales = Dales(number_of_workers=dales_procs, channel_type='sockets')
+    #~ dales = Dales(number_of_workers=dales_procs,redirection="none", channel_type='sockets')
+    #~ dales = Dales(number_of_workers=dales_procs, channel_type='sockets', debugger='gdb')
+    return dales
 
 
 def main(args):
-    init(inputdir, workdir)
-    dales.commit_parameters()
-    dales.commit_grid()
+    dales=init(inputdir, workdir)
+
+    dales.parameters.evolve_to_exact_time=True
 
     print('Initialization done.')
-    
-    
-    t=dales.get_model_time()
+        
+    t=dales.model_time
+
+    print("starting time", t)
+
     dales.evolve_model(t + (30 | units.s))
-    t=dales.get_model_time()
+    t=dales.model_time
     print('Dales evolved to ', t)
 
     qt = dales.get_profile_QT()
     print('Qt = ', qt)
     
-    dales.cleanup_code()
     dales.stop()
     print('Done.')
 

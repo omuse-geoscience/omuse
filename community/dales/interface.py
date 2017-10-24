@@ -228,8 +228,7 @@ class DalesInterface(CodeInterface,
     def evolve_model(tend=0. | units.s, exactEnd=0):
         pass
 
-    
-    
+
 class Dales(CommonCode):
     # grid size
     itot = None
@@ -249,28 +248,81 @@ class Dales(CommonCode):
             # print('Dales.__init__() : setting workdir.')
             self.set_workdir(options['workdir'])
 
+    def evolve_model(self, tend, exactEnd=None):
+        if exactEnd is None:
+            exactEnd=self.parameters.evolve_to_exact_time
+        self.overridden().evolve_model(tend, exactEnd)
+            
         
     def commit_parameters(self):
         self.overridden().commit_parameters()
+        self.get_params()
 
     def define_parameters(self, object):
         object.add_default_form_parameter(
             "input_file",
             "set the input file path",
-            "namoptions"
+            "namoptions.001"
+        )
+        object.add_method_parameter(
+            "get_itot",
+            None,
+            "itot",
+            "number of cells in the x direction",
+            None
+        )
+        object.add_method_parameter(
+            "get_jtot",
+            None,
+            "jtot",
+            "number of cells in the y direction",
+            None
+        )
+        object.add_method_parameter(
+            "get_xsize",
+            None,
+            "xsize",
+            "size of the grid the x direction",
+            None
+        )
+        object.add_method_parameter(
+            "get_ysize",
+            None,
+            "ysize",
+            "size of the grid the y direction",
+            None
+        )
+        object.add_method_parameter(
+            "get_dx",
+            None,
+            "dx",
+            "grid spacing in x direction",
+            None
+        )
+        object.add_method_parameter(
+            "get_dy",
+            None,
+            "dy",
+            "grid spacing in y direction",
+            None
+        )
+        object.add_interface_parameter(
+            "evolve_to_exact_time",
+            "flag that determines whether to evolve to exact given end time",
+            False,
+            "before_set_interface_parameter"
         )
 
+    def define_properties(self, object):
+        object.add_property('get_model_time', public_name = "model_time")
 
     def commit_grid(self):        
         self.overridden().commit_grid()
-        self.get_params()
         
     def define_state(self, object):
         object.set_initial_state("UNINITIALIZED")
         object.add_transition("UNINITIALIZED", "INITIALIZED", "initialize_code")
-        object.add_method("UNINITIALIZED", "before_get_parameter")
-        object.add_method("!UNINITIALIZED", "before_set_parameter")
-        object.add_method("END", "before_get_parameter")
+        #~ object.add_method("!UNINITIALIZED", "before_set_parameter")
         object.add_transition("!UNINITIALIZED!STOPPED", "END", "cleanup_code")
         object.add_transition("END", "STOPPED", "stop", False)
         object.add_method("STOPPED", 'stop')
@@ -278,19 +330,19 @@ class Dales(CommonCode):
         object.add_transition("INITIALIZED","EDIT","commit_parameters")
         object.add_transition("EDIT","RUN","commit_grid")
 
-        object.add_method("INITIALIZED", "before_set_interface_parameter")
         object.add_method("INITIALIZED", "set_input_file")
 
-        for state in ["RUN","EDIT","EVOLVED"]:
+        for state in ["RUN","EVOLVED"]:
           object.add_method(state,"get_model_time")
           object.add_method(state,"get_timestep")
-          object.add_method(state,"get_profile_field")
-          object.add_method(state,"get_layer_field")
-          object.add_method(state,"get_volume_field")
+        for state in ["RUN","EVOLVED"]:
+          object.add_method(state,"get_itot")
+          #~ object.add_method(state,"get_profile_field")
+          #~ object.add_method(state,"get_layer_field")
+          #~ object.add_method(state,"get_volume_field")
 
         object.add_transition("RUN", "EVOLVED", "evolve_model", False)
         object.add_method("EVOLVED", "evolve_model")
-
 
     # wrapping functions for hiding the dummy array passed to getter functions
     def get_profile_U(self):
@@ -444,7 +496,7 @@ class Dales(CommonCode):
 
 
     # get parameters from the fortran code, store them in the Dales interface object
-    # called from commit_grid()
+    # called from commit_parameters()
     def get_params(self):
         self.itot,self.jtot,self.k,self.xsize,self.ysize = self.get_params_grid()
         self.dx = self.xsize/self.itot
@@ -452,3 +504,15 @@ class Dales(CommonCode):
         self.zf = self.get_zf()
         self.zh = self.get_zh()
         
+    def get_itot(self):
+        return self.itot
+    def get_jtot(self):
+        return self.jtot
+    def get_xsize(self):
+        return self.xsize
+    def get_ysize(self):
+        return self.ysize
+    def get_dx(self):
+        return self.dx
+    def get_dy(self):
+        return self.dy
