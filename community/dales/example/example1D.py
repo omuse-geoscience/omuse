@@ -41,7 +41,7 @@ def plotmovie(n,tstart):
     ax.set_xlabel("T(K)")
     def update(i):
         dales.evolve_model(tstart + (i | units.s))
-        profile=dales.get_profile_field(depth).value_in(units.K)
+        profile=dales.get_profile_T_(depth).value_in(units.K)
         ax.clear()
         ax.plot(profile[::-1],depth)
     a=movie.FuncAnimation(fig,update,frames=n,repeat=False)

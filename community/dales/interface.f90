@@ -64,13 +64,13 @@ contains
         integer:: ret
         
         fname_options="namoptions.001"
-
-        call initialize(fname_options,MPI_local_comm)
         ret=0
     end function
 
     function commit_parameters() result(ret)
         integer:: ret
+
+        call initialize(fname_options,MPI_local_comm)
 
         ret=0
         if(my_task==master_task) then
