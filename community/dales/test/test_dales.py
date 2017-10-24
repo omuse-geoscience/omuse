@@ -73,7 +73,7 @@ class TestDalesInterface(TestWithMPI):
         tim=instance.get_model_time()
         instance.commit_grid()
         instance.evolve_model(tim + (10 | units.s))
-        profile=instance.get_profile_field(numpy.arange(1,96))
+        profile=instance.get_profile_T_(numpy.arange(1,96))
         print "The retrieved profile is:",profile
         instance.cleanup_code()
         instance.stop()
@@ -262,11 +262,11 @@ class TestDalesInterface(TestWithMPI):
 
         
         # calculate own slab averages of 3D profiles
-        U3a   = numpy.mean(U3, axis=(0,1))
-        V3a   = numpy.mean(V3, axis=(0,1))
-        W3a   = numpy.mean(W3, axis=(0,1))
-        THL3a = numpy.mean(THL3, axis=(0,1))
-        QT3a  = numpy.mean(QT3, axis=(0,1))
+        U3a   = U3.mean(axis=0).mean(axis=0)
+        V3a   = V3.mean(axis=0).mean(axis=0)
+        W3a   = W3.mean(axis=0).mean(axis=0)
+        THL3a = THL3.mean(axis=0).mean(axis=0)
+        QT3a  = QT3.mean(axis=0).mean(axis=0)
 
         # rms difference btw retrieved and calculated slab averages
         rmsU    = rms(U,   U3a)
