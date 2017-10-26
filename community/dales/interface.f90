@@ -233,6 +233,24 @@ contains
       ret = gatherlayeravg(ql0(2:i1, 2:j1, :), a)
     end function get_profile_QL_
 
+    function get_profile_QR_(g_k, a, n) result(ret)
+      use modmicrodata, only: iqr
+      use modglobal, only: nsv
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+
+      if (nsv >= iqr) then
+         ret = gatherlayeravg(sv0(2:i1, 2:j1, :, iqr), a)
+      else
+         a = 0  ! Dales doesn't have the requested rain field
+         ret = 1
+      endif
+
+    end function get_profile_QR_
+
+
     function get_profile_E12_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
