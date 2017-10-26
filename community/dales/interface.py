@@ -311,6 +311,9 @@ class Dales(CommonCode):
     def get_profile_QL(self):
         return self.get_profile_QL_(numpy.zeros(self.k))
 
+    def get_profile_QR(self):
+        return self.get_profile_QR_(numpy.zeros(self.k))
+
     def get_profile_E12(self):
         return self.get_profile_E12_(numpy.zeros(self.k))
 
