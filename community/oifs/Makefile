@@ -5,7 +5,7 @@ AMUSE_DIR?=../../../..
 
 MPIFC ?= mpif90
 
-FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m64 -fconvert=big-endian
+FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m64 -fconvert=big-endian -traceback 
 
 #LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
