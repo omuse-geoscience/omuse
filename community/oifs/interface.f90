@@ -223,6 +223,7 @@ module openifs_interface
                     lats(i) = b(g_i(i) + 1)
                     lons(i) = c(g_i(i) + 1)
                 enddo
+                deallocate(b,c)
             endif
 
         end function
