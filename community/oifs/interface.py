@@ -355,6 +355,10 @@ class OpenIFS(CommonCode):
             return self.set_tendency_T_(i,k,v)
         elif(fid == "SH"):
             return self.set_tendency_SH_(i,k,v)
+        elif(fid == "QL"):
+            return self.set_tendency_QL_(i,k,v)
+        elif(fid == "QI"):
+            return self.set_tendency_QI_(i,k,v)
         elif(fid == "A"):
             return self.set_tendency_A_(i,k,v)
         elif(fid == "O3"):
