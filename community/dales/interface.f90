@@ -9,7 +9,7 @@ module dales_interface
                        my_task,master_task,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, ps_tend, &
-                       gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac
+                       gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0,sv0,um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, qts
@@ -232,6 +232,18 @@ contains
 
       ret = gatherlayeravg(ql0(2:i1, 2:j1, :), a)
     end function get_profile_QL_
+
+
+    function get_profile_QL_ice_(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      integer, dimension(n), intent(in)   :: g_k
+      real, dimension(n), intent(out)     :: a
+      integer                             :: ret
+
+      ret = gather_ice(a)
+    end function get_profile_QL_ice_
+
+    
 
     function get_profile_QR_(g_k, a, n) result(ret)
       use modmicrodata, only: iqr
