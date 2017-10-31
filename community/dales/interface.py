@@ -96,6 +96,10 @@ class DalesInterface(CodeInterface,
         returns (out=0.)
 
     @remote_function(must_handle_array=True)
+    def get_profile_QL_ice_(k=0):
+        returns (out=0.)
+
+    @remote_function(must_handle_array=True)
     def get_profile_E12_(k=0):
         returns (out=0.)
 
@@ -362,6 +366,10 @@ class Dales(CommonCode):
 
     def get_profile_QL(self):
         return self.get_profile_QL_(numpy.zeros(self.k))
+
+
+    def get_profile_QL_ice(self):
+        return self.get_profile_QL_ice_(numpy.zeros(self.k))
 
     def get_profile_QR(self):
         return self.get_profile_QR_(numpy.zeros(self.k))
