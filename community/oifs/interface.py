@@ -407,9 +407,9 @@ class OpenIFS(CommonCode):
         elif(fid == "SH"):
             return self.get_tendency_SH_(i,k)
         elif(fid == "QL"):
-            return self.get_tendency_SH_(i,k)
+            return self.get_tendency_QL_(i,k)
         elif(fid == "QI"):
-            return self.get_tendency_SH_(i,k)
+            return self.get_tendency_QI_(i,k)
         elif(fid == "A"):
             return self.get_tendency_A_(i,k)
         elif(fid == "O3"):
