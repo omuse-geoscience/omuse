@@ -100,6 +100,10 @@ class DalesInterface(CodeInterface,
         returns (out=0.)
 
     @remote_function(must_handle_array=True)
+    def get_profile_QR_(k=0):
+        returns (out=0.)
+        
+    @remote_function(must_handle_array=True)
     def get_profile_E12_(k=0):
         returns (out=0.)
 
