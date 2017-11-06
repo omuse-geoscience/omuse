@@ -565,6 +565,22 @@ contains
      end function set_field_QT    
      !!! end of setter functions for 3D fields
 
+    !!! setter functions for ground fluxes
+    function set_wt_surf(thl, tskin, ra) result(ret)
+      real, intent(in)  :: thl, tskin, ra
+      real              :: ret
+
+      ra = 50.
+      ret = - (thl - tskin) / ra
+    end function
+
+    function set_qt_surf(qt, qskin, ra) result(ret)
+      real, intent(in)  :: qt, qskin, ra
+      real              :: ret
+      ra = 50.
+      ret = - (qt - qskin) / ra
+    end function
+    !!! end of setter function for ground fluxes
     
     
     
