@@ -226,11 +226,11 @@ class DalesInterface(CodeInterface,
 
     # setter functions for wtflux and qtflux
     @remote_function
-    def set_wt_surf(thl=0, tskin=0, ra=1):
+    def set_wt_surf(wtflux):
         returns()
 
     @remote_function
-    def set_wq_surf(qt0=0, qskin=0, ra=1):
+    def set_wq_surf(wqflux):
         returns()
         
 # # #
