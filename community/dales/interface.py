@@ -223,6 +223,15 @@ class DalesInterface(CodeInterface,
 #    @remote_function(must_handle_array=True)
 #    def set_field_E12(g_i=0,g_j=0,g_k=0,a=0.):
 #        returns()
+
+    # setter functions for wtflux and qtflux
+    @remote_function
+    def set_wt_surf(thl=0, tskin=0, ra=1):
+        returns()
+
+    @remote_function
+    def set_wq_surf(qt0=0, qskin=0, ra=1):
+        returns()
         
 # # #
     @remote_function()
