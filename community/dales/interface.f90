@@ -13,7 +13,7 @@ module dales_interface
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0,sv0,um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, qts
-    use modsurface, only: qtsurf
+    use modsurface, only: qtsurf, wqsurf, wtsurf
     use modmicrodata, only: iqr
     
     !TODO: Expose everything so this module only depends on daleslib
@@ -566,19 +566,19 @@ contains
      !!! end of setter functions for 3D fields
 
     !!! setter functions for ground fluxes
-    function set_wt_surf(thl, tskin, ra) result(ret)
-      real, intent(in)  :: thl, tskin, ra
+    function set_wt_surf(wtflux) result(ret)
+      real, intent(in)  :: wtflux
       real              :: ret
 
-      ra = 50.
-      ret = - (thl - tskin) / ra
+      !ra = 50.
+      wtsurf = wtflux !- (thl - tskin) / ra
     end function
 
-    function set_qt_surf(qt, qskin, ra) result(ret)
-      real, intent(in)  :: qt, qskin, ra
+    function set_qt_surf(wqflux) result(ret)
+      real, intent(in)  :: wqflux
       real              :: ret
-      ra = 50.
-      ret = - (qt - qskin) / ra
+      !ra = 50.
+      wqsurf = wqflux !- (qt - qskin) / ra
     end function
     !!! end of setter function for ground fluxes
     
