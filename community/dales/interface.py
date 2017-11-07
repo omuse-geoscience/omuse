@@ -339,9 +339,11 @@ class Dales(CommonCode):
         object.set_initial_state("UNINITIALIZED")
         object.add_transition("UNINITIALIZED", "INITIALIZED", "initialize_code")
         #~ object.add_method("!UNINITIALIZED", "before_set_parameter")
-        object.add_transition("!UNINITIALIZED!STOPPED", "END", "cleanup_code")
+        object.add_transition("!UNINITIALIZED!STOPPED!INITIALIZED", "END", "cleanup_code")
         object.add_transition("END", "STOPPED", "stop", False)
         object.add_method("STOPPED", 'stop')
+        object.add_method("UNINITIALIZED", 'stop')
+        object.add_method("INITIALIZED", 'stop')
 
         object.add_transition("INITIALIZED","EDIT","commit_parameters")
         object.add_transition("EDIT","RUN","commit_grid")
