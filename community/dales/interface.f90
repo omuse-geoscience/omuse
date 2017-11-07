@@ -570,13 +570,16 @@ contains
       real, intent(in)  :: wtflux
       real              :: ret
 
+      ret=0
       !ra = 50.
       wtsurf = wtflux !- (thl - tskin) / ra
     end function
 
-    function set_qt_surf(wqflux) result(ret)
+    function set_wq_surf(wqflux) result(ret)
       real, intent(in)  :: wqflux
       real              :: ret
+      
+      ret=0
       !ra = 50.
       wqsurf = wqflux !- (qt - qskin) / ra
     end function
