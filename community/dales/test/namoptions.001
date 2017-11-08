@@ -1,9 +1,9 @@
 &RUN
 iexpnr     =  001
 lwarmstart =  .false.
-startfile  =  'initd00h01m000.001'
-runtime    =  7200
-trestart   =  3600 
+startfile  =  'initd00h01m000.000'
+runtime    =  86400
+trestart   =  3600
 ladaptive  =  .true.
 irandom    =  43
 randthl    =  0.1
@@ -12,103 +12,95 @@ nsv        =  2
 /
 
 &DOMAIN
-itot       =  64
-jtot       =  64
-kmax       =  96
+itot       =  128
+jtot       =  128
+kmax       =  126
 
-xsize      =  3200.
-ysize      =  3200.
 
-xlat       =  51.96
-xlon       =  4.95
-xday       =  287.
-xtime      =  10.
+xsize      =  12800
+ysize      =  12800
+
+xlat       =  18.0
+xlon       =  298.5
+xday       =  0.0
+xtime      =  0.0
 /
 
 &PHYSICS
-ustin      =  0.0
-ps         =  100000.00
-thls       =  296.
-wtsurf     =  0.1
-wqsurf     =  0.0001
-wsvsurf(1) =  0.1
-wsvsurf(2) =  1.
+z0         =  1.6e-4
+ustin      =  0.32
+ps         =  101540.00
+thls       =  298.5
+
+
 lmoist     =  .true.
-isurf      =  4
-iradiation =  0
-useMcICA   =  .true.
+isurf      =  10
+irad       =  0
+timerad    =  2
 lcoriol    =  .true.
+lmomsubs   =  .false.
 /
-
 &NAMSURFACE
-lmostlocal   = .false.
-lsmoothflux  = .false.
-rsisurf2     = 0.
-
-z0mav        = 0.1
-z0hav        = 0.02
+thls  =  298.5
+z0mav =  1.6e-4
+z0hav =  3.2e-5
 /
+
 
 &DYNAMICS
 llsadv     =  .false.
 lqlnr      =  .false.
-cu         =  0.
-cv         =  0.
+cu         =  -5.
+cv         =  -4.
 
-iadv_mom    =  62
-iadv_tke    =  62
-iadv_thl    =  52
-iadv_qt     =  52
-iadv_sv     =  100*52
+iadv_mom   =  2
+iadv_tke   =  2
+iadv_thl   =  2
+iadv_qt    =  2
+iadv_sv    =  7
 /
-
-&NAMSUBGRID
-lsmagorinsky = .false.
+&NAMMICROPHYSICS
+imicro     = 2
 /
-
+&NAMBULKMICROSTAT
+lmicrostat = .true.
+timeav     = 21600
+dtav       = 60
+/
 &NAMCHECKSIM
-tcheck      = 0
+tcheck     = 0
 /
-
 &NAMSAMPLING
-lsampup     = .false.
-dtav        = 60
-timeav      = 120
+lsampcl    = .true.
+lsampco    = .true.
+dtav       = 60
+timeav     = 21600
 /
-
 &NAMTIMESTAT
-ltimestat   = .true.
-dtav        = 60
+ltimestat  = .true.
+dtav       = 60
 /
-
 &NAMCROSSSECTION
-lcross      = .false.
-dtav        = 60
+lcross     = .false.
+dtav       = 60
 /
 &NAMGENSTAT
-lstat       = .true.
-dtav        = 60
-timeav      = 1800
+lstat      = .true.
+dtav       = 1440
+timeav     = 1440
 /
+
 &NAMFIELDDUMP
-lfielddump  = .false.
-dtav        = 60
-ldiracc     = .true.
+lfielddump = .false.
+dtav       = 60
+ldiracc    = .true.
 /
 &NAMSTATTEND
-dtav        = 60
-timeav      = 1800
-ltend       = .false.
+dtav       = 60
+timeav     = 21600
+ltend      = .true.
 /
-
-&NAMBUDGET
-lbudget = .false.
-dtav    = 60
-timeav  = 1800
-/
-
-&NAMRADSTAT
-lstat = .false.
-dtav = 60
-timeav = 1800
+&NAMCLOUDFIELD
+dtav=1440
+lcloudfield = .true.
 /
