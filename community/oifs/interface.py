@@ -35,8 +35,8 @@ class OpenIFSInterface(CodeInterface,
 
     @remote_function
     def set_workdir(directory="./"):
-        pass    
-    
+        pass
+
     # Returns model internal time in sec.
     @remote_function
     def get_model_time():
@@ -147,6 +147,31 @@ class OpenIFSInterface(CodeInterface,
     def get_tendency_O3_(i = 0,k = 0):
         returns (out = 0.)
 
+    # Utility method returning the specific humidity (qv) surface flux
+    @remote_function(must_handle_array=True)
+    def get_surf_SH_flux_(i = 0):
+        returns (out = 0. | 1 / units.m**2)
+
+    # Utility method returning the liquid water surface flux
+    @remote_function(must_handle_array=True)
+    def get_surf_QL_flux_(i = 0):
+        returns (out = 0. | 1 / units.m**2)
+
+    # Utility method returning the ice water surface flux
+    @remote_function(must_handle_array=True)
+    def get_surf_QI_flux_(i = 0):
+        returns (out = 0. | 1 / units.m**2)
+
+    # Utility method returning the sensible heat surface flux
+    @remote_function(must_handle_array=True)
+    def get_surf_TS_flux_(i = 0):
+        returns (out = 0. | units.W / units.m**2)
+
+    # Utility method returning the latent heat surface flux
+    @remote_function(must_handle_array=True)
+    def get_surf_TL_flux_(i = 0):
+        returns (out = 0. | units.W / units.m**2)
+
     # Utility method setting the u-component tendency
     @remote_function(must_handle_array=True)
     def set_tendency_U_(i = 0,k = 0,v = 0.):
@@ -250,17 +275,17 @@ class OpenIFS(CommonCode):
         self.exp_name = 'TEST'
 
         CommonCode.__init__(self,OpenIFSInterface(**options),**options)
-        
-        #if workdir is given, assume inputfile, backupfile are relative to workdir 
+
+        #if workdir is given, assume inputfile, backupfile are relative to workdir
         #TODO should store the changed file names - they are used in cleanup_code
         inputfile  = OpenIFS.inputfile
         backupfile = OpenIFS.backupfile
         if 'workdir' in options:
             # print('OpenIFS.__init__() : setting workdir.')
-            self.set_workdir(options['workdir'])            
+            self.set_workdir(options['workdir'])
             inputfile  = os.path.join(options['workdir'], inputfile)
             backupfile = os.path.join(options['workdir'], backupfile)
-            
+
         if not os.path.exists(inputfile):
             print('inputfile:' + inputfile)
             print('cwd:' + os.getcwd())
@@ -386,7 +411,7 @@ class OpenIFS(CommonCode):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
 
         i,k = numpy.meshgrid(colindex,numpy.arange(ktop),indexing='ij')
-        i,k = i.reshape(-1), k.reshape(-1) #i = a,a,a,...,b,b,b,...   if colindex = [a, b, ...] 
+        i,k = i.reshape(-1), k.reshape(-1) #i = a,a,a,...,b,b,b,...   if colindex = [a, b, ...]
                                            #k = 1,2,3,...,1,2,3,...
 
         #print('get_profile_fields', colindex)
