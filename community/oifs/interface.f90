@@ -5,7 +5,8 @@ module openifs_interface
     use ifslib,     only: static_init, initialize, finalize, get_gp_geom,& 
                         & jstep, step, PFULL, PHALF, WIND_U, WIND_V, TEMPERATURE,&
                         & SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
-                        & OZONE
+                        & OZONE, SURF_Q_FLUX, SURF_L_FLUX, SURF_I_FLUX, SURF_TL_FLUX,&
+                        & SURF_TS_FLUX
     use spcrmlib,   only: step_until_cloud_scheme,step_cloud_scheme,step_from_cloud_scheme,&
                         & gettends,get_cur_field,settend,set_sp_mask,spcrminit,spcrmclean,&
                         & tendcml,settend
@@ -487,6 +488,88 @@ module openifs_interface
             endif
 
         end function get_tendency
+
+        function get_surf_SH_flux_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_flux(g_i,a,n,SURF_Q_FLUX)
+
+        end function get_surf_SH_flux_
+
+        function get_surf_QL_flux_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_flux(g_i,a,n,SURF_L_FLUX)
+
+        end function get_surf_QL_flux_
+
+        function get_surf_QI_flux_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_flux(g_i,a,n,SURF_I_FLUX)
+
+        end function get_surf_QI_flux_
+
+        function get_surf_TS_flux_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_flux(g_i,a,n,SURF_TS_FLUX)
+
+        end function get_surf_TS_flux_
+
+        function get_surf_TL_flux_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_flux(g_i,a,n,SURF_TL_FLUX)
+
+        end function get_surf_TL_flux_
+
+        function get_surf_flux(g_i,a,n,fldid) result(ret)
+
+            integer, intent(in)::                   n,fldid
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            real(8), allocatable::                  b(:,:)
+            integer::                               ret,ii
+
+            ret = 0
+            if(myproc == 1) then
+                allocate(b(ngptotg,1),stat=ret)
+                if(ret/=0) then
+                    return
+                endif
+            endif
+            
+            call get_fluxes_2d(b,fldid)
+            
+            if(myproc == 1) then
+                do ii = 1,n
+                    a(ii) = b(g_i(ii) + 1,1)
+                enddo
+                deallocate(b)
+            endif
+
+        end function get_surf_flux
 
         function set_mask(g_i,n) result(ret)
 
