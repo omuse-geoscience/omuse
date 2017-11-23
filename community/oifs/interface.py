@@ -410,8 +410,8 @@ class OpenIFS(CommonCode):
     def get_profile_fields(self,fid,colindex):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
 
-        i,k = numpy.meshgrid(colindex,numpy.arange(ktop),indexing='ij')
-        i,k = i.reshape(-1), k.reshape(-1) #i = a,a,a,...,b,b,b,...   if colindex = [a, b, ...]
+        i,k = numpy.meshgrid(colindex,numpy.arange(ktop))
+        i,k = i.T.reshape(-1), k.T.reshape(-1) #i = a,a,a,...,b,b,b,...   if colindex = [a, b, ...] 
                                            #k = 1,2,3,...,1,2,3,...
 
         #print('get_profile_fields', colindex)
