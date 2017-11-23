@@ -28,8 +28,6 @@ module dales_interface
 
     integer :: MPI_local_comm = MPI_COMM_WORLD
     
-    logical :: exactEnd = .false.
-    
 contains
 
     function set_input_file(ifile) result(ret)
@@ -89,23 +87,6 @@ contains
         ret=0
     end function
 
-    function set_exact_end(t) result(ret)
-        integer::                      ret
-        logical, intent(in) ::         t
-
-        exactEnd=t
-        ret=0
-    end function set_exact_end
-
-    function get_exact_end(t) result(ret)
-        integer::                       ret
-        logical,intent(out)::           t
-
-        t=exactEnd
-        ret=0
-    end function get_exact_end
-
-
     ! evolve the model to time tend
     ! returns 1 if the end of the simulation was reached (timeleft == 0)
     !
@@ -117,16 +98,16 @@ contains
     !                    but it breaks the current result test, which was stored without this.
     !                    see program.f90: main loop - while(timeleft>0 .or. rk3step < 3)
     
-    function evolve_model(tend, exactEnd_) result(ret)
+    function evolve_model(tend, exactEnd) result(ret)
         integer             :: ret
         real(8),intent(in)  :: tend
-        integer,intent(in)  :: exactEnd_
+        integer,intent(in)  :: exactEnd
         integer             :: i
 
         ! print *, 'evolve_model'
         do while((rtimee < tend .and. timeleft > 0)) ! .or. rk3step < 3)
 
-           if (exactEnd_ /= 0 .or. exactEnd /= 0) then
+           if (exactEnd /= 0) then
               ! set dt_lim to finish at tend (or before)
               dt_lim = min(dt_lim, (int(tend/tres) - timee))
            endif
@@ -204,7 +185,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      ret = gatherlayeravg(u0(2:i1, 2:j1, g_k(1:n)), a)
+      ret = gatherlayeravg(u0(2:i1, 2:j1, :), a)
     end function get_profile_U_
 
     function get_profile_V_(g_k, a, n) result(ret)
@@ -213,7 +194,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      ret = gatherlayeravg(v0(2:i1, 2:j1, g_k(1:n)), a)
+      ret = gatherlayeravg(v0(2:i1, 2:j1, :), a)
     end function get_profile_V_
  
     function get_profile_W_(g_k, a, n) result(ret)
@@ -222,7 +203,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      ret = gatherlayeravg(w0(2:i1, 2:j1, g_k(1:n)), a)
+      ret = gatherlayeravg(w0(2:i1, 2:j1, :), a)
     end function get_profile_W_
 
     function get_profile_THL_(g_k, a, n) result(ret)
@@ -231,7 +212,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      ret = gatherlayeravg(thl0(2:i1, 2:j1, g_k(1:n)), a)
+      ret = gatherlayeravg(thl0(2:i1, 2:j1, :), a)
     end function get_profile_THL_
 
     function get_profile_QT_(g_k, a, n) result(ret)
@@ -240,7 +221,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      ret = gatherlayeravg(qt0(2:i1, 2:j1, g_k(1:n)), a)
+      ret = gatherlayeravg(qt0(2:i1, 2:j1, :), a)
     end function get_profile_QT_
 
     function get_profile_QL_(g_k, a, n) result(ret)
@@ -249,7 +230,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      ret = gatherlayeravg(ql0(2:i1, 2:j1, g_k(1:n)), a)
+      ret = gatherlayeravg(ql0(2:i1, 2:j1, :), a)
     end function get_profile_QL_
 
 
@@ -257,14 +238,9 @@ contains
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
       real, dimension(n), intent(out)     :: a
-      real, dimension(kmax)               :: a_
-      integer                             :: i,ret
+      integer                             :: ret
 
-      ret = gather_ice(a_)
-      do i=1,n
-        a(i)=a_(g_k(i))
-      enddo
-      
+      ret = gather_ice(a)
     end function get_profile_QL_ice_
 
     
@@ -278,7 +254,7 @@ contains
       integer                             :: ret
 
       if (nsv >= iqr) then
-         ret = gatherlayeravg(sv0(2:i1, 2:j1, g_k(1:n), iqr), a)
+         ret = gatherlayeravg(sv0(2:i1, 2:j1, :, iqr), a)
       else
          a = 0  ! Dales doesn't have the requested rain field
          ret = 1
@@ -293,7 +269,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      ret = gatherlayeravg(e120(2:i1, 2:j1, g_k(1:n)), a)
+      ret = gatherlayeravg(e120(2:i1, 2:j1, :), a)
     end function get_profile_E12_
 
     function get_profile_T_(g_k, a, n) result(ret)
@@ -302,7 +278,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
       
-      ret = gatherlayeravg(tmp0(2:i1, 2:j1, g_k(1:n)), a)
+      ret = gatherlayeravg(tmp0(2:i1, 2:j1, :), a)
     end function get_profile_T_
     
     function get_zf_(g_k, a, n) result(ret)
@@ -312,7 +288,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      a = zf(g_k(1:n))
+      a = zf
       ret = 0
     end function get_zf_
 
@@ -323,7 +299,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      a = zh(g_k(1:n))
+      a = zh
       ret = 0
     end function get_zh_
 
@@ -334,7 +310,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      a = presf(g_k(1:n))
+      a = presf
       ret = 0
     end function get_presf_
 
@@ -345,7 +321,7 @@ contains
       real, dimension(n), intent(out)     :: a
       integer                             :: ret
 
-      a = presh(g_k(1:n))
+      a = presh
       ret = 0
     end function get_presh_
 
@@ -403,79 +379,6 @@ contains
       ret = 0
     end function set_tendency_QT
 
-!!!!! indexed get/set functions for vertical tendency vectors
-    function set_tendency_U_(g_k, a, n) result(ret)
-      integer, intent(in)                 :: n
-      real, dimension(n), intent(in)      :: a
-      integer, dimension(n), intent(in)   :: g_k
-      integer                             :: ret
-      u_tend(g_k(1:n)) = a(1:n)
-      ret = 0
-    end function set_tendency_U_
-
-    function get_tendency_U_(g_k, a, n) result(ret)
-      integer, intent(in)                 :: n
-      real, dimension(n), intent(out)     :: a
-      integer, dimension(n), intent(in)   :: g_k
-      integer                             :: ret
-      a(1:n) = u_tend(g_k(1:n))
-      ret = 0
-    end function get_tendency_U_
-    
-    function set_tendency_V_(g_k, a, n) result(ret)
-      integer, intent(in)                 :: n
-      real, dimension(n), intent(in)      :: a
-      integer, dimension(n), intent(in)   :: g_k
-      integer                             :: ret
-      v_tend(g_k(1:n)) = a(1:n)
-      ret = 0
-    end function set_tendency_V_
-
-    function get_tendency_V_(g_k, a, n) result(ret)
-      integer, intent(in)                 :: n
-      real, dimension(n), intent(out)     :: a
-      integer, dimension(n), intent(in)   :: g_k
-      integer                             :: ret
-      a(1:n) = V_tend(g_k(1:n))
-      ret = 0
-    end function get_tendency_V_
-    
-    function set_tendency_THL_(g_k,a, n) result(ret)
-      integer, intent(in)                 :: n
-      real, dimension(n), intent(in)      :: a
-      integer, dimension(n), intent(in)   :: g_k
-      integer                             :: ret
-      thl_tend(g_k(1:n)) = a(1:n)
-      ret = 0
-    end function set_tendency_THL_
-
-    function get_tendency_THL_(g_k, a, n) result(ret)
-      integer, intent(in)                 :: n
-      real, dimension(n), intent(out)     :: a
-      integer, dimension(n), intent(in)   :: g_k
-      integer                             :: ret
-      a(1:n) = thl_tend(g_k(1:n))
-      ret = 0
-    end function get_tendency_THL_
-
-    function set_tendency_QT_(g_k,a, n) result(ret)
-      integer, intent(in)                 :: n
-      real, dimension(n), intent(in)      :: a
-      integer, dimension(n), intent(in)   :: g_k
-      integer                             :: ret
-      qt_tend(g_k(1:n)) = a(1:n)
-      ret = 0
-    end function set_tendency_QT_
-
-    function get_tendency_QT_(g_k, a, n) result(ret)
-      integer, intent(in)                 :: n
-      real, dimension(n), intent(out)     :: a
-      integer, dimension(n), intent(in)   :: g_k
-      integer                             :: ret
-      a(1:n) = qt_tend(g_k(1:n))
-      ret = 0
-    end function get_tendency_QT_
-
     function set_tendency_surface_pressure(p_tend) result(ret)
       real(8),intent(in)::  p_tend
       integer::             ret
@@ -484,15 +387,6 @@ contains
       
       ret = 0
     end function set_tendency_surface_pressure
-
-    function get_tendency_surface_pressure(p_tend) result(ret)
-      real(8),intent(out)::  p_tend
-      integer::             ret
-
-      p_tend = ps_tend
-      
-      ret = 0
-    end function get_tendency_surface_pressure
   
 !!! end of vertical tendency setters
 
