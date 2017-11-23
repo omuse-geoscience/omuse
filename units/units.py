@@ -16,7 +16,3 @@ nautical_mile=named_unit("Nautical Mile", "nMile", 1852.*m)
 knot=named_unit("Knot","knot",nautical_mile/hour)
 
 Celsius=named_unit("Celsius","celsius", K)
-
-shu=named("specific humidity unit","shu", kg/kg)
-ahu=named("absolute humidity unit","ahu", kg/m**3)
-rhu=named("relative humidity unit","rhu", percent)
