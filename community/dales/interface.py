@@ -97,19 +97,19 @@ class DalesInterface(CodeInterface,
         
     @remote_function(must_handle_array=True)
     def get_profile_QT_(k=0):
-        returns (out=0. | units.shu)
+        returns (out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QL_(k=0):
-        returns (out=0.)
+        returns (out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QL_ice_(k=0):
-        returns (out=0.)
+        returns (out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QR_(k=0):
-        returns (out=0.)
+        returns (out=0. | units.mfu)
         
     @remote_function(must_handle_array=True)
     def get_profile_E12_(k=0):
@@ -213,11 +213,11 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_field_QT(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.shu)
+        returns (a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_field_QL(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.shu)
+        returns (a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_field_E12(g_i=0,g_j=0,g_k=0):
