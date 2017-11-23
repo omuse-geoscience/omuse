@@ -158,7 +158,7 @@ class DalesInterface(CodeInterface,
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QT(a=0. | units.shu/units.s**2):
+    def set_tendency_QT(a=0. | units.shu/units.s):
         returns ()
 
 # indexed getter/setter functions for vertical tendencies / forcings
@@ -171,11 +171,11 @@ class DalesInterface(CodeInterface,
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_THL_(g_i=0, a=0.| units.m/units.s**2):
+    def set_tendency_THL_(g_i=0, a=0.| units.K/units.s):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QT_(g_i=0,a=0.| units.m/units.s**2):
+    def set_tendency_QT_(g_i=0,a=0.| units.shu/units.s):
         returns ()
 
     @remote_function(must_handle_array=True)
@@ -188,11 +188,11 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_tendency_THL_(g_i=0):
-        returns (a=0.| units.m/units.s**2)
+        returns (a=0.| units.K/units.s)
 
     @remote_function(must_handle_array=True)
     def get_tendency_QT_(g_i=0):
-        returns (a=0.| units.m/units.s**2)
+        returns (a=0.| units.shu/units.s)
 
 # getter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
@@ -512,7 +512,6 @@ class Dales(CommonCode):
         #build index arrays
         
         if field == 'U':
-            print a.unit
             self.set_field_U(i,j,k,a)
         elif field == 'V':
             self.set_field_V(i,j,k,a)
@@ -531,21 +530,21 @@ class Dales(CommonCode):
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_profile(self, field):
         if field == 'U':
-            profile = self.get_profile_U_(numpy.zeros(self.k))
+            profile = self.get_profile_U_(numpy.arange(1,self.k+1))
         elif field == 'V':
-            profile = self.get_profile_V_(numpy.zeros(self.k))
+            profile = self.get_profile_V_(numpy.arange(1,self.k+1))
         elif field == 'W':
-            profile = self.get_profile_W_(numpy.zeros(self.k))
+            profile = self.get_profile_W_(numpy.arange(1,self.k+1))
         elif field == 'THL':
-            profile = self.get_profile_THL_(numpy.zeros(self.k))
+            profile = self.get_profile_THL_(numpy.arange(1,self.k+1))
         elif field == 'QT':
-            profile = self.get_profile_QT_(numpy.zeros(self.k))
+            profile = self.get_profile_QT_(numpy.arange(1,self.k+1))
         elif field == 'QL':
-            profile = self.get_profile_QL_(numpy.zeros(self.k))
+            profile = self.get_profile_QL_(numpy.arange(1,self.k+1))
         elif field == 'E12':
-            profile = self.get_profile_E12_(numpy.zeros(self.k))
+            profile = self.get_profile_E12_(numpy.arange(1,self.k+1))
         elif field == 'T':
-            profile = self.get_profile_T_(numpy.zeros(self.k))
+            profile = self.get_profile_T_(numpy.arange(1,self.k+1))
         else:
             print('get_profile called with undefined field', field)
             
