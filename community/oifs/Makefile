@@ -38,7 +38,7 @@ update: oifslib
 	cd $(OIFSDIR); git pull
 
 oifslib:
-	git clone -b oifslib https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
+	git clone -b oifslib git@software.ecmwf.int:stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
 
 oifssrc:
 	./$(OIFSDIR)/fcm/bin/fcm make -v -j4 -f $(OIFSDIR)/make/oifslib.cfg
