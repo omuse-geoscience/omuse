@@ -172,6 +172,11 @@ class OpenIFSInterface(CodeInterface,
     def get_surf_TL_flux_(i = 0):
         returns (out = 0. | units.W / units.m**2)
 
+    # Utility method returning aerodynamic surface roughness length
+    @remote_function(must_handle_array=True)
+    def get_surf_z0_(i = 0):
+        returns (out = 0. | units.m)
+
     # Utility method setting the u-component tendency
     @remote_function(must_handle_array=True)
     def set_tendency_U_(i = 0,k = 0,v = 0.):

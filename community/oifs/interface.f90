@@ -6,10 +6,10 @@ module openifs_interface
                         & jstep, step, PFULL, PHALF, WIND_U, WIND_V, TEMPERATURE,&
                         & SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
                         & OZONE, SURF_Q_FLUX, SURF_L_FLUX, SURF_I_FLUX, SURF_TL_FLUX,&
-                        & SURF_TS_FLUX
+                        & SURF_TS_FLUX,SURF_AERO_Z0
     use spcrmlib,   only: step_until_cloud_scheme,step_cloud_scheme,step_from_cloud_scheme,&
                         & gettends,get_cur_field,settend,set_sp_mask,spcrminit,spcrmclean,&
-                        & tendcml,settend,get_fluxes_2d
+                        & tendcml,settend,get_fluxes_2d,get_surf_z0
     use yomct0,     only: nstart,nstop
     use yomct3,     only: nstep
     use yomdyn,     only: tstep
@@ -570,6 +570,33 @@ module openifs_interface
             endif
 
         end function get_surf_flux
+
+        function get_surf_z0_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n,fldid
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            real(8), allocatable::                  b(:,:)
+            integer::                               ret,ii
+
+            ret = 0
+            if(myproc == 1) then
+                allocate(b(ngptotg,1),stat=ret)
+                if(ret/=0) then
+                    return
+                endif
+            endif
+            
+            call get_surf_z0(b,SURF_AERO_Z0)
+            
+            if(myproc == 1) then
+                do ii = 1,n
+                    a(ii) = b(g_i(ii) + 1,1)
+                enddo
+                deallocate(b)
+            endif
+
+        end function get_surf_z0_
 
         function set_mask(g_i,n) result(ret)
 
