@@ -9,7 +9,7 @@ module openifs_interface
                         & SURF_TS_FLUX
     use spcrmlib,   only: step_until_cloud_scheme,step_cloud_scheme,step_from_cloud_scheme,&
                         & gettends,get_cur_field,settend,set_sp_mask,spcrminit,spcrmclean,&
-                        & tendcml,settend
+                        & tendcml,settend,get_fluxes_2d
     use yomct0,     only: nstart,nstop
     use yomct3,     only: nstep
     use yomdyn,     only: tstep
