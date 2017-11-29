@@ -573,7 +573,7 @@ module openifs_interface
 
         function get_surf_z0_(g_i,a,n) result(ret)
 
-            integer, intent(in)::                   n,fldid
+            integer, intent(in)::                   n
             integer, dimension(n), intent(in)::     g_i
             real(8), dimension(n), intent(out)::    a(n)
             real(8), allocatable::                  b(:,:)
