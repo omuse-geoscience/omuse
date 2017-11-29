@@ -376,6 +376,22 @@ class OpenIFS(CommonCode):
         else:
             raise Exception("Unknown atmosphere prognostic field identidier:",fid)
 
+    def get_surface_field(self,fid,i):
+        if(fid == "Z0"):
+            return self.get_surf_z0_(i,k)
+        elif(fid == "QLflux"):
+            return self.get_surf_QL_flux_(i,k)
+        elif(fid == "QIflux"):
+            return self.get_surf_QI_flux_(i,k)
+        elif(fid == "TLflux"):
+            return self.get_surf_TL_flux_(i,k)
+        elif(fid == "TSflux"):
+            return self.get_surf_TS_flux_(i,k)
+        elif(fid == "SHflux"):
+            return self.get_surf_SH_flux_(i,k)
+        else:
+            raise Exception("Unknown surface field identidier:",fid)
+
     def set_tendency(self,fid,i,k,v):
         if(fid == "U"):
             return self.set_tendency_U_(i,k,v)
