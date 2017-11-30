@@ -378,17 +378,17 @@ class OpenIFS(CommonCode):
 
     def get_surface_field(self,fid,i):
         if(fid == "Z0"):
-            return self.get_surf_z0_(i,k)
+            return self.get_surf_z0_(i)
         elif(fid == "QLflux"):
-            return self.get_surf_QL_flux_(i,k)
+            return self.get_surf_QL_flux_(i)
         elif(fid == "QIflux"):
-            return self.get_surf_QI_flux_(i,k)
+            return self.get_surf_QI_flux_(i)
         elif(fid == "TLflux"):
-            return self.get_surf_TL_flux_(i,k)
+            return self.get_surf_TL_flux_(i)
         elif(fid == "TSflux"):
-            return self.get_surf_TS_flux_(i,k)
+            return self.get_surf_TS_flux_(i)
         elif(fid == "SHflux"):
-            return self.get_surf_SH_flux_(i,k)
+            return self.get_surf_SH_flux_(i)
         else:
             raise Exception("Unknown surface field identidier:",fid)
 
