@@ -6,7 +6,7 @@ module openifs_interface
                         & jstep, step, PFULL, PHALF, WIND_U, WIND_V, TEMPERATURE,&
                         & SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
                         & OZONE, SURF_Q_FLUX, SURF_L_FLUX, SURF_I_FLUX, SURF_TL_FLUX,&
-                        & SURF_TS_FLUX,SURF_AERO_Z0
+                        & SURF_TS_FLUX,SURF_AERO_Z0,SURF_HEAT_Z0
     use spcrmlib,   only: step_until_cloud_scheme,step_cloud_scheme,step_from_cloud_scheme,&
                         & gettends,get_cur_field,settend,set_sp_mask,spcrminit,spcrmclean,&
                         & tendcml,settend,get_fluxes_2d,get_surf_z0
@@ -29,10 +29,9 @@ module openifs_interface
         ! set the working directory of the process. 
         ! returns 0 on success
         function set_workdir(directory) result(ret)
-          #if defined (__INTEL_COMPILER) !intel warns about this but it works
-          USE IFPORT   ! for intel chdir function
-          #endif
-
+#ifdef __INTEL_COMPILER
+            USE IFPORT   ! for intel chdir function
+#endif
           integer::                    ret
           character(256),intent(in)::  directory
           ret = chdir(directory)  
@@ -571,9 +570,31 @@ module openifs_interface
 
         end function get_surf_flux
 
-        function get_surf_z0_(g_i,a,n) result(ret)
+        function get_surf_z0m_(g_i,a,n) result(ret)
 
             integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_roughness(g_i,a,n,SURF_AERO_Z0)
+
+        end function get_surf_z0m_
+
+        function get_surf_z0h_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_roughness(g_i,a,n,SURF_HEAT_Z0)
+
+        end function get_surf_z0h_
+
+        function get_surf_roughness(g_i,a,n,fldid) result(ret)
+
+            integer, intent(in)::                   n,fldid
             integer, dimension(n), intent(in)::     g_i
             real(8), dimension(n), intent(out)::    a(n)
             real(8), allocatable::                  b(:,:)
@@ -587,7 +608,7 @@ module openifs_interface
                 endif
             endif
             
-            call get_surf_z0(b,SURF_AERO_Z0)
+            call get_surf_z0(b,fldid)
             
             if(myproc == 1) then
                 do ii = 1,n
@@ -596,7 +617,7 @@ module openifs_interface
                 deallocate(b)
             endif
 
-        end function get_surf_z0_
+        end function get_surf_roughness
 
         function set_mask(g_i,n) result(ret)
 

@@ -172,9 +172,14 @@ class OpenIFSInterface(CodeInterface,
     def get_surf_TL_flux_(i = 0):
         returns (out = 0. | units.W / units.m**2)
 
-    # Utility method returning aerodynamic surface roughness length
+    # Utility method returning surface momentum roughness length
     @remote_function(must_handle_array=True)
-    def get_surf_z0_(i = 0):
+    def get_surf_z0m_(i = 0):
+        returns (out = 0. | units.m)
+
+    # Utility method returning surface heat roughness length
+    @remote_function(must_handle_array=True)
+    def get_surf_z0h_(i = 0):
         returns (out = 0. | units.m)
 
     # Utility method setting the u-component tendency
