@@ -8,8 +8,8 @@ module openifs_interface
                         & OZONE, SURF_Q_FLUX, SURF_L_FLUX, SURF_I_FLUX, SURF_TL_FLUX,&
                         & SURF_TS_FLUX,SURF_AERO_Z0,SURF_HEAT_Z0
     use spcrmlib,   only: step_until_cloud_scheme,step_cloud_scheme,step_from_cloud_scheme,&
-                        & gettends,get_cur_field,settend,set_sp_mask,spcrminit,spcrmclean,&
-                        & tendcml,settend,get_fluxes_2d,get_surf_z0
+                        & get_tends,get_cur_field,set_tend,set_sp_mask,spcrminit,spcrmclean,&
+                        & tendcml,get_fluxes_2d,get_surf_z0
     use yomct0,     only: nstart,nstop
     use yomct3,     only: nstep
     use yomdyn,     only: tstep
@@ -477,7 +477,7 @@ module openifs_interface
                 endif
             endif
             
-            call gettends(b,fldid,tendcml)
+            call get_tends(b,fldid,tendcml)
             
             if(myproc == 1) then
                 do ii = 1,n
@@ -753,10 +753,10 @@ module openifs_interface
                 endif
                 klevs(nvals) = g_k(i) + 1 ! to Fortran indexing (g_k)
                 if(i == n) then
-                    call settend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    call set_tend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
                     nvals = 0           ! to fortran indexing (g_i)
                 elseif(g_i(i + 1) /= g_i(i)) then
-                    call settend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    call set_tend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
                     nvals = 0
                 endif
             enddo
