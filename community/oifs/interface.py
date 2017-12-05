@@ -222,6 +222,26 @@ class OpenIFSInterface(CodeInterface,
     def set_tendency_O3_(i = 0,k = 0,v = 0.):
         pass
 
+    # Utility method setting the convective rain flux
+    @remote_function(must_handle_array=True)
+    def set_flux_CPR_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting the convective snow flux
+    @remote_function(must_handle_array=True)
+    def set_flux_CPS_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting the stratiform rain flux
+    @remote_function(must_handle_array=True)
+    def set_flux_SPR_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting the stratiform snow flux
+    @remote_function(must_handle_array=True)
+    def set_flux_SPS_(i = 0,k = 0,v = 0.):
+        pass
+
     # Utility method setting a superparametrization mask
     @remote_function(must_handle_array=True)
     def set_mask(i = 0):
@@ -418,6 +438,18 @@ class OpenIFS(CommonCode):
             return self.set_tendency_O3_(i,k,v)
         else:
             raise Exception("Unknown atmosphere tendency field identidier:",fid)
+
+    def set_flux(self,fid,i,k,v):
+        if(fid == "CPR"):
+            return self.set_tendency_CPR_(i,k,v)
+        elif(fid == "CPS"):
+            return self.set_tendency_CPS_(i,k,v)
+        elif(fid == "SPR"):
+            return self.set_tendency_SPR_(i,k,v)
+        elif(fid == "SPS"):
+            return self.set_tendency_SPS_(i,k,v)
+        else:
+            raise Exception("Unknown precipitation flux identidier:",fid)
 
     def get_volume_field(self,fid):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
