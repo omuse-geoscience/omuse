@@ -10,13 +10,12 @@ module dales_interface
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, ps_tend, &
                        gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice
+    !TODO: Expose everything so this module only depends on daleslib
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0,sv0,um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, qts
-    use modsurface, only: qtsurf, wqsurf, wtsurf
+    use modsurface, only: qtsurf, wqsurf, wtsurf, z0m, z0h
     use modmicrodata, only: iqr
-    
-    !TODO: Expose everything so this module only depends on daleslib
     use modglobal, only: rtimee,rdt,fname_options,timeleft,tres,timee,rk3step,dt_lim
     use mpi, only: MPI_COMM_WORLD
 
@@ -362,9 +361,6 @@ contains
       
       ret = gatherCloudFrac(ql0(2:i1, 2:j1, :), g_k, a)
     end function get_cloudfraction    
-
-
-
     
 !!! end of vertical profile getters
 
@@ -677,7 +673,6 @@ contains
       real              :: ret
 
       ret=0
-      !ra = 50.
       wtsurf = wtflux !- (thl - tskin) / ra
     end function
 
@@ -686,14 +681,29 @@ contains
       real              :: ret
       
       ret=0
-      !ra = 50.
       wqsurf = wqflux !- (qt - qskin) / ra
     end function
     !!! end of setter function for ground fluxes
+
+    !!! setter functions for roughness lengths
+    function set_z0m_surf(z0) result(ret)
+      real, intent(in)  :: z0
+      real              :: ret
+
+      ret=0
+      z0m = z0
+    end function
+
+    function set_z0h_surf(z0) result(ret)
+      real, intent(in)  :: z0
+      real              :: ret
+      
+      ret=0
+      z0h = z0
+    end function
+    !!! end of setter functions for roughness
     
-    
-    
-!!! get simulation parameters    
+    !!! get simulation parameters    
     function get_params_grid (i,j,k,X,Y) result(ret)
       use modglobal, only: itot,jtot,kmax,xsize,ysize
       implicit none
@@ -709,9 +719,4 @@ contains
       ret = 0
     end function get_params_grid
 
-
-    
-
-
-    
 end module dales_interface

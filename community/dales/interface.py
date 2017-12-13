@@ -272,6 +272,15 @@ class DalesInterface(CodeInterface,
     @remote_function
     def set_wq_surf(wqflux=0.):
         returns()
+
+    # setter functions for momentum and heat roughness
+    @remote_function
+    def set_z0m_surf(z0=0.):
+        returns()
+
+    @remote_function
+    def set_z0h_surf(z0=0.):
+        returns()
         
     @remote_function()
     def get_params_grid():
