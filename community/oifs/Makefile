@@ -5,7 +5,7 @@ AMUSE_DIR?=../../../..
 
 MPIFC ?= mpif90
 
-FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m64 -fconvert=big-endian -traceback 
+FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m64 -fconvert=big-endian
 
 #LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
@@ -22,10 +22,13 @@ OIFSDIR=oifslib
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 # choose compiler - if not specified already using environment variables
+CPPFLAGS = -cpp
 ifeq ($(FC),ifort)
 export OIFS_COMP ?= intel
+FCFLAGS += -traceback
 else
 export OIFS_COMP ?= gnu
+CPPFLAGS = -x f95-cpp-input
 endif
 
 export OIFS_BUILD ?= noopt
@@ -49,7 +52,7 @@ worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py OpenIFSInterface -o $@
 
 openifs_worker: worker_code.f90 $(OBJS) interface.f90
-	$(MPIFC) $(FCFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include -c interface.f90 -o interface.o
+	$(MPIFC) $(FCFLAGS) $(CPPFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include -c interface.f90 -o interface.o
 	$(MPIFC) $(FCFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(FS_LIBS) $(SC_FCLIBS) -o $@
 
 #TODO: Clean oifs directory

@@ -172,6 +172,16 @@ class OpenIFSInterface(CodeInterface,
     def get_surf_TL_flux_(i = 0):
         returns (out = 0. | units.W / units.m**2)
 
+    # Utility method returning surface momentum roughness length
+    @remote_function(must_handle_array=True)
+    def get_surf_z0m_(i = 0):
+        returns (out = 0. | units.m)
+
+    # Utility method returning surface heat roughness length
+    @remote_function(must_handle_array=True)
+    def get_surf_z0h_(i = 0):
+        returns (out = 0. | units.m)
+
     # Utility method setting the u-component tendency
     @remote_function(must_handle_array=True)
     def set_tendency_U_(i = 0,k = 0,v = 0. | units.m/units.s**2):
@@ -210,6 +220,26 @@ class OpenIFSInterface(CodeInterface,
     # Utility method setting the ozone tendency
     @remote_function(must_handle_array=True)
     def set_tendency_O3_(i = 0,k = 0,v = 0. | units.mfu/units.s):
+        pass
+
+    # Utility method setting the convective rain flux
+    @remote_function(must_handle_array=True)
+    def set_flux_CPR_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting the convective snow flux
+    @remote_function(must_handle_array=True)
+    def set_flux_CPS_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting the stratiform rain flux
+    @remote_function(must_handle_array=True)
+    def set_flux_SPR_(i = 0,k = 0,v = 0.):
+        pass
+
+    # Utility method setting the stratiform snow flux
+    @remote_function(must_handle_array=True)
+    def set_flux_SPS_(i = 0,k = 0,v = 0.):
         pass
 
     # Utility method setting a superparametrization mask
@@ -371,6 +401,24 @@ class OpenIFS(CommonCode):
         else:
             raise Exception("Unknown atmosphere prognostic field identidier:",fid)
 
+    def get_surface_field(self,fid,i):
+        if(fid == "Z0M"):
+            return self.get_surf_z0m_(i)
+        elif(fid == "Z0H"):
+            return self.get_surf_z0h_(i)
+        elif(fid == "QLflux"):
+            return self.get_surf_QL_flux_(i)
+        elif(fid == "QIflux"):
+            return self.get_surf_QI_flux_(i)
+        elif(fid == "TLflux"):
+            return self.get_surf_TL_flux_(i)
+        elif(fid == "TSflux"):
+            return self.get_surf_TS_flux_(i)
+        elif(fid == "SHflux"):
+            return self.get_surf_SH_flux_(i)
+        else:
+            raise Exception("Unknown surface field identidier:",fid)
+
     def set_tendency(self,fid,i,k,v):
         if(fid == "U"):
             return self.set_tendency_U_(i,k,v)
@@ -390,6 +438,18 @@ class OpenIFS(CommonCode):
             return self.set_tendency_O3_(i,k,v)
         else:
             raise Exception("Unknown atmosphere tendency field identidier:",fid)
+
+    def set_flux(self,fid,i,k,v):
+        if(fid == "CPR"):
+            return self.set_tendency_CPR_(i,k,v)
+        elif(fid == "CPS"):
+            return self.set_tendency_CPS_(i,k,v)
+        elif(fid == "SPR"):
+            return self.set_tendency_SPR_(i,k,v)
+        elif(fid == "SPS"):
+            return self.set_tendency_SPS_(i,k,v)
+        else:
+            raise Exception("Unknown precipitation flux identidier:",fid)
 
     def get_volume_field(self,fid):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
