@@ -6,10 +6,11 @@ module openifs_interface
                         & jstep, step, PFULL, PHALF, WIND_U, WIND_V, TEMPERATURE,&
                         & SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
                         & OZONE, SURF_Q_FLUX, SURF_L_FLUX, SURF_I_FLUX, SURF_TL_FLUX,&
-                        & SURF_TS_FLUX
+                        & SURF_TS_FLUX,SURF_AERO_Z0,SURF_HEAT_Z0,CONV_RAIN_FLUX,&
+                        & CONV_SNOW_FLUX,STRAT_RAIN_FLUX,STRAT_SNOW_FLUX
     use spcrmlib,   only: step_until_cloud_scheme,step_cloud_scheme,step_from_cloud_scheme,&
-                        & gettends,get_cur_field,settend,set_sp_mask,spcrminit,spcrmclean,&
-                        & tendcml,settend
+                        & get_tends,get_cur_field,set_tend,set_sp_mask,spcrminit,spcrmclean,&
+                        & tendcml,get_fluxes_2d,get_surf_z0,set_flux
     use yomct0,     only: nstart,nstop
     use yomct3,     only: nstep
     use yomdyn,     only: tstep
@@ -29,10 +30,9 @@ module openifs_interface
         ! set the working directory of the process. 
         ! returns 0 on success
         function set_workdir(directory) result(ret)
-          #if defined (__INTEL_COMPILER) !intel warns about this but it works
-          USE IFPORT   ! for intel chdir function
-          #endif
-
+#ifdef __INTEL_COMPILER
+            USE IFPORT   ! for intel chdir function
+#endif
           integer::                    ret
           character(256),intent(in)::  directory
           ret = chdir(directory)  
@@ -478,7 +478,7 @@ module openifs_interface
                 endif
             endif
             
-            call gettends(b,fldid,tendcml)
+            call get_tends(b,fldid,tendcml)
             
             if(myproc == 1) then
                 do ii = 1,n
@@ -570,6 +570,55 @@ module openifs_interface
             endif
 
         end function get_surf_flux
+
+        function get_surf_z0m_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_roughness(g_i,a,n,SURF_AERO_Z0)
+
+        end function get_surf_z0m_
+
+        function get_surf_z0h_(g_i,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_surf_roughness(g_i,a,n,SURF_HEAT_Z0)
+
+        end function get_surf_z0h_
+
+        function get_surf_roughness(g_i,a,n,fldid) result(ret)
+
+            integer, intent(in)::                   n,fldid
+            integer, dimension(n), intent(in)::     g_i
+            real(8), dimension(n), intent(out)::    a(n)
+            real(8), allocatable::                  b(:,:)
+            integer::                               ret,ii
+
+            ret = 0
+            if(myproc == 1) then
+                allocate(b(ngptotg,1),stat=ret)
+                if(ret/=0) then
+                    return
+                endif
+            endif
+            
+            call get_surf_z0(b,fldid)
+            
+            if(myproc == 1) then
+                do ii = 1,n
+                    a(ii) = b(g_i(ii) + 1,1)
+                enddo
+                deallocate(b)
+            endif
+
+        end function get_surf_roughness
 
         function set_mask(g_i,n) result(ret)
 
@@ -705,10 +754,10 @@ module openifs_interface
                 endif
                 klevs(nvals) = g_k(i) + 1 ! to Fortran indexing (g_k)
                 if(i == n) then
-                    call settend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    call set_tend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
                     nvals = 0           ! to fortran indexing (g_i)
                 elseif(g_i(i + 1) /= g_i(i)) then
-                    call settend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    call set_tend(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
                     nvals = 0
                 endif
             enddo
@@ -716,6 +765,85 @@ module openifs_interface
             deallocate(klevs)
 
         end function set_tendency
+
+        function set_flux_CPR_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_flux_(g_i,g_k,vals,n,CONV_RAIN_FLUX)
+
+        end function set_flux_CPR_
+
+        function set_flux_CPS_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_flux_(g_i,g_k,vals,n,CONV_SNOW_FLUX)
+
+        end function set_flux_CPS_
+
+        function set_flux_SPR_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_flux_(g_i,g_k,vals,n,STRAT_RAIN_FLUX)
+
+        end function set_flux_SPR_
+
+        function set_flux_SPS_(g_i,g_k,vals,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret
+
+            ret = set_flux_(g_i,g_k,vals,n,STRAT_SNOW_FLUX)
+
+        end function set_flux_SPS_
+
+        function set_flux_(g_i,g_k,vals,n,fldid) result(ret)
+
+            integer, intent(in)::                   n,fldid
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(in)::     vals
+            integer::                               ret,i,nvals
+            integer, allocatable::                  klevs(:)
+
+            ret = 0
+            nvals = 0
+
+            allocate(klevs(nflevg))
+
+            ! convert from sequence of point to setting vertical profiles
+            ! needs testing with multiple 
+            do i = 1,n
+                nvals = nvals + 1
+                if(nvals > nflevg) then
+                    ret = 1
+                    return
+                endif
+                klevs(nvals) = g_k(i) + 1 ! to Fortran indexing (g_k)
+                if(i == n) then
+                    call set_flux(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    nvals = 0           ! to fortran indexing (g_i)
+                elseif(g_i(i + 1) /= g_i(i)) then
+                    call set_flux(g_i(i)+1,klevs(1:nvals),nvals,vals((i - nvals + 1):i),fldid)
+                    nvals = 0
+                endif
+            enddo
+
+            deallocate(klevs)
+
+        end function set_flux_
 
         function cleanup_code() result(ret)
 
