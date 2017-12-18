@@ -9,6 +9,7 @@ FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m6
 
 #LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
+# change this (not yet in amuse config.mk)
 OIFS_GRIB_API_DIR  ?= /usr/local/
 export OIFS_GRIB_API_DIR 
 export OIFS_GRIB_API_LIB ?= -L$(OIFS_GRIB_API_DIR)/lib -lgrib_api_f90 -lgrib_api
