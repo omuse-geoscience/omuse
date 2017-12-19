@@ -224,22 +224,22 @@ class OpenIFSInterface(CodeInterface,
 
     # Utility method setting the convective rain flux
     @remote_function(must_handle_array=True)
-    def set_flux_CPR_(i = 0,k = 0,v = 0.):
+    def set_flux_CPR_(i = 0,k = 0,v = 0. | units.kg/units.m**2/units.s):
         pass
 
     # Utility method setting the convective snow flux
     @remote_function(must_handle_array=True)
-    def set_flux_CPS_(i = 0,k = 0,v = 0.):
+    def set_flux_CPS_(i = 0,k = 0,v = 0.| units.kg/units.m**2/units.s):
         pass
 
     # Utility method setting the stratiform rain flux
     @remote_function(must_handle_array=True)
-    def set_flux_SPR_(i = 0,k = 0,v = 0.):
+    def set_flux_SPR_(i = 0,k = 0,v = 0.| units.kg/units.m**2/units.s):
         pass
 
     # Utility method setting the stratiform snow flux
     @remote_function(must_handle_array=True)
-    def set_flux_SPS_(i = 0,k = 0,v = 0.):
+    def set_flux_SPS_(i = 0,k = 0,v = 0.| units.kg/units.m**2/units.s):
         pass
 
     # Utility method setting a superparametrization mask
@@ -538,4 +538,10 @@ class OpenIFS(CommonCode):
         for x in ['Pfull','U', 'V', 'T', 'QL', 'QI','SH','A','O3']:
             object.add_gridded_getter('grid', 'get_field_'+x+'_','get_vertical_grid_range', names = (x,))
         
+        object.define_grid('forcings',axes_names = ['lon','lat'], grid_class=datamodel.UnstructuredGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('forcings', 'get_grid_range')
+        object.add_getter('forcings', 'get_gridpoints', names=['lat','lon'])
+        for x in ['U', 'V', 'T', 'SH','QL','QI', 'A', 'O3']:
+            object.add_getter('forcings', 'get_tendency_'+x+'_',  names=['tendency_'+x])
+            object.add_setter('forcings', 'set_tendency_'+x+'_',  names=['tendency_'+x])
 
