@@ -64,7 +64,7 @@ class DalesInterface(CodeInterface,
         pass
 
     @remote_function
-    def set_tendency_surface_pressure(p = 1.0e5 | units.Pa):
+    def set_tendency_surface_pressure(p = 1.0e5 | units.Pa/units.s):
         pass
     
     @remote_function
@@ -432,10 +432,10 @@ class Dales(CommonCode):
         return self.get_profile_QR_(numpy.arange(1,self.k+1))
 
     def get_profile_E12(self):
-        return self.get_profile_E12_(arange(1,self.k+1))
+        return self.get_profile_E12_(numpy.arange(1,self.k+1))
 
     def get_profile_T(self):
-        return self.get_profile_T_(arange(1,self.k+1))
+        return self.get_profile_T_(numpy.arange(1,self.k+1))
     
     def get_zf(self):
         return self.get_zf_(numpy.arange(1,self.k+1))
