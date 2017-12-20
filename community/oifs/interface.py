@@ -199,7 +199,7 @@ class OpenIFSInterface(CodeInterface,
 
     # Utility method setting the specific humidity tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_SH_(i = 0,k = 0,v = 0. | units.K/units.s):
+    def set_tendency_SH_(i = 0,k = 0,v = 0. | units.shu/units.s):
         pass
 
     # Utility method setting the liquid water tendency
