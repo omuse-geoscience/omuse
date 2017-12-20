@@ -111,6 +111,9 @@ contains
               dt_lim = min(dt_lim, (int(tend/tres) - timee))
            endif
         
+           ! thrice to ensure consistency of state (rkstep==3)
+           call step
+           call step
            call step
 !           print *, '  ', 'rtimee=',rtimee, 'timeleft=',timeleft, 'rk3step=',rk3step, 'rdt=',rdt           
         enddo
