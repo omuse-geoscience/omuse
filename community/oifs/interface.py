@@ -360,6 +360,7 @@ class OpenIFS(CommonCode):
         object.add_transition("EDIT","RUN","commit_grid")
         object.add_transition("RUN","EVOLVED","evolve_model",False)
         object.add_transition("RUN","EVOLVED","evolve_model_single_step",False)
+        object.add_transition("RUN","EVOLVED","evolve_model_until_cloud_scheme",False)
 
         object.add_method("INITIALIZED","before_set_interface_parameter")
         object.add_method("UNINITIALIZED","before_get_parameter")
