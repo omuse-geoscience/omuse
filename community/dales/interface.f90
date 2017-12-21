@@ -58,6 +58,14 @@ contains
       !write(*,*) "Dales worker changing directory to", directory, "status:", ret
     end function set_workdir
     
+    function get_workdir(directory) result(ret)
+      integer::                      ret
+      character(256),intent(out)::   directory
+      ret = 0
+      call getcwd(directory)
+      directory=trim(directory)
+    end function get_workdir    
+    
     
     function initialize_code() result(ret)
         integer:: ret

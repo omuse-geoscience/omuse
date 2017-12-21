@@ -8,6 +8,7 @@ from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
 from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
 from amuse import datamodel
+import f90nml
 
 from amuse.units import trigo
 
@@ -42,6 +43,9 @@ class DalesInterface(CodeInterface,
     @remote_function
     def set_workdir(directory="./"):
         pass
+    @remote_function
+    def get_workdir():
+        returns (directory="s")
     
     @remote_function
     def get_model_time():
@@ -280,14 +284,50 @@ class Dales(CommonCode):
             
         
     def commit_parameters(self):
+        workdir=self.get_workdir()
+        inputfile=os.path.join(workdir,self.parameters.input_file)
+        dalesinputfile=os.path.join(workdir,"_"+self.parameters.input_file)
+        if not os.path.exists(os.path.join(workdir,inputfile)):
+            raise Exception("File %s not found"%inputfile)
+        
+        self.params = f90nml.read(inputfile)
+        
+        patch=dict()
+        patch["RUN"]=dict(  lwarmstart=self.parameters.restart_flag,
+                            startfile=self.parameters.restart_file, 
+                            trestart=self.parameters.trestart.value_in(units.s))
+        f90nml.patch(inputfile,patch,dalesinputfile)
+        self.set_input_file(dalesinputfile)
+
+        print "code options written to %s"%dalesinputfile
+        
         self.overridden().commit_parameters()
         self.get_params()
 
     def define_parameters(self, object):
-        object.add_default_form_parameter(
+        object.add_interface_parameter(
             "input_file",
-            "set the input file path",
-            "namoptions.001"
+            "the input file name",
+            "namoptions.001",
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "restart_flag",
+            "warm start from restart file if True",
+            False,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "restart_file",
+            "restart file name",
+            "NOT_SET",
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "trestart",
+            "(simulation) time between writing restart files",
+            3600 | units.s,
+            "before_set_interface_parameter"
         )
         object.add_method_parameter(
             "get_itot",
