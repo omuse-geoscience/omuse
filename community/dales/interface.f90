@@ -104,14 +104,22 @@ contains
     !  .or. rk3step < 3) SHOULD BE USED TO FINISH A FULL TIME STEP BEFORE EXITING ??
     !                    but it breaks the current result test, which was stored without this.
     !                    see program.f90: main loop - while(timeleft>0 .or. rk3step < 3)
-    
-    function evolve_model(tend, exactEnd) result(ret)
+    !
+    !  Returns the elapsed time in seconds (real) in walltime
+    !
+    function evolve_model(tend, exactEnd, walltime) result(ret)
+          use mpi, only: MPI_Wtime
         integer             :: ret
         real(8),intent(in)  :: tend
         integer,intent(in)  :: exactEnd
+        real(8),intent(out) :: walltime
         integer             :: i
+        real(8)             :: start_time
 
         ! print *, 'evolve_model'
+
+        start_time = MPI_Wtime()
+
         do while((rtimee < tend .and. timeleft > 0)) ! .or. rk3step < 3)
 
            if (exactEnd /= 0) then
@@ -125,10 +133,13 @@ contains
            call step
 !           print *, '  ', 'rtimee=',rtimee, 'timeleft=',timeleft, 'rk3step=',rk3step, 'rdt=',rdt           
         enddo
+
+        walltime = MPI_Wtime() - start_time
         ret=0
         if(timeleft <= 0) then
           ret=1
         endif
+
     end function
 
     function cleanup_code() result(ret)
