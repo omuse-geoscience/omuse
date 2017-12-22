@@ -255,7 +255,7 @@ class DalesInterface(CodeInterface,
     # the end time form namoptions is effective only if exactEnd is false
     @remote_function
     def evolve_model(tend=0. | units.s, exactEnd=0):
-        pass
+        returns (walltime=0. | units.s)
 
 
 class Dales(CommonCode):
@@ -277,10 +277,10 @@ class Dales(CommonCode):
             # print('Dales.__init__() : setting workdir.')
             self.set_workdir(options['workdir'])
 
-    def evolve_model(self, tend, exactEnd=None):
-        if exactEnd is None:
-            exactEnd=self.parameters.evolve_to_exact_time
-        self.overridden().evolve_model(tend, exactEnd)
+#    def evolve_model(self, tend, exactEnd=None):
+#        if exactEnd is None:
+#            exactEnd=self.parameters.evolve_to_exact_time
+#        self.overridden().evolve_model(tend, exactEnd)
             
         
     def commit_parameters(self):
