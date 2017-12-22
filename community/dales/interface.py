@@ -320,7 +320,7 @@ class Dales(CommonCode):
         object.add_interface_parameter(
             "restart_file",
             "restart file name",
-            "NOT_SET",
+            "initdlatestx000y000.001",
             "before_set_interface_parameter"
         )
         object.add_interface_parameter(
