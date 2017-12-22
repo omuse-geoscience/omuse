@@ -6,7 +6,7 @@ program fortran_test
 
     integer:: stat
     real(8):: tend
-
+    real(8):: walltime
     stat=0
 
     write(*,*) "Initializing fortran interface code..."
@@ -19,7 +19,7 @@ program fortran_test
 
     write(*,*) "Running for a minute..."
     tend=60
-    stat=evolve_model(tend, 0)
+    stat=evolve_model(tend, 0, walltime)
     if(stat/=0) then
         stop "...failed, stopping."
     else
