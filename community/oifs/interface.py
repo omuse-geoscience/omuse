@@ -150,17 +150,17 @@ class OpenIFSInterface(CodeInterface,
     # Utility method returning the specific humidity (qv) surface flux
     @remote_function(must_handle_array=True)
     def get_surf_SH_flux_(i = 0):
-        returns (out = 0. | 1 / units.m**2)
+        returns (out = 0. | units.kg / units.m**2 / units.s)
 
     # Utility method returning the liquid water surface flux
     @remote_function(must_handle_array=True)
     def get_surf_QL_flux_(i = 0):
-        returns (out = 0. | 1 / units.m**2)
+        returns (out = 0. | units.kg / units.m**2 / units.s)
 
     # Utility method returning the ice water surface flux
     @remote_function(must_handle_array=True)
     def get_surf_QI_flux_(i = 0):
-        returns (out = 0. | 1 / units.m**2)
+        returns (out = 0. | units.kg / units.m**2 / units.s)
 
     # Utility method returning the sensible heat surface flux
     @remote_function(must_handle_array=True)
