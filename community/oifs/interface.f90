@@ -104,7 +104,7 @@ module openifs_interface
             logical, intent(in):: p
             integer            :: ret
 
-            lspcld = p
+            lspcld = .not. p
             ret = 0
             
         end function
@@ -114,7 +114,7 @@ module openifs_interface
             logical, intent(in):: p
             integer            :: ret
 
-            lspconv = p
+            lspconv = .not. p
             ret = 0
             
         end function
@@ -124,7 +124,7 @@ module openifs_interface
             logical, intent(in):: p
             integer            :: ret
 
-            lspvdf = p
+            lspvdf = .not. p
             ret = 0
             
         end function
