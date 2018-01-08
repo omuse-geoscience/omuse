@@ -52,6 +52,21 @@ class OpenIFSInterface(CodeInterface,
     def set_exp_name(str='a'):
         pass
 
+    # Switches the cloud scheme in the superparametrization mask (off by default)
+    @remote_function
+    def set_cld_in_sp_mask(p=True):
+        pass
+
+    # Switches the convection scheme in the superparametrization mask (off by default)
+    @remote_function
+    def set_conv_in_sp_mask(p=True):
+        pass
+
+    # Switches the vertical diffusion scheme in the superparametrization mask (off by default)
+    @remote_function
+    def set_vdf_in_sp_mask(p=True):
+        pass
+
     # Inserts grid, not yet implemented
     @remote_function
     def commit_grid():
