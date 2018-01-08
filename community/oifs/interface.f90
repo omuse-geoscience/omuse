@@ -10,7 +10,7 @@ module openifs_interface
                         & CONV_SNOW_FLUX,STRAT_RAIN_FLUX,STRAT_SNOW_FLUX
     use spcrmlib,   only: step_until_cloud_scheme,step_cloud_scheme,step_from_cloud_scheme,&
                         & get_tends,get_cur_field,set_tend,set_sp_mask,spcrminit,spcrmclean,&
-                        & tendcml,get_fluxes_2d,get_surf_z0,set_flux
+                        & tendcml,get_fluxes_2d,get_surf_z0,set_flux,lspcld,lspconv,lspvdf
     use yomct0,     only: nstart,nstop
     use yomct3,     only: nstep
     use yomdyn,     only: tstep
@@ -99,7 +99,35 @@ module openifs_interface
 
         end function
 
+        function set_cld_in_sp_mask(p) result(ret)
 
+            logical, intent(in):: p
+            integer            :: ret
+
+            lspcld = p
+            ret = 0
+            
+        end function
+
+        function set_conv_in_sp_mask(p) result(ret)
+
+            logical, intent(in):: p
+            integer            :: ret
+
+            lspconv = p
+            ret = 0
+            
+        end function
+
+        function set_vdf_in_sp_mask(p) result(ret)
+
+            logical, intent(in):: p
+            integer            :: ret
+
+            lspvdf = p
+            ret = 0
+            
+        end function
 
         function get_grid_sizes(nxy,nz) result(ret)
 
