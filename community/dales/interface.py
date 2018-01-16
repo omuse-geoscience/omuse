@@ -41,6 +41,14 @@ class DalesInterface(CodeInterface,
         pass
 
     @remote_function
+    def get_exact_end():
+        returns (exactEndFlag=False)
+
+    @remote_function
+    def set_exact_end(exactEndFlag=False):
+        pass
+
+    @remote_function
     def set_workdir(directory="./"):
         pass
     @remote_function
@@ -60,7 +68,7 @@ class DalesInterface(CodeInterface,
         pass
 
     @remote_function
-    def set_tendency_surface_pressure(p = 1.0e5 | units.Pa):
+    def set_tendency_surface_pressure(p = 1.0e5 | units.Pa/units.s):
         pass
     
     @remote_function
@@ -93,23 +101,23 @@ class DalesInterface(CodeInterface,
         
     @remote_function(must_handle_array=True)
     def get_profile_QT_(k=0):
-        returns (out=0.)
+        returns (out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QL_(k=0):
-        returns (out=0.)
+        returns (out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QL_ice_(k=0):
-        returns (out=0.)
+        returns (out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QR_(k=0):
-        returns (out=0.)
+        returns (out=0. | units.mfu)
         
     @remote_function(must_handle_array=True)
     def get_profile_E12_(k=0):
-        returns (out=0.)
+        returns (out=0. | units.m/units.s)
 
     @remote_function(must_handle_array=True)
     def get_profile_T_(k=0):
@@ -118,8 +126,7 @@ class DalesInterface(CodeInterface,
     # getter for cloud fraction. Uses the index array to define slabs.
     @remote_function(must_handle_array=True)
     def get_cloudfraction(k=0):
-        returns (out=0.)
-
+        returns (out=0. | units.m**2/units.m**2)
 
 # getter functions for height levels
 # these take a dummy array as input, and return output of the same length
@@ -143,20 +150,53 @@ class DalesInterface(CodeInterface,
         
 # setter functions for vertical tendencies / forcings
     @remote_function(must_handle_array=True)
-    def set_tendency_U(a=0.):
+    def set_tendency_U(a=0. | units.m/units.s**2):
         returns () 
 
     @remote_function(must_handle_array=True)
-    def set_tendency_V(a=0.):
+    def set_tendency_V(a=0. | units.m/units.s**2):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_THL(a=0.):
+    def set_tendency_THL(a=0. | units.K/units.s):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QT(a=0.):
+    def set_tendency_QT(a=0. | units.shu/units.s):
         returns ()
+
+# indexed getter/setter functions for vertical tendencies / forcings
+    @remote_function(must_handle_array=True)
+    def set_tendency_U_(g_i=0, a=0. | units.m/units.s**2):
+        returns () 
+
+    @remote_function(must_handle_array=True)
+    def set_tendency_V_(g_i=0, a=0. | units.m/units.s**2):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_tendency_THL_(g_i=0, a=0.| units.K/units.s):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_tendency_QT_(g_i=0,a=0.| units.shu/units.s):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def get_tendency_U_(g_i=0):
+        returns (a=0.| units.m/units.s**2) 
+
+    @remote_function(must_handle_array=True)
+    def get_tendency_V_(g_i=0):
+        returns (a=0.| units.m/units.s**2)
+
+    @remote_function(must_handle_array=True)
+    def get_tendency_THL_(g_i=0):
+        returns (a=0.| units.K/units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_tendency_QT_(g_i=0):
+        returns (a=0.| units.shu/units.s)
 
 # getter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
@@ -177,15 +217,15 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_field_QT(g_i=0,g_j=0,g_k=0):
-        returns (a=0.)
+        returns (a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_field_QL(g_i=0,g_j=0,g_k=0):
-        returns (a=0.)
+        returns (a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_field_E12(g_i=0,g_j=0,g_k=0):
-        returns (a=0.)
+        returns (a=0. | units.m/units.s)
 
     @remote_function(must_handle_array=True)
     def get_field_T(g_i=0,g_j=0,g_k=0):
@@ -193,35 +233,35 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_field_LWP(g_i=0,g_j=0):
-        returns (a=0.)
+        returns (a=0. | units.kg/units.m**2)
 
     @remote_function(must_handle_array=True)
     def get_field_RWP(g_i=0,g_j=0):
-        returns (a=0.) 
+        returns (a=0. | units.kg/units.m**2) 
 
     @remote_function(must_handle_array=True)
     def get_field_TWP(g_i=0,g_j=0):
-        returns (a=0.)
+        returns (a=0. | units.kg/units.m**2)
         
     # setter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
-    def set_field_U(g_i=0,g_j=0,g_k=0,a=0.):
+    def set_field_U(g_i=0,g_j=0,g_k=0,a=0. | units.m/units.s):
         returns()
 
     @remote_function(must_handle_array=True)
-    def set_field_V(g_i=0,g_j=0,g_k=0,a=0.):
+    def set_field_V(g_i=0,g_j=0,g_k=0,a=0. | units.m/units.s):
         returns()
 
     @remote_function(must_handle_array=True)
-    def set_field_W(g_i=0,g_j=0,g_k=0,a=0.):
+    def set_field_W(g_i=0,g_j=0,g_k=0,a=0. | units.m/units.s):
         returns()
 
     @remote_function(must_handle_array=True)
-    def set_field_THL(g_i=0,g_j=0,g_k=0,a=0.):
+    def set_field_THL(g_i=0,g_j=0,g_k=0,a=0. | units.K):
         returns()
         
     @remote_function(must_handle_array=True)
-    def set_field_QT(g_i=0,g_j=0,g_k=0,a=0.):
+    def set_field_QT(g_i=0,g_j=0,g_k=0,a=0. | units.shu):
         returns()
 
 #    @remote_function(must_handle_array=True)
@@ -275,13 +315,7 @@ class Dales(CommonCode):
         print ("DalesInterface.__init__", options)
         if 'workdir' in options:
             # print('Dales.__init__() : setting workdir.')
-            self.set_workdir(options['workdir'])
-
-#    def evolve_model(self, tend, exactEnd=None):
-#        if exactEnd is None:
-#            exactEnd=self.parameters.evolve_to_exact_time
-#        self.overridden().evolve_model(tend, exactEnd)
-            
+            self.set_workdir(options['workdir'])            
         
     def commit_parameters(self):
         workdir=self.get_workdir()
@@ -371,15 +405,18 @@ class Dales(CommonCode):
             "grid spacing in y direction",
             None
         )
-        object.add_interface_parameter(
-            "evolve_to_exact_time",
-            "flag that determines whether to evolve to exact given end time",
-            False,
-            "before_set_interface_parameter"
+        object.add_boolean_parameter(
+            "get_exact_end",
+            "set_exact_end",
+            "exactEndFlag",
+            "parameter specifying whether evolve should end exactly at target time ",
+            False
         )
+
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
+        object.add_property('get_timestep', public_name = "timestep")
 
     def commit_grid(self):        
         self.overridden().commit_grid()
@@ -387,7 +424,7 @@ class Dales(CommonCode):
     def define_state(self, object):
         object.set_initial_state("UNINITIALIZED")
         object.add_transition("UNINITIALIZED", "INITIALIZED", "initialize_code")
-        #~ object.add_method("!UNINITIALIZED", "before_set_parameter")
+        object.add_method("!UNINITIALIZED", "before_get_parameter")
         object.add_transition("!UNINITIALIZED!STOPPED!INITIALIZED", "END", "cleanup_code")
         object.add_transition("END", "STOPPED", "stop", False)
         object.add_method("STOPPED", 'stop')
@@ -399,63 +436,59 @@ class Dales(CommonCode):
 
         object.add_method("INITIALIZED", "set_input_file")
 
-        for state in ["RUN","EVOLVED"]:
+        for state in ["EDIT","RUN","EVOLVED"]:
           object.add_method(state,"get_model_time")
           object.add_method(state,"get_timestep")
         for state in ["RUN","EVOLVED"]:
           object.add_method(state,"get_itot")
-          #~ object.add_method(state,"get_profile_field")
-          #~ object.add_method(state,"get_layer_field")
-          #~ object.add_method(state,"get_volume_field")
 
         object.add_transition("RUN", "EVOLVED", "evolve_model", False)
         object.add_method("EVOLVED", "evolve_model")
 
     # wrapping functions for hiding the dummy array passed to getter functions
     def get_profile_U(self):
-        return self.get_profile_U_(numpy.zeros(self.k))
+        return self.get_profile_U_(numpy.arange(1,self.k+1))
 
     def get_profile_V(self):
-        return self.get_profile_V_(numpy.zeros(self.k))
+        return self.get_profile_V_(numpy.arange(1,self.k+1))
 
     def get_profile_W(self):
-        return self.get_profile_W_(numpy.zeros(self.k))
+        return self.get_profile_W_(numpy.arange(1,self.k+1))
         
     def get_profile_THL(self):
-        return self.get_profile_THL_(numpy.zeros(self.k))
+        return self.get_profile_THL_(numpy.arange(1,self.k+1))
         
     def get_profile_QT(self):
-        return self.get_profile_QT_(numpy.zeros(self.k))
+        return self.get_profile_QT_(numpy.arange(1,self.k+1))
 
     def get_profile_QL(self):
-        return self.get_profile_QL_(numpy.zeros(self.k))
+        return self.get_profile_QL_(numpy.arange(1,self.k+1))
 
 
     def get_profile_QL_ice(self):
-        return self.get_profile_QL_ice_(numpy.zeros(self.k))
+        return self.get_profile_QL_ice_(numpy.arange(1,self.k+1))
 
     def get_profile_QR(self):
-        return self.get_profile_QR_(numpy.zeros(self.k))
+        return self.get_profile_QR_(numpy.arange(1,self.k+1))
 
     def get_profile_E12(self):
-        return self.get_profile_E12_(numpy.zeros(self.k))
+        return self.get_profile_E12_(numpy.arange(1,self.k+1))
 
     def get_profile_T(self):
-        return self.get_profile_T_(numpy.zeros(self.k))
+        return self.get_profile_T_(numpy.arange(1,self.k+1))
     
     def get_zf(self):
-        return self.get_zf_(numpy.zeros(self.k))
+        return self.get_zf_(numpy.arange(1,self.k+1))
 
     def get_zh(self):
-        return self.get_zh_(numpy.zeros(self.k))
+        return self.get_zh_(numpy.arange(1,self.k+1))
 
     def get_presh(self):
-        return self.get_presh_(numpy.zeros(self.k))
+        return self.get_presh_(numpy.arange(1,self.k+1))
 
     def get_presf(self):
-        return self.get_presf_(numpy.zeros(self.k))
+        return self.get_presf_(numpy.arange(1,self.k+1))
 
-    
     # retrieve a 3D field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_field(self, field, imin=0, imax=None, jmin=0, jmax=None, kmin=0, kmax=None):
@@ -509,25 +542,23 @@ class Dales(CommonCode):
     # set a 3D field
     # field is 'U', 'V', 'W', 'THL', 'QT'
     def set_field(self, field, a, imin=0, jmin=0, kmin=0):
-        if numpy.isscalar(a):
-            a = numpy.array([[[a]]])
 
         # set max indices from the size of a 
-        imax = imin + a.shape[0]
-        jmax = jmin + a.shape[1]
-        kmax = kmin + a.shape[2]
+        try:
+          imax = imin + a.shape[0]
+          jmax = jmin + a.shape[1]
+          kmax = kmin + a.shape[2]
+          i,j,k = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
+          i=i.flatten()
+          j=j.flatten()
+          k=k.flatten()
+          a=a.flatten()
+        except:
+          i=imin
+          j=jmin
+          k=kmin
 
         #build index arrays
-        points = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
-        points = points.reshape(3, -1)
-        i,j,k = points
-
-        a = a.reshape(-1) # make a one-dimensional
-                          # numpy uses C ordering by default - last index varies fastest
-        #print('i', i)
-        #print('j', j)
-        #print('k', k)
-        #print('a', a)
         
         if field == 'U':
             self.set_field_U(i,j,k,a)
@@ -548,21 +579,21 @@ class Dales(CommonCode):
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_profile(self, field):
         if field == 'U':
-            profile = self.get_profile_U_(numpy.zeros(self.k))
+            profile = self.get_profile_U_(numpy.arange(1,self.k+1))
         elif field == 'V':
-            profile = self.get_profile_V_(numpy.zeros(self.k))
+            profile = self.get_profile_V_(numpy.arange(1,self.k+1))
         elif field == 'W':
-            profile = self.get_profile_W_(numpy.zeros(self.k))
+            profile = self.get_profile_W_(numpy.arange(1,self.k+1))
         elif field == 'THL':
-            profile = self.get_profile_THL_(numpy.zeros(self.k))
+            profile = self.get_profile_THL_(numpy.arange(1,self.k+1))
         elif field == 'QT':
-            profile = self.get_profile_QT_(numpy.zeros(self.k))
+            profile = self.get_profile_QT_(numpy.arange(1,self.k+1))
         elif field == 'QL':
-            profile = self.get_profile_QL_(numpy.zeros(self.k))
+            profile = self.get_profile_QL_(numpy.arange(1,self.k+1))
         elif field == 'E12':
-            profile = self.get_profile_E12_(numpy.zeros(self.k))
+            profile = self.get_profile_E12_(numpy.arange(1,self.k+1))
         elif field == 'T':
-            profile = self.get_profile_T_(numpy.zeros(self.k))
+            profile = self.get_profile_T_(numpy.arange(1,self.k+1))
         else:
             print('get_profile called with undefined field', field)
             
@@ -582,6 +613,8 @@ class Dales(CommonCode):
         return self.itot
     def get_jtot(self):
         return self.jtot
+    def get_kmax(self):
+        return self.k
     def get_xsize(self):
         return self.xsize
     def get_ysize(self):
@@ -590,3 +623,45 @@ class Dales(CommonCode):
         return self.dx
     def get_dy(self):
         return self.dy
+
+    def get_grid_range(self):
+        return (0,self.get_itot()-1,0,self.get_jtot()-1,0,self.get_kmax()-1)
+
+    def get_grid_position(self,i,j,k):
+        return i*self.dx,j*self.dy,self.zf[k]
+
+    def get_profile_grid_range(self):
+        return (0,self.get_kmax()-1)
+
+    def get_surface_grid_range(self):
+        return ()
+
+    def get_profile_grid_position(self,k):
+        return self.zf[k]
+        
+    def define_grids(self, object):
+        object.define_grid('grid',axes_names = "xyz", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('grid', 'get_grid_range')
+        object.add_getter('grid', 'get_grid_position', names="xyz")
+        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T']:
+            object.add_getter('grid', 'get_field_'+x,  names=[x])
+        for x in ['U', 'V', 'W', 'THL', 'QT']:
+            object.add_setter('grid', 'set_field_'+x,  names=[x])
+
+        object.define_grid('profile_grid',axes_names = "z", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('profile_grid', 'get_profile_grid_range')
+        object.add_getter('profile_grid', 'get_profile_grid_position', names="z")
+        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
+            object.add_getter('profile_grid', 'get_profile_'+x+'_',  names=[x])
+
+        object.define_grid('forcings',axes_names = "z", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('forcings', 'get_profile_grid_range')
+        object.add_getter('forcings', 'get_profile_grid_position', names="z")
+        for x in ['U', 'V', 'THL', 'QT']:
+            object.add_getter('forcings', 'get_tendency_'+x+'_',  names=['tendency_'+x])
+            object.add_setter('forcings', 'set_tendency_'+x+'_',  names=['tendency_'+x])
+
+        object.define_grid('surface', grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('surface', 'get_surface_grid_range')
+        object.add_getter('surface', 'get_surface_pressure',  names=['pressure'])
+
