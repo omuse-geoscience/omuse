@@ -20,3 +20,6 @@ Celsius=named_unit("Celsius","celsius", K)
 shu=named("specific humidity unit","shu", kg/kg)
 ahu=named("absolute humidity unit","ahu", kg/m**3)
 rhu=named("relative humidity unit","rhu", percent)
+
+mfu=named("mass fraction unit","mfu", kg/kg)
+ccu=named("cloud coverage unit","ccu", m**2/m**2)
