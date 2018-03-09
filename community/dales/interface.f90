@@ -8,8 +8,10 @@ module dales_interface
                        allocate_z_axis,allocate_2d,allocate_3d,&
                        my_task,master_task,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
-                       u_tend, v_tend, thl_tend, qt_tend, ps_tend, &
-                       gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice
+                       u_tend, v_tend, thl_tend, qt_tend, ps_tend, ql_ref, &
+                       gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice, &
+                       l_multiplicative_qt, l_force_fluctuations
+
     !TODO: Expose everything so this module only depends on daleslib
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0,sv0,um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
@@ -28,6 +30,19 @@ module dales_interface
     integer :: MPI_local_comm = MPI_COMM_WORLD
     
 contains
+    function set_multiplicative_qt_forcing(flag) result(ret)
+        integer::                      ret
+        logical,intent(in)::    flag
+        l_multiplicative_qt = flag
+        ret=0
+    end function set_multiplicative_qt_forcing
+
+    function set_fluctuation_forcing(flag) result(ret)
+        integer::                      ret
+        logical,intent(in)::    flag
+        l_force_fluctuations = flag
+        ret=0
+    end function set_fluctuation_forcing
 
     function set_input_file(ifile) result(ret)
         integer::                      ret
@@ -396,6 +411,15 @@ contains
       qt_tend = a
       ret = 0
     end function set_tendency_QT
+
+    function set_ref_profile_QL(a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer                             :: ret
+      ql_ref = a
+      ret = 0
+    end function set_ref_profile_QL
+
 
     function set_tendency_surface_pressure(p_tend) result(ret)
       real(8),intent(in)::  p_tend
