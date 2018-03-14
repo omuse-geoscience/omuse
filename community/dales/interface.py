@@ -41,6 +41,14 @@ class DalesInterface(CodeInterface,
         pass
 
     @remote_function
+    def set_multiplicative_qt_forcing(flag=False):
+        pass
+
+    @remote_function
+    def set_fluctuation_forcing(flag=False):
+        pass
+
+    @remote_function
     def set_workdir(directory="./"):
         pass
     @remote_function
@@ -158,6 +166,11 @@ class DalesInterface(CodeInterface,
     def set_tendency_QT(a=0.):
         returns ()
 
+    @remote_function(must_handle_array=True)
+    def set_ref_profile_QL(a=0.):
+        returns ()
+
+        
 # getter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
     def get_field_U(g_i=0,g_j=0,g_k=0):
