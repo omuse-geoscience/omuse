@@ -51,7 +51,7 @@ class OpenIFSInterface(CodeInterface,
     # Returns model start date (YYYYMMdd)
     @remote_function
     def get_start_date():
-        returns (date = 0 | units.1)
+        returns (date = 0)
 
     # Returns model start time seconds into start date
     @remote_function
