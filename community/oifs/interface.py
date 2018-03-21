@@ -1,5 +1,6 @@
 import os
 import numpy
+import datetime
 import f90nml
 import shutil
 
@@ -46,6 +47,16 @@ class OpenIFSInterface(CodeInterface,
     @remote_function
     def get_timestep():
         returns (dt = 0. | units.s)
+    
+    # Returns model start date (YYYYMMdd)
+    @remote_function
+    def get_start_date():
+        returns (date = 0)
+
+    # Returns model start time seconds into start date
+    @remote_function
+    def get_start_time():
+        returns (time = 0 | units.s)
 
     # set the experiment name, used as part of the input file names
     @remote_function
@@ -342,9 +353,6 @@ class OpenIFS(CommonCode):
             f90nml.patch(backupfile,self.patch,inputfile)
             print('***** Done patching ', inputfile)
 
-
-
-
     # Commit run parameters, not implemented yet
     def commit_parameters(self):
         self.set_exp_name(self.exp_name)
@@ -385,6 +393,7 @@ class OpenIFS(CommonCode):
         for state in ["RUN","EDIT","EVOLVED"]:
             object.add_method(state,"get_model_time")
             object.add_method(state,"get_timestep")
+            object.add_method(state,"get_start_datetime")
             object.add_method(state,"get_volume_field")
             object.add_method(state,"get_profile_field")
         object.add_method("EVOLVED","evolve_model")
@@ -392,6 +401,22 @@ class OpenIFS(CommonCode):
         object.add_method("EVOLVED","evolve_model_until_cloud_scheme")
         object.add_method("EVOLVED","evolve_model_cloud_scheme")
         object.add_method("EVOLVED","evolve_model_from_cloud_scheme")
+
+    def get_start_datetime(self):
+        d = self.get_start_date()
+        years = d / 10000
+        months = (d % 10000) / 100
+        days = d % 100
+        t = self.get_start_time().value_in(units.s)
+        hours = t / 3600
+        minutes = (t - 3600 * hours)/60
+        seconds = t - 3600 * hours - 60 * minutes
+        return datetime.datetime(year=years,
+                                 month=months,
+                                 day=days,
+                                 hour = hours,
+                                 minute = minutes,
+                                 second = seconds)
 
     def get_field(self,fid,i,k):
         if(fid == "Pfull"):
