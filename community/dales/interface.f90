@@ -8,12 +8,12 @@ module dales_interface
                        allocate_z_axis,allocate_2d,allocate_3d,&
                        my_task,master_task,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
-                       u_tend, v_tend, thl_tend, qt_tend, ps_tend, ql_ref, &
+                       u_tend, v_tend, thl_tend, qt_tend, ps_tend, ql_ref, qt_alpha, &
                        gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice, &
                        l_multiplicative_qt, l_force_fluctuations
 
     !TODO: Expose everything so this module only depends on daleslib
-    use modfields, only: u0,v0,w0,thl0,qt0,ql0,e120,tmp0,sv0,um,vm,wm,thlm,qtm
+    use modfields, only: u0,v0,w0,thl0,qt0,ql0,qsat,e120,tmp0,sv0,um,vm,wm,thlm,qtm
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, qts
     use modsurface, only: qtsurf, wqsurf, wtsurf, z0m, z0h
@@ -420,6 +420,16 @@ contains
       ret = 0
     end function set_ref_profile_QL
 
+    function set_qt_variability_factor(a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer                             :: ret
+      qt_alpha = a
+      ret = 0
+    end function set_qt_variability_factor
+    
+
+    
 
     function set_tendency_surface_pressure(p_tend) result(ret)
       real(8),intent(in)::  p_tend
@@ -480,6 +490,14 @@ contains
        integer                             :: ret
        ret = gathervol(g_i,g_j,g_k,a,n,ql0(2:i1,2:j1,1:kmax))
      end function get_field_QL
+
+     function get_field_Qsat(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,qsat(2:i1,2:j1,1:kmax))
+     end function get_field_Qsat
 
      function get_field_E12(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n

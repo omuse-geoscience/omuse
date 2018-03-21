@@ -170,6 +170,10 @@ class DalesInterface(CodeInterface,
     def set_ref_profile_QL(a=0.):
         returns ()
 
+    @remote_function(must_handle_array=True)
+    def set_qt_variability_factor(a=0. | 1 / units.s):
+        returns ()
+
         
 # getter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
@@ -194,6 +198,10 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_field_QL(g_i=0,g_j=0,g_k=0):
+        returns (a=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_field_Qsat(g_i=0,g_j=0,g_k=0):
         returns (a=0.)
 
     @remote_function(must_handle_array=True)
@@ -501,6 +509,8 @@ class Dales(CommonCode):
             field = self.get_field_QT(i,j,k)
         elif field == 'QL':
             field = self.get_field_QL(i,j,k)
+        elif field == 'Qsat':
+            field = self.get_field_Qsat(i,j,k)
         elif field == 'E12':
             field = self.get_field_E12(i,j,k)
         elif field == 'T':
