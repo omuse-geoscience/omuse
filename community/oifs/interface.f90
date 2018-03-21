@@ -17,7 +17,8 @@ module openifs_interface
     use yommp0,     only: myproc
     use yomgem,     only: ngptotg
     use yomdimv,    only: nflevg
-    USE yomlun,     only: nulout
+    use yomlun,     only: nulout
+    use yomarg,     only: nudate,nussss
     use mpi, only: MPI_COMM_WORLD
     
     implicit none
@@ -85,6 +86,26 @@ module openifs_interface
             integer::                ret
 
             dt = tstep
+            ret = 0
+
+        end function
+
+        function get_start_date(date) result(ret)
+
+            integer, intent(out)::  date
+            integer::               ret
+
+            date = nudate
+            ret = 0
+
+        end function
+
+        function get_start_time(time) result(ret)
+
+            integer, intent(out)::  time
+            integer::               ret
+
+            time = nussss
             ret = 0
 
         end function
