@@ -18,6 +18,7 @@ import numpy
 import os
 import sys
 import shutil
+import datetime
 
 dales_procs=2
 
@@ -52,8 +53,9 @@ def init(inputdir, workdir):
 
 
 def main(args):
-    dales=init(inputdir, workdir)
 
+    dales=init(inputdir, workdir)
+    dales.parameters.starttime=datetime.datetime(2013,12,30,23,55,10)
     dales.parameters.evolve_to_exact_time=True
 
     print('Initialization done.')
