@@ -51,9 +51,18 @@ class DalesInterface(CodeInterface,
     @remote_function
     def set_workdir(directory="./"):
         pass
+
     @remote_function
     def get_workdir():
         returns (directory="s")
+
+    @remote_function
+    def set_start_date(date=0):
+        pass
+
+    @remote_function
+    def set_start_time(time=0):
+        pass
     
     @remote_function
     def get_model_time():
@@ -303,7 +312,6 @@ class Dales(CommonCode):
 #            exactEnd=self.parameters.evolve_to_exact_time
 #        self.overridden().evolve_model(tend, exactEnd)
             
-        
     def commit_parameters(self):
         workdir=self.get_workdir()
         inputfile=os.path.join(workdir,self.parameters.input_file)
@@ -319,10 +327,14 @@ class Dales(CommonCode):
                             trestart=self.parameters.trestart.value_in(units.s))
         f90nml.patch(inputfile,patch,dalesinputfile)
         self.set_input_file(dalesinputfile)
-
         print "code options written to %s"%dalesinputfile
-        
+
+        dt = self.parameters.starttime
+        if dt != 0:
+            self.set_start_date(10000 * dt.year + 100 * dt.month + dt.day)
+            self.set_start_time(10000 * dt.hour + 100 * dt.minute + dt.second)
         self.overridden().commit_parameters()
+        
         self.get_params()
 
     def define_parameters(self, object):
@@ -398,6 +410,12 @@ class Dales(CommonCode):
             False,
             "before_set_interface_parameter"
         )
+        object.add_interface_parameter(
+            "starttime",
+            "absolute model start datetime",
+            0,
+            "before_set_interface_parameter"
+        )
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -419,6 +437,7 @@ class Dales(CommonCode):
         object.add_transition("EDIT","RUN","commit_grid")
 
         object.add_method("INITIALIZED", "set_input_file")
+        object.add_method("INITIALIZED", "set_start_date_time")
 
         for state in ["RUN","EVOLVED"]:
           object.add_method(state,"get_model_time")
@@ -564,8 +583,6 @@ class Dales(CommonCode):
             self.set_field_QT(i,j,k,a)
         else:
             print('set_field called with undefined field', field)
-                
-
 
     # retrieve a 1D vertical profile - wrapper function consistent with get_field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
@@ -591,7 +608,6 @@ class Dales(CommonCode):
             
         return profile
 
-
     # get parameters from the fortran code, store them in the Dales interface object
     # called from commit_parameters()
     def get_params(self):
@@ -613,3 +629,4 @@ class Dales(CommonCode):
         return self.dx
     def get_dy(self):
         return self.dy
+
