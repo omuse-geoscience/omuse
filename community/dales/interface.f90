@@ -28,6 +28,7 @@ module dales_interface
     real(8),allocatable::tmp3D(:,:,:)
 
     integer :: MPI_local_comm = MPI_COMM_WORLD
+    integer :: startdate, starttime
     
 contains
     function set_multiplicative_qt_forcing(flag) result(ret)
@@ -79,20 +80,37 @@ contains
       ret = 0
       call getcwd(directory)
       directory=trim(directory)
-    end function get_workdir    
-    
+    end function get_workdir 
+
+    function set_start_date(date) result(ret)
+        integer::                      ret
+        integer,intent(in)::           date
+
+        startdate = date
+        ret=0
+    end function set_start_date
+
+    function set_start_time(time) result(ret)
+        integer::                      ret
+        integer,intent(in)::           time
+
+        starttime = time
+        ret=0
+    end function set_start_time
     
     function initialize_code() result(ret)
         integer:: ret
         
         fname_options="namoptions.001"
+        startdate=0
+        starttime=0
         ret=0
     end function
 
     function commit_parameters() result(ret)
         integer:: ret
 
-        call initialize(fname_options,MPI_local_comm)
+        call initialize(fname_options,mpi_comm=MPI_local_comm,date=startdate,time=starttime)
 
         ret=0
         if(my_task==master_task) then
