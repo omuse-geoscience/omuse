@@ -8,9 +8,11 @@ module dales_interface
                        allocate_z_axis,allocate_2d,allocate_3d,&
                        my_task,master_task,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
-                       u_tend, v_tend, thl_tend, qt_tend, ps_tend, ql_ref, qt_alpha, &
+                       u_tend, v_tend, thl_tend, qt_tend, ql_tend, ps_tend, ql_ref, qt_alpha, &
                        gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice, &
-                       l_multiplicative_qt, l_force_fluctuations
+                       qt_forcing_type, qt_correction_type, &
+                       QT_FORCING_GLOBAL, QT_FORCING_LOCAL, QT_FORCING_VARIANCE,&
+                       QT_CORRECTION_NONE, QT_CORRECTION_REGULAR, QT_CORRECTION_RESCALE
 
     !TODO: Expose everything so this module only depends on daleslib
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,qsat,e120,tmp0,sv0,um,vm,wm,thlm,qtm
@@ -31,19 +33,27 @@ module dales_interface
     integer :: startdate, starttime
     
 contains
-    function set_multiplicative_qt_forcing(flag) result(ret)
-        integer::                      ret
-        logical,intent(in)::    flag
-        l_multiplicative_qt = flag
-        ret=0
-    end function set_multiplicative_qt_forcing
+    function set_qt_forcing(forcing_type) result(ret)
+        integer::            ret
+        integer,intent(in):: forcing_type
+        if (forcing_type >= 0 .and. forcing_type <= 2) then
+            qt_forcing_type = forcing_type
+            ret = 0
+        else
+            ret = 1
+        endif
+    end function set_qt_forcing
 
-    function set_fluctuation_forcing(flag) result(ret)
-        integer::                      ret
-        logical,intent(in)::    flag
-        l_force_fluctuations = flag
-        ret=0
-    end function set_fluctuation_forcing
+    function set_qt_correction(correction_type) result(ret)
+        integer::            ret
+        integer,intent(in):: correction_type
+        if (correction_type >= -1 .and. correction_type <= 1) then
+            qt_correction_type =  correction_type
+            ret = 0
+        else
+            ret = 1
+        endif
+    end function set_qt_correction
 
     function set_input_file(ifile) result(ret)
         integer::                      ret
@@ -429,6 +439,14 @@ contains
       qt_tend = a
       ret = 0
     end function set_tendency_QT
+
+    function set_tendency_QL(a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer                             :: ret
+      ql_tend = a
+      ret = 0
+    end function set_tendency_QL
 
     function set_ref_profile_QL(a, n) result(ret)
       integer, intent(in)                 :: n
