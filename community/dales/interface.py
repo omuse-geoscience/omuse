@@ -41,11 +41,11 @@ class DalesInterface(CodeInterface,
         pass
 
     @remote_function
-    def set_multiplicative_qt_forcing(flag=False):
+    def set_qt_forcing(forcing_type=0):
         pass
 
     @remote_function
-    def set_fluctuation_forcing(flag=False):
+    def set_qt_correction(correction_type=0):
         pass
 
     @remote_function
@@ -176,6 +176,10 @@ class DalesInterface(CodeInterface,
         returns ()
 
     @remote_function(must_handle_array=True)
+    def set_tendency_QL(a=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
     def set_ref_profile_QL(a=0.):
         returns ()
 
@@ -289,18 +293,26 @@ class DalesInterface(CodeInterface,
 
 
 class Dales(CommonCode):
-    # grid size
-    itot = None
-    jtot = None
-    k    = None
-    xsize = None
-    ysize = None
-    dx = None
-    dy = None
     
+    QT_FORCING_GLOBAL=0
+    QT_FORCING_LOCAL=1
+    QT_FORCING_VARIANCE=2
+    QT_CORRECTION_NONE=-1
+    QT_CORRECTION_REGULAR=0
+    QT_CORRECTION_RESCALE=1
+
     def __init__(self,**options):
         CommonCode.__init__(self,  DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
+
+        # grid size
+        self.itot = None
+        self.jtot = None
+        self.k = None
+        self.xsize = None
+        self.ysize = None
+        self.dx = None
+        self.dy = None
 
         print ("DalesInterface.__init__", options)
         if 'workdir' in options:
@@ -469,7 +481,6 @@ class Dales(CommonCode):
 
     def get_profile_QL(self):
         return self.get_profile_QL_(numpy.zeros(self.k))
-
 
     def get_profile_QL_ice(self):
         return self.get_profile_QL_ice_(numpy.zeros(self.k))
