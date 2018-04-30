@@ -45,10 +45,6 @@ class DalesInterface(CodeInterface,
         pass
 
     @remote_function
-    def set_qt_correction(correction_type=0):
-        pass
-
-    @remote_function
     def set_workdir(directory="./"):
         pass
 
@@ -297,9 +293,6 @@ class Dales(CommonCode):
     QT_FORCING_GLOBAL=0
     QT_FORCING_LOCAL=1
     QT_FORCING_VARIANCE=2
-    QT_CORRECTION_NONE=-1
-    QT_CORRECTION_REGULAR=0
-    QT_CORRECTION_RESCALE=1
 
     def __init__(self,**options):
         CommonCode.__init__(self,  DalesInterface(**options), **options)
@@ -345,6 +338,7 @@ class Dales(CommonCode):
         if dt != 0:
             self.set_start_date(10000 * dt.year + 100 * dt.month + dt.day)
             self.set_start_time(10000 * dt.hour + 100 * dt.minute + dt.second)
+        self.set_qt_forcing(self.parameters.qt_forcing)
         self.overridden().commit_parameters()
         
         self.get_params()
@@ -425,6 +419,12 @@ class Dales(CommonCode):
         object.add_interface_parameter(
             "starttime",
             "absolute model start datetime",
+            0,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "qt_forcing",
+            "qt forcing type",
             0,
             "before_set_interface_parameter"
         )
