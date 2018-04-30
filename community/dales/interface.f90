@@ -10,9 +10,7 @@ module dales_interface
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, ql_tend, ps_tend, ql_ref, qt_alpha, &
                        gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice, &
-                       qt_forcing_type, qt_correction_type, &
-                       QT_FORCING_GLOBAL, QT_FORCING_LOCAL, QT_FORCING_VARIANCE,&
-                       QT_CORRECTION_NONE, QT_CORRECTION_REGULAR, QT_CORRECTION_RESCALE
+                       qt_forcing_type, QT_FORCING_GLOBAL, QT_FORCING_LOCAL, QT_FORCING_VARIANCE
 
     !TODO: Expose everything so this module only depends on daleslib
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,qsat,e120,tmp0,sv0,um,vm,wm,thlm,qtm
@@ -43,17 +41,6 @@ contains
             ret = 1
         endif
     end function set_qt_forcing
-
-    function set_qt_correction(correction_type) result(ret)
-        integer::            ret
-        integer,intent(in):: correction_type
-        if (correction_type >= -1 .and. correction_type <= 1) then
-            qt_correction_type =  correction_type
-            ret = 0
-        else
-            ret = 1
-        endif
-    end function set_qt_correction
 
     function set_input_file(ifile) result(ret)
         integer::                      ret
