@@ -72,7 +72,7 @@ distclean: clean
 
 
 download:
-	git clone git@github.com:goord/dales.git dales-repo
+	git clone git@github.com:CloudResolvingClimateModeling/dales.git dales-repo
 
 ifdef DOWNLOAD_CODES
 dales-repo:
