@@ -111,27 +111,27 @@ class OpenIFSInterface(CodeInterface,
     # Utility method returning the specific humidity field
     @remote_function(must_handle_array=True)
     def get_field_SH_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.shu)
 
     # Utility method returning the liquid water content field
     @remote_function(must_handle_array=True)
     def get_field_QL_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.mfu)
 
     # Utility method returning the ice water content field
     @remote_function(must_handle_array=True)
     def get_field_QI_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.mfu)
 
     # Utility method returning the cloud coverage field
     @remote_function(must_handle_array=True)
     def get_field_A_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.ccu)
 
     # Utility method returning the ozone field
     @remote_function(must_handle_array=True)
     def get_field_O3_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.mfu /units.s)
 
     # Utility method returning the full u-component tendency
     @remote_function(must_handle_array=True)
@@ -151,27 +151,27 @@ class OpenIFSInterface(CodeInterface,
     # Utility method returning the specific humidity tendency
     @remote_function(must_handle_array=True)
     def get_tendency_SH_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.shu/units.s)
 
     # Utility method returning the liquid water content tendency
     @remote_function(must_handle_array=True)
     def get_tendency_QL_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.mfu/units.s)
 
     # Utility method returning the ice water content tendency
     @remote_function(must_handle_array=True)
     def get_tendency_QI_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.mfu/units.s)
 
     # Utility method returning the cloud coverage tendency
     @remote_function(must_handle_array=True)
     def get_tendency_A_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.ccu/units.s)
 
     # Utility method returning the ozone tendency
     @remote_function(must_handle_array=True)
     def get_tendency_O3_(i = 0,k = 0):
-        returns (out = 0.)
+        returns (out = 0. | units.mfu /units.s)
 
     # Utility method returning the specific humidity (qv) surface flux
     @remote_function(must_handle_array=True)
@@ -210,62 +210,62 @@ class OpenIFSInterface(CodeInterface,
 
     # Utility method setting the u-component tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_U_(i = 0,k = 0,v = 0.):
+    def set_tendency_U_(i = 0,k = 0,v = 0. | units.m/units.s**2):
         pass
 
     # Utility method setting the v-component tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_V_(i = 0,k = 0,v = 0.):
+    def set_tendency_V_(i = 0,k = 0,v = 0. | units.m/units.s**2):
         pass
 
     # Utility method setting the temperature tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_T_(i = 0,k = 0,v = 0.):
+    def set_tendency_T_(i = 0,k = 0,v = 0. | units.K/units.s):
         pass
 
     # Utility method setting the specific humidity tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_SH_(i = 0,k = 0,v = 0.):
+    def set_tendency_SH_(i = 0,k = 0,v = 0. | units.shu/units.s):
         pass
 
     # Utility method setting the liquid water tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_QL_(i = 0,k = 0,v = 0.):
+    def set_tendency_QL_(i = 0,k = 0,v = 0. | units.mfu/units.s):
         pass
 
     # Utility method setting the ice water tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_QI_(i = 0,k = 0,v = 0.):
+    def set_tendency_QI_(i = 0,k = 0,v = 0. | units.mfu/units.s):
         pass
 
     # Utility method setting the cloud coverage tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_A_(i = 0,k = 0,v = 0.):
+    def set_tendency_A_(i = 0,k = 0,v = 0. | units.ccu/units.s):
         pass
 
     # Utility method setting the ozone tendency
     @remote_function(must_handle_array=True)
-    def set_tendency_O3_(i = 0,k = 0,v = 0.):
+    def set_tendency_O3_(i = 0,k = 0,v = 0. | units.mfu/units.s):
         pass
 
     # Utility method setting the convective rain flux
     @remote_function(must_handle_array=True)
-    def set_flux_CPR_(i = 0,k = 0,v = 0.):
+    def set_flux_CPR_(i = 0,k = 0,v = 0. | units.kg/units.m**2/units.s):
         pass
 
     # Utility method setting the convective snow flux
     @remote_function(must_handle_array=True)
-    def set_flux_CPS_(i = 0,k = 0,v = 0.):
+    def set_flux_CPS_(i = 0,k = 0,v = 0.| units.kg/units.m**2/units.s):
         pass
 
     # Utility method setting the stratiform rain flux
     @remote_function(must_handle_array=True)
-    def set_flux_SPR_(i = 0,k = 0,v = 0.):
+    def set_flux_SPR_(i = 0,k = 0,v = 0.| units.kg/units.m**2/units.s):
         pass
 
     # Utility method setting the stratiform snow flux
     @remote_function(must_handle_array=True)
-    def set_flux_SPS_(i = 0,k = 0,v = 0.):
+    def set_flux_SPS_(i = 0,k = 0,v = 0.| units.kg/units.m**2/units.s):
         pass
 
     # Utility method setting a superparametrization mask
@@ -511,8 +511,8 @@ class OpenIFS(CommonCode):
     def get_profile_fields(self,fid,colindex):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
 
-        i,k = numpy.meshgrid(colindex,numpy.arange(ktop),indexing='ij')
-        i,k = i.reshape(-1), k.reshape(-1) #i = a,a,a,...,b,b,b,...   if colindex = [a, b, ...]
+        i,k = numpy.meshgrid(colindex,numpy.arange(ktop))
+        i,k = i.T.reshape(-1), k.T.reshape(-1) #i = a,a,a,...,b,b,b,...   if colindex = [a, b, ...] 
                                            #k = 1,2,3,...,1,2,3,...
 
         #print('get_profile_fields', colindex)
@@ -562,3 +562,27 @@ class OpenIFS(CommonCode):
         ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
         i,k = numpy.ones([ktop])*colindex,numpy.arange(0,ktop)
         self.set_tendency(fid,i,k,v)
+
+    def get_grid_range(self):
+        isize,ksize=self.get_grid_sizes()
+        return (0,isize-1)
+        
+    def get_vertical_grid_range(self):
+        isize,ksize=self.get_grid_sizes()
+        return (0,ksize-1)
+
+
+    def define_grids(self,object):
+        object.define_grid('grid',axes_names = ['lon','lat'], grid_class=datamodel.UnstructuredGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('grid', 'get_grid_range')
+        object.add_getter('grid', 'get_gridpoints', names=['lat','lon'])
+        for x in ['Pfull','U', 'V', 'T', 'QL', 'QI','SH','A','O3']:
+            object.add_gridded_getter('grid', 'get_field_'+x+'_','get_vertical_grid_range', names = (x,))
+        
+        object.define_grid('forcings',axes_names = ['lon','lat'], grid_class=datamodel.UnstructuredGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('forcings', 'get_grid_range')
+        object.add_getter('forcings', 'get_gridpoints', names=['lat','lon'])
+        for x in ['U', 'V', 'T', 'SH','QL','QI', 'A', 'O3']:
+            object.add_getter('forcings', 'get_tendency_'+x+'_',  names=['tendency_'+x])
+            object.add_setter('forcings', 'set_tendency_'+x+'_',  names=['tendency_'+x])
+
