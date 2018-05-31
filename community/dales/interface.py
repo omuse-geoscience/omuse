@@ -175,15 +175,15 @@ class DalesInterface(CodeInterface,
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QT(a=0. | units.shu/units.s):
+    def set_tendency_QT(a=0. | units.mfu/units.s):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QL(a=0.):
+    def set_tendency_QL(a=0. | units.mfu/units.s):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_ref_profile_QL(a=0.):
+    def set_ref_profile_QL(a=0.| units.mfu):
         returns ()
 
     @remote_function(must_handle_array=True)
@@ -204,7 +204,7 @@ class DalesInterface(CodeInterface,
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QT_(g_i=0,a=0.| units.shu/units.s):
+    def set_tendency_QT_(g_i=0,a=0.| units.mfu/units.s):
         returns ()
 
     @remote_function(must_handle_array=True)
@@ -221,7 +221,7 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_tendency_QT_(g_i=0):
-        returns (a=0.| units.shu/units.s)
+        returns (a=0.| units.mfu/units.s)
 
 # getter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
@@ -290,7 +290,7 @@ class DalesInterface(CodeInterface,
         returns()
         
     @remote_function(must_handle_array=True)
-    def set_field_QT(g_i=0,g_j=0,g_k=0,a=0. | units.shu):
+    def set_field_QT(g_i=0,g_j=0,g_k=0,a=0. | units.mfu):
         returns()
 
 #    @remote_function(must_handle_array=True)
