@@ -172,7 +172,7 @@ contains
 
         do while((rtimee < tend .and. timeleft > 0)) ! .or. rk3step < 3)
 
-           if (exactEnd_ /= 0 .or. exactEnd /= 0) then
+           if (exactEnd_ /= 0 .or. exactEnd) then
               ! set dt_lim to finish at tend (or before)
               dt_lim = min(dt_lim, (int(tend/tres) - timee))
            endif
