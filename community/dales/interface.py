@@ -299,20 +299,20 @@ class DalesInterface(CodeInterface,
 
     # setter functions for wtflux and qtflux
     @remote_function
-    def set_wt_surf(wtflux=0.):
+    def set_wt_surf(wtflux=0. | units.m * units.s**-1 * units.K):
         returns()
 
     @remote_function
-    def set_wq_surf(wqflux=0.):
+    def set_wq_surf(wqflux=0. | units.m / units.s):
         returns()
 
     # setter functions for momentum and heat roughness
     @remote_function
-    def set_z0m_surf(z0=0.):
+    def set_z0m_surf(z0=0. | units.m):
         returns()
 
     @remote_function
-    def set_z0h_surf(z0=0.):
+    def set_z0h_surf(z0=0. | units.m):
         returns()
         
     @remote_function()
