@@ -4,7 +4,7 @@ from amuse.test.amusetest import TestWithMPI
 from omuse.community.dales.interface import DalesInterface
 from omuse.community.dales.interface import Dales
 
-from amuse.units import units
+from omuse.units import units
 
 default_options={}
 #default_options=dict(number_of_workers=4)
@@ -35,7 +35,7 @@ class TestDalesInterface(TestWithMPI):
 
         print "Test 2: instantiate with 4 workers and clean up"
 
-        instance = Dales(number_of_workers=4)
+        instance = Dales(number_of_workers=4,**default_options)
         instance.cleanup_code()
         instance.stop()
     
@@ -43,7 +43,7 @@ class TestDalesInterface(TestWithMPI):
 
         print "Test 3: instantiate, run one minute and clean up"
 
-        instance = Dales(redirection="none")
+        instance = Dales(**default_options)
         tim=instance.get_model_time()
         instance.commit_grid()
         instance.evolve_model(tim + (1 | units.minute))
@@ -56,7 +56,7 @@ class TestDalesInterface(TestWithMPI):
 
         print "Test 4: instantiate with 4 workers, run one minute and clean up"
 
-        instance = Dales(number_of_workers=4,redirection="none")
+        instance = Dales(number_of_workers=4,**default_options)
         tim=instance.get_model_time()
         instance.commit_grid()
         instance.evolve_model(tim + (1 | units.minute))
@@ -69,7 +69,7 @@ class TestDalesInterface(TestWithMPI):
 
         print "Test 5: instantiate, run 10 seconds and retrieve temperature profile"
 
-        instance = Dales(number_of_workers=4,redirection="none")
+        instance = Dales(number_of_workers=4,**default_options)
         tim=instance.get_model_time()
         instance.commit_grid()
         instance.evolve_model(tim + (10 | units.s))
@@ -81,7 +81,7 @@ class TestDalesInterface(TestWithMPI):
     def test6(self):
         print "Test 6: instantiate, run 2 seconds and retrieve profiles"
 
-        instance = Dales(number_of_workers=4,redirection="none")
+        instance = Dales(number_of_workers=4,**default_options)
         tim=instance.get_model_time()
         instance.commit_grid()
         instance.evolve_model(tim + (2 | units.s))
@@ -118,7 +118,7 @@ class TestDalesInterface(TestWithMPI):
         
         for n in (1,2,4):
             print "---------------------------------------------------- %d threads -------------------------------------------------"%n
-            instance = Dales(number_of_workers=n,redirection="none")
+            instance = Dales(number_of_workers=n,**default_options)
             tim=instance.get_model_time()
             instance.commit_grid()
 
@@ -126,7 +126,7 @@ class TestDalesInterface(TestWithMPI):
             thl = instance.get_profile_THL()
             qt  = instance.get_profile_QT()
             for i in range(0,instance.k):
-                print "%3d %6.1f - %7.3f %7.3f - %8.4f %8.4f"%(i, zf[i].value_in(units.m), thl_in[i], thl[i].value_in(units.K), qt_in[i], qt[i])
+                print "%3d %6.1f - %7.3f %7.3f - %8.4f %8.4f"%(i, zf[i].value_in(units.m), thl_in[i], thl[i].value_in(units.K), qt_in[i], qt[i].value_in(units.shu))
             # get rid of units
             thl = [t.value_in(units.K) for t in thl]
             rmsT  = rms(thl, thl_in)
@@ -158,7 +158,7 @@ class TestDalesInterface(TestWithMPI):
         # the effect of the forcing is seen in the U profile at the same height as the forcing was places
         # no automatic test for this
 
-        instance = Dales(number_of_workers=4,redirection="none")
+        instance = Dales(number_of_workers=4,**default_options)
         tim=instance.get_model_time()
         instance.commit_grid()
 
@@ -172,7 +172,7 @@ class TestDalesInterface(TestWithMPI):
         tend[6] = -.2   # layer 9 sees the most effect of this
         tend[7] = -.1
 
-        instance.set_tendency_U(tend)
+        instance.set_tendency_U(tend | units.m/units.s**2)
         
         instance.evolve_model(tim + (30 | units.s))
 
@@ -209,15 +209,15 @@ class TestDalesInterface(TestWithMPI):
 
         # root mean square difference between vectors a and b
         def rms(a, b):
-            return numpy.sqrt(((a-b)**2).mean())
+            return (((a-b)**2).mean())**0.5
         
-        instance = Dales(number_of_workers=2,redirection="none")
+        instance = Dales(number_of_workers=2,**default_options)
         tim=instance.get_model_time()
         instance.commit_grid()
 
         tend = numpy.zeros(instance.k)
         tend[5] = -1
-        instance.set_tendency_U(tend)
+        instance.set_tendency_U(tend | units.m/units.s**2)
         
         instance.evolve_model(tim + (180 | units.s))
         
@@ -297,9 +297,9 @@ class TestDalesInterface(TestWithMPI):
 
         # summed root mean square difference between vectors a and b
         def rmsSum(a, b):
-            return numpy.sqrt(((a-b)**2).sum())
+            return (((a-b)**2).sum())**0.5
         
-        instance = Dales(number_of_workers=1,redirection="none")
+        instance = Dales(number_of_workers=1,**default_options)
         tim=instance.get_model_time()
         instance.commit_grid()
 
@@ -347,44 +347,40 @@ class TestDalesInterface(TestWithMPI):
     def test11(self):
         print("Test 11: set 3D data, get it back, compare")
 
-        def drop_units(name, a):
-            fieldunits = {
+        fieldunits = {
                 'U'   : units.m / units.s,
                 'V'   : units.m / units.s,
                 'W'   : units.m / units.s,
                 'THL' : units.K,
+                'QT'  : units.shu,
             }
-            if name in fieldunits:
-                return a.value_in(fieldunits[name])
-            else:
-                return a
 
         # write a single grid point at i,j,k, read back
         def testSingle(i,j,k):
             #a = numpy.random.random((1,1,1)) # 3D matrix with one element
-            a = numpy.random.random() # scalar
+            a = numpy.random.random()  | fieldunits[field]# scalar
             b = dales.get_field(field, i, i+1, j, j+1, k, k+1)
-            b = drop_units(field, b)
+#            b = drop_units(field, b)
             dales.set_field(field, a, i, j, k)
             c = dales.get_field(field, i, i+1, j, j+1, k, k+1)
-            c = drop_units(field, c)
-            print field, (i,j,k), 'was:', b, 'set: ', a, 'get:', c
-            assert(a == c)
+#            c = drop_units(field, c)
+            #~ print field, (i,j,k), 'was:', b, 'set: ', a, 'get:', c
+            self.assertEquals(a,c)
 
         # write to a block [i:i+si, j:j+sj, k:k+sk], read back
         def testBlock(i,j,k, si, sj, sk):
-            a = numpy.random.random((si,sj,sk))
+            a = numpy.random.random((si,sj,sk)) | fieldunits[field]
             b = dales.get_field(field, i, i+si, j, j+sj, k, k+sk)
-            b = drop_units(field, b)
+#            b = drop_units(field, b)
             dales.set_field(field, a, i, j, k)
             c = dales.get_field(field, i, i+si, j, j+sj, k, k+sk)
-            c = drop_units(field, c)
+#            c = drop_units(field, c)
             print field, (i,j,k),  (si,sj,sk) #'was:', b, 'set: ', a, 'get:', c
-            assert ((a == c).all())
+            self.assertEquals(a,c)
             
         for n in (1,2,4):
             print ' --- ', n, 'dales workers --- '
-            dales = Dales(number_of_workers=n,redirection="none")
+            dales = Dales(number_of_workers=n,**default_options)
             dales.commit_grid()
 
             # set random grid elements for all fields, read back
@@ -411,3 +407,48 @@ class TestDalesInterface(TestWithMPI):
             
             dales.cleanup_code()
             dales.stop()
+
+class TestDales(TestWithMPI):
+
+    def test1(self):
+
+        print "Test 1: instantiate and stop"
+
+        instance = Dales(**default_options)
+        instance.stop()
+
+    def test2(self):
+
+        print "Test 2: instantiate, run one minute and clean up"
+
+        instance = Dales(**default_options)
+        tim=instance.model_time
+        instance.evolve_model(tim + (1 | units.minute))
+        newtim=instance.model_time
+        self.assertTrue(newtim>=tim)
+        instance.stop()
+
+    def test3(self):
+
+        print "Test 3: instantiate, run one minute and clean up"
+
+        instance = Dales(**default_options)
+        instance.parameters.exactEndFlag=True
+        tim=instance.model_time
+        instance.evolve_model(tim + (1 | units.minute))
+        newtim=instance.model_time
+        self.assertTrue(newtim-tim==(1 | units.minute))
+        instance.stop()
+
+    def xtest4(self):
+
+        print "Test 3: instantiate, run one minute and clean up"
+
+        instance = Dales(**default_options)
+        print instance.get_name_of_current_state()
+        print instance.parameters
+        print instance.get_name_of_current_state()
+        instance.parameters.input_file="dummy"
+        print instance.get_name_of_current_state()
+        print instance.parameters
+        print instance.get_name_of_current_state()
