@@ -141,6 +141,11 @@ class DalesInterface(CodeInterface,
     def get_cloudfraction(k=0):
         returns (out=0. | units.m**2/units.m**2)
 
+    # getter for accumulated surface rain flux
+    @remote_function()
+    def get_rain():
+        returns (out=0. | units.kg / units.m**2)
+        
 # getter functions for height levels
 # these take a dummy array as input, and return output of the same length
     @remote_function(must_handle_array=True)
