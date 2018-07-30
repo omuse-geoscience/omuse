@@ -131,7 +131,7 @@ class OpenIFSInterface(CodeInterface,
     # Utility method returning the ozone field
     @remote_function(must_handle_array=True)
     def get_field_O3_(i = 0,k = 0):
-        returns (out = 0. | units.mfu /units.s)
+        returns (out = 0. | units.mfu)
 
     # Utility method returning the full u-component tendency
     @remote_function(must_handle_array=True)

@@ -13,7 +13,7 @@ module dales_interface
                        qt_forcing_type, QT_FORCING_GLOBAL, QT_FORCING_LOCAL, QT_FORCING_VARIANCE
 
     !TODO: Expose everything so this module only depends on daleslib
-    use modfields, only: u0,v0,w0,thl0,qt0,ql0,qsat,e120,tmp0,sv0,um,vm,wm,thlm,qtm
+    use modfields, only: u0,v0,w0,thl0,qt0,ql0,qsat,e120,tmp0,sv0,um,vm,wm,thlm,qtm,surf_rain
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, qts
     use modsurface, only: qtsurf, wqsurf, wtsurf, z0m, z0h
@@ -416,7 +416,29 @@ contains
     end function get_cloudfraction    
     
 !!! end of vertical profile getters
-
+    function get_rain(rain) result(ret)
+      use mpi
+      use modmpi, only: comm3d, my_real, mpierr, myid, nprocs
+      use modglobal, only: itot, jtot, ifmessages
+      
+      real, intent(out)     :: rain
+      integer                             :: ret
+      
+      rain = sum(surf_rain(2:i1,2:j1))
+      write (ifmessages,*) 'local rain sum', rain
+      
+      !in-place reduction
+      if (myid == 0) then
+         CALL mpi_reduce(MPI_IN_PLACE, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
+         rain = rain  / (itot*jtot)
+         write (ifmessages,*) 'global rain avg', rain
+      else
+         CALL mpi_reduce(        rain, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
+      endif
+      ret = 0
+    end function get_rain
+    
+    
 !!!!! set functions for vertical tendency vectors
     !   a is the profile to set
     !   n is the array length - assumed to be the number of layers in the model   
