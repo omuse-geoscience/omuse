@@ -18,7 +18,9 @@ export OIFS_LAPACK_LIB ?= -llapack -lblas
 
 FS_LIBS +=  $(OIFS_GRIB_API_LIB)  $(OIFS_LAPACK_LIB)
 
-OIFSDIR=oifslib
+OIFSDIR = oifslib
+
+OIFSTAG = spifs_v1.0.0
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
@@ -38,11 +40,17 @@ export OIFS_BUILD ?= noopt
 
 all: oifslib oifssrc openifs_worker
 
+develop: oifslibdev oifssrc openifs_worker
+
 update: oifslib
 	cd $(OIFSDIR); git pull
 
 oifslib:
-	git clone -b oifslib https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
+	git clone -b $(OIFSTAG) --single-branch --depth 1 https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
+
+oifslibdev:
+	git clone https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
+	cd $(OIFSDIR); git checkout tags/$(OIFSTAG)
 
 oifssrc:
 	./$(OIFSDIR)/fcm/bin/fcm make -v -j4 -f $(OIFSDIR)/make/oifslib.cfg
