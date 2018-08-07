@@ -20,8 +20,6 @@ FS_LIBS +=  $(OIFS_GRIB_API_LIB)  $(OIFS_LAPACK_LIB)
 
 OIFSDIR = oifslib
 
-OIFSTAG = spifs_v1.0.0
-
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 # choose compiler - if not specified already using environment variables
@@ -34,25 +32,30 @@ export OIFS_COMP ?= gnu
 CPPFLAGS = -x f95-cpp-input
 endif
 
-export OIFS_BUILD ?= noopt
+DEBUG ?= 0
+export OIFS_BUILD ?= opt
+ifeq ($(DEBUG), 1)
+    export OIFS_BUILD ?= noopt
+endif
+ifeq ($(DEBUG), yes)
+    export OIFS_BUILD ?= noopt
+endif
 
+GIT_DEFAULT_TAG = spifs_v1.0.0
+GIT_CLONE_CMD = git clone -b $(GIT_DEFAULT_TAG) --single-branch --depth=1
+ifeq ($(DOWNLOAD_CODES), all)
+    GIT_CLONE_CMD = git clone
+endif
+ifeq ($(DOWNLOAD_CODES), latest)
+    GIT_CLONE_CMD = git clone --depth=1
+endif
 
+all: oifslib openifs_worker
 
-all: oifslib oifssrc openifs_worker
-
-develop: oifslibdev oifssrc openifs_worker
-
-update: oifslib
+update: oifs-repo
 	cd $(OIFSDIR); git pull
 
-oifslib:
-	git clone -b $(OIFSTAG) --single-branch --depth 1 https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
-
-oifslibdev:
-	git clone https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
-	cd $(OIFSDIR); git checkout tags/$(OIFSTAG)
-
-oifssrc:
+oifslib: oifs-repo
 	./$(OIFSDIR)/fcm/bin/fcm make -v -j4 -f $(OIFSDIR)/make/oifslib.cfg
 	mkdir -p $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib
 	ar rcs $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/o/*.o 
@@ -64,7 +67,6 @@ openifs_worker: worker_code.f90 $(OBJS) interface.f90
 	$(MPIFC) $(FCFLAGS) $(CPPFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include -c interface.f90 -o interface.o
 	$(MPIFC) $(FCFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(FS_LIBS) $(SC_FCLIBS) -o $@
 
-#TODO: Clean oifs directory
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
 	$(RM) *~ worker_code worker_code.f90 
@@ -72,6 +74,15 @@ clean:
 	rm oifslib/make/$(OIFS_COMP)-$(OIFS_BUILD) -rf
 
 distclean: clean
-	rm -rf $(OIFSDIR)
 
+download:
+	$(GIT_CLONE_CMD) https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
 
+ifdef DOWNLOAD_CODES
+oifs-repo:
+	make -C . download
+else
+oifs-repo:
+	@echo "ERROR: need to download OpenIFS, but DOWNLOAD_CODES is not set" 
+	@false 
+endif

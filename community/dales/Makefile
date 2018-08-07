@@ -28,17 +28,35 @@ CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 # on ECMWF Cray, all compilers are invoked as ftn, so this test does not work. Specify  DALES_FCFLAGS outside this script on Cray.
 
-ifeq ($(FC),ifort)
+ifeq ($(FC), ifort)
   DALES_FCFLAGS ?= -r8 -xHost -fpp
-  SYST?=localpc_ifort
-  export SYST
-endif
-ifeq ($(FC),gfortran)
-  DALES_FCFLAGS ?= -fdefault-real-8 -cpp
-  SYST?=gfortran
+  SYST ?= localpc_ifort
   export SYST
 endif
 
+ifeq ($(FC), gfortran)
+  DALES_FCFLAGS ?= -fdefault-real-8 -cpp
+  SYST ?= gfortran
+  export SYST
+endif
+
+DEBUG ?= 0
+CMAKE_BLD = Release
+ifeq ($(DEBUG), 1)
+    CMAKE_BLD = Debug
+endif
+ifeq ($(DEBUG), yes)
+    CMAKE_BLD = Debug
+endif
+
+GIT_DEFAULT_TAG = spifs_v1.0.0
+GIT_CLONE_CMD = git clone -b $(GIT_DEFAULT_TAG) --single-branch --depth=1
+ifeq ($(DOWNLOAD_CODES), all)
+    GIT_CLONE_CMD = git clone
+endif
+ifeq ($(DOWNLOAD_CODES), latest)
+    GIT_CLONE_CMD = git clone --depth=1
+endif
 
 all: dales dales_worker test/fortran_test
 
@@ -47,9 +65,7 @@ update: dales-repo
 
 dales: dales-repo
 	mkdir -p $(BUILDDIR)
-#	cd $(BUILDDIR); cmake ../dales-repo; make; make install
-#	cd $(BUILDDIR); cmake ../dales-repo -DCMAKE_BUILD_TYPE=Debug; make ; make install
-	cd $(BUILDDIR); cmake ../dales-repo -DCMAKE_BUILD_TYPE=Release; make ; make install	
+	cd $(BUILDDIR); cmake ../dales-repo -DCMAKE_BUILD_TYPE=$(CMAKE_BLD); make; make install
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py DalesInterface -o $@
@@ -70,9 +86,8 @@ clean:
 
 distclean: clean
 
-
 download:
-	git clone git@github.com:CloudResolvingClimateModeling/dales.git dales-repo
+	$(GIT_CLONE_CMD) git@github.com:CloudResolvingClimateModeling/dales.git dales-repo
 
 ifdef DOWNLOAD_CODES
 dales-repo:
