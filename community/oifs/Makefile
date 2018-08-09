@@ -33,7 +33,7 @@ CPPFLAGS = -x f95-cpp-input
 endif
 
 DEBUG ?= 0
-export OIFS_BUILD ?= opt
+export OIFS_BUILD ?= nomp
 ifeq ($(DEBUG), 1)
     export OIFS_BUILD ?= noopt
 endif
@@ -64,8 +64,8 @@ worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py OpenIFSInterface -o $@
 
 openifs_worker: worker_code.f90 $(OBJS) interface.f90
-	$(MPIFC) $(FCFLAGS) $(CPPFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include -c interface.f90 -o interface.o
-	$(MPIFC) $(FCFLAGS) -O0 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(FS_LIBS) $(SC_FCLIBS) -o $@
+	$(MPIFC) $(FCFLAGS) $(CPPFLAGS) -O2 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include -c interface.f90 -o interface.o
+	$(MPIFC) $(FCFLAGS) -O2 -g -I$(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/include $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(FS_LIBS) $(SC_FCLIBS) -o $@
 
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
