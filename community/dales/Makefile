@@ -11,7 +11,7 @@ MPIFC ?= mpif90
 # MUSE is probably a typo - guess its not needed
 # try without lm, ifort warns it  may supersede the Intel(R) math library and affect performance
 
-SOURCEDIR = $(CURDIR)/dales-repo
+DALESDIR = dales-repo
 BUILDDIR = $(CURDIR)/dales-build
 INCLUDEDIR = $(BUILDDIR)/src
 
@@ -60,17 +60,17 @@ endif
 
 all: dales dales_worker test/fortran_test
 
-update: dales-repo
-	cd dales-repo; git pull
+update: $(DALESDIR) 
+	cd $(DALESDIR); git pull
 
-dales: dales-repo
+dales: $(DALESDIR)
 	mkdir -p $(BUILDDIR)
-	cd $(BUILDDIR); cmake ../dales-repo -DCMAKE_BUILD_TYPE=$(CMAKE_BLD); make; make install
+	cd $(BUILDDIR); cmake ../$(DALESDIR) -DCMAKE_BUILD_TYPE=$(CMAKE_BLD); make; make install
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py DalesInterface -o $@
 
-dales_worker: worker_code.f90 $(OBJS) interface.f90 dales dales-repo
+dales_worker: worker_code.f90 $(OBJS) interface.f90 dales
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
@@ -87,13 +87,13 @@ clean:
 distclean: clean
 
 download:
-	$(GIT_CLONE_CMD) git@github.com:CloudResolvingClimateModeling/dales.git dales-repo
+	$(GIT_CLONE_CMD) git@github.com:CloudResolvingClimateModeling/dales.git $(DALESDIR)
 
 ifdef DOWNLOAD_CODES
-dales-repo:
+$(DALESDIR):
 	make -C . download
 else
-dales-repo:
+$(DALESDIR):
 	@echo "ERROR: need to download Dales, but DOWNLOAD_CODES is not set" 
 	@false 
 endif
