@@ -18,7 +18,7 @@ export OIFS_LAPACK_LIB ?= -llapack -lblas
 
 FS_LIBS +=  $(OIFS_GRIB_API_LIB)  $(OIFS_LAPACK_LIB)
 
-OIFSDIR = oifslib
+OIFSDIR = oifs-repo
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
@@ -55,7 +55,7 @@ all: oifslib openifs_worker
 update: oifs-repo
 	cd $(OIFSDIR); git pull
 
-oifslib: oifs-repo
+oifslib: $(OIFSDIR)
 	./$(OIFSDIR)/fcm/bin/fcm make -v -j4 -f $(OIFSDIR)/make/oifslib.cfg
 	mkdir -p $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib
 	ar rcs $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/lib/liboifs.a $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD)/oifs/o/*.o 
@@ -79,10 +79,10 @@ download:
 	$(GIT_CLONE_CMD) https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
 
 ifdef DOWNLOAD_CODES
-oifs-repo:
+$(OIFSDIR):
 	make -C . download
 else
-oifs-repo:
+$(OIFSDIR):
 	@echo "ERROR: need to download OpenIFS, but DOWNLOAD_CODES is not set" 
 	@false 
 endif
