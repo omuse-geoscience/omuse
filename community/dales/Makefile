@@ -49,10 +49,15 @@ ifeq ($(DEBUG), yes)
     CMAKE_BLD = Debug
 endif
 
+# DOWNLOAD_CODES=all will checkout entire repo with ssh, intended for developers of the components.
+# DOWNLOAD_CODES=latest will (shallow) checkout latest revision only
+# DOWNLOAD_CODES=<anythin else> will (shallow) checkout release tag spifs_v1.0.0
 GIT_DEFAULT_TAG = spifs_v1.0.0
 GIT_CLONE_CMD = git clone -b $(GIT_DEFAULT_TAG) --single-branch --depth=1
+GIT_REPO = https://github.com/CloudResolvingClimateModeling/dales.git
 ifeq ($(DOWNLOAD_CODES), all)
     GIT_CLONE_CMD = git clone
+    GIT_REPO = git@github.com:CloudResolvingClimateModeling/dales.git
 endif
 ifeq ($(DOWNLOAD_CODES), latest)
     GIT_CLONE_CMD = git clone --depth=1
@@ -87,7 +92,7 @@ clean:
 distclean: clean
 
 download:
-	$(GIT_CLONE_CMD) git@github.com:CloudResolvingClimateModeling/dales.git $(DALESDIR)
+	$(GIT_CLONE_CMD) $(GIT_REPO) $(DALESDIR)
 
 ifdef DOWNLOAD_CODES
 $(DALESDIR):
