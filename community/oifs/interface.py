@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import numpy
 import datetime
@@ -321,7 +322,7 @@ class OpenIFS(CommonCode):
 
     # Constructor
     def __init__(self,**options):
-        print('__init__')
+        #print('__init__')
 
         self.stopping_conditions = StoppingConditions(self)
         self.itot = 0
@@ -351,7 +352,7 @@ class OpenIFS(CommonCode):
             self.params = f90nml.read(backupfile)
             self.patch = {"NAMPAR0":{"NPROC":options.get("number_of_workers",1)}}
             f90nml.patch(backupfile,self.patch,inputfile)
-            print('***** Done patching ', inputfile)
+            print('Done patching openIFS input file', inputfile)
 
     # Commit run parameters, not implemented yet
     def commit_parameters(self):

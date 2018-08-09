@@ -351,7 +351,7 @@ class Dales(CommonCode):
         self.dx = None
         self.dy = None
 
-        print ("DalesInterface.__init__", options)
+        #print ("DalesInterface.__init__", options)
         if 'workdir' in options:
             # print('Dales.__init__() : setting workdir.')
             self.set_workdir(options['workdir'])            
@@ -372,7 +372,7 @@ class Dales(CommonCode):
         f90nml.patch(inputfile,patch,dalesinputfile)
         self.set_input_file(dalesinputfile)
 
-        print "code options written to %s"%dalesinputfile
+        # print "code options written to %s"%dalesinputfile
 
         # check this...
         dt = self.parameters.starttime
