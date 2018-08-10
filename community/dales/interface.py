@@ -22,6 +22,8 @@ class DalesInterface(CodeInterface,
 
     DALES - Dutch Atmospheric Large Eddy Simulation
 
+    .. [#] Heus et al., Formulation of the Dutch Atmospheric Large-Eddy Simulation (DALES) and overview of its applications,  Geoscientific Model Development 3, 415, (2010)
+
     """
     use_modules=["StoppingConditions","dales_interface"]
 
