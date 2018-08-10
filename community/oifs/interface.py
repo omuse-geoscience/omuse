@@ -22,6 +22,8 @@ class OpenIFSInterface(CodeInterface,
     """
 
     OpenIFS: The Open Integral Forecasting System
+  
+    .. [#] Carver et al., The ECMWF OpenIFS numerical weather prediction model release cycle 40r1: description and use cases, 2018, GMD, in preparation
 
     """
     use_modules=["StoppingConditions","openifs_interface"]

@@ -5,7 +5,7 @@ AMUSE_DIR?=../../../..
 
 MPIFC ?= mpif90
 
-FCFLAGS += -fopenmp -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m64 -fconvert=big-endian
+FCFLAGS += -DBLAS -DLINUX -DINTEGER_IS_INT -DF90 -DPARAL -DNONCRAYF -m64 -fconvert=big-endian
 
 #LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
@@ -52,7 +52,7 @@ endif
 
 all: oifslib openifs_worker
 
-update: oifs-repo
+update: $(OIFSDIR)
 	cd $(OIFSDIR); git pull
 
 oifslib: $(OIFSDIR)
@@ -70,8 +70,8 @@ openifs_worker: worker_code.f90 $(OBJS) interface.f90
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod
 	$(RM) *~ worker_code worker_code.f90 
-	rm -f oifs_worker_*
-	rm oifslib/make/$(OIFS_COMP)-$(OIFS_BUILD) -rf
+	rm -f openifs_worker
+	rm $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD) -rf
 
 distclean: clean
 
