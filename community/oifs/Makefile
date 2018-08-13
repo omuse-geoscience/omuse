@@ -27,7 +27,8 @@ CPPFLAGS = -cpp
 ifeq ($(FC),ifort)
 export OIFS_COMP ?= intel
 FCFLAGS += -traceback
-else
+endif
+ifeq ($(FC),gfortran)
 export OIFS_COMP ?= gnu
 CPPFLAGS = -x f95-cpp-input
 endif
