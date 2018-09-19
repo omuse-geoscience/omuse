@@ -1,4 +1,9 @@
 import os.path
+import numpy
+import f90nml
+
+from collections import defaultdict
+
 from omuse.units import units
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.support.interface import InCodeComponentImplementation
@@ -7,12 +12,12 @@ from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
 from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
+from omuse.units.quantities import new_quantity, to_quantity, is_quantity
 from amuse import datamodel
-import f90nml
 
 from amuse.units import trigo
 
-import numpy
+from parameters import namelist_parameters
 
 class DalesInterface(CodeInterface,
                      CommonCodeInterface,
@@ -341,10 +346,12 @@ class Dales(CommonCode):
     QT_FORCING_VARIANCE=2
 
     def __init__(self,**options):
-        self._input_file=options.get("input_file", "namoptions.001")
-
+        input_file=options.get("input_file", None)
+        self._nml_file=None
         CommonCode.__init__(self,  DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
+
+        self.parameters.input_file=input_file
 
         # grid size
         self.itot = None
@@ -361,37 +368,50 @@ class Dales(CommonCode):
 
         self._workdir=self.get_workdir()
 
-        self.read_input_file()
+        if self.parameters.input_file:
+            self.read_input_file()
 
     def read_input_file(self):
         inputfile=os.path.join(self._workdir,self.parameters.input_file)
 
-        self.params = f90nml.read(inputfile)
-        self.parameters.grid_size_xy = self.params["DOMAIN"]["itot"],self.params["DOMAIN"]["jtot"]
-        self.parameters.grid_extent_xy = [self.params["DOMAIN"]["xsize"],self.params["DOMAIN"]["ysize"]] | units.m
+        self._nml_file=inputfile
+        self._nml_params = f90nml.read(inputfile)
+
+        for group, d in self._nml_params.iteritems():
+            for name, val in d.iteritems():
+                if name in namelist_parameters:
+                    if is_quantity(namelist_parameters[name]["default"]):
+                        setattr(self.parameters, name, new_quantity(val, to_quantity(namelist_parameters[name]["default"]).unit) )
+                    else:
+                        setattr(self.parameters, name, val )
+                else:
+                    print "'%s' of group '%s' not in the namelist_parameters of Dales"%(name, group)
 
         #print ("DalesInterface.__init__", options)
         
-    def commit_parameters(self):
-      
-        if self.parameters.input_file != self._input_file:
-          print "rereading namelist options file..."
-          self.read_input_file()
+    def write_namelist_file(self):
+        patch=defaultdict( dict )
+        for name, v in namelist_parameters.iteritems():
+            group=patch[v["group_name"]]
+            if is_quantity(namelist_parameters[name]["default"]):
+                group[name]=to_quantity(getattr(self.parameters, name)).value_in(namelist_parameters[name]["default"].unit)
+            else:
+                group[name]=getattr(self.parameters, name)
+        
+        if self._nml_file:
+            dalesinputfile=self._nml_file+"_amuse"
+            f90nml.patch(self._nml_file,patch,dalesinputfile)
+            print self._nml_file,patch,dalesinputfile
+        else:
+            dalesinputfile="dales_namelist_amuse"
+            f90nml.write(patch, dalesinputfile)
+        return dalesinputfile
 
-        inputfile=os.path.join(self._workdir,self.parameters.input_file)
-        dalesinputfile=os.path.join(self._workdir,"_"+self.parameters.input_file)
-        if not os.path.exists(os.path.join(self._workdir,inputfile)):
-            raise Exception("File %s not found"%inputfile)
-        
-        
-        patch=dict()
-        patch["RUN"]=dict(  lwarmstart=self.parameters.restart_flag,
-                            startfile=self.parameters.restart_file, 
-                            trestart=self.parameters.trestart.value_in(units.s) )
-        if self.parameters.grid_size_xy:
-            patch["DOMAIN"]=dict( itot=self.parameters.grid_size_xy[0],
-                                  jtot=self.parameters.grid_size_xy[1] )
-        f90nml.patch(inputfile,patch,dalesinputfile)
+    def commit_parameters(self):
+        if not self.parameters.input_file:
+            raise Exception("Error: parameter input_file set to %s"%self.parameters.input_file)
+              
+        dalesinputfile=self.write_namelist_file()
         self.set_input_file(dalesinputfile)
 
         # print "code options written to %s"%dalesinputfile
@@ -410,7 +430,7 @@ class Dales(CommonCode):
         object.add_interface_parameter(
             "input_file",
             "the input file name",
-            self._input_file,
+            self._nml_file or None,
             "before_set_interface_parameter"
         )
         object.add_interface_parameter(
@@ -492,19 +512,21 @@ class Dales(CommonCode):
             0,
             "before_set_interface_parameter"
         )
-        object.add_interface_parameter(
-            "grid_size_xy",
-            "tuple of number grid cells in x and y direction (None means use namelist default)",
-            None,
-            "before_set_interface_parameter"
-        )
-        object.add_interface_parameter(
-            "grid_extent_xy",
-            "tuple or vector of physical grid size in x and y direction (None means use namelist default)",
-            None,
-            "before_set_interface_parameter"
-        )
-
+        #~ object.add_interface_parameter(
+            #~ "grid_size_xy",
+            #~ "tuple of number grid cells in x and y direction (None means use namelist default)",
+            #~ None,
+            #~ "before_set_interface_parameter"
+        #~ )
+        #~ object.add_interface_parameter(
+            #~ "grid_extent_xy",
+            #~ "tuple or vector of physical grid size in x and y direction (None means use namelist default)",
+            #~ None,
+            #~ "before_set_interface_parameter"
+        #~ )
+        for name,p in namelist_parameters.iteritems():
+            if p["ptype"] in ["nml", "nml+normal"]:
+                object.add_interface_parameter( name, p["description"], p["default"], "before_set_interface_parameter")
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
