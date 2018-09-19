@@ -23,3 +23,5 @@ rhu=named("relative humidity unit","rhu", percent)
 
 mfu=named("mass fraction unit","mfu", kg/kg)
 ccu=named("cloud coverage unit","ccu", m**2/m**2)
+
+ppb=named("parts per billion", "ppb", 1.e-9 * none)
