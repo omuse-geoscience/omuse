@@ -62,6 +62,30 @@ isvsmoke   =  dict(group_name="PHYSICS",short="isvsmoke",dtype="int32", default=
 lcloudshading=  dict(group_name="PHYSICS",short="lcloudshading", dtype="bool", default=False, description="switch to let clouds shade the surface for rad_lsm", ptype="nml"),
 lrigidlid  =  dict(group_name="PHYSICS",short="lrigidlid", dtype="bool", default=False, description="Switch to enable simulations with a rigid lid", ptype="nml"),
 unudge     =  dict(group_name="PHYSICS",short="unudge", dtype="float64", default=1., description="Nudging factor if igrw_damp is -1", ptype="nml"),
+#
+iexpnr     =  dict(group_name="RUN",short="iexpnr", dtype="int32", default=0, description="Experiment number", ptype="nml"),
+dtmax      =  dict(group_name="RUN",short="dtmax", dtype="float64", default=20. | units.s, description="Maximum timestep", ptype="nml"),
+runtime    =  dict(group_name="RUN",short="runtime", dtype="float64", default=300. | units.s, description="total maximum simulation time", ptype="nml"),
+lwarmstart =  dict(group_name="RUN",short="lwarmstart", dtype="bool", default=False, description="flag for cold or warm start", ptype="nml"),
+startfile  =  dict(group_name="RUN",short="startfile", dtype="string", default="initdlatestx000y000.001", description="restart file name", ptype="nml"),
+trestart   =  dict(group_name="RUN",short="trestart", dtype="float64", default=3600. | units.s, description="restart file write interval", ptype="nml"),
+dtav_glob  =  dict(group_name="RUN",short="dtav_glob", dtype="float64", default=60. | units.s, description="sampling interval for statistical routines (multiple of dtmax)", ptype="nml"),
+timeav_glob=  dict(group_name="RUN",short="timeav_glob", dtype="float64", default=3600. | units.s, description="write interval for statistical routines (multiple of dtav_glob)", ptype="nml"),
+irandom    =  dict(group_name="RUN",short="irandom", dtype="int32", default=0, description="random seed", ptype="nml"),
+krand      =  dict(group_name="RUN",short="krand", dtype="int32", default=96, description="max level for random (0<krand<kmax)", ptype="nml"),
+randqt     =  dict(group_name="RUN",short="randqt", dtype="float64", default=1.e-5 | units.shu, description="amplitude for random qt", ptype="nml"),
+randthl    =  dict(group_name="RUN",short="randthl", dtype="float64", default=0.1 | units.K, description="amplitude for random thl", ptype="nml"),
+nsv        =  dict(group_name="RUN",short="nsv", dtype="int32", default=0, description="number of additional passive scalars", ptype="nml"),
+ladaptive  =  dict(group_name="RUN",short="ladaptive", dtype="bool", default=False, description="flag for adaptive timestep dep. on stab criteria", ptype="nml"),
+courant    =  dict(group_name="RUN",short="courant", dtype="float64", default=0.7, description="Courant number", ptype="nml"),
+peclet     =  dict(group_name="RUN",short="peclet", dtype="float64", default=0.15, description="Peclet number", ptype="nml"),
+author     =  dict(group_name="RUN",short="author", dtype="string", default="OMUSE", description="Name of the author", ptype="nml"),
+krandumin  =  dict(group_name="RUN",short="krandumin", dtype="int32", default=1, description="Bottom vertical full level of wind randomization", ptype="nml"),
+krandumax  =  dict(group_name="RUN",short="krandumax", dtype="int32", default=0, description="Top vertical full level of wind randomization", ptype="nml"),
+randu      =  dict(group_name="RUN",short="randu", dtype="float64", default=0.5 | units.m/units.s, description="amplitude of wind randomization", ptype="nml"),
+nprocx     =  dict(group_name="RUN",short="nprocx", dtype="int32", default=0 , description="Number of processes in the x direction (0=means let MPI decide)", ptype="nml"),
+nprocy     =  dict(group_name="RUN",short="nprocy", dtype="int32", default=0 , description="Number of processes in the y direction (0=means let MPI decide)", ptype="nml"),
+
 
 )
 
