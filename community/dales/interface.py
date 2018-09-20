@@ -370,6 +370,7 @@ class Dales(CommonCode):
 
         if self.parameters.input_file:
             self.read_input_file()
+            
 
     def read_input_file(self):
         inputfile=os.path.join(self._workdir,self.parameters.input_file)
@@ -393,6 +394,8 @@ class Dales(CommonCode):
         patch=defaultdict( dict )
         for name, v in namelist_parameters.iteritems():
             group=patch[v["group_name"]]
+            if getattr(self.parameters, name) is None:  # omit if value is None
+                continue
             if is_quantity(namelist_parameters[name]["default"]):
                 group[name]=to_quantity(getattr(self.parameters, name)).value_in(namelist_parameters[name]["default"].unit)
             else:
@@ -408,8 +411,6 @@ class Dales(CommonCode):
         return dalesinputfile
 
     def commit_parameters(self):
-        if not self.parameters.input_file:
-            raise Exception("Error: parameter input_file set to %s"%self.parameters.input_file)
               
         dalesinputfile=self.write_namelist_file()
         self.set_input_file(dalesinputfile)
