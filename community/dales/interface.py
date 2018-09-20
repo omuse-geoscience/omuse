@@ -18,6 +18,7 @@ from amuse import datamodel
 from amuse.units import trigo
 
 from parameters import namelist_parameters
+from default_input import input_profile_writer
 
 class DalesInterface(CodeInterface,
                      CommonCodeInterface,
@@ -370,8 +371,9 @@ class Dales(CommonCode):
 
         if self.parameters.input_file:
             self.read_input_file()
-            
 
+        self._input_profile_writer=input_profile_writer()
+        
     def read_input_file(self):
         inputfile=os.path.join(self._workdir,self.parameters.input_file)
 
@@ -404,16 +406,18 @@ class Dales(CommonCode):
         if self._nml_file:
             dalesinputfile=self._nml_file+"_amuse"
             f90nml.patch(self._nml_file,patch,dalesinputfile)
-            print self._nml_file,patch,dalesinputfile
         else:
             dalesinputfile="dales_namelist_amuse"
-            f90nml.write(patch, dalesinputfile)
+            f90nml.write(patch, dalesinputfile, force=True)
         return dalesinputfile
 
     def commit_parameters(self):
               
         dalesinputfile=self.write_namelist_file()
         self.set_input_file(dalesinputfile)
+
+        self._input_profile_writer.write_initial_profile_file(kmax=self.parameters.kmax)
+        self._input_profile_writer.write_large_scale_forcing_file(kmax=self.parameters.kmax)
 
         # print "code options written to %s"%dalesinputfile
 
