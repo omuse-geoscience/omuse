@@ -3,6 +3,8 @@ import StringIO
 from omuse.units import units
 from omuse.units.quantities import to_quantity
 
+from amuse.datamodel import new_rectilinear_grid
+
 large_scale_forcing_input="""
 # #large scale forcing
 # height     ug         vg         wfls       dqtdxls    dqtqyls    dqtdtls    dthlrad       
@@ -206,12 +208,12 @@ initial_profile_input="""
 """
 
 def resample_array(k,x,**kwargs):
-  k_=1.*numpy.arange(len(x))
-  k_=k_/k_[-1]
+    k_=1.*numpy.arange(len(x))
+    k_=k_/k_[-1]
 
-  knew=1.*numpy.arange(k)
-  knew=knew/knew[-1]
-  return numpy.interp(knew,k_,x.number, **kwargs) | x.unit
+    knew=1.*numpy.arange(k)
+    knew=knew/knew[-1]
+    return numpy.interp(knew,k_,x.number, **kwargs) | x.unit
 
 def interp(x,xp,fp,**kwargs):
     x=to_quantity(x)
@@ -219,41 +221,70 @@ def interp(x,xp,fp,**kwargs):
     fp=to_quantity(fp)
     return numpy.interp(x.value_in(x.unit), xp.value_in(x.unit), fp.number, **kwargs) | fp.unit
 
-class input_profile_writer(object):
-    def __init__(self):
-        data=numpy.loadtxt(StringIO.StringIO(initial_profile_input))
-        self.zf=data[:,0] | units.m
-        self.qt=data[:,2] | units.shu
-        self.thl=data[:,1] | units.K
-        self.u=data[:,3] | units.m/units.s
-        self.v=data[:,4] | units.m/units.s
-        self.tke=data[:,5] | units.m/units.s
+def read_initial_profile(filename=None):
+    data=numpy.loadtxt(filename or StringIO.StringIO(initial_profile_input))
+    zf=data[:,0] | units.m
+    grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
+    grid.qt=data[:,2] | units.shu
+    grid.thl=data[:,1] | units.K
+    grid.u=data[:,3] | units.m/units.s
+    grid.v=data[:,4] | units.m/units.s
+    grid.tke=data[:,5] | units.m/units.s
+    return grid
 
-    def resample_profiles(self, kmax):
-        zf=resample_array(kmax, self.zf)
-        qt=interp(zf, self.zf, self.qt)
-        thl=interp(zf, self.zf, self.thl)
-        u=interp(zf, self.zf, self.u)
-        v=interp(zf, self.zf, self.v)
-        tke=interp(zf, self.zf, self.tke)
-        return zf,thl,qt,u,v,tke
+def read_large_scale_forcings(filename=None):
+    data=numpy.loadtxt(filename or StringIO.StringIO(large_scale_forcing_input))
+    zf=data[:,0] | units.m
+    grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
+    grid.ug=data[:,1] | units.m/units.s
+    grid.vg=data[:,2] | units.m/units.s
+    grid.wfls=data[:,3]
+    grid.dqtdxls=data[:,4]
+    grid.dqtdyls=data[:,5]
+    grid.dqtdtls=data[:,6]
+    grid.dthlrad=data[:,7]
+    return grid
 
-    def write_initial_profile_file(self, filename="prof.inp.001", kmax=None):
-        if kmax:
-            zf,thl,qt,u,v,tke=self.resample_profiles(kmax)
-        else:
-            zf,thl,qt,u,v,tke=self.zf,self.thl,self.qt,self.u,self.v,self.tke
-        header=""" profile
+def resample_grid(grid, kmax):
+    zf=grid.positions
+    assert len(zf.shape)==1
+    zf=resample_array(kmax, grid.zf)
+    grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
+    grid.qt=interp(zf, zf, grid.qt)
+    grid.thl=interp(zf, zf, grid.thl)
+    grid.u=interp(zf, zf, grid.u)
+    grid.v=interp(zf, zf, grid.v)
+    grid.tke=interp(zf, zf, grid.tke)
+    return grid
+
+def write_initial_profile_file(grid, filename="prof.inp.001", kmax=None):
+    if kmax and kmax!=len(grid.z):
+        grid=resample_grid(grid,kmax)
+    header=""" profile
  zf         thl        qt         u          v          tke             """
-        numpy.savetxt(filename,numpy.column_stack((zf.number,thl.number,qt.number,u.number,v.number,tke.number)), header=header)
+    numpy.savetxt( filename,numpy.column_stack((
+      grid.z.value_in(units.m),
+      grid.thl.value_in(units.K),
+      grid.qt.value_in(units.shu),
+      grid.u.value_in(units.m/units.s),
+      grid.v.value_in(units.m/units.s),
+      grid.tke.value_in(units.m/units.s))), header=header)
 
-    def write_large_scale_forcing_file(self, filename="lscale.inp.001", kmax=None):
-        if kmax:
-            zf=resample_array(kmax,self.zf)
-        zeros=numpy.zeros_like(zf) # zeros for now...
-        header=""" large scale forcing
+def write_large_scale_forcing_file(grid, filename="lscale.inp.001", kmax=None):
+    if kmax and kmax!=len(grid.z):
+        grid=resample_grid(grid,kmax)
+    header=""" large scale forcing
  height     ug         vg         wfls       dqtdxls    dqtqyls    dqtdtls    dthlrad"""
-        numpy.savetxt(filename,numpy.column_stack([zf.number]+[zeros]*7), header=header)
+    numpy.savetxt(filename,numpy.column_stack((
+      grid.z.value_in(units.m),
+      grid.ug.value_in(units.m/units.s),
+      grid.vg.value_in(units.m/units.s),
+      grid.wfls, # missing units!!
+      grid.dqtdxls,
+      grid.dqtdyls,
+      grid.dqtdtls,
+      grid.dthlrad,
+      )), header=header)
 
 
 if __name__=="__main__":

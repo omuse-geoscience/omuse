@@ -18,7 +18,7 @@ from amuse import datamodel
 from amuse.units import trigo
 
 from parameters import namelist_parameters
-from default_input import input_profile_writer
+import default_input
 
 class DalesInterface(CodeInterface,
                      CommonCodeInterface,
@@ -371,9 +371,19 @@ class Dales(CommonCode):
 
         if self.parameters.input_file:
             self.read_input_file()
-
-        self._input_profile_writer=input_profile_writer()
-        
+            # for the moment, expect input profile and large scale forcing file iff 
+            # input file is provided as argument 
+            filename="prof.inp.%3.3i"%self.parametres.iexpnr
+            self.initial_profile_grid=default_input.read_initial_profile(filename)
+            filename="lscale.inp.%3.3i"%self.parametres.iexpnr
+            self.large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
+            self.parameters.write_profile_files=False
+        else:
+            filename=None
+            self.initial_profile_grid=default_input.read_initial_profile(filename)
+            self.large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
+            self.parameters.write_profile_files=True
+                
     def read_input_file(self):
         inputfile=os.path.join(self._workdir,self.parameters.input_file)
 
@@ -416,8 +426,11 @@ class Dales(CommonCode):
         dalesinputfile=self.write_namelist_file()
         self.set_input_file(dalesinputfile)
 
-        self._input_profile_writer.write_initial_profile_file(kmax=self.parameters.kmax)
-        self._input_profile_writer.write_large_scale_forcing_file(kmax=self.parameters.kmax)
+        if self.parameters.write_profile_files:
+            kmax=self.parameters.kmax
+            iexpnr=self.parameters.iexpnr
+            default_input.write_initial_profile_file(self.initial_profile_grid,filename="prof.inp.%3.3i"%iexpnr,kmax=kmax)
+            default_input.write_large_scale_forcing_file(self.large_scale_forcings_grid, filename="lscale.inp.%3.3i"%iexpnr,kmax=kmax)
 
         # print "code options written to %s"%dalesinputfile
 
@@ -532,7 +545,13 @@ class Dales(CommonCode):
         for name,p in namelist_parameters.iteritems():
             if p["ptype"] in ["nml", "nml+normal"]:
                 object.add_interface_parameter( name, p["description"], p["default"], "before_set_interface_parameter")
-
+        object.add_interface_parameter(
+            "write_profile_files",
+            "write_out initial profile and large scale forcing files",
+            False,
+            "before_set_interface_parameter"
+        )
+        
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
         object.add_property('get_timestep', public_name = "timestep")
