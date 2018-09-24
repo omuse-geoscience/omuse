@@ -2,6 +2,8 @@ from omuse.units import units
 
 import f90nml
 
+
+# dict of parameters: keys become the OMUSE parameter names, short is the name in the namelist file
 namelist_parameters=dict(
 #
 itot  =  dict(group_name="DOMAIN", short="itot", dtype="int32", default=64, description="Number of horizontal grid points in x-direction", ptype="nml"),
@@ -44,7 +46,7 @@ geodamptime=  dict(group_name="PHYSICS",short="geodamptime", dtype="float64", de
 lmomsubs   =  dict(group_name="PHYSICS",short="lmomsubs", dtype="bool", default=False, description="switch to apply subsidence on momentum", ptype="nml"),
 lmoist     =  dict(group_name="PHYSICS",short="lmoist", dtype="bool", default=True, description="switch for calculation of moisture field", ptype="nml"),
 chi_half   =  dict(group_name="PHYSICS",short="chi_half", dtype="float64", default=0.5, description="Wet, dry or intermediate (default) mixing over the cloud edge", ptype="nml"),
-timerad   =   dict(group_name="PHYSICS",short="time_rad", dtype="float64", default=0. | units.s, description="Sampling interval of radiation scheme", ptype="nml"),
+timerad   =   dict(group_name="PHYSICS",short="timerad", dtype="float64", default=0. | units.s, description="Sampling interval of radiation scheme", ptype="nml"),
 iradiation =  dict(group_name="PHYSICS",short="iradiation", dtype="int32", default=0, description="flag for rad. calc. (0 [no rad], 1 [full], 2 [parametrized], 3 [simple for land surface], 4 [rapid RTM] or 10 [user]", ptype="nml"),
 useMcICA   =  dict(group_name="PHYSICS",short="useMcICA", dtype="bool", default=True, description="switch for the Monte Carlo Indep. Column approach (only for iradiation=1)", ptype="nml"), 
 rad_ls     =  dict(group_name="PHYSICS",short="rad_ls", dtype="bool", default=True, description="switch for prescribed radiation forcing", ptype="nml"), 
@@ -97,6 +99,10 @@ cs         =  dict(group_name="NAMSUBGRID", short="cs", dtype="float64", default
 nmason     =  dict(group_name="NAMSUBGRID", short="nmason", dtype="float64", default=2., description="Exponent in Mason correction function", ptype="nml"),
 sgs_surface_fix=  dict(group_name="NAMSUBGRID", short="sgs_surface_fix", dtype="bool", default=True, description="Switch to apply a fix to the coupling of SFS TKE to the surface (experimental)", ptype="nml"),
 #
+# skipped NAMAGScross
+# skipped NAMBUDGET
+# skipped NAMBULKMICROSTAT
+#
 lcanopy    =  dict(group_name="NAMCANOPY", short="lcanopy", dtype="bool", default=False, description="Switch to represent canopy drag", ptype="nml"),
 ncanopy    =  dict(group_name="NAMCANOPY", short="ncanopy", dtype="int32", default=10, description="Amount of layers that contain canopy", ptype="nml"),
 cd         =  dict(group_name="NAMCANOPY", short="cd", dtype="float64", default=0.15, description="canopy drag coefficient", ptype="nml"),
@@ -113,6 +119,61 @@ wth_alph   =  dict(group_name="NAMCANOPY", short="wth_alph", dtype="float64", de
 wqt_alph   =  dict(group_name="NAMCANOPY", short="wqt_alph", dtype="float64", default=0., description="Decay constant for LE with integrated PAD", ptype="nml"),
 wsv_alph   =  dict(group_name="NAMCANOPY", short="wsv_alph", dtype="float64", default=0., description="Decay constant for scalar fluxes with integrated PAD", ptype="nml"),
 #
+# skipped NAMCAPE
+# skipped NAMCHECKSIM
+# skipped NAMCHEM
+# skipped NAMCLOUDFIELD
+#
+lcross     =  dict(group_name="NAMCROSSSECTION", short="lcross", dtype="bool", default=False, description="Switch for dumping of crossections", ptype="nml"),
+lbinary    =  dict(group_name="NAMCROSSSECTION", short="lbinary", dtype="bool", default=False, description="Switch for dumping of crossections in binary files", ptype="nml"),
+dtav       =  dict(group_name="NAMCROSSSECTION", short="dtav", dtype="int32", default=60 | units.s, description="Time interval for dumping crosssections", ptype="nml"),
+crossheight=  dict(group_name="NAMCROSSSECTION", short="crossheight", dtype="int32", default=2, description="indices of layers of the horizontal crossections (max 100)", ptype="nml"),
+crossplane =  dict(group_name="NAMCROSSSECTION", short="crossplane", dtype="int32", default=2, description="location of the  certical xz plane", ptype="nml"),
+crossortho =  dict(group_name="NAMCROSSSECTION", short="crossortho", dtype="int32", default=2, description="location of the vertical yz plane", ptype="nml"),
+#
+# skipped NAMDE
+# skipped NAMFIELDDUMP
+# skipped NAMGENSTAT
+# skipped NAMHETEROSTATS
+# skipped NAMLSMCROSSSECTION
+# skipped NAMLSMSTAT
+#
+imicro    =  dict(group_name="NAMMICROPHYSICS", short="imicro", dtype="int32", default=0, description="Flag for the microphysics scheme: (0 [no microphysics], 1 [drizzle], 2[bulk], 3[bin (inactive)], 5[simple ice] or  10[user])", ptype="nml"),
+l_sb      =  dict(group_name="NAMMICROPHYSICS", short="l_sb", dtype="bool", default=False, description="toggle for (False) Khairoutdinov and Kogan, 2000 or (True) Seifert & Beheng 2001,2006 scheme",ptype="nml"),
+l_sedc    =  dict(group_name="NAMMICROPHYSICS", short="l_sedc", dtype="bool", default=True, description="switch for cloud droplet sedimentation", ptype="nml"),
+l_rain    =  dict(group_name="NAMMICROPHYSICS", short="l_rain", dtype="bool", default=True, description="switch for rain formation and evolution", ptype="nml"),
+l_mur_cst =  dict(group_name="NAMMICROPHYSICS", short="l_mur_cst", dtype="bool", default=False, description="switch to use constant mu_r (in raindrop gamma dist)", ptype="nml"),
+l_berry   =  dict(group_name="NAMMICROPHYSICS", short="l_berry", dtype="bool", default=True, description="Berry-Hsie autoconversion instead of Kessler-Lin", ptype="nml"),
+l_graupel =  dict(group_name="NAMMICROPHYSICS", short="l_graupel", dtype="bool", default=True, description="switch for graupel", ptype="nml"),
+l_warm    =  dict(group_name="NAMMICROPHYSICS", short="l_warm", dtype="bool", default=False, description="Check: run ice micro in warm mode", ptype="nml"),
+mur_cst   =  dict(group_name="NAMMICROPHYSICS", short="mur_cst", dtype="float64", default=5, description="Value for mu_r, a shape parameter for the rain drop dens distr.", ptype="nml"),
+Nc_0      =  dict(group_name="NAMMICROPHYSICS", short="Nc_0", dtype="float64", default=7.e7, description="Initial number of cloud droplets", ptype="nml"),
+sig_g     =  dict(group_name="NAMMICROPHYSICS", short="sig_g", dtype="float64", default=1.34, description="Geometric standard deviation of the cloud droplet drop size distribution", ptype="nml"),
+sig_gr    =  dict(group_name="NAMMICROPHYSICS", short="sig_gr", dtype="float64", default=1.5, description="Geometric standard deviation of the rain droplet drop size distribution", ptype="nml"),
+#
+# skipped NAMNETCDFSTATS
+# skipped NAMNUDGE
+# skipped NAMPARTICLES
+# skipped NAMprojection (obsolete)
+# skipped NAMquadrant
+# skipped NAMRADIATION
+# skipped NAMRADSTAT
+# skipped NAMSAMPLING
+# skipped NAMSIMPLEICESTAT
+# skipped NAMSTATTEND
+# skipped NAMSTRESS
+#
+# NAMSURFACE
+#
+# skipped NAMTILT
+# skipped NAMTIMESTAT
+# 
+
+
+
+
+
+
 
 )
 
