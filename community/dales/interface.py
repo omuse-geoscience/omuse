@@ -20,6 +20,9 @@ from amuse.units import trigo
 from parameters import namelist_parameters
 import default_input
 
+# needs a bit of work for "non-local" runs
+# (ie mechanism to copy input files...)
+
 class DalesInterface(CodeInterface,
                      CommonCodeInterface,
                      StoppingConditionInterface,
@@ -367,25 +370,26 @@ class Dales(CommonCode):
             # print('Dales.__init__() : setting workdir.')
             self.set_workdir(options['workdir'])            
 
-        self._workdir=self.get_workdir()
+        self.read_initial_grids()
 
+    def read_initial_grids(self):
         if self.parameters.input_file:
             self.read_input_file()
             # for the moment, expect input profile and large scale forcing file iff 
             # input file is provided as argument 
-            filename="prof.inp.%3.3i"%self.parametres.iexpnr
+            filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%self.parameters.iexpnr)
             self.initial_profile_grid=default_input.read_initial_profile(filename)
-            filename="lscale.inp.%3.3i"%self.parametres.iexpnr
-            self.large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
+            filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%self.parameters.iexpnr)
+            self.initial_large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
             self.parameters.write_profile_files=False
         else:
             filename=None
             self.initial_profile_grid=default_input.read_initial_profile(filename)
-            self.large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
+            self.initial_large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
             self.parameters.write_profile_files=True
                 
     def read_input_file(self):
-        inputfile=os.path.join(self._workdir,self.parameters.input_file)
+        inputfile=os.path.join(self.parameters.workdir,self.parameters.input_file)
 
         self._nml_file=inputfile
         self._nml_params = f90nml.read(inputfile)
@@ -429,8 +433,10 @@ class Dales(CommonCode):
         if self.parameters.write_profile_files:
             kmax=self.parameters.kmax
             iexpnr=self.parameters.iexpnr
-            default_input.write_initial_profile_file(self.initial_profile_grid,filename="prof.inp.%3.3i"%iexpnr,kmax=kmax)
-            default_input.write_large_scale_forcing_file(self.large_scale_forcings_grid, filename="lscale.inp.%3.3i"%iexpnr,kmax=kmax)
+            filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%self.parameters.iexpnr)
+            default_input.write_initial_profile_file(self.initial_profile_grid,filename=filename,kmax=kmax)
+            filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%self.parameters.iexpnr)
+            default_input.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid, filename="lscale.inp.%3.3i"%iexpnr,kmax=kmax)
 
         # print "code options written to %s"%dalesinputfile
 
@@ -511,6 +517,13 @@ class Dales(CommonCode):
             "grid spacing in y direction",
             None
         )
+        object.add_method_parameter(
+            "get_workdir",
+            "set_workdir",
+            "workdir",
+            "run/ working directory of Dales",
+            "./"
+        )
         object.add_boolean_parameter(
             "get_exact_end",
             "set_exact_end",
@@ -572,6 +585,7 @@ class Dales(CommonCode):
         object.add_transition("INITIALIZED","EDIT","commit_parameters")
         object.add_transition("EDIT","RUN","commit_grid")
 
+        object.add_method("INITIALIZED", "set_workdir")
         object.add_method("INITIALIZED", "set_input_file")
         object.add_method("INITIALIZED", "set_start_date_time")
 
