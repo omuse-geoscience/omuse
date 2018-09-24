@@ -410,12 +410,13 @@ class Dales(CommonCode):
         patch=defaultdict( dict )
         for name, v in namelist_parameters.iteritems():
             group=patch[v["group_name"]]
+            short=v["short"]
             if getattr(self.parameters, name) is None:  # omit if value is None
                 continue
             if is_quantity(namelist_parameters[name]["default"]):
-                group[name]=to_quantity(getattr(self.parameters, name)).value_in(namelist_parameters[name]["default"].unit)
+                group[short]=to_quantity(getattr(self.parameters, name)).value_in(namelist_parameters[name]["default"].unit)
             else:
-                group[name]=getattr(self.parameters, name)
+                group[short]=getattr(self.parameters, name)
         
         if self._nml_file:
             dalesinputfile=self._nml_file+"_amuse"
