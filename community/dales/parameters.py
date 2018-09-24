@@ -13,7 +13,7 @@ xlat  =  dict(group_name="DOMAIN", short="xlat", dtype="float64", default=52 | u
 xlon  =  dict(group_name="DOMAIN", short="xlon", dtype="float64", default=0 | units.deg, description="longitude of domain", ptype="nml"),
 xyear =  dict(group_name="DOMAIN", short="xyear", dtype="float64", default=0 | units.yr, description="year, only for time units in netcdf", ptype="nml"),
 xday  =  dict(group_name="DOMAIN", short="xday", dtype="float64", default=1 | units.day, description="start day, number of the day", ptype="nml"),
-xtime =  dict(group_name="DOMAIN", short="xday", dtype="float64", default=1 | units.hour, description="start time, UTC time of the day", ptype="nml"),
+xtime =  dict(group_name="DOMAIN", short="xtime", dtype="float64", default=1 | units.hour, description="start time, UTC time of the day", ptype="nml"),
 ksp   =  dict(group_name="DOMAIN", short="ksp", dtype="float64", default=None, description="lower height of sponge layer in grid cells", ptype="nml"),
 #
 llsadv     =  dict(group_name="DYNAMICS", short="llsadv", dtype="bool", default=False, description="Switch for large scale forcings", ptype="nml"),
@@ -33,7 +33,7 @@ z0         =  dict(group_name="PHYSICS", short="z0", dtype="float64", default=1.
 ustin      =  dict(group_name="PHYSICS", short="ustin", dtype="float64", default=0.32 | units.m/units.s, description ="Prescribed friction velocity (negative = ", ptype="nml"),
 wtsurf     =  dict(group_name="PHYSICS", short="wtsurf", dtype="float64", default=0. | units.K*units.m/units.s, description ="Flux of liq. water pot. temp. at the surface (negative = ", ptype="nml"),
 wqsurf     =  dict(group_name="PHYSICS", short="wqsurf", dtype="float64", default=0. | units.K*units.m/units.s, description ="Flux of total water content at the surface (negative = ", ptype="nml"),
-wsvsurf    =  dict(group_name="PHYSICS", short="wqsurf", dtype="float64", default=0. | units.ppb*units.m/units.s, description ="Flux of scalars at the surface", ptype="nml"),
+wsvsurf    =  dict(group_name="PHYSICS", short="wsvsurf", dtype="float64", default=0. | units.ppb*units.m/units.s, description ="Flux of scalars at the surface", ptype="nml"),
 thls       =  dict(group_name="PHYSICS",short="thls",dtype="float64",default=298.5 | units.K, description="Liquid water potential temperature at the surface", ptype="nml"),
 ps         =  dict(group_name="PHYSICS",short="ps",dtype="float64",default=101540. | units.Pa, description="surface pressure", ptype="nml"),
 isurf      =  dict(group_name="PHYSICS",short="isurf",dtype="int32",default=4, description="surface parametrization (1 [interactive, use rad.],2 [forced surf T, flux calculated],3 [forced mom, moisture and heat flux],4 [forced moisture and heat flux] or 10 [user def]", ptype="nml"),
@@ -85,33 +85,42 @@ krandumax  =  dict(group_name="RUN",short="krandumax", dtype="int32", default=0,
 randu      =  dict(group_name="RUN",short="randu", dtype="float64", default=0.5 | units.m/units.s, description="amplitude of wind randomization", ptype="nml"),
 nprocx     =  dict(group_name="RUN",short="nprocx", dtype="int32", default=0 , description="Number of processes in the x direction (0=means let MPI decide)", ptype="nml"),
 nprocy     =  dict(group_name="RUN",short="nprocy", dtype="int32", default=0 , description="Number of processes in the y direction (0=means let MPI decide)", ptype="nml"),
-
+#
+ldelta     =  dict(group_name="NAMSUBGRID", short="ldelta", dtype="bool", default=False, description="Switch for diminished sfs in stable flow", ptype="nml"),
+lmason     =  dict(group_name="NAMSUBGRID", short="lmason", dtype="bool", default=False, description="Switch for decreased length scale near the surface", ptype="nml"),
+cf         =  dict(group_name="NAMSUBGRID", short="cf", dtype="float64", default=2.5, description="Filter constant", ptype="nml"),
+cn         =  dict(group_name="NAMSUBGRID", short="cn", dtype="float64", default=0.76, description="Subfilter scale parameter", ptype="nml"),
+Rigc       =  dict(group_name="NAMSUBGRID", short="Rigc", dtype="float64", default=0.25, description="Critical Richardson number", ptype="nml"),
+Prandtl    =  dict(group_name="NAMSUBGRID", short="Prandtl", dtype="float64", default=1./3., description="Prandtl number", ptype="nml"),
+lsmagorinsky=  dict(group_name="NAMSUBGRID", short="lsmagorinsky", dtype="bool", default=False, description="Switch for smagorinsky subgrid scheme ", ptype="nml"),
+cs         =  dict(group_name="NAMSUBGRID", short="cs", dtype="float64", default=-1., description="Smagorinsky constant", ptype="nml"),
+nmason     =  dict(group_name="NAMSUBGRID", short="nmason", dtype="float64", default=2., description="Exponent in Mason correction function", ptype="nml"),
+sgs_surface_fix=  dict(group_name="NAMSUBGRID", short="sgs_surface_fix", dtype="bool", default=True, description="Switch to apply a fix to the coupling of SFS TKE to the surface (experimental)", ptype="nml"),
+#
+lcanopy    =  dict(group_name="NAMCANOPY", short="lcanopy", dtype="bool", default=False, description="Switch to represent canopy drag", ptype="nml"),
+ncanopy    =  dict(group_name="NAMCANOPY", short="ncanopy", dtype="int32", default=10, description="Amount of layers that contain canopy", ptype="nml"),
+cd         =  dict(group_name="NAMCANOPY", short="cd", dtype="float64", default=0.15, description="canopy drag coefficient", ptype="nml"),
+lai        =  dict(group_name="NAMCANOPY", short="lai", dtype="float64", default=2., description="One-sided plant area index of the canopy", ptype="nml"),
+lpaddistr  =  dict(group_name="NAMCANOPY", short="lpaddistr", dtype="bool", default=False, description="Switch to make use of customized plant area density (prescribed at half levels in paddistr.inp)", ptype="nml"),
+npaddistr  =  dict(group_name="NAMCANOPY", short="npaddistr", dtype="int32", default=11, description="number of half-levels in paddistr.inp", ptype="nml"),
+wth_can    =  dict(group_name="NAMCANOPY", short="wth_can", dtype="float64", default=0. | units.K*units.m/units.s, description="prescribed SH canopy flux(at top)", ptype="nml"),
+wqt_can    =  dict(group_name="NAMCANOPY", short="wqt_can", dtype="float64", default=0. | units.shu*units.m/units.s, description="Prescribed LE canopy flux (at top)", ptype="nml"),
+wsv_can    =  dict(group_name="NAMCANOPY", short="wsv_can", dtype="float64", default=0. | units.ppb*units.m/units.s, description="Prescribed scalar flux (at top)", ptype="nml"),
+wth_total  =  dict(group_name="NAMCANOPY", short="wth_total", dtype="bool", default=False, description="If true, wth_can includes the surface flux", ptype="nml"),
+wqt_total  =  dict(group_name="NAMCANOPY", short="wqt_total", dtype="bool", default=False, description="If true, wqt_can includes the surface flux", ptype="nml"),
+wsv_total  =  dict(group_name="NAMCANOPY", short="wsv_total", dtype="bool", default=False, description="If true, wsv_can includes the surface flux", ptype="nml"),
+wth_alph   =  dict(group_name="NAMCANOPY", short="wth_alph", dtype="float64", default=0., description="Decay constant for SH with integrated PAD", ptype="nml"),
+wqt_alph   =  dict(group_name="NAMCANOPY", short="wqt_alph", dtype="float64", default=0., description="Decay constant for LE with integrated PAD", ptype="nml"),
+wsv_alph   =  dict(group_name="NAMCANOPY", short="wsv_alph", dtype="float64", default=0., description="Decay constant for scalar fluxes with integrated PAD", ptype="nml"),
+#
 
 )
 
-
-#~ class namelist_parameters(object):
-    #~ def __init__(self, parameters):
-        #~ self.parameter_dict=dict()
-        #~ self.namelist_dict=dict()
-
-    #~ def read_namelist_file(self, filename):
-        #~ self.namelist_dict=f90nml.read(filename)
-        #~ for group in self.namelist_dict:
-            #~ for key in self.namelist_dict:
-                #~ self.parameter_dict[key][group_name]=group
-                #~ self.parameter_dict[key][short]=key
-                #~ self.parameter_dict[key][value]=
-      
-    #~ def write_namelist_file(self, filename):
       
       
       
 if __name__=="__main__":
     pass
-    #~ code=Dales(input_file="namoptions.001")
-    
-    #~ print code.parameters
     
     
   
