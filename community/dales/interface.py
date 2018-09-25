@@ -377,9 +377,10 @@ class Dales(CommonCode):
             self.read_input_file()
             # for the moment, expect input profile and large scale forcing file iff 
             # input file is provided as argument 
-            filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%self.parameters.iexpnr)
+            self.parameters_RUN.iexpnr
+            filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%iexpnr)
             self.initial_profile_grid=default_input.read_initial_profile(filename)
-            filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%self.parameters.iexpnr)
+            filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%iexpnr)
             self.initial_large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
             self.parameters.write_profile_files=False
         else:
@@ -413,12 +414,12 @@ class Dales(CommonCode):
             group=patch[v["group_name"]]
             short=v["short"]
             parameter_set=getattr(self, "parameters_"+v["group_name"])
-            if getattr(parameters_set, name) is None:  # omit if value is None
+            if getattr(parameter_set, name) is None:  # omit if value is None
                 continue
             if is_quantity(namelist_parameters[name]["default"]):
-                group[short]=to_quantity(getattr(parameters_set, name)).value_in(namelist_parameters[name]["default"].unit)
+                group[short]=to_quantity(getattr(parameter_set, name)).value_in(namelist_parameters[name]["default"].unit)
             else:
-                group[short]=getattr(parameters_set, name)
+                group[short]=getattr(parameter_set, name)
         
         if self._nml_file:
             dalesinputfile=self._nml_file+"_amuse"
@@ -434,11 +435,11 @@ class Dales(CommonCode):
         self.set_input_file(dalesinputfile)
 
         if self.parameters.write_profile_files:
-            kmax=self.parameters.kmax
-            iexpnr=self.parameters.iexpnr
-            filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%self.parameters.iexpnr)
+            kmax=self.parameters_DOMAIN.kmax
+            iexpnr=self.parameters_RUN.iexpnr
+            filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%iexpnr)
             default_input.write_initial_profile_file(self.initial_profile_grid,filename=filename,kmax=kmax)
-            filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%self.parameters.iexpnr)
+            filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%iexpnr)
             default_input.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid, filename="lscale.inp.%3.3i"%iexpnr,kmax=kmax)
 
         # print "code options written to %s"%dalesinputfile
