@@ -171,6 +171,13 @@ import f90nml
 from collections import defaultdict
 from omuse.units.quantities import new_quantity, to_quantity, is_quantity
 
+
+# CodeWithNamelistParameters
+# 
+# namelist_parameters=dict(
+#   parametername  =  dict(group_name="name", short="codename", dtype="int32", default=64, description="description", ptype="nml" [, set_name="name"]),
+# )
+
 class CodeWithNamelistParameters(object):
     def __init__(self, namelist_parameters):
         self._namelist_parameters=namelist_parameters
@@ -178,7 +185,8 @@ class CodeWithNamelistParameters(object):
     def define_parameters(self,object):
         for name,p in self._namelist_parameters.iteritems():
             if p["ptype"] in ["nml", "nml+normal"]:
-                object.add_interface_parameter( name, p["description"], p["default"], "before_set_interface_parameter", parameter_set="parameters_"+p["group_name"])
+                parameter_set_name=p.get("set_name", "parameters_"+p["group_name"])
+                object.add_interface_parameter( name, p["description"], p["default"], "before_set_interface_parameter", parameter_set=parameter_set_name)
 
     def read_namelist_parameters(self, inputfile):
 
@@ -188,7 +196,9 @@ class CodeWithNamelistParameters(object):
         for group, d in self._nml_params.iteritems():
             for name, val in d.iteritems():
                 if name in self._namelist_parameters:
-                    parameter_set=getattr(self, "parameters_"+self._namelist_parameters[name]["group_name"])
+                    group_name=self._namelist_parameters[name]["group_name"]
+                    parameter_set_name=self._namelist_parameters[name].get("set_name", "parameters_"+group_name)
+                    parameter_set=getattr(self, parameter_set_name)
                     if is_quantity(self._namelist_parameters[name]["default"]):
                         setattr(parameter_set, name, new_quantity(val, to_quantity(self._namelist_parameters[name]["default"]).unit) )
                     else:
@@ -199,9 +209,11 @@ class CodeWithNamelistParameters(object):
     def write_namelist_parameters(self, outputfile, do_patch=False, nml_file=None):
         patch=defaultdict( dict )
         for name, v in self._namelist_parameters.iteritems():
-            group=patch[v["group_name"]]
+            group_name=v["group_name"]
+            group=patch[group_name]
             short=v["short"]
-            parameter_set=getattr(self, "parameters_"+v["group_name"])
+            parameter_set_name=v.get("set_name", "parameters_"+group_name)
+            parameter_set=getattr(self, parameter_set_name)
             if getattr(parameter_set, name) is None:  # omit if value is None
                 continue
             if is_quantity(self._namelist_parameters[name]["default"]):
@@ -212,8 +224,7 @@ class CodeWithNamelistParameters(object):
         if do_patch:
             f90nml.patch(nml_file or self._nml_file,patch,outputfile)
         else:
-            f90nml.write(patch, outputfile, force=True)
-      
+            f90nml.write(patch, outputfile, force=True)      
 if __name__=="__main__":
     pass
     
