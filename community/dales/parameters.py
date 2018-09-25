@@ -67,7 +67,7 @@ unudge     =  dict(group_name="PHYSICS",short="unudge", dtype="float64", default
 #
 iexpnr     =  dict(group_name="RUN",short="iexpnr", dtype="int32", default=0, description="Experiment number", ptype="nml"),
 dtmax      =  dict(group_name="RUN",short="dtmax", dtype="float64", default=20. | units.s, description="Maximum timestep", ptype="nml"),
-runtime    =  dict(group_name="RUN",short="runtime", dtype="float64", default=300. | units.s, description="total maximum simulation time", ptype="nml"),
+runtime    =  dict(group_name="RUN",short="runtime", dtype="float64", default=1.e6 | units.s, description="total maximum simulation time", ptype="nml"),
 lwarmstart =  dict(group_name="RUN",short="lwarmstart", dtype="bool", default=False, description="flag for cold or warm start", ptype="nml"),
 startfile  =  dict(group_name="RUN",short="startfile", dtype="string", default="initdlatestx000y000.001", description="restart file name", ptype="nml"),
 trestart   =  dict(group_name="RUN",short="trestart", dtype="float64", default=3600. | units.s, description="restart file write interval", ptype="nml"),
