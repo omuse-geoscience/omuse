@@ -188,13 +188,13 @@ class CodeWithNamelistParameters(object):
         for group, d in self._nml_params.iteritems():
             for name, val in d.iteritems():
                 if name in self._namelist_parameters:
-                    parameter_set=getattr(self, "parameters_"+namelist_parameters[name]["group_name"])
-                    if is_quantity(namelist_parameters[name]["default"]):
-                        setattr(parameter_set, name, new_quantity(val, to_quantity(namelist_parameters[name]["default"]).unit) )
+                    parameter_set=getattr(self, "parameters_"+self._namelist_parameters[name]["group_name"])
+                    if is_quantity(self._namelist_parameters[name]["default"]):
+                        setattr(parameter_set, name, new_quantity(val, to_quantity(self._namelist_parameters[name]["default"]).unit) )
                     else:
                         setattr(parameter_set, name, val )
                 else:
-                    print "'%s' of group '%s' not in the namelist_parameters of Dales"%(name, group)
+                    print "'%s' of group '%s' not in the namelist_parameters"%(name, group)
 
     def write_namelist_parameters(self, outputfile, do_patch=False, nml_file=None):
         patch=defaultdict( dict )
@@ -204,8 +204,8 @@ class CodeWithNamelistParameters(object):
             parameter_set=getattr(self, "parameters_"+v["group_name"])
             if getattr(parameter_set, name) is None:  # omit if value is None
                 continue
-            if is_quantity(namelist_parameters[name]["default"]):
-                group[short]=to_quantity(getattr(parameter_set, name)).value_in(namelist_parameters[name]["default"].unit)
+            if is_quantity(self._namelist_parameters[name]["default"]):
+                group[short]=to_quantity(getattr(parameter_set, name)).value_in(self._namelist_parameters[name]["default"].unit)
             else:
                 group[short]=getattr(parameter_set, name)
         
