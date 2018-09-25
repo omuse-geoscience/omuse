@@ -397,10 +397,11 @@ class Dales(CommonCode):
         for group, d in self._nml_params.iteritems():
             for name, val in d.iteritems():
                 if name in namelist_parameters:
+                    parameter_set=getattr(self, "parameters_"+namelist_parameters[name]["group_name"])
                     if is_quantity(namelist_parameters[name]["default"]):
-                        setattr(self.parameters, name, new_quantity(val, to_quantity(namelist_parameters[name]["default"]).unit) )
+                        setattr(parameter_set, name, new_quantity(val, to_quantity(namelist_parameters[name]["default"]).unit) )
                     else:
-                        setattr(self.parameters, name, val )
+                        setattr(parameter_set, name, val )
                 else:
                     print "'%s' of group '%s' not in the namelist_parameters of Dales"%(name, group)
 
@@ -411,12 +412,13 @@ class Dales(CommonCode):
         for name, v in namelist_parameters.iteritems():
             group=patch[v["group_name"]]
             short=v["short"]
-            if getattr(self.parameters, name) is None:  # omit if value is None
+            parameter_set=getattr(self, "parameters_"+v["group_name"])
+            if getattr(parameters_set, name) is None:  # omit if value is None
                 continue
             if is_quantity(namelist_parameters[name]["default"]):
-                group[short]=to_quantity(getattr(self.parameters, name)).value_in(namelist_parameters[name]["default"].unit)
+                group[short]=to_quantity(getattr(parameters_set, name)).value_in(namelist_parameters[name]["default"].unit)
             else:
-                group[short]=getattr(self.parameters, name)
+                group[short]=getattr(parameters_set, name)
         
         if self._nml_file:
             dalesinputfile=self._nml_file+"_amuse"
@@ -558,7 +560,7 @@ class Dales(CommonCode):
         #~ )
         for name,p in namelist_parameters.iteritems():
             if p["ptype"] in ["nml", "nml+normal"]:
-                object.add_interface_parameter( name, p["description"], p["default"], "before_set_interface_parameter")
+                object.add_interface_parameter( name, p["description"], p["default"], "before_set_interface_parameter", parameter_set="parameters_"+p["group_name"])
         object.add_interface_parameter(
             "write_profile_files",
             "write_out initial profile and large scale forcing files",
