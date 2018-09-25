@@ -350,8 +350,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     def __init__(self,**options):
         input_file=options.get("input_file", None)
         self._nml_file=None
-        CommonCode.__init__(self,  DalesInterface(**options), **options)
         CodeWithNamelistParameters.__init__(self, namelist_parameters)
+        CommonCode.__init__(self,  DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
 
         self.parameters.input_file=input_file
@@ -424,6 +424,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         self.get_params()
 
     def define_parameters(self, object):
+        CodeWithNamelistParameters.define_parameters(self,object)
+
         object.add_interface_parameter(
             "input_file",
             "the input file name",
@@ -528,9 +530,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             #~ None,
             #~ "before_set_interface_parameter"
         #~ )
-        for name,p in namelist_parameters.iteritems():
-            if p["ptype"] in ["nml", "nml+normal"]:
-                object.add_interface_parameter( name, p["description"], p["default"], "before_set_interface_parameter", parameter_set="parameters_"+p["group_name"])
         object.add_interface_parameter(
             "write_profile_files",
             "write_out initial profile and large scale forcing files",
