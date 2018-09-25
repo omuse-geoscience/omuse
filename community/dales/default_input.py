@@ -225,11 +225,11 @@ def read_initial_profile(filename=None):
     data=numpy.loadtxt(filename or StringIO.StringIO(initial_profile_input))
     zf=data[:,0] | units.m
     grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
-    grid.qt=data[:,2] | units.shu
-    grid.thl=data[:,1] | units.K
-    grid.u=data[:,3] | units.m/units.s
-    grid.v=data[:,4] | units.m/units.s
-    grid.tke=data[:,5] | units.m/units.s
+    grid.QT=data[:,2] | units.shu
+    grid.THL=data[:,1] | units.K
+    grid.U=data[:,3] | units.m/units.s
+    grid.V=data[:,4] | units.m/units.s
+    grid.E12=data[:,5] | units.m/units.s
     return grid
 
 def read_large_scale_forcings(filename=None):
@@ -250,11 +250,11 @@ def resample_grid(grid, kmax):
     assert len(zf.shape)==1
     zf=resample_array(kmax, grid.zf)
     grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
-    grid.qt=interp(zf, zf, grid.qt)
-    grid.thl=interp(zf, zf, grid.thl)
-    grid.u=interp(zf, zf, grid.u)
-    grid.v=interp(zf, zf, grid.v)
-    grid.tke=interp(zf, zf, grid.tke)
+    grid.QT=interp(zf, zf, grid.QT)
+    grid.THL=interp(zf, zf, grid.THL)
+    grid.U=interp(zf, zf, grid.U)
+    grid.V=interp(zf, zf, grid.V)
+    grid.E12=interp(zf, zf, grid.E12)
     return grid
 
 def write_initial_profile_file(grid, filename="prof.inp.001", kmax=None):
@@ -264,11 +264,11 @@ def write_initial_profile_file(grid, filename="prof.inp.001", kmax=None):
  zf         thl        qt         u          v          tke             """
     numpy.savetxt( filename,numpy.column_stack((
       grid.z.value_in(units.m),
-      grid.thl.value_in(units.K),
-      grid.qt.value_in(units.shu),
-      grid.u.value_in(units.m/units.s),
-      grid.v.value_in(units.m/units.s),
-      grid.tke.value_in(units.m/units.s))), header=header)
+      grid.THL.value_in(units.K),
+      grid.QT.value_in(units.shu),
+      grid.U.value_in(units.m/units.s),
+      grid.V.value_in(units.m/units.s),
+      grid.E12.value_in(units.m/units.s))), header=header)
 
 def write_large_scale_forcing_file(grid, filename="lscale.inp.001", kmax=None):
     if kmax and kmax!=len(grid.z):
