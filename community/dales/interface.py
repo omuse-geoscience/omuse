@@ -2,8 +2,6 @@ import os.path
 import numpy
 import f90nml
 
-from collections import defaultdict
-
 from omuse.units import units
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.support.interface import InCodeComponentImplementation
@@ -12,12 +10,12 @@ from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
 from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
-from omuse.units.quantities import new_quantity, to_quantity, is_quantity
+from omuse.units.quantities import new_quantity
 from amuse import datamodel
 
 from amuse.units import trigo
 
-from parameters import namelist_parameters
+from parameters import CodeWithNamelistParameters, namelist_parameters
 import default_input
 
 # needs a bit of work for "non-local" runs
@@ -343,7 +341,7 @@ class DalesInterface(CodeInterface,
         returns (walltime=0. | units.s)
 
 
-class Dales(CommonCode):
+class Dales(CommonCode, CodeWithNamelistParameters):
     
     QT_FORCING_GLOBAL=0
     QT_FORCING_LOCAL=1
@@ -353,6 +351,7 @@ class Dales(CommonCode):
         input_file=options.get("input_file", None)
         self._nml_file=None
         CommonCode.__init__(self,  DalesInterface(**options), **options)
+        CodeWithNamelistParameters.__init__(self, namelist_parameters)
         self.stopping_conditions = StoppingConditions(self)
 
         self.parameters.input_file=input_file
@@ -377,7 +376,7 @@ class Dales(CommonCode):
             self.read_input_file()
             # for the moment, expect input profile and large scale forcing file iff 
             # input file is provided as argument 
-            self.parameters_RUN.iexpnr
+            iexpnr=self.parameters_RUN.iexpnr
             filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%iexpnr)
             self.initial_profile_grid=default_input.read_initial_profile(filename)
             filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%iexpnr)
@@ -392,42 +391,12 @@ class Dales(CommonCode):
     def read_input_file(self):
         inputfile=os.path.join(self.parameters.workdir,self.parameters.input_file)
 
-        self._nml_file=inputfile
-        self._nml_params = f90nml.read(inputfile)
-
-        for group, d in self._nml_params.iteritems():
-            for name, val in d.iteritems():
-                if name in namelist_parameters:
-                    parameter_set=getattr(self, "parameters_"+namelist_parameters[name]["group_name"])
-                    if is_quantity(namelist_parameters[name]["default"]):
-                        setattr(parameter_set, name, new_quantity(val, to_quantity(namelist_parameters[name]["default"]).unit) )
-                    else:
-                        setattr(parameter_set, name, val )
-                else:
-                    print "'%s' of group '%s' not in the namelist_parameters of Dales"%(name, group)
-
-        #print ("DalesInterface.__init__", options)
+        self.read_namelist_parameters(inputfile)
         
     def write_namelist_file(self):
-        patch=defaultdict( dict )
-        for name, v in namelist_parameters.iteritems():
-            group=patch[v["group_name"]]
-            short=v["short"]
-            parameter_set=getattr(self, "parameters_"+v["group_name"])
-            if getattr(parameter_set, name) is None:  # omit if value is None
-                continue
-            if is_quantity(namelist_parameters[name]["default"]):
-                group[short]=to_quantity(getattr(parameter_set, name)).value_in(namelist_parameters[name]["default"].unit)
-            else:
-                group[short]=getattr(parameter_set, name)
-        
-        if self._nml_file:
-            dalesinputfile=self._nml_file+"_amuse"
-            f90nml.patch(self._nml_file,patch,dalesinputfile)
-        else:
-            dalesinputfile="dales_namelist_amuse"
-            f90nml.write(patch, dalesinputfile, force=True)
-        return dalesinputfile
+        outputfile=(self._nml_file or "dales_namelist") +"_amuse"
+        CodeWithNamelistParameters.write_namelist_parameters(self,outputfile, do_patch=self._nml_file)
+        return outputfile
 
     def commit_parameters(self):
               

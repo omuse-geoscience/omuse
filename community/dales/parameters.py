@@ -1,8 +1,5 @@
 from omuse.units import units
 
-import f90nml
-
-
 # dict of parameters: keys become the OMUSE parameter names, short is the name in the namelist file
 namelist_parameters=dict(
 #
@@ -168,17 +165,54 @@ sig_gr    =  dict(group_name="NAMMICROPHYSICS", short="sig_gr", dtype="float64",
 # skipped NAMTILT
 # skipped NAMTIMESTAT
 # 
-
-
-
-
-
-
-
 )
 
-      
-      
+import f90nml
+from collections import defaultdict
+from omuse.units.quantities import new_quantity, to_quantity, is_quantity
+
+class CodeWithNamelistParameters(object):
+    def __init__(self, namelist_parameters):
+        self._namelist_parameters=namelist_parameters
+    
+    def define_parameters(self,object):
+        for name,p in self._namelist_parameters.iteritems():
+            if p["ptype"] in ["nml", "nml+normal"]:
+                object.add_interface_parameter( name, p["description"], p["default"], "before_set_interface_parameter", parameter_set="parameters_"+p["group_name"])
+
+    def read_namelist_parameters(self, inputfile):
+
+        self._nml_file=inputfile
+        self._nml_params = f90nml.read(inputfile)
+
+        for group, d in self._nml_params.iteritems():
+            for name, val in d.iteritems():
+                if name in self._namelist_parameters:
+                    parameter_set=getattr(self, "parameters_"+namelist_parameters[name]["group_name"])
+                    if is_quantity(namelist_parameters[name]["default"]):
+                        setattr(parameter_set, name, new_quantity(val, to_quantity(namelist_parameters[name]["default"]).unit) )
+                    else:
+                        setattr(parameter_set, name, val )
+                else:
+                    print "'%s' of group '%s' not in the namelist_parameters of Dales"%(name, group)
+
+    def write_namelist_parameters(self, outputfile, do_patch=False, nml_file=None):
+        patch=defaultdict( dict )
+        for name, v in self._namelist_parameters.iteritems():
+            group=patch[v["group_name"]]
+            short=v["short"]
+            parameter_set=getattr(self, "parameters_"+v["group_name"])
+            if getattr(parameter_set, name) is None:  # omit if value is None
+                continue
+            if is_quantity(namelist_parameters[name]["default"]):
+                group[short]=to_quantity(getattr(parameter_set, name)).value_in(namelist_parameters[name]["default"].unit)
+            else:
+                group[short]=getattr(parameter_set, name)
+        
+        if do_patch:
+            f90nml.patch(nml_file or self._nml_file,patch,outputfile)
+        else:
+            f90nml.write(patch, outputfile, force=True)
       
 if __name__=="__main__":
     pass
