@@ -238,6 +238,76 @@ class DalesInterface(CodeInterface,
     def get_tendency_QT_(g_i=0):
         returns (a=0.| units.mfu/units.s)
 
+# indexed getter/setter functions for vertical nudging profiles
+    @remote_function(must_handle_array=True)
+    def set_nudge_U(g_i=0, a=0. | units.m/units.s):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_nudge_V(g_i=0, a=0. | units.m/units.s):
+        returns () 
+
+    @remote_function(must_handle_array=True)
+    def set_nudge_THL(g_i=0, a=0.| units.K):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_nudge_QT(g_i=0,a=0.| units.mfu):
+        returns ()
+
+        
+    @remote_function(must_handle_array=True)
+    def get_nudge_U(g_i=0):
+        returns (a=0.| units.m/units.s) 
+
+    @remote_function(must_handle_array=True)
+    def get_nudge_V(g_i=0):
+        returns (a=0.| units.m / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_nudge_THL(g_i=0):
+        returns (a=0.| units.K)
+
+    @remote_function(must_handle_array=True)
+    def get_nudge_QT(g_i=0):
+        returns (a=0.| units.mfu)
+
+        
+    @remote_function()
+    def set_nudge_time_U(time = 0. | units.s):
+        returns ()
+
+    @remote_function()
+    def set_nudge_time_V(time = 0. | units.s): 
+        returns () 
+
+    @remote_function()
+    def set_nudge_time_THL(time = 0. | units.s): 
+        returns ()
+
+    @remote_function()
+    def set_nudge_time_QT(time = 0. | units.s): 
+        returns ()
+
+        
+    @remote_function()
+    def get_nudge_time_U():
+        returns (time = 0. | units.s)
+
+    @remote_function()
+    def get_nudge_time_V(): 
+        returns (time = 0. | units.s) 
+
+    @remote_function()
+    def get_nudge_time_THL(): 
+        returns (time = 0. | units.s)
+
+    @remote_function()
+    def get_nudge_time_QT(): 
+        returns (time = 0. | units.s)
+
+        
+        
 # getter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
     def get_field_U(g_i=0,g_j=0,g_k=0):
@@ -775,6 +845,14 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         object.add_getter('profile_grid', 'get_profile_grid_position', names="z")
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
             object.add_getter('profile_grid', 'get_profile_'+x+'_',  names=[x])
+
+        # nudge grid  -experimental-
+        object.define_grid('nudge',axes_names = "z", grid_class=datamodel.RectilinearGrid)
+        object.set_grid_range('nudge', 'get_profile_grid_range')
+        object.add_getter('nudge', 'get_profile_grid_position', names="z")
+        for x in ['U', 'V', 'THL', 'QT']:
+            object.add_getter('nudge', 'get_nudge_'+x,  names=[x])
+            object.add_setter('nudge', 'set_nudge_'+x,  names=[x])
 
         object.define_grid('forcings',axes_names = "z", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
         object.set_grid_range('forcings', 'get_profile_grid_range')
