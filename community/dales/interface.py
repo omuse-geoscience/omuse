@@ -6,6 +6,7 @@ from omuse.units import units
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.support.interface import InCodeComponentImplementation
 from amuse.support.literature import LiteratureReferencesMixIn
+from amuse.support.parameter_tools import CodeWithNamelistParameters
 from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.units.core import system,no_system
@@ -15,7 +16,7 @@ from amuse import datamodel
 
 from amuse.units import trigo
 
-from parameters import CodeWithNamelistParameters, namelist_parameters
+from parameters import namelist_parameters
 import default_input
 
 # needs a bit of work for "non-local" runs
