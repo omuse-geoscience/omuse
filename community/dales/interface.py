@@ -432,23 +432,23 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             self._nml_file or None,
             "before_set_interface_parameter"
         )
-        object.add_interface_parameter(
+        object.add_alias_parameter(
             "restart_flag",
+            "lwarmstart",
             "warm start from restart file if True",
-            False,
-            "before_set_interface_parameter"
+            alias_set="parameters_RUN"
         )
-        object.add_interface_parameter(
+        object.add_alias_parameter(
             "restart_file",
+            "startfile",
             "restart file name",
-            "initdlatestx000y000.001",
-            "before_set_interface_parameter"
+            alias_set="parameters_RUN"
         )
-        object.add_interface_parameter(
+        object.add_alias_parameter(
+            "trestart",
             "trestart",
             "(simulation) time between writing restart files",
-            3600 | units.s,
-            "before_set_interface_parameter"
+            alias_set="parameters_RUN"
         )
         object.add_method_parameter(
             "get_itot",
