@@ -10,7 +10,8 @@ module dales_interface
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, ql_tend, ps_tend, ql_ref, qt_alpha, &
                        gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice, &
-                       qt_forcing_type, QT_FORCING_GLOBAL, QT_FORCING_LOCAL, QT_FORCING_VARIANCE
+                       qt_forcing_type, QT_FORCING_GLOBAL, QT_FORCING_LOCAL, QT_FORCING_VARIANCE, &
+                       u_nudge, v_nudge, thl_nudge, qt_nudge, u_nudge_time, v_nudge_time, thl_nudge_time, qt_nudge_time
 
     !TODO: Expose everything so this module only depends on daleslib
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,qsat,e120,tmp0,sv0,um,vm,wm,thlm,qtm,surf_rain
@@ -28,7 +29,8 @@ module dales_interface
     real(8),allocatable::tmp3D(:,:,:)
 
     integer :: MPI_local_comm = MPI_COMM_WORLD
-    integer :: startdate, starttime
+    integer :: startdate = 0
+    integer :: starttime = 0
     
     logical :: exactEnd = .false.
     
@@ -102,8 +104,8 @@ contains
         integer:: ret
         
         fname_options="namoptions.001"
-        startdate=0
-        starttime=0
+        !startdate=0
+        !starttime=0
         ret=0
     end function
 
@@ -592,6 +594,141 @@ contains
   
 !!! end of vertical tendency setters
 
+
+!!!!! indexed get/set functions for nudge targets
+    function set_nudge_time_U(time) result(ret)
+      real, intent(in)      :: time
+      integer               :: ret
+      u_nudge_time = time
+      ret = 0
+    end function set_nudge_time_U
+
+    function get_nudge_time_U(time) result(ret)
+      real, intent(out)      :: time
+      integer               :: ret
+      time = u_nudge_time
+      ret = 0
+    end function get_nudge_time_U
+
+    function set_nudge_time_V(time) result(ret)
+      real, intent(in)      :: time
+      integer               :: ret
+      v_nudge_time = time
+      ret = 0
+    end function set_nudge_time_V
+
+    function get_nudge_time_V(time) result(ret)
+      real, intent(out)      :: time
+      integer               :: ret
+      time = v_nudge_time
+      ret = 0
+    end function get_nudge_time_V
+
+    function set_nudge_time_THL(time) result(ret)
+      real, intent(in)      :: time
+      integer               :: ret
+      thl_nudge_time = time
+      ret = 0
+    end function set_nudge_time_THL
+
+    function get_nudge_time_THL(time) result(ret)
+      real, intent(out)      :: time
+      integer               :: ret
+      time = thl_nudge_time
+      ret = 0
+    end function get_nudge_time_THL
+    
+    function set_nudge_time_QT(time) result(ret)
+      real, intent(in)      :: time
+      integer               :: ret
+      qt_nudge_time = time
+      ret = 0
+    end function set_nudge_time_QT
+
+    function get_nudge_time_QT(time) result(ret)
+      real, intent(out)      :: time
+      integer               :: ret
+      time = qt_nudge_time
+      ret = 0
+    end function get_nudge_time_QT
+    
+      
+    function set_nudge_U(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer, dimension(n), intent(in)   :: g_k
+      integer                             :: ret
+      u_nudge(g_k(1:n)) = a(1:n)
+      ret = 0
+    end function set_nudge_U
+    
+    function get_nudge_U(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(out)     :: a
+      integer, dimension(n), intent(in)   :: g_k
+      integer                             :: ret
+      a(1:n) = u_nudge(g_k(1:n))
+      ret = 0
+    end function get_nudge_U
+    
+    function set_nudge_V(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer, dimension(n), intent(in)   :: g_k
+      integer                             :: ret
+      v_nudge(g_k(1:n)) = a(1:n)
+      ret = 0
+    end function set_nudge_V
+    
+    function get_nudge_V(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(out)     :: a
+      integer, dimension(n), intent(in)   :: g_k
+      integer                             :: ret
+      a(1:n) = V_nudge(g_k(1:n))
+      ret = 0
+    end function get_nudge_V
+    
+    function set_nudge_THL(g_k,a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer, dimension(n), intent(in)   :: g_k
+      integer                             :: ret
+      thl_nudge(g_k(1:n)) = a(1:n)
+      ret = 0
+    end function set_nudge_THL
+
+    function get_nudge_THL(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(out)     :: a
+      integer, dimension(n), intent(in)   :: g_k
+      integer                             :: ret
+      a(1:n) = thl_nudge(g_k(1:n))
+      ret = 0
+    end function get_nudge_THL
+
+    function set_nudge_QT(g_k,a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(in)      :: a
+      integer, dimension(n), intent(in)   :: g_k
+      integer                             :: ret
+      qt_nudge(g_k(1:n)) = a(1:n)
+      write(*,*) 'qt_nudge', qt_nudge
+      ret = 0
+    end function set_nudge_QT
+
+    function get_nudge_QT(g_k, a, n) result(ret)
+      integer, intent(in)                 :: n
+      real, dimension(n), intent(out)     :: a
+      integer, dimension(n), intent(in)   :: g_k
+      integer                             :: ret
+      a(1:n) = qt_nudge(g_k(1:n))
+      ret = 0
+    end function get_nudge_QT
+!!! end of nudge target getters/setters
+
+
+    
 !!! getter functions for full 3D fields - using index arrays
     function get_field_U(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
