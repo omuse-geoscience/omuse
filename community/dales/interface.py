@@ -422,7 +422,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         self.set_qt_forcing(self.parameters.qt_forcing)
         
         self.overridden().commit_parameters()
-        self.get_params()
 
     def define_parameters(self, object):
         CodeWithNamelistParameters.define_parameters(self,object)
@@ -519,18 +518,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             0,
             "before_set_interface_parameter"
         )
-        #~ object.add_interface_parameter(
-            #~ "grid_size_xy",
-            #~ "tuple of number grid cells in x and y direction (None means use namelist default)",
-            #~ None,
-            #~ "before_set_interface_parameter"
-        #~ )
-        #~ object.add_interface_parameter(
-            #~ "grid_extent_xy",
-            #~ "tuple or vector of physical grid size in x and y direction (None means use namelist default)",
-            #~ None,
-            #~ "before_set_interface_parameter"
-        #~ )
         object.add_interface_parameter(
             "write_profile_files",
             "write_out initial profile and large scale forcing files",
@@ -542,8 +529,9 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         object.add_property('get_model_time', public_name = "model_time")
         object.add_property('get_timestep', public_name = "timestep")
 
-    def commit_grid(self):        
+    def commit_grid(self):
         self.overridden().commit_grid()
+        self.get_params()
         
     def define_state(self, object):
         object.set_initial_state("UNINITIALIZED")
@@ -565,8 +553,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         for state in ["EDIT","RUN","EVOLVED"]:
           object.add_method(state,"get_model_time")
           object.add_method(state,"get_timestep")
-        for state in ["RUN","EVOLVED"]:
-          object.add_method(state,"get_itot")
+        #~ for state in ["RUN","EVOLVED"]:
+          #~ object.add_method(state,"get_params_grid")
 
         object.add_transition("RUN", "EVOLVED", "evolve_model", False)
         object.add_method("EVOLVED", "evolve_model")
@@ -738,15 +726,15 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         self.zh = self.get_zh()
         
     def get_itot(self):
-        return self.itot
+        return self.get_params_grid()[0]
     def get_jtot(self):
-        return self.jtot
+        return self.get_params_grid()[1]
     def get_kmax(self):
-        return self.k
+        return self.get_params_grid()[2]
     def get_xsize(self):
-        return self.xsize
+        return self.get_params_grid()[3]
     def get_ysize(self):
-        return self.ysize
+        return self.get_params_grid()[4]
     def get_dx(self):
         return self.dx
     def get_dy(self):
