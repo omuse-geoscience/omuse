@@ -188,7 +188,22 @@ namelist_parameters=(
     dict(name="LAIav", group_name="NAMSURFACE", short="LAIav", dtype="float64", default=-1. | units.m**2/units.m**2, description="leaf area index (isurf=1)", ptype="nml"),
     dict(name="gDav", group_name="NAMSURFACE", short="gDav", dtype="float64", default=-1. , description="correction for evap. of tall veg. (isurf=1)", ptype="nml"),
     dict(name="rsisurf2", group_name="NAMSURFACE", short="rsisurf2", dtype="float64", default=0. | units.s/units.m, description="vegatiation resistance (isurf=2)", ptype="nml"),
-
+    dict(name="lhetero", group_name="NAMSURFACE", short="lhetero", dtype="bool", default=False, description="switch to apply heterogeneous surfaces", ptype="nml"),
+    dict(name="xpatches", group_name="NAMSURFACE", short="xpatches", dtype="int32", default=2, description="number of patches in the x-direction", ptype="nml"),
+    dict(name="ypatches", group_name="NAMSURFACE", short="ypatches", dtype="int32", default=1, description="number of patches in the y-direction", ptype="nml"),
+    dict(name="land_use", group_name="NAMSURFACE", short="land_use", dtype="int32", default=0, description="indicator for land type (1..10) ", ptype="nml"),
+    dict(name="loldtable", group_name="NAMSURFACE", short="loldtable", dtype="bool", default=False, description="flag to use old type surface files ", ptype="nml"),
+    dict(name="lrsAgs", group_name="NAMSURFACE", short="lrsAgs", dtype="bool", default=False, description="switch to use A-g_s for resistance calc.", ptype="nml"),
+    dict(name="lCO2Ags", group_name="NAMSURFACE", short="lCO2Ags", dtype="bool", default=False, description="calc, CO2 fluxes with A-g_s (if lrsags True)", ptype="nml"),
+    dict(name="planttype", group_name="NAMSURFACE", short="planttype", dtype="int32", default=3, description="use (C)3 or (C)4 plants for A-g_s (3 or 4)", ptype="nml"),
+    dict(name="lrelaxgc", group_name="NAMSURFACE", short="lrelaxgc", dtype="bool", default=False, description="switch to nudge towards calculated conductivity", ptype="nml"),
+    dict(name="kgc", group_name="NAMSURFACE", short="kgc", dtype="float64", default=0.00113 | units.s**-1, description="response rate for stomatal conductivity (<dtmax**-1)", ptype="nml"),
+    dict(name="lrelaxci", group_name="NAMSURFACE", short="lrelaxci", dtype="bool", default=False, description="switch to nudge towards calc. internal CO2 concentration", ptype="nml"),
+    dict(name="kci", group_name="NAMSURFACE", short="kci", dtype="float64", default=0.00113 | units.s**-1, description="response rate for internal CO2 conc. (<dtmax**-1)", ptype="nml"),
+    dict(name="phi", group_name="NAMSURFACE", short="phi", dtype="float64", default=0.472, description="volumetric soil porosity", ptype="nml"),
+    dict(name="phifc", group_name="NAMSURFACE", short="phifc", dtype="float64", default=0.323, description="volumetric moisture at field capacity", ptype="nml"),
+    dict(name="phiwp", group_name="NAMSURFACE", short="phiwp", dtype="float64", default=0.171, description="volumetric moisture at wilting point", ptype="nml"),
+    dict(name="R10", group_name="NAMSURFACE", short="R10", dtype="float64", default=0.23 | units.milli(units.g)/ units.m**2/units.s , description="respiration at 10 degrees C", ptype="nml"),
 
 #
 # skipped NAMTILT
