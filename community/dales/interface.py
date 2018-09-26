@@ -761,7 +761,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return i*self.dx,j*self.dy
 
     def get_profile_grid_range(self):
-        return (0,self.get_kmax()-1)
+        return (1,self.get_kmax())
 
     def get_surface_grid_range(self):
         return ()
