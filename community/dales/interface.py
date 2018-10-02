@@ -411,6 +411,12 @@ class DalesInterface(CodeInterface,
     def evolve_model(tend=0. | units.s, exactEnd=0):
         returns (walltime=0. | units.s)
 
+    
+    @remote_function
+    def write_restart():
+        returns ()
+
+        
 
 class Dales(CommonCode, CodeWithNamelistParameters):
     
@@ -847,7 +853,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             object.add_getter('profile_grid', 'get_profile_'+x+'_',  names=[x])
 
         # nudge grid  -experimental-
-        object.define_grid('nudge',axes_names = "z", grid_class=datamodel.RectilinearGrid)
+        object.define_grid('nudge',axes_names = "z", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
         object.set_grid_range('nudge', 'get_profile_grid_range')
         object.add_getter('nudge', 'get_profile_grid_position', names="z")
         for x in ['U', 'V', 'THL', 'QT']:
