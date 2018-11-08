@@ -77,7 +77,8 @@ clean:
 distclean: clean
 
 download:
-	$(GIT_CLONE_CMD) https://software.ecmwf.int/stash/scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)
+	$(GIT_CLONE_CMD) https://git.ecmwf.int//scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)	
+
 
 ifdef DOWNLOAD_CODES
 $(OIFSDIR):
