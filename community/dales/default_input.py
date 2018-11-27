@@ -5,7 +5,7 @@ from omuse.units.quantities import to_quantity
 
 from amuse.datamodel import new_rectilinear_grid
 
-large_scale_forcing_input="""
+large_scale_forcing_input = """
 # #large scale forcing
 # height     ug         vg         wfls       dqtdxls    dqtqyls    dqtdtls    dthlrad       
      12.500      2.500      0.000      0.000      0.000      0.000      0.000      0.000
@@ -106,7 +106,7 @@ large_scale_forcing_input="""
    2387.500      2.500      0.000      0.000      0.000      0.000      0.000      0.000
 """
 
-initial_profile_input="""
+initial_profile_input = """
 # #profile
 # zf         thl        qt         u          v          tke             
      12.500    292.500      0.005      2.500      0.000      1.000
@@ -207,85 +207,92 @@ initial_profile_input="""
    2387.500    304.525      0.005      2.500      0.000      1.000
 """
 
-def resample_array(k,x,**kwargs):
-    k_=1.*numpy.arange(len(x))
-    k_=k_/k_[-1]
 
-    knew=1.*numpy.arange(k)
-    knew=knew/knew[-1]
-    return numpy.interp(knew,k_,x.number, **kwargs) | x.unit
+def resample_array(k, x, **kwargs):
+    k_ = 1. * numpy.arange(len(x))
+    k_ = k_ / k_[-1]
 
-def interp(x,xp,fp,**kwargs):
-    x=to_quantity(x)
-    xp=to_quantity(xp)
-    fp=to_quantity(fp)
+    knew = 1. * numpy.arange(k)
+    knew = knew / knew[-1]
+    return numpy.interp(knew, k_, x.number, **kwargs) | x.unit
+
+
+def interp(x, xp, fp, **kwargs):
+    x = to_quantity(x)
+    xp = to_quantity(xp)
+    fp = to_quantity(fp)
     return numpy.interp(x.value_in(x.unit), xp.value_in(x.unit), fp.number, **kwargs) | fp.unit
 
+
 def read_initial_profile(filename=None):
-    data=numpy.loadtxt(filename or StringIO.StringIO(initial_profile_input))
-    zf=data[:,0] | units.m
-    grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
-    grid.QT=data[:,2] | units.shu
-    grid.THL=data[:,1] | units.K
-    grid.U=data[:,3] | units.m/units.s
-    grid.V=data[:,4] | units.m/units.s
-    grid.E12=data[:,5] | units.m/units.s
+    data = numpy.loadtxt(filename or StringIO.StringIO(initial_profile_input))
+    zf = data[:, 0] | units.m
+    grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
+    grid.QT = data[:, 2] | units.shu
+    grid.THL = data[:, 1] | units.K
+    grid.U = data[:, 3] | units.m / units.s
+    grid.V = data[:, 4] | units.m / units.s
+    grid.E12 = data[:, 5] | units.m / units.s
     return grid
+
 
 def read_large_scale_forcings(filename=None):
-    data=numpy.loadtxt(filename or StringIO.StringIO(large_scale_forcing_input))
-    zf=data[:,0] | units.m
-    grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
-    grid.ug=data[:,1] | units.m/units.s
-    grid.vg=data[:,2] | units.m/units.s
-    grid.wfls=data[:,3]
-    grid.dqtdxls=data[:,4]
-    grid.dqtdyls=data[:,5]
-    grid.dqtdtls=data[:,6]
-    grid.dthlrad=data[:,7]
+    data = numpy.loadtxt(filename or StringIO.StringIO(large_scale_forcing_input))
+    zf = data[:, 0] | units.m
+    grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
+    grid.ug = data[:, 1] | units.m / units.s
+    grid.vg = data[:, 2] | units.m / units.s
+    grid.wfls = data[:, 3]
+    grid.dqtdxls = data[:, 4]
+    grid.dqtdyls = data[:, 5]
+    grid.dqtdtls = data[:, 6]
+    grid.dthlrad = data[:, 7]
     return grid
+
 
 def resample_grid(grid, kmax):
-    zf=grid.positions
-    assert len(zf.shape)==1
-    zf=resample_array(kmax, grid.zf)
-    grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
-    grid.QT=interp(zf, zf, grid.QT)
-    grid.THL=interp(zf, zf, grid.THL)
-    grid.U=interp(zf, zf, grid.U)
-    grid.V=interp(zf, zf, grid.V)
-    grid.E12=interp(zf, zf, grid.E12)
+    zf = grid.positions
+    assert len(zf.shape) == 1
+    zf = resample_array(kmax, grid.zf)
+    grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
+    grid.QT = interp(zf, zf, grid.QT)
+    grid.THL = interp(zf, zf, grid.THL)
+    grid.U = interp(zf, zf, grid.U)
+    grid.V = interp(zf, zf, grid.V)
+    grid.E12 = interp(zf, zf, grid.E12)
     return grid
 
+
 def write_initial_profile_file(grid, filename="prof.inp.001", kmax=None):
-    if kmax and kmax!=len(grid.z):
-        grid=resample_grid(grid,kmax)
-    header=""" profile
+    if kmax and kmax != len(grid.z):
+        grid = resample_grid(grid, kmax)
+    header = """ profile
  zf         thl        qt         u          v          tke             """
-    numpy.savetxt( filename,numpy.column_stack((
-      grid.z.value_in(units.m),
-      grid.THL.value_in(units.K),
-      grid.QT.value_in(units.shu),
-      grid.U.value_in(units.m/units.s),
-      grid.V.value_in(units.m/units.s),
-      grid.E12.value_in(units.m/units.s))), header=header)
+    numpy.savetxt(filename, numpy.column_stack((
+        grid.z.value_in(units.m),
+        grid.THL.value_in(units.K),
+        grid.QT.value_in(units.shu),
+        grid.U.value_in(units.m / units.s),
+        grid.V.value_in(units.m / units.s),
+        grid.E12.value_in(units.m / units.s))), header=header)
+
 
 def write_large_scale_forcing_file(grid, filename="lscale.inp.001", kmax=None):
-    if kmax and kmax!=len(grid.z):
-        grid=resample_grid(grid,kmax)
-    header=""" large scale forcing
+    if kmax and kmax != len(grid.z):
+        grid = resample_grid(grid, kmax)
+    header = """ large scale forcing
  height     ug         vg         wfls       dqtdxls    dqtqyls    dqtdtls    dthlrad"""
-    numpy.savetxt(filename,numpy.column_stack((
-      grid.z.value_in(units.m),
-      grid.ug.value_in(units.m/units.s),
-      grid.vg.value_in(units.m/units.s),
-      grid.wfls, # missing units!!
-      grid.dqtdxls,
-      grid.dqtdyls,
-      grid.dqtdtls,
-      grid.dthlrad,
-      )), header=header)
+    numpy.savetxt(filename, numpy.column_stack((
+        grid.z.value_in(units.m),
+        grid.ug.value_in(units.m / units.s),
+        grid.vg.value_in(units.m / units.s),
+        grid.wfls,  # missing units!!
+        grid.dqtdxls,
+        grid.dqtdyls,
+        grid.dqtdtls,
+        grid.dthlrad,
+    )), header=header)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     pass
