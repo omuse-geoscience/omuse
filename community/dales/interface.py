@@ -7,9 +7,9 @@ from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.support.interface import InCodeComponentImplementation
 from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.support.parameter_tools import CodeWithNamelistParameters
-from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
-from amuse.rfi.core import legacy_function,remote_function
-from amuse.units.core import system,no_system
+from amuse.rfi.core import CodeInterface, LegacyFunctionSpecification
+from amuse.rfi.core import legacy_function, remote_function
+from amuse.units.core import system, no_system
 from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
 from omuse.units.quantities import new_quantity
 from amuse import datamodel
@@ -18,6 +18,7 @@ from amuse.units import trigo
 
 from parameters import namelist_parameters
 import default_input
+
 
 # needs a bit of work for "non-local" runs
 # (ie mechanism to copy input files...)
@@ -33,18 +34,18 @@ class DalesInterface(CodeInterface,
     .. [#] Heus et al., Formulation of the Dutch Atmospheric Large-Eddy Simulation (DALES) and overview of its applications,  Geoscientific Model Development 3, 415, (2010)
 
     """
-    use_modules=["StoppingConditions","dales_interface"]
+    use_modules = ["StoppingConditions", "dales_interface"]
 
     def __init__(self, **options):
-        CodeInterface.__init__(self, name_of_the_worker = self.name_of_the_worker(), **options)
+        CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(), **options)
         LiteratureReferencesMixIn.__init__(self)
-        
+
     def name_of_the_worker(self):
         return "dales_worker"
 
     @remote_function
     def get_input_file():
-        returns (input_file="s")
+        returns(input_file="s")
 
     @remote_function
     def set_input_file(input_file="namoptions"):
@@ -56,7 +57,7 @@ class DalesInterface(CodeInterface,
 
     @remote_function
     def get_exact_end():
-        returns (exactEndFlag=False)
+        returns(exactEndFlag=False)
 
     @remote_function
     def set_exact_end(exactEndFlag=False):
@@ -68,7 +69,7 @@ class DalesInterface(CodeInterface,
 
     @remote_function
     def get_workdir():
-        returns (directory="s")
+        returns(directory="s")
 
     @remote_function
     def set_start_date(date=0):
@@ -77,314 +78,306 @@ class DalesInterface(CodeInterface,
     @remote_function
     def set_start_time(time=0):
         pass
-    
+
     @remote_function
     def get_model_time():
-        returns (time=0.| units.s)
+        returns(time=0. | units.s)
 
     @remote_function
     def get_timestep():
-        returns (dt=0. | units.s)
+        returns(dt=0. | units.s)
 
     @remote_function
-    def set_surface_pressure(p = 1.0e5 | units.Pa):
+    def set_surface_pressure(p=1.0e5 | units.Pa):
         pass
 
     @remote_function
-    def set_tendency_surface_pressure(p = 1.0e5 | units.Pa/units.s):
+    def set_tendency_surface_pressure(p=1.0e5 | units.Pa / units.s):
         pass
-    
+
     @remote_function
     def get_surface_pressure():
-        returns (p=0.| units.Pa)
-    
+        returns(p=0. | units.Pa)
+
     @remote_function
-    def commit_grid():        
+    def commit_grid():
         pass
 
-# getter functions for vertical profiles - slab averages
-# these take a dummy array as input, and return output of the same length
- 
+    # getter functions for vertical profiles - slab averages
+    # these take a dummy array as input, and return output of the same length
 
     @remote_function(must_handle_array=True)
     def get_profile_U_(k=0):
-        returns (out=0.| units.m / units.s)
+        returns(out=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
     def get_profile_V_(k=0):
-        returns (out=0.| units.m / units.s)
+        returns(out=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
     def get_profile_W_(k=0):
-        returns (out=0.| units.m / units.s)
-        
+        returns(out=0. | units.m / units.s)
+
     @remote_function(must_handle_array=True)
     def get_profile_THL_(k=0):
-        returns (out=0.| units.K)
-        
+        returns(out=0. | units.K)
+
     @remote_function(must_handle_array=True)
     def get_profile_QT_(k=0):
-        returns (out=0. | units.mfu)
+        returns(out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QL_(k=0):
-        returns (out=0. | units.mfu)
+        returns(out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QL_ice_(k=0):
-        returns (out=0. | units.mfu)
+        returns(out=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_profile_QR_(k=0):
-        returns (out=0. | units.mfu)
-        
+        returns(out=0. | units.mfu)
+
     @remote_function(must_handle_array=True)
     def get_profile_E12_(k=0):
-        returns (out=0. | units.m/units.s)
+        returns(out=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
     def get_profile_T_(k=0):
-        returns (out=0. | units.K)
+        returns(out=0. | units.K)
 
     # getter for cloud fraction. Uses the index array to define slabs.
     @remote_function(must_handle_array=True)
     def get_cloudfraction(k=0):
-        returns (out=0. | units.m**2/units.m**2)
+        returns(out=0. | units.m ** 2 / units.m ** 2)
 
     # getter for accumulated surface rain flux
     @remote_function()
     def get_rain():
-        returns (out=0. | units.kg / units.m**2)
-        
-# getter functions for height levels
-# these take a dummy array as input, and return output of the same length
+        returns(out=0. | units.kg / units.m ** 2)
+
+    # getter functions for height levels
+    # these take a dummy array as input, and return output of the same length
     @remote_function(must_handle_array=True)
     def get_zf_(k=0):
-        returns (out=0. | units.m)
+        returns(out=0. | units.m)
 
     @remote_function(must_handle_array=True)
     def get_zh_(k=0):
-        returns (out=0. | units.m)
+        returns(out=0. | units.m)
 
     @remote_function(must_handle_array=True)
     def get_presf_(k=0):
-        returns (out=0. | units.Pa)
+        returns(out=0. | units.Pa)
 
     @remote_function(must_handle_array=True)
     def get_presh_(k=0):
-        returns (out=0. | units.Pa)
+        returns(out=0. | units.Pa)
 
-
-        
-# setter functions for vertical tendencies / forcings
+    # setter functions for vertical tendencies / forcings
     @remote_function(must_handle_array=True)
-    def set_tendency_U(a=0. | units.m/units.s**2):
-        returns () 
+    def set_tendency_U(a=0. | units.m / units.s ** 2):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_V(a=0. | units.m/units.s**2):
-        returns ()
+    def set_tendency_V(a=0. | units.m / units.s ** 2):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_THL(a=0. | units.K/units.s):
-        returns ()
+    def set_tendency_THL(a=0. | units.K / units.s):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QT(a=0. | units.mfu/units.s):
-        returns ()
+    def set_tendency_QT(a=0. | units.mfu / units.s):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QL(a=0. | units.mfu/units.s):
-        returns ()
+    def set_tendency_QL(a=0. | units.mfu / units.s):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_ref_profile_QL(a=0.| units.mfu):
-        returns ()
+    def set_ref_profile_QL(a=0. | units.mfu):
+        returns()
 
     @remote_function(must_handle_array=True)
     def set_qt_variability_factor(a=0. | 1 / units.s):
-        returns ()
+        returns()
 
-# indexed getter/setter functions for vertical tendencies / forcings
+    # indexed getter/setter functions for vertical tendencies / forcings
     @remote_function(must_handle_array=True)
-    def set_tendency_U_(g_i=0, a=0. | units.m/units.s**2):
-        returns () 
-
-    @remote_function(must_handle_array=True)
-    def set_tendency_V_(g_i=0, a=0. | units.m/units.s**2):
-        returns ()
+    def set_tendency_U_(g_i=0, a=0. | units.m / units.s ** 2):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_THL_(g_i=0, a=0.| units.K/units.s):
-        returns ()
+    def set_tendency_V_(g_i=0, a=0. | units.m / units.s ** 2):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_tendency_QT_(g_i=0,a=0.| units.mfu/units.s):
-        returns ()
+    def set_tendency_THL_(g_i=0, a=0. | units.K / units.s):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_tendency_QT_(g_i=0, a=0. | units.mfu / units.s):
+        returns()
 
     @remote_function(must_handle_array=True)
     def get_tendency_U_(g_i=0):
-        returns (a=0.| units.m/units.s**2) 
+        returns(a=0. | units.m / units.s ** 2)
 
     @remote_function(must_handle_array=True)
     def get_tendency_V_(g_i=0):
-        returns (a=0.| units.m/units.s**2)
+        returns(a=0. | units.m / units.s ** 2)
 
     @remote_function(must_handle_array=True)
     def get_tendency_THL_(g_i=0):
-        returns (a=0.| units.K/units.s)
+        returns(a=0. | units.K / units.s)
 
     @remote_function(must_handle_array=True)
     def get_tendency_QT_(g_i=0):
-        returns (a=0.| units.mfu/units.s)
+        returns(a=0. | units.mfu / units.s)
 
-# indexed getter/setter functions for vertical nudging profiles
+    # indexed getter/setter functions for vertical nudging profiles
     @remote_function(must_handle_array=True)
-    def set_nudge_U(g_i=0, a=0. | units.m/units.s):
-        returns ()
-
-    @remote_function(must_handle_array=True)
-    def set_nudge_V(g_i=0, a=0. | units.m/units.s):
-        returns () 
+    def set_nudge_U(g_i=0, a=0. | units.m / units.s):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_nudge_THL(g_i=0, a=0.| units.K):
-        returns ()
+    def set_nudge_V(g_i=0, a=0. | units.m / units.s):
+        returns()
 
     @remote_function(must_handle_array=True)
-    def set_nudge_QT(g_i=0,a=0.| units.mfu):
-        returns ()
+    def set_nudge_THL(g_i=0, a=0. | units.K):
+        returns()
 
-        
+    @remote_function(must_handle_array=True)
+    def set_nudge_QT(g_i=0, a=0. | units.mfu):
+        returns()
+
     @remote_function(must_handle_array=True)
     def get_nudge_U(g_i=0):
-        returns (a=0.| units.m/units.s) 
+        returns(a=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
     def get_nudge_V(g_i=0):
-        returns (a=0.| units.m / units.s)
+        returns(a=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
     def get_nudge_THL(g_i=0):
-        returns (a=0.| units.K)
+        returns(a=0. | units.K)
 
     @remote_function(must_handle_array=True)
     def get_nudge_QT(g_i=0):
-        returns (a=0.| units.mfu)
-
-        
-    @remote_function()
-    def set_nudge_time_U(time = 0. | units.s):
-        returns ()
+        returns(a=0. | units.mfu)
 
     @remote_function()
-    def set_nudge_time_V(time = 0. | units.s): 
-        returns () 
+    def set_nudge_time_U(time=0. | units.s):
+        returns()
 
     @remote_function()
-    def set_nudge_time_THL(time = 0. | units.s): 
-        returns ()
+    def set_nudge_time_V(time=0. | units.s):
+        returns()
 
     @remote_function()
-    def set_nudge_time_QT(time = 0. | units.s): 
-        returns ()
+    def set_nudge_time_THL(time=0. | units.s):
+        returns()
 
-        
+    @remote_function()
+    def set_nudge_time_QT(time=0. | units.s):
+        returns()
+
     @remote_function()
     def get_nudge_time_U():
-        returns (time = 0. | units.s)
+        returns(time=0. | units.s)
 
     @remote_function()
-    def get_nudge_time_V(): 
-        returns (time = 0. | units.s) 
+    def get_nudge_time_V():
+        returns(time=0. | units.s)
 
     @remote_function()
-    def get_nudge_time_THL(): 
-        returns (time = 0. | units.s)
+    def get_nudge_time_THL():
+        returns(time=0. | units.s)
 
     @remote_function()
-    def get_nudge_time_QT(): 
-        returns (time = 0. | units.s)
+    def get_nudge_time_QT():
+        returns(time=0. | units.s)
 
-        
-        
-# getter functions for 3D fields usning index arrays
+    # getter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
-    def get_field_U(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.m / units.s)
+    def get_field_U(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
-    def get_field_V(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.m / units.s)
+    def get_field_V(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
-    def get_field_W(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.m / units.s)
+    def get_field_W(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
-    def get_field_THL(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.K)
+    def get_field_THL(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.K)
 
     @remote_function(must_handle_array=True)
-    def get_field_QT(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.mfu)
+    def get_field_QT(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
-    def get_field_QL(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.mfu)
+    def get_field_QL(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
-    def get_field_Qsat(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.mfu)
+    def get_field_Qsat(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
-    def get_field_E12(g_i=0,g_j=0,g_k=0):
-        returns (a=0. | units.m/units.s)
+    def get_field_E12(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.m / units.s)
 
     @remote_function(must_handle_array=True)
-    def get_field_T(g_i=0,g_j=0,g_k=0):
-        returns (a=0.| units.K)
+    def get_field_T(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.K)
 
     @remote_function(must_handle_array=True)
-    def get_field_LWP(g_i=0,g_j=0):
-        returns (a=0. | units.kg/units.m**2)
+    def get_field_LWP(g_i=0, g_j=0):
+        returns(a=0. | units.kg / units.m ** 2)
 
     @remote_function(must_handle_array=True)
-    def get_field_RWP(g_i=0,g_j=0):
-        returns (a=0. | units.kg/units.m**2) 
+    def get_field_RWP(g_i=0, g_j=0):
+        returns(a=0. | units.kg / units.m ** 2)
 
     @remote_function(must_handle_array=True)
-    def get_field_TWP(g_i=0,g_j=0):
-        returns (a=0. | units.kg/units.m**2)
-        
+    def get_field_TWP(g_i=0, g_j=0):
+        returns(a=0. | units.kg / units.m ** 2)
+
     # setter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
-    def set_field_U(g_i=0,g_j=0,g_k=0,a=0. | units.m/units.s):
+    def set_field_U(g_i=0, g_j=0, g_k=0, a=0. | units.m / units.s):
         returns()
 
     @remote_function(must_handle_array=True)
-    def set_field_V(g_i=0,g_j=0,g_k=0,a=0. | units.m/units.s):
+    def set_field_V(g_i=0, g_j=0, g_k=0, a=0. | units.m / units.s):
         returns()
 
     @remote_function(must_handle_array=True)
-    def set_field_W(g_i=0,g_j=0,g_k=0,a=0. | units.m/units.s):
+    def set_field_W(g_i=0, g_j=0, g_k=0, a=0. | units.m / units.s):
         returns()
 
     @remote_function(must_handle_array=True)
-    def set_field_THL(g_i=0,g_j=0,g_k=0,a=0. | units.K):
-        returns()
-        
-    @remote_function(must_handle_array=True)
-    def set_field_QT(g_i=0,g_j=0,g_k=0,a=0. | units.mfu):
+    def set_field_THL(g_i=0, g_j=0, g_k=0, a=0. | units.K):
         returns()
 
-#    @remote_function(must_handle_array=True)
-#    def set_field_E12(g_i=0,g_j=0,g_k=0,a=0.):
-#        returns()
+    @remote_function(must_handle_array=True)
+    def set_field_QT(g_i=0, g_j=0, g_k=0, a=0. | units.mfu):
+        returns()
+
+    #    @remote_function(must_handle_array=True)
+    #    def set_field_E12(g_i=0,g_j=0,g_k=0,a=0.):
+    #        returns()
 
     # setter functions for wtflux and qtflux
     @remote_function
-    def set_wt_surf(wtflux=0. | units.m * units.s**-1 * units.K):
+    def set_wt_surf(wtflux=0. | units.m * units.s ** -1 * units.K):
         returns()
 
     @remote_function
@@ -399,39 +392,36 @@ class DalesInterface(CodeInterface,
     @remote_function
     def set_z0h_surf(z0=0. | units.m):
         returns()
-        
+
     @remote_function()
     def get_params_grid():
-        returns (i=1, j=1, k=1, xsize=1.0 | units.m, ysize=1.0 | units.m)
+        returns(i=1, j=1, k=1, xsize=1.0 | units.m, ysize=1.0 | units.m)
 
-    #exactEnd: if true, step exactly to tend,
+    # exactEnd: if true, step exactly to tend,
     # otherwise, step past tend with normal time steps (default)
     # the end time form namoptions is effective only if exactEnd is false
     @remote_function
     def evolve_model(tend=0. | units.s, exactEnd=0):
-        returns (walltime=0. | units.s)
+        returns(walltime=0. | units.s)
 
-    
     @remote_function
     def write_restart():
-        returns ()
+        returns()
 
-        
 
 class Dales(CommonCode, CodeWithNamelistParameters):
-    
-    QT_FORCING_GLOBAL=0
-    QT_FORCING_LOCAL=1
-    QT_FORCING_VARIANCE=2
+    QT_FORCING_GLOBAL = 0
+    QT_FORCING_LOCAL = 1
+    QT_FORCING_VARIANCE = 2
 
-    def __init__(self,**options):
-        input_file=options.get("input_file", None)
-        self._nml_file=None
+    def __init__(self, **options):
+        input_file = options.get("input_file", None)
+        self._nml_file = None
         CodeWithNamelistParameters.__init__(self, namelist_parameters)
-        CommonCode.__init__(self,  DalesInterface(**options), **options)
+        CommonCode.__init__(self, DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
 
-        self.parameters.input_file=input_file
+        self.parameters.input_file = input_file
 
         # grid size
         self.itot = None
@@ -444,7 +434,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
         if 'workdir' in options:
             # print('Dales.__init__() : setting workdir.')
-            self.set_workdir(options['workdir'])            
+            self.set_workdir(options['workdir'])
 
         self.read_initial_grids()
 
@@ -453,40 +443,41 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             self.read_input_file()
             # for the moment, expect input profile and large scale forcing file iff 
             # input file is provided as argument 
-            iexpnr=self.parameters_RUN.iexpnr
-            filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%iexpnr)
-            self.initial_profile_grid=default_input.read_initial_profile(filename)
-            filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%iexpnr)
-            self.initial_large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
-            self.parameters.write_profile_files=False
+            iexpnr = self.parameters_RUN.iexpnr
+            filename = os.path.join(self.parameters.workdir, "prof.inp.%3.3i" % iexpnr)
+            self.initial_profile_grid = default_input.read_initial_profile(filename)
+            filename = os.path.join(self.parameters.workdir, "lscale.inp.%3.3i" % iexpnr)
+            self.initial_large_scale_forcings_grid = default_input.read_large_scale_forcings(filename)
+            self.parameters.write_profile_files = False
         else:
-            filename=None
-            self.initial_profile_grid=default_input.read_initial_profile(filename)
-            self.initial_large_scale_forcings_grid=default_input.read_large_scale_forcings(filename)
-            self.parameters.write_profile_files=True
-                
+            filename = None
+            self.initial_profile_grid = default_input.read_initial_profile(filename)
+            self.initial_large_scale_forcings_grid = default_input.read_large_scale_forcings(filename)
+            self.parameters.write_profile_files = True
+
     def read_input_file(self):
-        inputfile=os.path.join(self.parameters.workdir,self.parameters.input_file)
+        inputfile = os.path.join(self.parameters.workdir, self.parameters.input_file)
 
         self.read_namelist_parameters(inputfile)
-        
+
     def write_namelist_file(self):
-        outputfile=(self._nml_file or "dales_namelist") +"_amuse"
-        CodeWithNamelistParameters.write_namelist_parameters(self,outputfile, do_patch=self._nml_file)
+        outputfile = (self._nml_file or "dales_namelist") + "_amuse"
+        CodeWithNamelistParameters.write_namelist_parameters(self, outputfile, do_patch=self._nml_file)
         return outputfile
 
     def commit_parameters(self):
-              
-        dalesinputfile=self.write_namelist_file()
+
+        dalesinputfile = self.write_namelist_file()
         self.set_input_file(dalesinputfile)
 
         if self.parameters.write_profile_files:
-            kmax=self.parameters_DOMAIN.kmax
-            iexpnr=self.parameters_RUN.iexpnr
-            filename=os.path.join(self.parameters.workdir, "prof.inp.%3.3i"%iexpnr)
-            default_input.write_initial_profile_file(self.initial_profile_grid,filename=filename,kmax=kmax)
-            filename=os.path.join(self.parameters.workdir, "lscale.inp.%3.3i"%iexpnr)
-            default_input.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid, filename="lscale.inp.%3.3i"%iexpnr,kmax=kmax)
+            kmax = self.parameters_DOMAIN.kmax
+            iexpnr = self.parameters_RUN.iexpnr
+            filename = os.path.join(self.parameters.workdir, "prof.inp.%3.3i" % iexpnr)
+            default_input.write_initial_profile_file(self.initial_profile_grid, filename=filename, kmax=kmax)
+            filename = os.path.join(self.parameters.workdir, "lscale.inp.%3.3i" % iexpnr)
+            default_input.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid,
+                                                         filename=filename, kmax=kmax)
 
         # print "code options written to %s"%dalesinputfile
 
@@ -496,11 +487,11 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             self.set_start_date(10000 * dt.year + 100 * dt.month + dt.day)
             self.set_start_time(10000 * dt.hour + 100 * dt.minute + dt.second)
         self.set_qt_forcing(self.parameters.qt_forcing)
-        
+
         self.overridden().commit_parameters()
 
     def define_parameters(self, object):
-        CodeWithNamelistParameters.define_parameters(self,object)
+        CodeWithNamelistParameters.define_parameters(self, object)
 
         object.add_interface_parameter(
             "input_file",
@@ -600,15 +591,15 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             False,
             "before_set_interface_parameter"
         )
-        
+
     def define_properties(self, object):
-        object.add_property('get_model_time', public_name = "model_time")
-        object.add_property('get_timestep', public_name = "timestep")
+        object.add_property('get_model_time', public_name="model_time")
+        object.add_property('get_timestep', public_name="timestep")
 
     def commit_grid(self):
         self.overridden().commit_grid()
         self.get_params()
-        
+
     def define_state(self, object):
         object.set_initial_state("UNINITIALIZED")
         object.add_transition("UNINITIALIZED", "INITIALIZED", "initialize_code")
@@ -619,65 +610,64 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         object.add_method("UNINITIALIZED", 'stop')
         object.add_method("INITIALIZED", 'stop')
 
-        object.add_transition("INITIALIZED","EDIT","commit_parameters")
-        object.add_transition("EDIT","RUN","commit_grid")
+        object.add_transition("INITIALIZED", "EDIT", "commit_parameters")
+        object.add_transition("EDIT", "RUN", "commit_grid")
 
         object.add_method("INITIALIZED", "set_workdir")
         object.add_method("INITIALIZED", "set_input_file")
         object.add_method("INITIALIZED", "set_start_date_time")
 
-        for state in ["EDIT","RUN","EVOLVED"]:
-          object.add_method(state,"get_model_time")
-          object.add_method(state,"get_timestep")
-        #~ for state in ["RUN","EVOLVED"]:
-          #~ object.add_method(state,"get_params_grid")
+        for state in ["EDIT", "RUN", "EVOLVED"]:
+            object.add_method(state, "get_model_time")
+            object.add_method(state, "get_timestep")
+        # ~ for state in ["RUN","EVOLVED"]:
+        # ~ object.add_method(state,"get_params_grid")
 
         object.add_transition("RUN", "EVOLVED", "evolve_model", False)
         object.add_method("EVOLVED", "evolve_model")
 
     # wrapping functions for hiding the dummy array passed to getter functions
     def get_profile_U(self):
-        return self.get_profile_U_(numpy.arange(1,self.k+1))
+        return self.get_profile_U_(numpy.arange(1, self.k + 1))
 
     def get_profile_V(self):
-        return self.get_profile_V_(numpy.arange(1,self.k+1))
+        return self.get_profile_V_(numpy.arange(1, self.k + 1))
 
     def get_profile_W(self):
-        return self.get_profile_W_(numpy.arange(1,self.k+1))
-        
+        return self.get_profile_W_(numpy.arange(1, self.k + 1))
+
     def get_profile_THL(self):
-        return self.get_profile_THL_(numpy.arange(1,self.k+1))
-        
+        return self.get_profile_THL_(numpy.arange(1, self.k + 1))
+
     def get_profile_QT(self):
-        return self.get_profile_QT_(numpy.arange(1,self.k+1))
+        return self.get_profile_QT_(numpy.arange(1, self.k + 1))
 
     def get_profile_QL(self):
-        return self.get_profile_QL_(numpy.arange(1,self.k+1))
-
+        return self.get_profile_QL_(numpy.arange(1, self.k + 1))
 
     def get_profile_QL_ice(self):
-        return self.get_profile_QL_ice_(numpy.arange(1,self.k+1))
+        return self.get_profile_QL_ice_(numpy.arange(1, self.k + 1))
 
     def get_profile_QR(self):
-        return self.get_profile_QR_(numpy.arange(1,self.k+1))
+        return self.get_profile_QR_(numpy.arange(1, self.k + 1))
 
     def get_profile_E12(self):
-        return self.get_profile_E12_(numpy.arange(1,self.k+1))
+        return self.get_profile_E12_(numpy.arange(1, self.k + 1))
 
     def get_profile_T(self):
-        return self.get_profile_T_(numpy.arange(1,self.k+1))
-    
+        return self.get_profile_T_(numpy.arange(1, self.k + 1))
+
     def get_zf(self):
-        return self.get_zf_(numpy.arange(1,self.k+1))
+        return self.get_zf_(numpy.arange(1, self.k + 1))
 
     def get_zh(self):
-        return self.get_zh_(numpy.arange(1,self.k+1))
+        return self.get_zh_(numpy.arange(1, self.k + 1))
 
     def get_presh(self):
-        return self.get_presh_(numpy.arange(1,self.k+1))
+        return self.get_presh_(numpy.arange(1, self.k + 1))
 
     def get_presf(self):
-        return self.get_presf_(numpy.arange(1,self.k+1))
+        return self.get_presf_(numpy.arange(1, self.k + 1))
 
     # retrieve a 3D field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
@@ -687,49 +677,49 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         if jmax is None:
             jmax = self.jtot
         if kmax is None:
-            kmax = self.k    
+            kmax = self.k
 
-        #build index arrays
-        if field in ('LWP','RWP', 'TWP'):  # 2D field
+            # build index arrays
+        if field in ('LWP', 'RWP', 'TWP'):  # 2D field
             points = numpy.mgrid[imin:imax, jmin:jmax]
             points = points.reshape(2, -1)
-            i,j = points
-        else: # 3D field
+            i, j = points
+        else:  # 3D field
             points = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
             points = points.reshape(3, -1)
-            i,j,k = points
-            
+            i, j, k = points
+
         if field == 'U':
-            field = self.get_field_U(i,j,k)
+            field = self.get_field_U(i, j, k)
         elif field == 'V':
-            field = self.get_field_V(i,j,k)
+            field = self.get_field_V(i, j, k)
         elif field == 'W':
-            field = self.get_field_W(i,j,k)
+            field = self.get_field_W(i, j, k)
         elif field == 'THL':
-            field = self.get_field_THL(i,j,k)
+            field = self.get_field_THL(i, j, k)
         elif field == 'QT':
-            field = self.get_field_QT(i,j,k)
+            field = self.get_field_QT(i, j, k)
         elif field == 'QL':
-            field = self.get_field_QL(i,j,k)
+            field = self.get_field_QL(i, j, k)
         elif field == 'Qsat':
-            field = self.get_field_Qsat(i,j,k)
+            field = self.get_field_Qsat(i, j, k)
         elif field == 'E12':
-            field = self.get_field_E12(i,j,k)
+            field = self.get_field_E12(i, j, k)
         elif field == 'T':
-            field = self.get_field_T(i,j,k)
-        elif field == 'LWP':                              # LWP - 2D field, k ignored
-            field = self.get_field_LWP(i,j)   
-            return field.reshape ((imax-imin, jmax-jmin)) # separate return here, to reshape to 2D
-        elif field == 'RWP':                              # RWP - 2D field, k ignored
-            field = self.get_field_RWP(i,j)   
-            return field.reshape ((imax-imin, jmax-jmin)) # separate return here, to reshape to 2D
-        elif field == 'TWP':                              # TWP - 2D field, k ignored
-            field = self.get_field_TWP(i,j)   
-            return field.reshape ((imax-imin, jmax-jmin)) # separate return here, to reshape to 2D 
+            field = self.get_field_T(i, j, k)
+        elif field == 'LWP':  # LWP - 2D field, k ignored
+            field = self.get_field_LWP(i, j)
+            return field.reshape((imax - imin, jmax - jmin))  # separate return here, to reshape to 2D
+        elif field == 'RWP':  # RWP - 2D field, k ignored
+            field = self.get_field_RWP(i, j)
+            return field.reshape((imax - imin, jmax - jmin))  # separate return here, to reshape to 2D
+        elif field == 'TWP':  # TWP - 2D field, k ignored
+            field = self.get_field_TWP(i, j)
+            return field.reshape((imax - imin, jmax - jmin))  # separate return here, to reshape to 2D
         else:
             print('get_field called with undefined field', field)
-            
-        return field.reshape ((imax-imin, jmax-jmin, kmax-kmin))
+
+        return field.reshape((imax - imin, jmax - jmin, kmax - kmin))
 
     # set a 3D field
     # field is 'U', 'V', 'W', 'THL', 'QT'
@@ -737,144 +727,151 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
         # set max indices from the size of a 
         try:
-          imax = imin + a.shape[0]
-          jmax = jmin + a.shape[1]
-          kmax = kmin + a.shape[2]
-          i,j,k = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
-          i=i.flatten()
-          j=j.flatten()
-          k=k.flatten()
-          a=a.flatten()
+            imax = imin + a.shape[0]
+            jmax = jmin + a.shape[1]
+            kmax = kmin + a.shape[2]
+            i, j, k = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
+            i = i.flatten()
+            j = j.flatten()
+            k = k.flatten()
+            a = a.flatten()
         except:
-          i=imin
-          j=jmin
-          k=kmin
+            i = imin
+            j = jmin
+            k = kmin
 
-        #build index arrays
-        
+        # build index arrays
+
         if field == 'U':
-            self.set_field_U(i,j,k,a)
+            self.set_field_U(i, j, k, a)
         elif field == 'V':
-            self.set_field_V(i,j,k,a)
+            self.set_field_V(i, j, k, a)
         elif field == 'W':
-            self.set_field_W(i,j,k,a)
+            self.set_field_W(i, j, k, a)
         elif field == 'THL':
-            self.set_field_THL(i,j,k,a)
+            self.set_field_THL(i, j, k, a)
         elif field == 'QT':
-            self.set_field_QT(i,j,k,a)
+            self.set_field_QT(i, j, k, a)
         else:
             print('set_field called with undefined field', field)
-                
-
 
     # retrieve a 1D vertical profile - wrapper function consistent with get_field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_profile(self, field):
         if field == 'U':
-            profile = self.get_profile_U_(numpy.arange(1,self.k+1))
+            profile = self.get_profile_U_(numpy.arange(1, self.k + 1))
         elif field == 'V':
-            profile = self.get_profile_V_(numpy.arange(1,self.k+1))
+            profile = self.get_profile_V_(numpy.arange(1, self.k + 1))
         elif field == 'W':
-            profile = self.get_profile_W_(numpy.arange(1,self.k+1))
+            profile = self.get_profile_W_(numpy.arange(1, self.k + 1))
         elif field == 'THL':
-            profile = self.get_profile_THL_(numpy.arange(1,self.k+1))
+            profile = self.get_profile_THL_(numpy.arange(1, self.k + 1))
         elif field == 'QT':
-            profile = self.get_profile_QT_(numpy.arange(1,self.k+1))
+            profile = self.get_profile_QT_(numpy.arange(1, self.k + 1))
         elif field == 'QL':
-            profile = self.get_profile_QL_(numpy.arange(1,self.k+1))
+            profile = self.get_profile_QL_(numpy.arange(1, self.k + 1))
         elif field == 'E12':
-            profile = self.get_profile_E12_(numpy.arange(1,self.k+1))
+            profile = self.get_profile_E12_(numpy.arange(1, self.k + 1))
         elif field == 'T':
-            profile = self.get_profile_T_(numpy.arange(1,self.k+1))
+            profile = self.get_profile_T_(numpy.arange(1, self.k + 1))
         else:
             print('get_profile called with undefined field', field)
-            
-        return profile
 
+        return profile
 
     # get parameters from the fortran code, store them in the Dales interface object
     # called from commit_parameters()
     def get_params(self):
-        self.itot,self.jtot,self.k,self.xsize,self.ysize = self.get_params_grid()
-        self.dx = self.xsize/self.itot
-        self.dy = self.ysize/self.jtot
+        self.itot, self.jtot, self.k, self.xsize, self.ysize = self.get_params_grid()
+        self.dx = self.xsize / self.itot
+        self.dy = self.ysize / self.jtot
         self.zf = self.get_zf()
         self.zh = self.get_zh()
-        
+
     def get_itot(self):
         return self.get_params_grid()[0]
+
     def get_jtot(self):
         return self.get_params_grid()[1]
+
     def get_kmax(self):
         return self.get_params_grid()[2]
+
     def get_xsize(self):
         return self.get_params_grid()[3]
+
     def get_ysize(self):
         return self.get_params_grid()[4]
+
     def get_dx(self):
         return self.dx
+
     def get_dy(self):
         return self.dy
 
     def get_grid_range(self):
-        return (0,self.get_itot()-1,0,self.get_jtot()-1,0,self.get_kmax()-1)
+        return 0, self.get_itot() - 1, 0, self.get_jtot() - 1, 0, self.get_kmax() - 1
 
-    def get_grid_position(self,i,j,k):
-        return i*self.dx,j*self.dy,self.zf[k]
+    def get_grid_position(self, i, j, k):
+        return i * self.dx, j * self.dy, self.zf[k]
 
-    def get_surface_field_position(self,i,j):
-        return i*self.dx,j*self.dy
+    def get_surface_field_position(self, i, j):
+        return i * self.dx, j * self.dy
 
     def get_profile_grid_range(self):
-        return (1,self.get_kmax())
+        return 1, self.get_kmax()
 
     def get_surface_grid_range(self):
         return ()
 
     def get_surface_field_grid_range(self):
-        return (0,self.get_itot()-1,0,self.get_jtot()-1)
+        return 0, self.get_itot() - 1, 0, self.get_jtot() - 1
 
-    def get_profile_grid_position(self,k):
+    def get_profile_grid_position(self, k):
         return self.zf[k]
-        
+
     def define_grids(self, object):
-        object.define_grid('grid',axes_names = "xyz", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.define_grid('grid', axes_names="xyz", grid_class=datamodel.RectilinearGrid,
+                           state_guard="before_new_set_instance")
         object.set_grid_range('grid', 'get_grid_range')
         object.add_getter('grid', 'get_grid_position', names="xyz")
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T']:
-            object.add_getter('grid', 'get_field_'+x,  names=[x])
+            object.add_getter('grid', 'get_field_' + x, names=[x])
         for x in ['U', 'V', 'W', 'THL', 'QT']:
-            object.add_setter('grid', 'set_field_'+x,  names=[x])
+            object.add_setter('grid', 'set_field_' + x, names=[x])
 
-        object.define_grid('profile_grid',axes_names = "z", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.define_grid('profile_grid', axes_names="z", grid_class=datamodel.RectilinearGrid,
+                           state_guard="before_new_set_instance")
         object.set_grid_range('profile_grid', 'get_profile_grid_range')
         object.add_getter('profile_grid', 'get_profile_grid_position', names="z")
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
-            object.add_getter('profile_grid', 'get_profile_'+x+'_',  names=[x])
+            object.add_getter('profile_grid', 'get_profile_' + x + '_', names=[x])
 
         # nudge grid  -experimental-
-        object.define_grid('nudge',axes_names = "z", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.define_grid('nudge', axes_names="z", grid_class=datamodel.RectilinearGrid,
+                           state_guard="before_new_set_instance")
         object.set_grid_range('nudge', 'get_profile_grid_range')
         object.add_getter('nudge', 'get_profile_grid_position', names="z")
         for x in ['U', 'V', 'THL', 'QT']:
-            object.add_getter('nudge', 'get_nudge_'+x,  names=[x])
-            object.add_setter('nudge', 'set_nudge_'+x,  names=[x])
+            object.add_getter('nudge', 'get_nudge_' + x, names=[x])
+            object.add_setter('nudge', 'set_nudge_' + x, names=[x])
 
-        object.define_grid('forcings',axes_names = "z", grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.define_grid('forcings', axes_names="z", grid_class=datamodel.RectilinearGrid,
+                           state_guard="before_new_set_instance")
         object.set_grid_range('forcings', 'get_profile_grid_range')
         object.add_getter('forcings', 'get_profile_grid_position', names="z")
         for x in ['U', 'V', 'THL', 'QT']:
-            object.add_getter('forcings', 'get_tendency_'+x+'_',  names=['tendency_'+x])
-            object.add_setter('forcings', 'set_tendency_'+x+'_',  names=['tendency_'+x])
+            object.add_getter('forcings', 'get_tendency_' + x + '_', names=['tendency_' + x])
+            object.add_setter('forcings', 'set_tendency_' + x + '_', names=['tendency_' + x])
 
-        object.define_grid('surface', grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.define_grid('surface', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         object.set_grid_range('surface', 'get_surface_grid_range')
-        object.add_getter('surface', 'get_surface_pressure',  names=['pressure'])
-        object.add_getter('surface', 'get_rain',  names=['rain'])
+        object.add_getter('surface', 'get_surface_pressure', names=['pressure'])
+        object.add_getter('surface', 'get_rain', names=['rain'])
 
-        object.define_grid('surface_field', grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.define_grid('surface_field', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         object.set_grid_range('surface_field', 'get_surface_field_grid_range')
         object.add_getter('surface_field', 'get_surface_field_position', names="xy")
-        object.add_getter('surface_field', 'get_field_LWP',  names=['LWP'])
-        object.add_getter('surface_field', 'get_field_TWP',  names=['TWP'])
-        object.add_getter('surface_field', 'get_field_RWP',  names=['RWP'])
+        object.add_getter('surface_field', 'get_field_LWP', names=['LWP'])
+        object.add_getter('surface_field', 'get_field_TWP', names=['TWP'])
+        object.add_getter('surface_field', 'get_field_RWP', names=['RWP'])
