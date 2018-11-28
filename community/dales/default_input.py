@@ -245,17 +245,18 @@ def read_large_scale_forcings(filename=None):
     grid.dthlrad=data[:,7]
     return grid
 
-def resample_grid(grid, kmax):
-    zf=grid.positions
-    assert len(zf.shape)==1
-    zf=resample_array(kmax, grid.zf)
-    grid=new_rectilinear_grid( (len(zf),), cell_centers= [zf], axes_names=["z"])
-    grid.QT=interp(zf, zf, grid.QT)
-    grid.THL=interp(zf, zf, grid.THL)
-    grid.U=interp(zf, zf, grid.U)
-    grid.V=interp(zf, zf, grid.V)
-    grid.E12=interp(zf, zf, grid.E12)
-    return grid
+def resample_grid(grid, kmax, attributes=None):
+    if attributes is None:
+        attributes=grid.get_attribute_names_defined_in_store()
+    axes=grid.get_axes_names()
+    assert len(axes)==1
+    x=getattr(grid,axes[0])
+    newx=resample_array(kmax, x)
+    newgrid=new_rectilinear_grid( (len(newx),), cell_centers= [newx], axes_names=axes)
+    for a in attributes:
+        if a==axes[0]: continue
+        setattr(newgrid, a, interp(newx, x, getattr(grid,a)))
+    return newgrid
 
 def write_initial_profile_file(grid, filename="prof.inp.001", kmax=None):
     if kmax and kmax!=len(grid.z):
