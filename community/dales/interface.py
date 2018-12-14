@@ -418,6 +418,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     input_file_options = {"namelist": "namoptions", "profiles": "prof.inp", "forcings": "lscale.inp"}
 
     def __init__(self, **options):
+        # Namelist file
+        self._nml_file = None
         CodeWithNamelistParameters.__init__(self, namelist_parameters)
         CommonCode.__init__(self, DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
@@ -445,8 +447,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         else:
             for opt in Dales.input_file_options:
                 input_files[opt] = options.get(opt, None)
-
-        self._nml_file = None
 
         # grid size
         self.itot = None
