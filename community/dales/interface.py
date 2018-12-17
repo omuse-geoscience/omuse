@@ -1,24 +1,17 @@
 import os.path
-import numpy
-import f90nml
 
-from omuse.units import units
+import numpy
+from amuse import datamodel
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
-from amuse.support.interface import InCodeComponentImplementation
+from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
+from amuse.datamodel import new_rectilinear_grid
+from amuse.rfi.core import CodeInterface
+from amuse.rfi.core import remote_function
 from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.support.parameter_tools import CodeWithNamelistParameters
-from amuse.rfi.core import CodeInterface, LegacyFunctionSpecification
-from amuse.rfi.core import legacy_function, remote_function
-from amuse.units.core import system, no_system
-from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
-from omuse.units.quantities import new_quantity
-from amuse import datamodel
-from amuse.datamodel import new_rectilinear_grid
-
-from amuse.units import trigo
-
-from parameters import namelist_parameters
 from dalesreader import make_file_reader
+from omuse.units import units
+from parameters import namelist_parameters
 
 
 # needs a bit of work for "non-local" runs
@@ -65,12 +58,8 @@ class DalesInterface(CodeInterface,
         pass
 
     @remote_function
-    def set_workdir(directory="./"):
+    def change_dir(directory="."):
         pass
-
-    @remote_function
-    def get_workdir():
-        returns(directory="s")
 
     @remote_function
     def set_start_date(date=0):
@@ -415,60 +404,55 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     QT_FORCING_LOCAL = 1
     QT_FORCING_VARIANCE = 2
 
-    input_file_options = {"namelist": "namoptions", "profiles": "prof.inp", "forcings": "lscale.inp"}
+    input_file_options = {"namelist": "namoptions", "profiles": "prof.inp", "forcings": "lscale.inp",
+                          "scalars": "scalar.inp"}
 
     def __init__(self, **options):
         # Namelist file
-        self._nml_file = None
         CodeWithNamelistParameters.__init__(self, namelist_parameters)
         CommonCode.__init__(self, DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
 
         # Set working directory
+        self.workdir = "."
         if "workdir" in options:
-            self.set_workdir(options["workdir"])
+            self.workdir = options["workdir"]
 
         # Set experiment name
-        self.expname = options.get("exp", "001")
-        # TODO: What about the iexpnr in the namoptions file?
+        if "exp" in options:
+            self.parameters_RUN.iexpnr = int(options.get("exp"))
 
         # Look up input directory
         inputdir = options.get("inputdir", None)
         if inputdir is None and "case" in options:
-            inputdir = os.path.join([os.path.dirname(os.path.abspath(__file__)), "dales-repo",
-                                     "cases", options["case"]])
+            inputdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dales-repo", "cases", options["case"])
 
         # Register input data files
         input_files = {k: None for k in Dales.input_file_options.keys()}
         if inputdir is not None:
             for opt in Dales.input_file_options:
                 default_name = Dales.input_file_options[opt]
-                input_files[opt] = os.path.join([inputdir, options.get(opt, '.'.join([default_name, self.expname]))])
+                input_files[opt] = os.path.join(inputdir,
+                                                options.get(opt, default_name + ".%3.3i" % self.parameters_RUN.iexpnr))
         else:
             for opt in Dales.input_file_options:
                 input_files[opt] = options.get(opt, None)
-
-        # grid size
-        self.itot = None
-        self.jtot = None
-        self.ktot = None
-        self.xsize = None
-        self.ysize = None
-        self.ksize = None
-        self.dx = None
-        self.dy = None
-        self.dk = None
 
         namelist = input_files.get("namelist", None)
         self.parameters.input_file = namelist
         if namelist is not None and os.path.isfile(namelist):
             self.read_namelist_parameters(namelist)
+            self._nml_file = namelist
         else:
-            print "Could no find file %s, falling back to default options" % namelist
+            print "Could not find file %s, falling back to default options" % namelist
+            self._nml_file = None
 
         self.initial_profile_grid = self.read_initial_profiles(input_files.get("profiles", None))
         self.initial_large_scale_forcings_grid = self.read_initial_forcings(input_files.get("forcings", None),
-                                                                            self.initial_profile_grid.zf)
+                                                                            self.initial_profile_grid.z)
+        self.initial_scalar_grid = self.read_initial_scalars(input_files.get("scalars", None),
+                                                             self.parameters_RUN.nsv,
+                                                             self.initial_profile_grid.z)
 
     @staticmethod
     def read_initial_profiles(filepath):
@@ -479,10 +463,11 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.thl = numpy.full(zf.shape, 292.5) | units.K
             grid.u = numpy.full(zf.shape, 1. / numpy.sqrt(2.)) | units.m / units.s
             grid.v = numpy.full(zf.shape, 1. / numpy.sqrt(2.)) | units.m / units.s
-            grid.e12 = numpy.full(zf.shape, 1.) | units.m ** 2 / units.s ** 2
+            grid.e12 = numpy.full(zf.shape, 1.) | units.m / units.s
         else:
             reader = make_file_reader(filepath)
-            zf = reader.get_heights() | units.m
+            var = reader.variables[0] if len(reader.variables) > 0 else "zf"
+            zf = reader.get_heights(var) | units.m
             grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
 
             def get_vars(varname, value=0.):
@@ -492,7 +477,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.thl = get_vars("thl", 288.) | units.K
             grid.u = get_vars("u") | units.m / units.s
             grid.v = get_vars("v") | units.m / units.s
-            grid.e12 = get_vars("tke", 1.) | units.m ** 2 / units.s ** 2
+            grid.e12 = get_vars("tke", 1.) | units.m / units.s
         return grid
 
     @staticmethod
@@ -504,6 +489,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.wfls = numpy.full(zf.shape, 0.) | units.m / units.s
             grid.dqtdxls = numpy.full(zf.shape, 0.) | units.shu / units.s
             grid.dqtdyls = numpy.full(zf.shape, 0.) | units.shu / units.s
+            grid.dqtdtls = numpy.full(zf.shape, 0.) | units.shu * units.m / units.s ** 2
             grid.dthlrad = numpy.full(zf.shape, 0.) | units.shu / units.s
         else:
             reader = make_file_reader(filepath)
@@ -516,60 +502,94 @@ class Dales(CommonCode, CodeWithNamelistParameters):
                 if numpy.array_equal(z_in, z_out):
                     return vals
                 else:
+                    print "The file zf values are"
+                    print z_in
+                    print "The initial zf values are"
+                    print z_out
+                    print "The variable values are"
+                    print vals
                     return numpy.interp(z_out, z_in, vals)
 
-            z = reader.get_heights()
-            grid.ug = get_vars("ug", z, zf) | units.m / units.s
-            grid.vg = get_vars("vg", z, zf) | units.m / units.s
-            grid.wfls = get_vars("wfls", z, zf) | units.m / units.s
-            grid.dqtdxls = get_vars("dqtdxls", z, zf) | units.shu / units.s
-            grid.dqtdyls = get_vars("dqtdyls", z, zf) | units.shu / units.s
-            grid.dqtdtls = get_vars("dqtdtls", z, zf) | units.shu * units.m / units.s**2
-            grid.dthlrad = get_vars("dthlrad", z, zf) | units.shu / units.s
+            var = reader.variables[0] if len(reader.variables) > 0 else "zf"
+            z = reader.get_heights(var)
+            grid.ug = get_vars("ug", z, zf.value_in(units.m)) | units.m / units.s
+            grid.vg = get_vars("vg", z, zf.value_in(units.m)) | units.m / units.s
+            grid.wfls = get_vars("wfls", z, zf.value_in(units.m)) | units.m / units.s
+            grid.dqtdxls = get_vars("dqtdxls", z, zf.value_in(units.m)) | units.shu / units.s
+            grid.dqtdyls = get_vars("dqtdyls", z, zf.value_in(units.m)) | units.shu / units.s
+            grid.dqtdtls = get_vars("dqtdtls", z, zf.value_in(units.m)) | units.shu * units.m / units.s ** 2
+            grid.dthlrad = get_vars("dthlrad", z, zf.value_in(units.m)) | units.shu / units.s
         return grid
 
-    def write_namelist_file(self):
-        namoptions = (self._nml_file or "dales_namelist") + "_amuse"
-        CodeWithNamelistParameters.write_namelist_parameters(self, namoptions, do_patch=self._nml_file)
-        return namoptions
+    @staticmethod
+    def read_initial_scalars(filepath, num_scalars, zf):
+        if filepath is None:
+            grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
+            for i in range(num_scalars):
+                setattr(grid, "sv" + str(i), numpy.zeros(zf.shape) | units.shu)
+        else:
+            reader = make_file_reader(filepath)
+            grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
+            for v in reader.variables:
+                if v != "height":
+                    setattr(grid, v, reader[v][:] | units.shu)
+        return grid
 
     @staticmethod
-    def write_initial_profile_file(grid, filename):
+    def write_initial_profile_file(grid, filepath):
         header = """ profile
     zf         thl        qt         u          v          tke             """
-        numpy.savetxt(filename, numpy.column_stack((
+        numpy.savetxt(filepath, numpy.column_stack((
             grid.z.value_in(units.m),
-            grid.THL.value_in(units.K),
-            grid.QT.value_in(units.shu),
-            grid.U.value_in(units.m / units.s),
-            grid.V.value_in(units.m / units.s),
-            grid.E12.value_in(units.m / units.s))), header=header)
+            grid.thl.value_in(units.K),
+            grid.qt.value_in(units.shu),
+            grid.u.value_in(units.m / units.s),
+            grid.v.value_in(units.m / units.s),
+            grid.e12.value_in(units.m / units.s))), header=header)
 
     @staticmethod
-    def write_large_scale_forcing_file(grid, filename):
+    def write_large_scale_forcing_file(grid, filepath):
         header = """ large scale forcing
     height     ug         vg         wfls       dqtdxls    dqtqyls    dqtdtls    dthlrad"""
-        numpy.savetxt(filename, numpy.column_stack((
+        numpy.savetxt(filepath, numpy.column_stack((
             grid.z.value_in(units.m),
             grid.ug.value_in(units.m / units.s),
             grid.vg.value_in(units.m / units.s),
             grid.wfls.value_in(units.m / units.s),
             grid.dqtdxls.value_in(units.shu / units.s),
             grid.dqtdyls.value_in(units.shu / units.s),
-            grid.dqtdtls.value_in(units.shu * units.m / units.s**2),
+            grid.dqtdtls.value_in(units.shu * units.m / units.s ** 2),
             grid.dthlrad.value_in(units.shu / units.s),
         )), header=header)
 
-    def commit_parameters(self):
-        dalesinputfile = self.write_namelist_file()
-        self.set_input_file(dalesinputfile)
+    @staticmethod
+    def write_initial_scalars(grid, numscalars, filepath):
+        if numscalars > 0:
+            header = """ input scalar profiles
+    height"""
+            cols = [grid.z.value_in(units.m)]
+            for i in range(numscalars):
+                header += "             sv" + str(i)
+                cols.append(getattr(grid, ("sv" + str(i))).value_in(units.shu))
+            numpy.savetxt(filepath, numpy.column_stack(tuple(cols)), header=header)
 
-        iexpnr = self.parameters_RUN.iexpnr
-        # TODO: fix if exists already...
-        filename = os.path.join(self.parameters.workdir, "prof.inp.%3.3i" % iexpnr)
-        Dales.write_initial_profile_file(self.initial_profile_grid, filename=filename)
-        filename = os.path.join(self.parameters.workdir, "lscale.inp.%3.3i" % iexpnr)
-        Dales.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid, filename=filename)
+    def commit_parameters(self):
+        if not os.path.isdir(self.workdir):
+            os.mkdir(self.workdir)
+        iexpnr = int(self.parameters_RUN.iexpnr)
+        filename = (self._nml_file or "namoptions") + "_amuse.%3.3i" % iexpnr
+        self.change_dir(self.workdir)
+        self.set_input_file(filename)
+        filepath = os.path.join(self.workdir, filename)
+        CodeWithNamelistParameters.write_namelist_parameters(self, filepath, do_patch=self._nml_file)
+        Dales.write_initial_profile_file(self.initial_profile_grid,
+                                         filepath=os.path.join(self.workdir, "prof.inp.%3.3i" % iexpnr))
+        Dales.write_initial_scalars(self.initial_scalar_grid,
+                                    self.parameters_RUN.nsv,
+                                    filepath=os.path.join(self.workdir, "scalar.inp.%3.3i" % iexpnr))
+        Dales.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid,
+                                             filepath=os.path.join(self.workdir, "lscale.inp.%3.3i" % iexpnr))
+        self.workdir = os.path.abspath(self.workdir)
 
         # print "code options written to %s"%dalesinputfile
 
@@ -588,7 +608,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.add_interface_parameter(
             "input_file",
             "the input file name",
-            self._nml_file or None,
+            None,
             "before_set_interface_parameter"
         )
         obj.add_alias_parameter(
@@ -651,13 +671,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             "grid spacing in y direction",
             None
         )
-        obj.add_method_parameter(
-            "get_workdir",
-            "set_workdir",
-            "workdir",
-            "run/ working directory of Dales",
-            "./"
-        )
         obj.add_boolean_parameter(
             "get_exact_end",
             "set_exact_end",
@@ -675,12 +688,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             "qt_forcing",
             "qt forcing type",
             0,
-            "before_set_interface_parameter"
-        )
-        obj.add_interface_parameter(
-            "write_profile_files",
-            "write_out initial profile and large scale forcing files",
-            False,
             "before_set_interface_parameter"
         )
 
