@@ -482,7 +482,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     @staticmethod
     def read_initial_forcings(filepath, zf):
-        if filepath is None:
+        if filepath is None or not os.path.isfile(filepath):
             grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
             grid.ug = numpy.full(zf.shape, 1. / numpy.sqrt(2.)) | units.m / units.s
             grid.vg = numpy.full(zf.shape, 1. / numpy.sqrt(2.)) | units.m / units.s
@@ -523,7 +523,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     @staticmethod
     def read_initial_scalars(filepath, num_scalars, zf):
-        if filepath is None:
+        if filepath is None or not os.path.isfile(filepath):
             grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
             for i in range(num_scalars):
                 setattr(grid, "sv" + str(i), numpy.zeros(zf.shape) | units.shu)
@@ -695,10 +695,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.add_property('get_model_time', public_name="model_time")
         obj.add_property('get_timestep', public_name="timestep")
 
-    def commit_grid(self):
-        self.overridden().commit_grid()
-        self.get_params()
-
     def define_state(self, obj):
         obj.set_initial_state("UNINITIALIZED")
         obj.add_transition("UNINITIALIZED", "INITIALIZED", "initialize_code")
@@ -723,57 +719,74 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     # wrapping functions for hiding the dummy array passed to getter functions
     def get_profile_U(self):
-        return self.get_profile_U_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_U_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_V(self):
-        return self.get_profile_V_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_V_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_W(self):
-        return self.get_profile_W_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_W_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_THL(self):
-        return self.get_profile_THL_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_THL_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_QT(self):
-        return self.get_profile_QT_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_QT_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_QL(self):
-        return self.get_profile_QL_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_QL_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_QL_ice(self):
-        return self.get_profile_QL_ice_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_QL_ice_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_QR(self):
-        return self.get_profile_QR_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_QR_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_E12(self):
-        return self.get_profile_E12_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_E12_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_profile_T(self):
-        return self.get_profile_T_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_profile_T_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_zf(self):
-        return self.get_zf_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_zf_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_zh(self):
-        return self.get_zh_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_zh_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_presh(self):
-        return self.get_presh_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_presh_(numpy.arange(kmin + 1, kmax + 1))
 
     def get_presf(self):
-        return self.get_presf_(numpy.arange(1, self.k + 1))
+        kmin, kmax = self.get_z_grid_range()
+        return self.get_presf_(numpy.arange(kmin + 1, kmax + 1))
 
     # retrieve a 3D field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_field(self, field, imin=0, imax=None, jmin=0, jmax=None, kmin=0, kmax=None):
 
+        grid_range = ()
+        if imax is None or jmax is None or kmax is None:
+            grid_range = self.get_grid_range()
         if imax is None:
-            imax = self.itot
+            imax = grid_range[1]
         if jmax is None:
-            jmax = self.jtot
+            jmax = grid_range[3]
         if kmax is None:
-            kmax = self.k
+            kmax = grid_range[5]
 
         # build index arrays
         if field in ('LWP', 'RWP', 'TWP'):  # 2D field
@@ -814,7 +827,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             field = self.get_field_TWP(i, j)
             return field.reshape((imax - imin, jmax - jmin))  # separate return here, to reshape to 2D
         else:
-            print('get_field called with undefined field', field)
+            raise Exception('get_field called with undefined variable name %s' % field)
 
         return field.reshape((imax - imin, jmax - jmin, kmax - kmin))
 
@@ -850,40 +863,33 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         elif field == 'QT':
             self.set_field_QT(i, j, k, a)
         else:
-            print('set_field called with undefined field', field)
+            raise Exception('set_field called with undefined variable name %s' % field)
 
     # retrieve a 1D vertical profile - wrapper function consistent with get_field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_profile(self, field):
         profile = None
+        kmin, kmax = self.get_z_grid_range()
+        indices = numpy.arange(kmin + 1, kmax + 1)
         if field == 'U':
-            profile = self.get_profile_U_(numpy.arange(1, self.k + 1))
+            profile = self.get_profile_U_(indices)
         elif field == 'V':
-            profile = self.get_profile_V_(numpy.arange(1, self.k + 1))
+            profile = self.get_profile_V_(indices)
         elif field == 'W':
-            profile = self.get_profile_W_(numpy.arange(1, self.k + 1))
+            profile = self.get_profile_W_(indices)
         elif field == 'THL':
-            profile = self.get_profile_THL_(numpy.arange(1, self.k + 1))
+            profile = self.get_profile_THL_(indices)
         elif field == 'QT':
-            profile = self.get_profile_QT_(numpy.arange(1, self.k + 1))
+            profile = self.get_profile_QT_(indices)
         elif field == 'QL':
-            profile = self.get_profile_QL_(numpy.arange(1, self.k + 1))
+            profile = self.get_profile_QL_(indices)
         elif field == 'E12':
-            profile = self.get_profile_E12_(numpy.arange(1, self.k + 1))
+            profile = self.get_profile_E12_(indices)
         elif field == 'T':
-            profile = self.get_profile_T_(numpy.arange(1, self.k + 1))
+            profile = self.get_profile_T_(indices)
         else:
             print('get_profile called with undefined field', field)
         return profile
-
-    # get parameters from the fortran code, store them in the Dales interface object
-    # called from commit_parameters()
-    def get_params(self):
-        self.itot, self.jtot, self.k, self.xsize, self.ysize = self.get_params_grid()
-        self.dx = self.xsize / self.itot
-        self.dy = self.ysize / self.jtot
-        self.zf = self.get_zf()
-        self.zh = self.get_zh()
 
     def get_itot(self):
         return self.get_params_grid()[0]
@@ -891,7 +897,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     def get_jtot(self):
         return self.get_params_grid()[1]
 
-    def get_kmax(self):
+    def get_ktot(self):
         return self.get_params_grid()[2]
 
     def get_xsize(self):
@@ -901,74 +907,80 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_params_grid()[4]
 
     def get_dx(self):
-        return self.dx
+        itot, jtot, ktot, x, y = self.get_params_grid()
+        return x / itot
 
     def get_dy(self):
-        return self.dy
+        itot, jtot, ktot, x, y = self.get_params_grid()
+        return y / jtot
 
     def get_grid_range(self):
-        return 0, self.get_itot() - 1, 0, self.get_jtot() - 1, 0, self.get_kmax() - 1
+        itot, jtot, ktot, x, y = self.get_params_grid()
+        return 0, itot - 1, 0, jtot - 1, 0, ktot - 1
 
     def get_grid_position(self, i, j, k):
-        return i * self.dx, j * self.dy, self.zf[k]
+        itot, jtot, ktot, x, y = self.get_params_grid()
+        return i * x / itot, j * y / jtot, self.zf[k]
 
-    def get_surface_field_position(self, i, j):
-        return i * self.dx, j * self.dy
+    def get_xy_grid_range(self):
+        imin, imax, jmin, jmax, kmin, kmax = self.get_grid_range()
+        return imin, imax, jmin, jmax
 
-    def get_profile_grid_range(self):
-        return 1, self.get_kmax()
+    def get_xy_grid_position(self, i, j):
+        x, y, z = self.get_grid_position(i, j, 0)
+        return x, y
 
-    def get_surface_grid_range(self):
-        return ()
+    def get_z_grid_range(self):
+        imin, imax, jmin, jmax, kmin, kmax = self.get_grid_range()
+        return kmin, kmax
 
-    def get_surface_field_grid_range(self):
-        return 0, self.get_itot() - 1, 0, self.get_jtot() - 1
+    def get_z_grid_position(self, k):
+        x, y, z = self.get_grid_position(0, 0, k)
+        return z
 
-    def get_profile_grid_position(self, k):
-        return self.zf[k]
-
-    def define_grids(self, object):
-        object.define_grid('grid', axes_names="xyz", grid_class=datamodel.RectilinearGrid,
-                           state_guard="before_new_set_instance")
-        object.set_grid_range('grid', 'get_grid_range')
-        object.add_getter('grid', 'get_grid_position', names="xyz")
+    def define_grids(self, obj):
+        obj.define_grid('grid', axes_names="xyz", grid_class=datamodel.RectilinearGrid,
+                        state_guard="before_new_set_instance")
+        obj.set_grid_range('grid', 'get_grid_range')
+        obj.add_getter('grid', 'get_grid_position', names="xyz")
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T']:
-            object.add_getter('grid', 'get_field_' + x, names=[x])
+            obj.add_getter('grid', 'get_field_' + x, names=[x])
         for x in ['U', 'V', 'W', 'THL', 'QT']:
-            object.add_setter('grid', 'set_field_' + x, names=[x])
+            obj.add_setter('grid', 'set_field_' + x, names=[x])
 
-        object.define_grid('profile_grid', axes_names="z", grid_class=datamodel.RectilinearGrid,
-                           state_guard="before_new_set_instance")
-        object.set_grid_range('profile_grid', 'get_profile_grid_range')
-        object.add_getter('profile_grid', 'get_profile_grid_position', names="z")
+        obj.define_grid('profile_grid', axes_names="z", grid_class=datamodel.RectilinearGrid,
+                        state_guard="before_new_set_instance")
+        obj.set_grid_range('profile_grid', 'get_z_grid_range')
+        obj.add_getter('profile_grid', 'get_z_grid_position', names="z")
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
-            object.add_getter('profile_grid', 'get_profile_' + x + '_', names=[x])
+            obj.add_getter('profile_grid', 'get_profile_' + x + '_', names=[x])
 
         # nudge grid  -experimental-
-        object.define_grid('nudge', axes_names="z", grid_class=datamodel.RectilinearGrid,
-                           state_guard="before_new_set_instance")
-        object.set_grid_range('nudge', 'get_profile_grid_range')
-        object.add_getter('nudge', 'get_profile_grid_position', names="z")
+        obj.define_grid('nudge', axes_names="z", grid_class=datamodel.RectilinearGrid,
+                        state_guard="before_new_set_instance")
+        obj.set_grid_range('nudge', 'get_z_grid_range')
+        obj.add_getter('nudge', 'get_z_grid_position', names="z")
         for x in ['U', 'V', 'THL', 'QT']:
-            object.add_getter('nudge', 'get_nudge_' + x, names=[x])
-            object.add_setter('nudge', 'set_nudge_' + x, names=[x])
+            obj.add_getter('nudge', 'get_nudge_' + x, names=[x])
+            obj.add_setter('nudge', 'set_nudge_' + x, names=[x])
 
-        object.define_grid('forcings', axes_names="z", grid_class=datamodel.RectilinearGrid,
-                           state_guard="before_new_set_instance")
-        object.set_grid_range('forcings', 'get_profile_grid_range')
-        object.add_getter('forcings', 'get_profile_grid_position', names="z")
+        obj.define_grid('forcings', axes_names="z", grid_class=datamodel.RectilinearGrid,
+                        state_guard="before_new_set_instance")
+        obj.set_grid_range('forcings', 'get_z_grid_range')
+        obj.add_getter('forcings', 'get_z_grid_position', names="z")
         for x in ['U', 'V', 'THL', 'QT']:
-            object.add_getter('forcings', 'get_tendency_' + x + '_', names=['tendency_' + x])
-            object.add_setter('forcings', 'set_tendency_' + x + '_', names=['tendency_' + x])
+            obj.add_getter('forcings', 'get_tendency_' + x + '_', names=['tendency_' + x])
+            obj.add_setter('forcings', 'set_tendency_' + x + '_', names=['tendency_' + x])
 
-        object.define_grid('surface', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
-        object.set_grid_range('surface', 'get_surface_grid_range')
-        object.add_getter('surface', 'get_surface_pressure', names=['pressure'])
-        object.add_getter('surface', 'get_rain', names=['rain'])
+        # TODO: merge these two xy-grids, ask Fredrik
+        obj.define_grid('surface', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
+        obj.set_grid_range('surface', 'get_xy_grid_range')
+        obj.add_getter('surface', 'get_surface_pressure', names=['pressure'])
+        obj.add_getter('surface', 'get_rain', names=['rain'])
 
-        object.define_grid('surface_field', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
-        object.set_grid_range('surface_field', 'get_surface_field_grid_range')
-        object.add_getter('surface_field', 'get_surface_field_position', names="xy")
-        object.add_getter('surface_field', 'get_field_LWP', names=['LWP'])
-        object.add_getter('surface_field', 'get_field_TWP', names=['TWP'])
-        object.add_getter('surface_field', 'get_field_RWP', names=['RWP'])
+        obj.define_grid('surface_field', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
+        obj.set_grid_range('surface_field', 'get_xy_grid_range')
+        obj.add_getter('surface_field', 'get_xy_grid_position', names="xy")
+        obj.add_getter('surface_field', 'get_field_LWP', names=['LWP'])
+        obj.add_getter('surface_field', 'get_field_TWP', names=['TWP'])
+        obj.add_getter('surface_field', 'get_field_RWP', names=['RWP'])
