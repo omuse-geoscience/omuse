@@ -19,13 +19,13 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("code").setLevel(logging.DEBUG)
 
 
-def cleanup_data(dir):
-    if os.path.isdir(dir):
-        for f in os.listdir(dir):
-            os.remove(os.path.join(dir, f))
-        os.rmdir(dir)
-    elif os.path.isfile(dir):
-        os.remove(dir)
+def cleanup_data(rundir):
+    if os.path.isdir(rundir):
+        for f in os.listdir(rundir):
+            os.remove(os.path.join(rundir, f))
+        os.rmdir(rundir)
+    elif os.path.isfile(rundir):
+        os.remove(rundir)
 
 
 class TestDalesInterface(TestWithMPI):
@@ -95,6 +95,37 @@ class TestDalesInterface(TestWithMPI):
         instance = Dales(case="rico", workdir=rundir, redirection="none")
         instance.commit_parameters()
         assert os.path.exists(rundir)
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_rico(self):
+        rundir = "work-rico2"
+        instance = Dales(case="rico", workdir=rundir, redirection="none")
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_load_bomex(self):
+        rundir = "work-bomex"
+        instance = Dales(case="bomex", workdir=rundir, redirection="none")
+        instance.commit_parameters()
+        assert os.path.exists(rundir)
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_bomex(self):
+        rundir = "work-bomex2"
+        instance = Dales(case="bomex", workdir=rundir, redirection="none")
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (1 | units.minute))
+        newtim = instance.get_model_time()
+        assert newtim > tim
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
