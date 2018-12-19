@@ -19,6 +19,7 @@ module dales_interface
     use modsurface, only: qtsurf, wqsurf, wtsurf, z0m, z0h
     use modmicrodata, only: iqr
     use modglobal, only: rtimee,rdt,fname_options,timeleft,tres,timee,rk3step,dt_lim
+    use modstartup, only : do_writerestartfiles
     use mpi, only: MPI_COMM_WORLD
 
     implicit none
@@ -826,5 +827,12 @@ contains
       Y=ysize
       ret = 0
     end function get_params_grid
+
+    function write_restart () result(ret)
+      integer                             :: ret
+      call do_writerestartfiles
+      
+      ret = 0      
+    end function write_restart
 
 end module dales_interface
