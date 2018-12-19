@@ -333,6 +333,9 @@ class DalesInterface(CodeInterface,
     def evolve_model(tend=0. | units.s, exactEnd=0):
         returns (walltime=0. | units.s)
 
+    @remote_function
+    def write_restart():
+        returns()
 
 class Dales(CommonCode):
     
