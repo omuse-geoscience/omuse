@@ -34,43 +34,49 @@ class TestDalesInterface(TestWithMPI):
         rundir = "work0"
         os.mkdir(rundir)
         os.chdir(rundir)
-        instance = Dales(redirection="none")
-        instance.commit_parameters()
-        assert os.path.isfile("namoptions_amuse.001")
-        instance.cleanup_code()
-        instance.stop()
-        for f in os.listdir("."):
-            os.remove(f)
-        os.chdir("..")
-        os.rmdir(rundir)
+        try:
+            instance = Dales(redirection="none")
+            instance.commit_parameters()
+            assert os.path.isfile("namoptions.001")
+            instance.cleanup_code()
+            instance.stop()
+        finally:
+            for f in os.listdir("."):
+                os.remove(f)
+            os.chdir("..")
+            os.rmdir(rundir)
 
     def test_prof_file_is_written(self):
         rundir = "work1"
         os.mkdir(rundir)
         os.chdir(rundir)
-        instance = Dales(redirection="none")
-        instance.commit_parameters()
-        assert os.path.isfile("prof.inp.001")
-        instance.cleanup_code()
-        instance.stop()
-        for f in os.listdir("."):
-            os.remove(f)
-        os.chdir("..")
-        os.rmdir(rundir)
+        try:
+            instance = Dales(redirection="none")
+            instance.commit_parameters()
+            assert os.path.isfile("prof.inp.001")
+            instance.cleanup_code()
+            instance.stop()
+        finally:
+            for f in os.listdir("."):
+                os.remove(f)
+            os.chdir("..")
+            os.rmdir(rundir)
 
     def test_lscale_file_is_written(self):
         rundir = "work2"
         os.mkdir(rundir)
         os.chdir(rundir)
-        instance = Dales(redirection="none")
-        instance.commit_parameters()
-        assert os.path.isfile("lscale.inp.001")
-        instance.cleanup_code()
-        instance.stop()
-        for f in os.listdir("."):
-            os.remove(f)
-        os.chdir("..")
-        os.rmdir(rundir)
+        try:
+            instance = Dales(redirection="none")
+            instance.commit_parameters()
+            assert os.path.isfile("lscale.inp.001")
+            instance.cleanup_code()
+            instance.stop()
+        finally:
+            for f in os.listdir("."):
+                os.remove(f)
+            os.chdir("..")
+            os.rmdir(rundir)
 
     def test_set_workdir(self):
         rundir = "work3"
@@ -85,7 +91,7 @@ class TestDalesInterface(TestWithMPI):
         rundir = "work4"
         instance = Dales(workdir=rundir, redirection="none")
         instance.commit_parameters()
-        assert os.path.isfile(os.path.join(rundir,"namoptions_amuse.001"))
+        assert os.path.isfile(os.path.join(rundir, "namoptions.001"))
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
@@ -130,54 +136,91 @@ class TestDalesInterface(TestWithMPI):
         instance.stop()
         cleanup_data(rundir)
 
+    def test_load_sp_case(self):
+        rundir = "work-sp"
+        instance = Dales(case="sp-testcase", workdir=rundir, redirection="none")
+        instance.commit_parameters()
+        assert os.path.exists(rundir)
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
 
-#     def test2(self):
-#
-#         print "Test 2: instantiate with 4 workers and clean up"
-#
-#         instance = Dales(number_of_workers=4,**default_options)
-#         instance.cleanup_code()
-#         instance.stop()
-#
-#     def test3(self):
-#
-#         print "Test 3: instantiate, run one minute and clean up"
-#
-#         instance = Dales(**default_options)
-#         tim=instance.get_model_time()
-#         instance.commit_grid()
-#         instance.evolve_model(tim + (1 | units.minute))
-#         newtim=instance.get_model_time()
-#         self.assertTrue(newtim>=tim)
-#         instance.cleanup_code()
-#         instance.stop()
-#
-#     def test4(self):
-#
-#         print "Test 4: instantiate with 4 workers, run one minute and clean up"
-#
-#         instance = Dales(number_of_workers=4,**default_options)
-#         tim=instance.get_model_time()
-#         instance.commit_grid()
-#         instance.evolve_model(tim + (1 | units.minute))
-#         newtim=instance.get_model_time()
-#         self.assertTrue(newtim>=tim)
-#         instance.cleanup_code()
-#         instance.stop()
-#
-#     def test5(self):
-#
-#         print "Test 5: instantiate, run 10 seconds and retrieve temperature profile"
-#
-#         instance = Dales(number_of_workers=4,**default_options)
-#         tim=instance.get_model_time()
-#         instance.commit_grid()
-#         instance.evolve_model(tim + (10 | units.s))
-#         profile=instance.get_profile_T_(numpy.arange(1,96))
-#         print "The retrieved profile is:",profile
-#         instance.cleanup_code()
-#         instance.stop()
-#
+    def test_get_grid_dimensions(self):
+        rundir = "work-sp2"
+        instance = Dales(case="sp-testcase", workdir=rundir, redirection="none")
+        instance.commit_parameters()
+        assert (instance.get_itot(), instance.get_jtot(), instance.get_ktot()) == (200, 200, 160)
+        assert (instance.get_dx().value_in(units.m), instance.get_dy().value_in(units.m)) == (200, 200)
+        assert numpy.array_equal(instance.get_zf().value_in(units.m), numpy.arange(12.5, 3987.5, 25.))
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_sp_case(self):
+        rundir = "work-sp3"
+        instance = Dales(case="sp-testcase", workdir=rundir, redirection="none")
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (1 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_upscale_arm_brown_case(self):
+        rundir = "work-arm-brown"
+        instance = Dales(case="arm_brown", workdir=rundir, redirection="none")
+        instance.parameters_DOMAIN.itot = 64
+        instance.parameters_DOMAIN.jtot = 64
+        instance.commit_parameters()
+        assert os.path.isfile(os.path.join(rundir, "ls_flux.inp.001"))
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_grid_shapes(self):
+        rundir = "work-sp4"
+        instance = Dales(case="sp-testcase", workdir=rundir, redirection="none")
+        instance.parameters_DOMAIN.itot = 64
+        instance.parameters_DOMAIN.jtot = 64
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (1 | units.s))
+        temp_profile = instance.profile_grid.T
+        assert temp_profile.shape == (instance.get_ktot())
+        v_block = instance.grid.V
+        assert v_block.shape == (instance.get_itot(), instance.get_jtot(), instance.get_ktot())
+        twp_slab = instance.surface_field.TWP
+        assert twp_slab.shape == (instance.get_itot(), instance.get_jtot())
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_u_profile_bomex(self):
+        rundir = "work-bomex3"
+        instance = Dales(case="bomex", workdir=rundir)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (5 | units.s))
+        u_profile = instance.profile_grid.U.value_in(units.m / units.s)
+        u_field = instance.grid.U.value_in(units.m / units.s)
+        assert numpy.allclose(u_profile, numpy.mean(u_field, axis=(0, 1)), rtol=1.e-9)
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_qt_profile_sp(self):
+        rundir = "work-sp5"
+        instance = Dales(case="sp-testcase", workdir=rundir, number_of_workers=4, redirection="none")
+        instance.parameters_DOMAIN.itot = 64
+        instance.parameters_DOMAIN.jtot = 64
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (5 | units.s))
+        q_profile = instance.profile_grid.QT.value_in(units.mfu)
+        q_field = instance.grid.QT.value_in(units.mfu)
+        assert numpy.allclose(q_profile, numpy.mean(q_field, axis=(0, 1)), rtol=1.e-9)
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
 #     def test6(self):
 #         print "Test 6: instantiate, run 2 seconds and retrieve profiles"
 #
