@@ -1,4 +1,5 @@
 import os.path
+import shutil
 
 import numpy
 from amuse import datamodel
@@ -438,6 +439,14 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             for opt in Dales.input_file_options:
                 input_files[opt] = options.get(opt, None)
 
+        self.extra_input_files = []
+        if inputdir is not None:
+            for f in os.listdir(inputdir):
+                filepath = os.path.join(inputdir, f)
+                if os.path.isfile(filepath) and f.endswith(".%3.3i" % self.parameters_RUN.iexpnr) and filepath not in \
+                        input_files.values():
+                    self.extra_input_files.append(filepath)
+
         namelist = input_files.get("namelist", None)
         self.parameters.input_file = namelist
         if namelist is not None and os.path.isfile(namelist):
@@ -502,12 +511,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
                 if numpy.array_equal(z_in, z_out):
                     return vals
                 else:
-                    print "The file zf values are"
-                    print z_in
-                    print "The initial zf values are"
-                    print z_out
-                    print "The variable values are"
-                    print vals
                     return numpy.interp(z_out, z_in, vals)
 
             var = reader.variables[0] if len(reader.variables) > 0 else "zf"
@@ -525,7 +528,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     def read_initial_scalars(filepath, num_scalars, zf):
         if filepath is None or not os.path.isfile(filepath):
             grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
-            for i in range(num_scalars):
+            for i in range(1, num_scalars + 1):
                 setattr(grid, "sv" + str(i), numpy.zeros(zf.shape) | units.shu)
         else:
             reader = make_file_reader(filepath)
@@ -563,33 +566,39 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         )), header=header)
 
     @staticmethod
-    def write_initial_scalars(grid, numscalars, filepath):
-        if numscalars > 0:
-            header = """ input scalar profiles
+    def write_initial_scalars(grid, filepath):
+        header = """ input scalar profiles
     height"""
-            cols = [grid.z.value_in(units.m)]
-            for i in range(numscalars):
-                header += "             sv" + str(i)
-                cols.append(getattr(grid, ("sv" + str(i))).value_in(units.shu))
-            numpy.savetxt(filepath, numpy.column_stack(tuple(cols)), header=header)
+        cols = [grid.z.value_in(units.m)]
+        for att in grid.get_attribute_names_defined_in_store():
+            print "attribute name:", att
+            if att.startswith("sv"):
+                header += "             " + att
+                cols.append(grid.get_all_values_of_attribute_in_store(att).value_in(units.shu))
+        numpy.savetxt(filepath, numpy.column_stack(tuple(cols)), header=header)
 
     def commit_parameters(self):
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
         iexpnr = int(self.parameters_RUN.iexpnr)
-        filename = (self._nml_file or "namoptions") + "_amuse.%3.3i" % iexpnr
-        self.change_dir(self.workdir)
+        if self._nml_file:
+            filename = os.path.basename(self._nml_file).split('.')[0]
+        else:
+            filename = "namoptions"
+        filename += ".%3.3i" % iexpnr
+        self.change_dir(os.path.abspath(self.workdir))
         self.set_input_file(filename)
         filepath = os.path.join(self.workdir, filename)
         CodeWithNamelistParameters.write_namelist_parameters(self, filepath, do_patch=self._nml_file)
         Dales.write_initial_profile_file(self.initial_profile_grid,
                                          filepath=os.path.join(self.workdir, "prof.inp.%3.3i" % iexpnr))
         Dales.write_initial_scalars(self.initial_scalar_grid,
-                                    self.parameters_RUN.nsv,
                                     filepath=os.path.join(self.workdir, "scalar.inp.%3.3i" % iexpnr))
         Dales.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid,
                                              filepath=os.path.join(self.workdir, "lscale.inp.%3.3i" % iexpnr))
         self.workdir = os.path.abspath(self.workdir)
+        for f in self.extra_input_files:
+            shutil.copy2(f, self.workdir)
 
         # print "code options written to %s"%dalesinputfile
 
@@ -720,59 +729,59 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     # wrapping functions for hiding the dummy array passed to getter functions
     def get_profile_U(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_U_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_U_(numpy.arange(kmin, kmax))
 
     def get_profile_V(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_V_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_V_(numpy.arange(kmin, kmax))
 
     def get_profile_W(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_W_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_W_(numpy.arange(kmin, kmax))
 
     def get_profile_THL(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_THL_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_THL_(numpy.arange(kmin, kmax))
 
     def get_profile_QT(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_QT_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_QT_(numpy.arange(kmin, kmax))
 
     def get_profile_QL(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_QL_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_QL_(numpy.arange(kmin, kmax))
 
     def get_profile_QL_ice(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_QL_ice_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_QL_ice_(numpy.arange(kmin, kmax))
 
     def get_profile_QR(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_QR_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_QR_(numpy.arange(kmin, kmax))
 
     def get_profile_E12(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_E12_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_E12_(numpy.arange(kmin, kmax))
 
     def get_profile_T(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_T_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_profile_T_(numpy.arange(kmin, kmax))
 
     def get_zf(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_zf_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_zf_(numpy.arange(kmin, kmax))
 
     def get_zh(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_zh_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_zh_(numpy.arange(kmin, kmax))
 
     def get_presh(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_presh_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_presh_(numpy.arange(kmin, kmax))
 
     def get_presf(self):
         kmin, kmax = self.get_z_grid_range()
-        return self.get_presf_(numpy.arange(kmin + 1, kmax + 1))
+        return self.get_presf_(numpy.arange(kmin, kmax))
 
     # retrieve a 3D field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
@@ -916,6 +925,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     def get_grid_range(self):
         itot, jtot, ktot, x, y = self.get_params_grid()
+#        return 1, itot, 1, jtot, 1, ktot
         return 0, itot - 1, 0, jtot - 1, 0, ktot - 1
 
     def get_grid_position(self, i, j, k):
@@ -932,7 +942,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     def get_z_grid_range(self):
         imin, imax, jmin, jmax, kmin, kmax = self.get_grid_range()
-        return kmin, kmax
+        return kmin + 1, kmax + 1
 
     def get_z_grid_position(self, k):
         x, y, z = self.get_grid_position(0, 0, k)
@@ -953,7 +963,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.set_grid_range('profile_grid', 'get_z_grid_range')
         obj.add_getter('profile_grid', 'get_z_grid_position', names="z")
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
-            obj.add_getter('profile_grid', 'get_profile_' + x + '_', names=[x])
+            obj.add_getter('profile_grid', 'get_profile_' + x + "_", names=[x])
 
         # nudge grid  -experimental-
         obj.define_grid('nudge', axes_names="z", grid_class=datamodel.RectilinearGrid,
