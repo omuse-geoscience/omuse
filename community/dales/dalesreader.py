@@ -64,16 +64,13 @@ class AsciiReader(DalesReader):
 
     def __init__(self, filepath):
         super(AsciiReader, self).__init__(filepath)
-        first_row = ""
         with open(filepath, 'r') as f:
-            for line in f:
-                row = line.strip()
-                if not any(row) or row[0] == AsciiReader.comment_char:
-                    first_row = row
-                    continue
-                else:
-                    break
-        cols = first_row[1:].split()
+            f.readline()
+            first_row = f.readline()
+        if first_row.startswith(AsciiReader.comment_char):
+            cols = first_row[1:].split()
+        else:
+            cols = first_row[:].split()
         for col in cols:
             tokens = [s for s in re.split("\(|\)|\[|\]", col)]
             self.variables.append(tokens[0])
@@ -83,7 +80,7 @@ class AsciiReader(DalesReader):
             self.variables[index] = "height"
         if "height" in self.variables:
             self.dimensions.append("height")
-        self.data = numpy.loadtxt(self.filepath, comments=AsciiReader.comment_char).transpose()
+        self.data = numpy.loadtxt(self.filepath, skiprows=2).transpose()
 
     def __getitem__(self, varname, *args):
         if varname in self.variables:

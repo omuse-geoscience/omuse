@@ -72,7 +72,7 @@ contains
 
       integer::                      ret
       character(256),intent(in)::   directory
-      ret = chdir(directory)  
+      ret = chdir(directory)
     end function change_dir
 
     function set_start_date(date) result(ret)
