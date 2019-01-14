@@ -151,7 +151,7 @@ class TestDalesInterface(TestWithMPI):
         instance.commit_parameters()
         assert (instance.get_itot(), instance.get_jtot(), instance.get_ktot()) == (200, 200, 160)
         assert (instance.get_dx().value_in(units.m), instance.get_dy().value_in(units.m)) == (200, 200)
-        assert numpy.array_equal(instance.get_zf().value_in(units.m), numpy.arange(12.5, 3987.5, 25.))
+        assert numpy.array_equal(instance.get_zf().value_in(units.m), numpy.arange(12.5, 4000., 25.))
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
@@ -185,7 +185,7 @@ class TestDalesInterface(TestWithMPI):
         instance.parameters_DOMAIN.jtot = 64
         tim = instance.get_model_time()
         instance.evolve_model(tim + (1 | units.s))
-        temp_profile = instance.profile_grid.T
+        temp_profile = instance.profiles.T
         assert temp_profile.shape == (instance.get_ktot())
         v_block = instance.grid.V
         assert v_block.shape == (instance.get_itot(), instance.get_jtot(), instance.get_ktot())
@@ -200,8 +200,10 @@ class TestDalesInterface(TestWithMPI):
         instance = Dales(case="bomex", workdir=rundir)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (5 | units.s))
-        u_profile = instance.profile_grid.U.value_in(units.m / units.s)
+        u_profile = instance.profiles.U.value_in(units.m / units.s)
         u_field = instance.grid.U.value_in(units.m / units.s)
+        print u_profile
+        print numpy.mean(u_field, axis=(0, 1))
         assert numpy.allclose(u_profile, numpy.mean(u_field, axis=(0, 1)), rtol=1.e-9)
         instance.cleanup_code()
         instance.stop()
@@ -214,39 +216,79 @@ class TestDalesInterface(TestWithMPI):
         instance.parameters_DOMAIN.jtot = 64
         tim = instance.get_model_time()
         instance.evolve_model(tim + (5 | units.s))
-        q_profile = instance.profile_grid.QT.value_in(units.mfu)
+        q_profile = instance.profiles.QT.value_in(units.mfu)
         q_field = instance.grid.QT.value_in(units.mfu)
         assert numpy.allclose(q_profile, numpy.mean(q_field, axis=(0, 1)), rtol=1.e-9)
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
 
-#     def test6(self):
-#         print "Test 6: instantiate, run 2 seconds and retrieve profiles"
-#
-#         instance = Dales(number_of_workers=4,**default_options)
-#         tim=instance.get_model_time()
-#         instance.commit_grid()
-#         instance.evolve_model(tim + (2 | units.s))
-#
-#
-#         print "The retrieved U profile is:", instance.get_profile_U()
-#         print "The retrieved V profile is:", instance.get_profile_V()
-#         print "The retrieved W profile is:", instance.get_profile_W()
-#         print
-#
-#         print "The retrieved THL profile is:", instance.get_profile_THL()
-#         print "The retrieved QT profile is:", instance.get_profile_QT()
-#         print "The retrieved zf levels:", instance.get_zf()
-#         print "The retrieved zh levels:", instance.get_zh()
-#
-#         i,j,k,xsize,ysize = instance.get_params_grid()
-#         print "Grid size", (i, j, k)
-#         print "Horizontal extent of model", (xsize,ysize)
-#
-#         instance.cleanup_code()
-#         instance.stop()
-#
+    def test_set_bomex_t_field(self):
+        rundir = "work-bomex4"
+        instance = Dales(case="bomex", workdir=rundir)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        thlfld = numpy.copy(instance.grid.THL.value_in(units.K))
+        thlfld[:, :, 1] = 304.
+        instance.grid.THL = thlfld | units.K
+        instance.evolve_model(tim + (60 | units.s))
+        thl1 = numpy.mean(instance.grid.THL.value_in(units.K)[:, :, 1], axis=(0, 1))
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+        instance = Dales(case="bomex", workdir=rundir)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (70 | units.s))
+        thl2 = numpy.mean(instance.grid.THL.value_in(units.K)[:, :, 1], axis=(0, 1))
+        assert thl2 < thl1 < 304.
+
+    def test_set_bomex_t_value(self):
+        rundir = "work-bomex5"
+        instance = Dales(case="bomex", workdir=rundir)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        instance.grid[1::2, 0::2, 1].THL = 302. | units.K
+        instance.grid[0::2, 1::2, 1].THL = 302. | units.K
+        instance.grid[0::2, 0::2, 1].THL = 298. | units.K
+        instance.grid[1::2, 1::2, 1].THL = 298. | units.K
+        thl1 = instance.grid.THL.value_in(units.K)[5, 6, 1]
+        thl2 = instance.grid.THL.value_in(units.K)[8, 7, 1]
+        thl3 = instance.grid.THL.value_in(units.K)[4, 2, 1]
+        thl4 = instance.grid.THL.value_in(units.K)[3, 3, 1]
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+        assert thl1 == thl2 == 302.
+        assert thl3 == thl4 == 298.
+
+    def test_set_bomex_q_forcing(self):
+        rundir = "work-bomex6"
+        instance = Dales(case="bomex", workdir=rundir)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        zf = instance.get_zf().value_in(units.km)
+        instance.forcings[numpy.argwhere(zf < 2.2)].tendency_QT = 1.e-5 | (units.mfu / units.s)
+        instance.forcings[numpy.argwhere(zf >= 2.2)].tendency_QT = 1.e-8 | (units.mfu / units.s)
+        assert instance.forcings.tendency_QT[0].value_in(units.mfu / units.s) == 1.e-5
+        assert instance.forcings.tendency_QT[-1].value_in(units.mfu / units.s) == 1.e-8
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (60 | units.s))
+        assert instance.profiles.QT[0].value_in(units.mfu) > instance.profiles.QT[-1].value_in(units.mfu)
+
+    def test_set_bomex_q_nudging(self):
+        rundir = "work-bomex7"
+        instance = Dales(case="bomex", workdir=rundir)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        zf = instance.get_zf().value_in(units.km)
+        instance.nudging[numpy.argwhere(zf < 2.2)].QT = 1.e-3 | units.mfu
+        instance.nudging[numpy.argwhere(zf >= 2.2)].QT = 1.e-6 | units.mfu
+        assert instance.nudging.QT[0].value_in(units.mfu) == 1.e-3
+        assert instance.nudging.QT[-1].value_in(units.mfu) == 1.e-6
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (60 | units.s))
+        assert instance.profiles.QT[0].value_in(units.mfu) > instance.profiles.QT[-1].value_in(units.mfu)
+
 #     def test7(self):
 #         print "Test 7: instantiate, retrieve profiles without time stepping for different number of threads"
 #
@@ -550,48 +592,3 @@ class TestDalesInterface(TestWithMPI):
 #
 #             dales.cleanup_code()
 #             dales.stop()
-#
-# class TestDales(TestWithMPI):
-#
-#     def test1(self):
-#
-#         print "Test 1: instantiate and stop"
-#
-#         instance = Dales(**default_options)
-#         instance.stop()
-#
-#     def test2(self):
-#
-#         print "Test 2: instantiate, run one minute and clean up"
-#
-#         instance = Dales(**default_options)
-#         tim=instance.model_time
-#         instance.evolve_model(tim + (1 | units.minute))
-#         newtim=instance.model_time
-#         self.assertTrue(newtim>=tim)
-#         instance.stop()
-#
-#     def test3(self):
-#
-#         print "Test 3: instantiate, run one minute and clean up"
-#
-#         instance = Dales(**default_options)
-#         instance.parameters.exactEndFlag=True
-#         tim=instance.model_time
-#         instance.evolve_model(tim + (1 | units.minute))
-#         newtim=instance.model_time
-#         self.assertTrue(newtim-tim==(1 | units.minute))
-#         instance.stop()
-#
-#     def xtest4(self):
-#
-#         print "Test 3: instantiate, run one minute and clean up"
-#
-#         instance = Dales(**default_options)
-#         print instance.get_name_of_current_state()
-#         print instance.parameters
-#         print instance.get_name_of_current_state()
-#         instance.parameters.input_file="dummy"
-#         print instance.get_name_of_current_state()
-#         print instance.parameters
-#         print instance.get_name_of_current_state()

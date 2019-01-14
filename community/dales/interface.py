@@ -727,65 +727,122 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.add_method("EVOLVED", "evolve_model")
 
     # wrapping functions for hiding the dummy array passed to getter functions
-    def get_profile_U(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_U_(numpy.arange(kmin, kmax))
+    def get_profile_U(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_U_(indices)
 
-    def get_profile_V(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_V_(numpy.arange(kmin, kmax))
+    def get_profile_V(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_V_(indices)
 
-    def get_profile_W(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_W_(numpy.arange(kmin, kmax))
+    def get_profile_W(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_W_(indices)
 
-    def get_profile_THL(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_THL_(numpy.arange(kmin, kmax))
+    def get_profile_THL(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_THL_(indices)
 
-    def get_profile_QT(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_QT_(numpy.arange(kmin, kmax))
+    def get_profile_QT(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_QT_(indices)
 
-    def get_profile_QL(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_QL_(numpy.arange(kmin, kmax))
+    def get_profile_QL(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_QL_(indices)
 
-    def get_profile_QL_ice(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_QL_ice_(numpy.arange(kmin, kmax))
+    def get_profile_QL_ice(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_QL_ice_(indices)
 
-    def get_profile_QR(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_QR_(numpy.arange(kmin, kmax))
+    def get_profile_QR(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_QR_(indices)
 
-    def get_profile_E12(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_E12_(numpy.arange(kmin, kmax))
+    def get_profile_E12(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_E12_(indices)
 
-    def get_profile_T(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_profile_T_(numpy.arange(kmin, kmax))
+    def get_profile_T(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_profile_T_(indices)
 
-    def get_zf(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_zf_(numpy.arange(kmin, kmax))
+    def get_zf(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_zf_(indices)
 
-    def get_zh(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_zh_(numpy.arange(kmin, kmax))
+    def get_zh(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_zh_(indices)
 
-    def get_presh(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_presh_(numpy.arange(kmin, kmax))
+    def get_presh(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_presh_(indices)
 
-    def get_presf(self):
-        kmin, kmax = self.get_z_grid_range()
-        return self.get_presf_(numpy.arange(kmin, kmax))
+    def get_presf(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_presf_(indices)
 
     # retrieve a 3D field
+    # indices are one-based, for zero-based index access use the grids
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
-    def get_field(self, field, imin=0, imax=None, jmin=0, jmax=None, kmin=0, kmax=None):
+    def get_field(self, field, imin=1, imax=None, jmin=1, jmax=None, kmin=1, kmax=None):
 
         grid_range = ()
         if imax is None or jmax is None or kmax is None:
@@ -841,8 +898,9 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return field.reshape((imax - imin, jmax - jmin, kmax - kmin))
 
     # set a 3D field
+    # indices are one-based, for zero-based index access use the grids
     # field is 'U', 'V', 'W', 'THL', 'QT'
-    def set_field(self, field, a, imin=0, jmin=0, kmin=0):
+    def set_field(self, field, a, imin=1, jmin=1, kmin=1):
 
         # set max indices from the size of a 
         try:
@@ -858,8 +916,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             i = imin
             j = jmin
             k = kmin
-
-        # build index arrays
 
         if field == 'U':
             self.set_field_U(i, j, k, a)
@@ -879,7 +935,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     def get_profile(self, field):
         profile = None
         kmin, kmax = self.get_z_grid_range()
-        indices = numpy.arange(kmin + 1, kmax + 1)
+        indices = numpy.arange(kmin, kmax)
         if field == 'U':
             profile = self.get_profile_U_(indices)
         elif field == 'V':
@@ -925,8 +981,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     def get_grid_range(self):
         itot, jtot, ktot, x, y = self.get_params_grid()
-#        return 1, itot, 1, jtot, 1, ktot
-        return 0, itot - 1, 0, jtot - 1, 0, ktot - 1
+        return 1, itot, 1, jtot, 1, ktot
 
     def get_grid_position(self, i, j, k):
         itot, jtot, ktot, x, y = self.get_params_grid()
@@ -942,7 +997,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     def get_z_grid_range(self):
         imin, imax, jmin, jmax, kmin, kmax = self.get_grid_range()
-        return kmin + 1, kmax + 1
+        return kmin, kmax
 
     def get_z_grid_position(self, k):
         x, y, z = self.get_grid_position(0, 0, k)
@@ -958,21 +1013,21 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         for x in ['U', 'V', 'W', 'THL', 'QT']:
             obj.add_setter('grid', 'set_field_' + x, names=[x])
 
-        obj.define_grid('profile_grid', axes_names="z", grid_class=datamodel.RectilinearGrid,
+        obj.define_grid('profiles', axes_names="z", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('profile_grid', 'get_z_grid_range')
-        obj.add_getter('profile_grid', 'get_z_grid_position', names="z")
+        obj.set_grid_range('profiles', 'get_z_grid_range')
+        obj.add_getter('profiles', 'get_z_grid_position', names="z")
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
-            obj.add_getter('profile_grid', 'get_profile_' + x + "_", names=[x])
+            obj.add_getter('profiles', 'get_profile_' + x + '_', names=[x])
 
         # nudge grid  -experimental-
-        obj.define_grid('nudge', axes_names="z", grid_class=datamodel.RectilinearGrid,
+        obj.define_grid('nudging', axes_names="z", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('nudge', 'get_z_grid_range')
-        obj.add_getter('nudge', 'get_z_grid_position', names="z")
+        obj.set_grid_range('nudging', 'get_z_grid_range')
+        obj.add_getter('nudging', 'get_z_grid_position', names="z")
         for x in ['U', 'V', 'THL', 'QT']:
-            obj.add_getter('nudge', 'get_nudge_' + x, names=[x])
-            obj.add_setter('nudge', 'set_nudge_' + x, names=[x])
+            obj.add_getter('nudging', 'get_nudge_' + x, names=[x])
+            obj.add_setter('nudging', 'set_nudge_' + x, names=[x])
 
         obj.define_grid('forcings', axes_names="z", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
