@@ -353,6 +353,11 @@ class OpenIFS(CommonCode):
             os.rename(inputfile,backupfile)
             self.params = f90nml.read(backupfile)
             self.patch = {"NAMPAR0":{"NPROC":options.get("number_of_workers",1)}}
+
+            restart_steps = options.get("restart_steps",None)
+            if restart_steps:
+                self.patch["NAMRES"] = {"NFRRES":restart_steps}
+            
             f90nml.patch(backupfile,self.patch,inputfile)
             print('Done patching openIFS input file', inputfile)
 
