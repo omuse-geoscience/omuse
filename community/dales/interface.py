@@ -865,11 +865,11 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         if imax is None or jmax is None or kmax is None:
             grid_range = self.get_grid_range()
         if imax is None:
-            imax = grid_range[1]
+            imax = grid_range[1] + 1
         if jmax is None:
-            jmax = grid_range[3]
+            jmax = grid_range[3] + 1
         if kmax is None:
-            kmax = grid_range[5]
+            kmax = grid_range[5] + 1
 
         # build index arrays
         if field in ('LWP', 'RWP', 'TWP'):  # 2D field
@@ -952,7 +952,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     def get_profile(self, field):
         profile = None
         kmin, kmax = self.get_z_grid_range()
-        indices = numpy.arange(kmin, kmax)
+        indices = numpy.arange(kmin, kmax + 1)
+        print kmin, kmax
         if field == 'U':
             profile = self.get_profile_U_(indices)
         elif field == 'V':

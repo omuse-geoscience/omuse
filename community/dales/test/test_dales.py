@@ -189,6 +189,8 @@ class TestDalesInterface(TestWithMPI):
         assert temp_profile.shape == (instance.get_ktot())
         v_block = instance.grid.V
         assert v_block.shape == (instance.get_itot(), instance.get_jtot(), instance.get_ktot())
+        u_block = instance.get_field("THL")
+        assert u_block.shape == (instance.get_itot(), instance.get_jtot(), instance.get_ktot())
         twp_slab = instance.surface_field.TWP
         assert twp_slab.shape == (instance.get_itot(), instance.get_jtot())
         instance.cleanup_code()
@@ -200,11 +202,14 @@ class TestDalesInterface(TestWithMPI):
         instance = Dales(case="bomex", workdir=rundir)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (5 | units.s))
-        u_profile = instance.profiles.U.value_in(units.m / units.s)
+        u_profile1 = instance.profiles.U.value_in(units.m / units.s)
+        u_profile2 = instance.get_profile_U().value_in(units.m / units.s)
+        u_profile3 = instance.get_profile('U').value_in(units.m / units.s)
+        print "Lengths:", len(u_profile1), len(u_profile2), len(u_profile3)
+        assert numpy.allclose(u_profile1, u_profile2, rtol=1.e-16)
+        assert numpy.allclose(u_profile1, u_profile3, rtol=1.e-16)
         u_field = instance.grid.U.value_in(units.m / units.s)
-        print u_profile
-        print numpy.mean(u_field, axis=(0, 1))
-        assert numpy.allclose(u_profile, numpy.mean(u_field, axis=(0, 1)), rtol=1.e-9)
+        assert numpy.allclose(u_profile1, numpy.mean(u_field, axis=(0, 1)), rtol=1.e-9)
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
@@ -241,6 +246,9 @@ class TestDalesInterface(TestWithMPI):
         instance.evolve_model(tim + (70 | units.s))
         thl2 = numpy.mean(instance.grid.THL.value_in(units.K)[:, :, 1], axis=(0, 1))
         assert thl2 < thl1 < 304.
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
 
     def test_bomex_3d_grid_interface(self):
         rundir = "work-bomex45"
@@ -253,6 +261,9 @@ class TestDalesInterface(TestWithMPI):
         qtgrid = instance.grid[7:10, 3:6, 9:10].QT.value_in(units.mfu)
         assert numpy.array_equal(qblock, qt.value_in(units.mfu))
         assert numpy.array_equal(qtgrid, qt.value_in(units.mfu))
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
 
     def test_set_bomex_t_value(self):
         rundir = "work-bomex5"
@@ -267,11 +278,11 @@ class TestDalesInterface(TestWithMPI):
         thl2 = instance.grid.THL.value_in(units.K)[8, 7, 1]
         thl3 = instance.grid.THL.value_in(units.K)[4, 2, 1]
         thl4 = instance.grid.THL.value_in(units.K)[3, 3, 1]
+        assert thl1 == thl2 == 302.
+        assert thl3 == thl4 == 298.
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
-        assert thl1 == thl2 == 302.
-        assert thl3 == thl4 == 298.
 
     def test_set_bomex_q_forcing(self):
         rundir = "work-bomex6"
@@ -286,6 +297,7 @@ class TestDalesInterface(TestWithMPI):
         tim = instance.get_model_time()
         instance.evolve_model(tim + (60 | units.s))
         assert instance.profiles.QT[0].value_in(units.mfu) > instance.profiles.QT[-1].value_in(units.mfu)
+        instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
 
@@ -302,6 +314,7 @@ class TestDalesInterface(TestWithMPI):
         tim = instance.get_model_time()
         instance.evolve_model(tim + (60 | units.s))
         assert instance.profiles.QT[0].value_in(units.mfu) > instance.profiles.QT[-1].value_in(units.mfu)
+        instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
 
@@ -321,6 +334,7 @@ class TestDalesInterface(TestWithMPI):
         z0 = instance.get_z0h_surf().value_in(units.m)
         z0grid = instance.scalars.z0h[0].value_in(units.m)
         assert(z0 == z0grid == 0.2)
+        instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
 
