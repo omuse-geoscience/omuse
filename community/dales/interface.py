@@ -1057,13 +1057,13 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_getter('forcings', 'get_tendency_' + x + '_', names=['tendency_' + x])
             obj.add_setter('forcings', 'set_tendency_' + x + '_', names=['tendency_' + x])
 
-        obj.define_grid('scalar', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
-        obj.set_grid_range('scalar', 'get_scalar_grid_range')
-        obj.add_getter('scalar', 'get_surface_pressure', names=['pressure'])
-        obj.add_getter('scalar', 'get_rain', names=['rain'])
+        obj.define_grid('scalars', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
+        obj.set_grid_range('scalars', 'get_scalar_grid_range')
+        obj.add_getter('scalars', 'get_surface_pressure', names=['pressure'])
+        obj.add_getter('scalars', 'get_rain', names=['rain'])
         for name in ["wt", "wq", "z0m", "z0h"]:
-            obj.add_getter('scalar', 'get_' + name + "_surf", names=[name])
-            obj.add_getter('scalar', 'set_' + name + "_surf", names=[name])
+            obj.add_getter('scalars', 'get_' + name + "_surf", names=[name])
+            obj.add_setter('scalars', 'set_' + name + "_surf", names=[name])
 
         obj.define_grid('surface_field', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         obj.set_grid_range('surface_field', 'get_xy_grid_range')
