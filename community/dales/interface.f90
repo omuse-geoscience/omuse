@@ -17,7 +17,7 @@ module dales_interface
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,qsat,e120,tmp0,sv0,um,vm,wm,thlm,qtm,surf_rain
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, qts
-    use modsurface, only: qtsurf, wqsurf, wtsurf, z0m, z0h
+    use modsurface, only: qtsurf, wqsurf, wtsurf, z0m, z0h, z0mav, z0hav
     use modmicrodata, only: iqr
     use modglobal, only: rtimee,rdt,fname_options,timeleft,tres,timee,rk3step,dt_lim
     use modstartup, only : do_writerestartfiles    
@@ -904,6 +904,24 @@ contains
      end function set_field_QT    
      !!! end of setter functions for 3D fields
 
+    !!! getter functions for ground fluxes
+    function get_wt_surf(wtflux) result(ret)
+      real, intent(out)  :: wtflux
+      real              :: ret
+
+      ret=0
+      wtflux = wtsurf !- (thl - tskin) / ra
+    end function
+
+    function get_wq_surf(wqflux) result(ret)
+      real, intent(out)  :: wqflux
+      real              :: ret
+
+      ret=0
+      wqflux = wqsurf !- (qt - qskin) / ra
+    end function
+    !!! end of getter function for ground fluxes
+
     !!! setter functions for ground fluxes
     function set_wt_surf(wtflux) result(ret)
       real, intent(in)  :: wtflux
@@ -921,6 +939,24 @@ contains
       wqsurf = wqflux !- (qt - qskin) / ra
     end function
     !!! end of setter function for ground fluxes
+
+    !!! getter functions for roughness lengths
+    function get_z0m_surf(z0) result(ret)
+      real, intent(out) :: z0
+      real              :: ret
+
+      ret=0
+      z0 = z0mav
+    end function
+
+    function get_z0h_surf(z0) result(ret)
+      real, intent(out) :: z0
+      real              :: ret
+
+      ret=0
+      z0 = z0hav
+    end function
+    !!! end of getter functions for roughness
 
     !!! setter functions for roughness lengths
     function set_z0m_surf(z0) result(ret)
@@ -940,8 +976,8 @@ contains
     end function
     !!! end of setter functions for roughness
     
-    !!! get simulation parameters    
-    function get_params_grid (i,j,k,X,Y) result(ret)
+    !!! get simulation parameters
+    function get_params_grid(i,j,k,X,Y) result(ret)
       use modglobal, only: itot,jtot,kmax,xsize,ysize
       implicit none
       integer, intent(out)                :: i,j,k
@@ -956,7 +992,7 @@ contains
       ret = 0
     end function get_params_grid
 
-    function write_restart () result(ret)
+    function write_restart() result(ret)
       integer                             :: ret
       call do_writerestartfiles
       
