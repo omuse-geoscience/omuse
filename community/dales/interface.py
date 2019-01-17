@@ -366,6 +366,15 @@ class DalesInterface(CodeInterface,
     #    def set_field_E12(g_i=0,g_j=0,g_k=0,a=0.):
     #        returns()
 
+    # getter functions for wtflux and qtflux
+    @remote_function
+    def get_wt_surf():
+        returns(wtflux=0. | units.m * units.s ** -1 * units.K)
+
+    @remote_function
+    def get_wq_surf():
+        returns(wqflux=0. | units.m / units.s)
+
     # setter functions for wtflux and qtflux
     @remote_function
     def set_wt_surf(wtflux=0. | units.m * units.s ** -1 * units.K):
@@ -374,6 +383,15 @@ class DalesInterface(CodeInterface,
     @remote_function
     def set_wq_surf(wqflux=0. | units.m / units.s):
         returns()
+
+    # setter functions for momentum and heat roughness
+    @remote_function
+    def get_z0m_surf():
+        returns(z0=0. | units.m)
+
+    @remote_function
+    def get_z0h_surf():
+        returns(z0=0. | units.m)
 
     # setter functions for momentum and heat roughness
     @remote_function
@@ -571,7 +589,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     height"""
         cols = [grid.z.value_in(units.m)]
         for att in grid.get_attribute_names_defined_in_store():
-            print "attribute name:", att
             if att.startswith("sv"):
                 header += "             " + att
                 cols.append(grid.get_all_values_of_attribute_in_store(att).value_in(units.shu))
@@ -1003,6 +1020,9 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         x, y, z = self.get_grid_position(0, 0, k)
         return z
 
+    def get_scalar_grid_range(self):
+        return ()
+
     def define_grids(self, obj):
         obj.define_grid('grid', axes_names="xyz", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
@@ -1037,11 +1057,13 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_getter('forcings', 'get_tendency_' + x + '_', names=['tendency_' + x])
             obj.add_setter('forcings', 'set_tendency_' + x + '_', names=['tendency_' + x])
 
-        # TODO: merge these two xy-grids, ask Fredrik
-        obj.define_grid('surface', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
-        obj.set_grid_range('surface', 'get_xy_grid_range')
-        obj.add_getter('surface', 'get_surface_pressure', names=['pressure'])
-        obj.add_getter('surface', 'get_rain', names=['rain'])
+        obj.define_grid('scalar', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
+        obj.set_grid_range('scalar', 'get_scalar_grid_range')
+        obj.add_getter('scalar', 'get_surface_pressure', names=['pressure'])
+        obj.add_getter('scalar', 'get_rain', names=['rain'])
+        for name in ["wt", "wq", "z0m", "z0h"]:
+            obj.add_getter('scalar', 'get_' + name + "_surf", names=[name])
+            obj.add_getter('scalar', 'set_' + name + "_surf", names=[name])
 
         obj.define_grid('surface_field', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         obj.set_grid_range('surface_field', 'get_xy_grid_range')

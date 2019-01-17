@@ -242,6 +242,18 @@ class TestDalesInterface(TestWithMPI):
         thl2 = numpy.mean(instance.grid.THL.value_in(units.K)[:, :, 1], axis=(0, 1))
         assert thl2 < thl1 < 304.
 
+    def test_bomex_3d_grid_interface(self):
+        rundir = "work-bomex45"
+        instance = Dales(case="bomex", workdir=rundir)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (2 | units.s))
+        qblock = numpy.full((3, 3, 1), 1.234e-5) | units.mfu
+        instance.set_field("QT", qblock, imin=8, jmin=4, kmin=10)
+        qt = instance.get_field("QT", imin=8, imax=11, jmin=4, jmax=7, kmin=10, kmax=11)
+        qtgrid = instance.grid[7:10, 3:6, 9:10].QT.value_in(units.mfu)
+        assert numpy.array_equal(qblock, qt.value_in(units.mfu))
+        assert numpy.array_equal(qtgrid, qt.value_in(units.mfu))
+
     def test_set_bomex_t_value(self):
         rundir = "work-bomex5"
         instance = Dales(case="bomex", workdir=rundir)
@@ -274,6 +286,8 @@ class TestDalesInterface(TestWithMPI):
         tim = instance.get_model_time()
         instance.evolve_model(tim + (60 | units.s))
         assert instance.profiles.QT[0].value_in(units.mfu) > instance.profiles.QT[-1].value_in(units.mfu)
+        instance.stop()
+        cleanup_data(rundir)
 
     def test_set_bomex_q_nudging(self):
         rundir = "work-bomex7"
@@ -288,6 +302,24 @@ class TestDalesInterface(TestWithMPI):
         tim = instance.get_model_time()
         instance.evolve_model(tim + (60 | units.s))
         assert instance.profiles.QT[0].value_in(units.mfu) > instance.profiles.QT[-1].value_in(units.mfu)
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_atex_surface_fields(self):
+        rundir = "work-atex"
+        instance = Dales(case="atex", workdir=rundir)
+        instance.parameters_DOMAIN.itot = 32
+        instance.parameters_DOMAIN.jtot = 32
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        instance.set_wt_surf(0.1 | units.m * units.s ** -1 * units.K)
+        wq = instance.get_wt_surf().value_in(units.m * units.s ** -1 * units.K)
+        assert(wq == 0.1)
+        instance.set_z0h_surf(0.2 | units.m)
+        instance.evolve_model(tim + (1 | units.s))
+        z0 = instance.get_z0h_surf().value_in(units.m)
+        instance.stop()
+        cleanup_data(rundir)
 
 #     def test7(self):
 #         print "Test 7: instantiate, retrieve profiles without time stepping for different number of threads"
