@@ -191,7 +191,7 @@ class TestDalesInterface(TestWithMPI):
         assert v_block.shape == (instance.get_itot(), instance.get_jtot(), instance.get_ktot())
         u_block = instance.get_field("THL")
         assert u_block.shape == (instance.get_itot(), instance.get_jtot(), instance.get_ktot())
-        twp_slab = instance.surface_field.TWP
+        twp_slab = instance.surface_fields.LWP
         assert twp_slab.shape == (instance.get_itot(), instance.get_jtot())
         instance.cleanup_code()
         instance.stop()
@@ -318,7 +318,7 @@ class TestDalesInterface(TestWithMPI):
         instance.stop()
         cleanup_data(rundir)
 
-    def test_atex_surface_fields(self):
+    def test_atex_scalar_fields(self):
         rundir = "work-atex"
         instance = Dales(case="atex", workdir=rundir)
         instance.parameters_DOMAIN.itot = 32
@@ -334,6 +334,21 @@ class TestDalesInterface(TestWithMPI):
         z0 = instance.get_z0h_surf().value_in(units.m)
         z0grid = instance.scalars.z0h[0].value_in(units.m)
         assert(z0 == z0grid == 0.2)
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_bomex_2d_fields(self):
+        rundir = "work-bomex8"
+        instance = Dales(case="bomex", workdir=rundir)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (60 | units.s))
+        twp = instance.surface_fields.TWP.value_in(units.kg / units.m ** 2)
+        assert(twp.shape == (instance.get_itot(), instance.get_jtot()))
+        qt = instance.grid.QT.value_in(units.mfu)
+        dz = instance.get_zf().value_in(units.m)[-1] / instance.get_ktot()
+        twp_check = (numpy.sum(qt, axis=2) * dz)
+        assert(numpy.allclose(twp, twp_check, rtol=0.1))
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
