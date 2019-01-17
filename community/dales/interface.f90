@@ -965,6 +965,7 @@ contains
 
       ret=0
       z0m = z0
+      z0mav = z0
     end function
 
     function set_z0h_surf(z0) result(ret)
@@ -973,6 +974,7 @@ contains
       
       ret=0
       z0h = z0
+      z0hav = z0
     end function
     !!! end of setter functions for roughness
     
