@@ -341,6 +341,62 @@ class DalesInterface(CodeInterface,
     def get_field_TWP(g_i=0, g_j=0):
         returns(a=0. | units.kg / units.m ** 2)
 
+    @remote_function(must_handle_array=True)
+    def get_field_ustar(g_i=0, g_j=0):
+        returns(a=0. | units.m / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_field_z0m(g_i=0, g_j=0):
+        returns(a=0. | units.m)
+
+    @remote_function(must_handle_array=True)
+    def get_field_z0h(g_i=0, g_j=0):
+        returns(a=0. | units.m)
+
+    @remote_function(must_handle_array=True)
+    def get_field_tskin(g_i=0, g_j=0):
+        returns(a=0. | units.K)
+
+    @remote_function(must_handle_array=True)
+    def get_field_qskin(g_i=0, g_j=0):
+        returns(a=0. | units.mfu)
+
+    @remote_function(must_handle_array=True)
+    def get_field_LE(g_i=0, g_j=0):
+        returns(a=0. | units.W / units.m**2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_H(g_i=0, g_j=0):
+        returns(a=0. | units.W / units.m**2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_obl(g_i=0, g_j=0):
+        returns(a=0. | units.m)
+
+    @remote_function(must_handle_array=True)
+    def get_field_thlflux(g_i=0, g_j=0):
+        returns(a=0. | units.K * units.m / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_field_qtflux(g_i=0, g_j=0):
+        returns(a=0. | units.mfu * units.m / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_field_dudz(g_i=0, g_j=0):
+        returns(a=0. | 1. / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_field_dvdz(g_i=0, g_j=0):
+        returns(a=0. | 1. / units.s)
+
+    @remote_function(must_handle_array=True)
+    def get_field_dqtdz(g_i=0, g_j=0):
+        returns(a=0. | units.mfu / units.m)
+
+    @remote_function(must_handle_array=True)
+    def get_field_dthldz(g_i=0, g_j=0):
+        returns(a=0. | units.K / units.m)
+
     # setter functions for 3D fields usning index arrays
     @remote_function(must_handle_array=True)
     def set_field_U(g_i=0, g_j=0, g_k=0, a=0. | units.m / units.s):
@@ -384,14 +440,14 @@ class DalesInterface(CodeInterface,
     def set_wq_surf(wqflux=0. | units.m / units.s):
         returns()
 
-    # setter functions for momentum and heat roughness
+    # setter functions for average momentum and heat roughness
     @remote_function
     def get_z0m_surf():
-        returns(z0=0. | units.m)
+        returns(z0m=0. | units.m)
 
     @remote_function
     def get_z0h_surf():
-        returns(z0=0. | units.m)
+        returns(z0h=0. | units.m)
 
     # setter functions for momentum and heat roughness
     @remote_function
@@ -1069,6 +1125,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.define_grid('surface_fields', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         obj.set_grid_range('surface_fields', 'get_xy_grid_range')
         obj.add_getter('surface_fields', 'get_xy_grid_position', names="xy")
-        obj.add_getter('surface_fields', 'get_field_LWP', names=['LWP'])
-        obj.add_getter('surface_fields', 'get_field_TWP', names=['TWP'])
-        obj.add_getter('surface_fields', 'get_field_RWP', names=['RWP'])
+        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "thlflux",
+                     "qtflux", "dudz", "dvdz", "dqtdz", "dthldz"]:
+            obj.add_getter('surface_fields', 'get_field_' + name, names=[name])
