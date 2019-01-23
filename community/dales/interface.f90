@@ -6,7 +6,7 @@ module dales_interface
 
     use daleslib, only: initialize,step,finalize,&
                        allocate_z_axis,allocate_2d,allocate_3d,&
-                       my_task,master_task,&
+                       my_task,master_task, gatherlayer,&
                        FIELDID_U,FIELDID_V,FIELDID_W,FIELDID_THL,FIELDID_QT, &
                        u_tend, v_tend, thl_tend, qt_tend, ql_tend, ps_tend, ql_ref, qt_alpha, &
                        gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice, &
@@ -16,8 +16,8 @@ module dales_interface
     !TODO: Expose everything so this module only depends on daleslib
     use modfields, only: u0,v0,w0,thl0,qt0,ql0,qsat,e120,tmp0,sv0,um,vm,wm,thlm,qtm,surf_rain
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
-    use modsurfdata, only: ps, qts
-    use modsurface, only: qtsurf, wqsurf, wtsurf, z0m, z0h, z0mav, z0hav
+    use modsurfdata, only: ps, ustar, z0m, z0h, tskin, qskin, LE, H, obl, thlflux, qtflux, svflux, dudz, dvdz, &
+            dqtdz, dthldz, thls, qts, thvs, svs, ustin, wqsurf, wtsurf, wsvsurf, z0, z0mav, z0hav
     use modmicrodata, only: iqr
     use modglobal, only: rtimee,rdt,fname_options,timeleft,tres,timee,rk3step,dt_lim
     use modstartup, only : do_writerestartfiles    
@@ -36,6 +36,7 @@ module dales_interface
     logical :: exactEnd = .false.
     
 contains
+
     function set_qt_forcing(forcing_type) result(ret)
         integer::            ret
         integer,intent(in):: forcing_type
@@ -210,19 +211,23 @@ contains
     end function get_model_time
 
     function set_surface_pressure(p) result(ret)
-      real(8),intent(in)::  p
-      integer::             ret
 
-      ps = p
+        use modsurface, only : qtsurf
 
-      ! modtimedep calls qtsurf to update surface values after changing ps, so we'll do the same
-      if (lmoist) then
-         call qtsurf
-      else
-         qts = 0.
-      endif
+        real(8),intent(in)::  p
+        integer::             ret
+
+        ps = p
+
+        ! modtimedep calls qtsurf to update surface values after changing ps, so we'll do the same
+        if (lmoist) then
+            call qtsurf
+        else
+            qts = 0.
+        endif
       
-      ret = 0
+        ret = 0
+
     end function set_surface_pressure
 
     function get_surface_pressure(p) result(ret)
@@ -823,7 +828,206 @@ contains
        ret = gatherLWP(g_i,g_j,a,n,sv0(2:i1,2:j1,1:kmax,iqr))
      end function get_field_RWP
 
-     
+     ! Surface friction velocity field getter
+     function get_field_ustar(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,ustar(2:i1,2:j1))
+     end function get_field_ustar
+
+     ! Surface momentum roughness length field getter
+     function get_field_z0m(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,z0m(2:i1,2:j1))
+     end function get_field_z0m
+
+     ! Surface heat roughness length field getter
+     function get_field_z0h(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,z0h(2:i1,2:j1))
+     end function get_field_z0h
+
+     ! Surface skin temperature field getter
+     function get_field_tskin(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,tskin(2:i1,2:j1))
+     end function get_field_tskin
+
+     ! Surface skin moisture content field getter
+     function get_field_qskin(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,qskin(2:i1,2:j1))
+     end function get_field_qskin
+
+     ! Surface latent heat flux field getter
+     function get_field_LE(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,LE(2:i1,2:j1))
+     end function get_field_LE
+
+     ! Surface sensible heat flux field getter
+     function get_field_H(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,H(2:i1,2:j1))
+     end function get_field_H
+
+     ! Surface Obukhov length field getter
+     function get_field_obl(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,obl(2:i1,2:j1))
+     end function get_field_obl
+
+     ! Surface theta-l flux field getter
+     function get_field_thlflux(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,thlflux(2:i1,2:j1))
+     end function get_field_thlflux
+
+     ! Surface moisture flux field getter
+     function get_field_qtflux(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,qtflux(2:i1,2:j1))
+     end function get_field_qtflux
+
+     ! Surface eastward wind vertical gradient getter
+     function get_field_dudz(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,dudz(2:i1,2:j1))
+     end function get_field_dudz
+
+     ! Surface northward wind vertical gradient getter
+     function get_field_dvdz(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,dvdz(2:i1,2:j1))
+     end function get_field_dvdz
+
+     ! Surface moisture vertical gradient getter
+     function get_field_dqtdz(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,dqtdz(2:i1,2:j1))
+     end function get_field_dqtdz
+
+     ! Surface liquid water temperature vertical gradient getter
+     function get_field_dthldz(g_i,g_j,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gatherlayer(g_i,g_j,a,n,dthldz(2:i1,2:j1))
+     end function get_field_dthldz
+
+    ! Surface prescribed uniform heat flux getter
+    function get_wt_surf(wtflux) result(ret)
+      real, intent(out)  :: wtflux
+      real              :: ret
+
+      ret=0
+      wtflux = wtsurf !- (thl - tskin) / ra
+    end function
+
+    ! Surface prescribed uniform heat flux setter
+    function set_wt_surf(wtflux) result(ret)
+      real, intent(in)  :: wtflux
+      real              :: ret
+
+      ret=0
+      wtsurf = wtflux !- (thl - tskin) / ra
+    end function
+
+    ! Surface prescribed uniform moisture flux getter
+    function get_wq_surf(wqflux) result(ret)
+      real, intent(out)  :: wqflux
+      real              :: ret
+
+      ret=0
+      wqflux = wqsurf !- (qt - qskin) / ra
+    end function
+
+    ! Surface prescribed uniform moisture flux setter
+    function set_wq_surf(wqflux) result(ret)
+      real, intent(in)  :: wqflux
+      real              :: ret
+
+      ret=0
+      wqsurf = wqflux !- (qt - qskin) / ra
+    end function
+
+    ! Surface uniform momentum roughness length getter
+    function get_z0m_surf(z0) result(ret)
+      real, intent(out)  :: z0
+      real              :: ret
+
+      ret=0
+      z0 = z0mav
+    end function
+
+    ! Surface uniform momentum roughness length setter
+    function set_z0m_surf(z0) result(ret)
+      real, intent(in)  :: z0
+      real              :: ret
+
+      ret=0
+      z0m = z0
+      z0mav = z0
+    end function
+
+    ! Surface uniform heat roughness length getter
+    function get_z0h_surf(z0) result(ret)
+      real, intent(out)  :: z0
+      real              :: ret
+
+      ret=0
+      z0 = z0hav
+    end function
+
+    ! Surface uniform heat roughness length setter
+    function set_z0h_surf(z0) result(ret)
+      real, intent(in)  :: z0
+      real              :: ret
+
+      ret=0
+      z0h = z0
+      z0hav = z0
+    end function
+
      !!! setter functions for full 3D fields - using index arrays
      !!! these functions set BOTH the -m and the -0 fields
      function set_field_U(g_i,g_j,g_k,a,n) result(ret)
@@ -904,80 +1108,6 @@ contains
      end function set_field_QT    
      !!! end of setter functions for 3D fields
 
-    !!! getter functions for ground fluxes
-    function get_wt_surf(wtflux) result(ret)
-      real, intent(out)  :: wtflux
-      real              :: ret
-
-      ret=0
-      wtflux = wtsurf !- (thl - tskin) / ra
-    end function
-
-    function get_wq_surf(wqflux) result(ret)
-      real, intent(out)  :: wqflux
-      real              :: ret
-
-      ret=0
-      wqflux = wqsurf !- (qt - qskin) / ra
-    end function
-    !!! end of getter function for ground fluxes
-
-    !!! setter functions for ground fluxes
-    function set_wt_surf(wtflux) result(ret)
-      real, intent(in)  :: wtflux
-      real              :: ret
-
-      ret=0
-      wtsurf = wtflux !- (thl - tskin) / ra
-    end function
-
-    function set_wq_surf(wqflux) result(ret)
-      real, intent(in)  :: wqflux
-      real              :: ret
-      
-      ret=0
-      wqsurf = wqflux !- (qt - qskin) / ra
-    end function
-    !!! end of setter function for ground fluxes
-
-    !!! getter functions for roughness lengths
-    function get_z0m_surf(z0) result(ret)
-      real, intent(out) :: z0
-      real              :: ret
-
-      ret=0
-      z0 = z0mav
-    end function
-
-    function get_z0h_surf(z0) result(ret)
-      real, intent(out) :: z0
-      real              :: ret
-
-      ret=0
-      z0 = z0hav
-    end function
-    !!! end of getter functions for roughness
-
-    !!! setter functions for roughness lengths
-    function set_z0m_surf(z0) result(ret)
-      real, intent(in)  :: z0
-      real              :: ret
-
-      ret=0
-      z0m = z0
-      z0mav = z0
-    end function
-
-    function set_z0h_surf(z0) result(ret)
-      real, intent(in)  :: z0
-      real              :: ret
-      
-      ret=0
-      z0h = z0
-      z0hav = z0
-    end function
-    !!! end of setter functions for roughness
-    
     !!! get simulation parameters
     function get_params_grid(i,j,k,X,Y) result(ret)
       use modglobal, only: itot,jtot,kmax,xsize,ysize
