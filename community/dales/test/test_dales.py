@@ -1,19 +1,13 @@
+import logging
+
 from amuse.community import *
 from amuse.test.amusetest import TestWithMPI
-
 from omuse.community.dales.interface import Dales
-
 from omuse.units import units
 
-default_options = {}
-# default_options=dict(number_of_workers=4)
-# default_options=dict(channel_type="sockets",redirection="none")
-# default_options=dict(redirection="none",debugger="gdb")
-
-import logging
-import pickle
-import numpy
-import numpy.random
+kwargs = {}
+# kwargs=dict(channel_type="sockets",redirection="none")
+# kwargs=dict(redirection="none",debugger="gdb")
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("code").setLevel(logging.DEBUG)
@@ -35,7 +29,7 @@ class TestDalesInterface(TestWithMPI):
         os.mkdir(rundir)
         os.chdir(rundir)
         try:
-            instance = Dales(redirection="none")
+            instance = Dales(**kwargs)
             instance.commit_parameters()
             assert os.path.isfile("namoptions.001")
             instance.cleanup_code()
@@ -51,7 +45,7 @@ class TestDalesInterface(TestWithMPI):
         os.mkdir(rundir)
         os.chdir(rundir)
         try:
-            instance = Dales(redirection="none")
+            instance = Dales(**kwargs)
             instance.commit_parameters()
             assert os.path.isfile("prof.inp.001")
             instance.cleanup_code()
@@ -67,7 +61,7 @@ class TestDalesInterface(TestWithMPI):
         os.mkdir(rundir)
         os.chdir(rundir)
         try:
-            instance = Dales(redirection="none")
+            instance = Dales(**kwargs)
             instance.commit_parameters()
             assert os.path.isfile("lscale.inp.001")
             instance.cleanup_code()
@@ -80,7 +74,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_set_workdir(self):
         rundir = "work3"
-        instance = Dales(workdir=rundir, redirection="none")
+        instance = Dales(workdir=rundir, **kwargs)
         instance.commit_parameters()
         assert os.path.exists(rundir)
         instance.cleanup_code()
@@ -89,7 +83,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_namopt_file_written_in_workdir(self):
         rundir = "work4"
-        instance = Dales(workdir=rundir, redirection="none")
+        instance = Dales(workdir=rundir, **kwargs)
         instance.commit_parameters()
         assert os.path.isfile(os.path.join(rundir, "namoptions.001"))
         instance.cleanup_code()
@@ -98,8 +92,9 @@ class TestDalesInterface(TestWithMPI):
 
     def test_load_rico(self):
         rundir = "work-rico"
-        instance = Dales(case="rico", workdir=rundir, redirection="none")
+        instance = Dales(case="rico", workdir=rundir, **kwargs)
         instance.commit_parameters()
+        assert instance.get_ktot() == 126
         assert os.path.exists(rundir)
         instance.cleanup_code()
         instance.stop()
@@ -107,7 +102,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_run_rico(self):
         rundir = "work-rico2"
-        instance = Dales(case="rico", workdir=rundir, redirection="none")
+        instance = Dales(case="rico", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (10 | units.s))
         newtim = instance.get_model_time()
@@ -118,7 +113,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_load_bomex(self):
         rundir = "work-bomex"
-        instance = Dales(case="bomex", workdir=rundir, redirection="none")
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         instance.commit_parameters()
         assert os.path.exists(rundir)
         instance.cleanup_code()
@@ -127,7 +122,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_run_bomex(self):
         rundir = "work-bomex2"
-        instance = Dales(case="bomex", workdir=rundir, redirection="none")
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (1 | units.minute))
         newtim = instance.get_model_time()
@@ -138,7 +133,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_load_sp_case(self):
         rundir = "work-sp"
-        instance = Dales(case="sp-testcase", workdir=rundir, redirection="none")
+        instance = Dales(case="sp-testcase", workdir=rundir, **kwargs)
         instance.commit_parameters()
         assert os.path.exists(rundir)
         instance.cleanup_code()
@@ -147,7 +142,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_get_grid_dimensions(self):
         rundir = "work-sp2"
-        instance = Dales(case="sp-testcase", workdir=rundir, redirection="none")
+        instance = Dales(case="sp-testcase", workdir=rundir, **kwargs)
         instance.commit_parameters()
         assert (instance.get_itot(), instance.get_jtot(), instance.get_ktot()) == (200, 200, 160)
         assert (instance.get_dx().value_in(units.m), instance.get_dy().value_in(units.m)) == (200, 200)
@@ -158,7 +153,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_run_sp_case(self):
         rundir = "work-sp3"
-        instance = Dales(case="sp-testcase", workdir=rundir, redirection="none")
+        instance = Dales(case="sp-testcase", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (1 | units.s))
         newtim = instance.get_model_time()
@@ -169,7 +164,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_upscale_arm_brown_case(self):
         rundir = "work-arm-brown"
-        instance = Dales(case="arm_brown", workdir=rundir, redirection="none")
+        instance = Dales(case="arm_brown", workdir=rundir, **kwargs)
         instance.parameters_DOMAIN.itot = 64
         instance.parameters_DOMAIN.jtot = 64
         instance.commit_parameters()
@@ -180,7 +175,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_grid_shapes(self):
         rundir = "work-sp4"
-        instance = Dales(case="sp-testcase", workdir=rundir, redirection="none")
+        instance = Dales(case="sp-testcase", workdir=rundir, **kwargs)
         instance.parameters_DOMAIN.itot = 64
         instance.parameters_DOMAIN.jtot = 64
         tim = instance.get_model_time()
@@ -199,7 +194,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_u_profile_bomex(self):
         rundir = "work-bomex3"
-        instance = Dales(case="bomex", workdir=rundir)
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (5 | units.s))
         u_profile1 = instance.profiles.U.value_in(units.m / units.s)
@@ -216,7 +211,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_qt_profile_sp(self):
         rundir = "work-sp5"
-        instance = Dales(case="sp-testcase", workdir=rundir, number_of_workers=4, redirection="none")
+        instance = Dales(case="sp-testcase", workdir=rundir, number_of_workers=4, **kwargs)
         instance.parameters_DOMAIN.itot = 64
         instance.parameters_DOMAIN.jtot = 64
         tim = instance.get_model_time()
@@ -230,7 +225,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_set_bomex_t_field(self):
         rundir = "work-bomex4"
-        instance = Dales(case="bomex", workdir=rundir)
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (10 | units.s))
         thlfld = numpy.copy(instance.grid.THL.value_in(units.K))
@@ -241,7 +236,7 @@ class TestDalesInterface(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
-        instance = Dales(case="bomex", workdir=rundir)
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (70 | units.s))
         thl2 = numpy.mean(instance.grid.THL.value_in(units.K)[:, :, 1], axis=(0, 1))
@@ -252,7 +247,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_bomex_3d_grid_interface(self):
         rundir = "work-bomex45"
-        instance = Dales(case="bomex", workdir=rundir)
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (2 | units.s))
         qblock = numpy.full((3, 3, 1), 1.234e-5) | units.mfu
@@ -267,7 +262,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_set_bomex_t_value(self):
         rundir = "work-bomex5"
-        instance = Dales(case="bomex", workdir=rundir)
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (10 | units.s))
         instance.grid[1::2, 0::2, 1].THL = 302. | units.K
@@ -286,7 +281,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_set_bomex_q_forcing(self):
         rundir = "work-bomex6"
-        instance = Dales(case="bomex", workdir=rundir)
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (10 | units.s))
         zf = instance.get_zf().value_in(units.km)
@@ -303,7 +298,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_set_bomex_q_nudging(self):
         rundir = "work-bomex7"
-        instance = Dales(case="bomex", workdir=rundir)
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (10 | units.s))
         zf = instance.get_zf().value_in(units.km)
@@ -320,7 +315,7 @@ class TestDalesInterface(TestWithMPI):
 
     def test_atex_scalar_fields(self):
         rundir = "work-atex"
-        instance = Dales(case="atex", workdir=rundir)
+        instance = Dales(case="atex", workdir=rundir, **kwargs)
         instance.parameters_DOMAIN.itot = 32
         instance.parameters_DOMAIN.jtot = 32
         tim = instance.get_model_time()
@@ -328,92 +323,96 @@ class TestDalesInterface(TestWithMPI):
         instance.set_wt_surf(0.1 | units.m * units.s ** -1 * units.K)
         wt = instance.get_wt_surf().value_in(units.m * units.s ** -1 * units.K)
         wtgrid = instance.scalars.wt.value_in(units.m * units.s ** -1 * units.K)
-        assert(wt == wtgrid == 0.1)
+        assert (wt == wtgrid == 0.1)
         instance.set_z0h_surf(0.2 | units.m)
         instance.evolve_model(tim + (1 | units.s))
         z0 = instance.get_z0h_surf().value_in(units.m)
         z0grid = instance.scalars.z0h[0].value_in(units.m)
-        assert(z0 == z0grid == 0.2)
+        assert (z0 == z0grid == 0.2)
         z0h = instance.surface_fields.z0h.value_in(units.m)
-        assert(numpy.all(z0h == 0.2))
+        assert (numpy.all(z0h == 0.2))
         instance.set_z0m_surf(0.3 | units.m)
         z0 = instance.get_z0m_surf().value_in(units.m)
         z0grid = instance.scalars.z0m[0].value_in(units.m)
-        assert(z0 == z0grid == 0.3)
+        assert (z0 == z0grid == 0.3)
         z0h = instance.surface_fields.z0m.value_in(units.m)
-        assert(numpy.all(z0h == 0.3))
+        assert (numpy.all(z0h == 0.3))
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
 
     def test_bomex_2d_fields(self):
         rundir = "work-bomex8"
-        instance = Dales(case="bomex", workdir=rundir)
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (60 | units.s))
-        twp = instance.surface_fields.TWP.value_in(units.kg / units.m ** 2)
-        assert(twp.shape == (instance.get_itot(), instance.get_jtot()))
-        ustar = instance.surface_fields.ustar.value_in(units.m / units.s)
-        assert(ustar.shape == (instance.get_itot(), instance.get_jtot()))
-        tskin = instance.surface_fields.tskin.value_in(units.K)
-        assert(tskin.shape == (instance.get_itot(), instance.get_jtot()))
+        vars2d = {"TWP": units.kg / units.m ** 2,
+                  "ustar": units.m / units.s,
+                  "tskin": units.K,
+                  "qskin": units.mfu,
+                  "LE": units.W / units.m ** 2,
+                  "H": units.W / units.m ** 2,
+                  "obl": units.m}
+        for variable, unit in vars2d.items():
+            field = getattr(instance.surface_fields, variable).value_in(unit)
+            assert (field.shape == (instance.get_itot(), instance.get_jtot()))
+        twp = instance.surface_fields.TWP.value_in(vars2d["TWP"])
         qt = instance.grid.QT.value_in(units.mfu)
         dz = instance.get_zf().value_in(units.m)[-1] / instance.get_ktot()
         twp_check = (numpy.sum(qt, axis=2) * dz)
-        assert(numpy.allclose(twp, twp_check, rtol=0.1))
+        assert (numpy.allclose(twp, twp_check, rtol=0.1))
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
 
-#     def test7(self):
-#         print "Test 7: instantiate, retrieve profiles without time stepping for different number of threads"
-#
-#         profile = numpy.loadtxt("prof.inp.001")
-#         zf_in  = profile[:,0]
-#         thl_in = profile[:,1]
-#         qt_in  = profile[:,2]
-#
-#         # root mean square difference between vectors a and b
-#         def rms(a, b):
-#             return numpy.sqrt(((a-b)**2).mean())
-#
-#         for n in (1,2,4):
-#             print "---------------------------------------------------- %d threads -------------------------------------------------"%n
-#             instance = Dales(number_of_workers=n,**default_options)
-#             tim=instance.get_model_time()
-#             instance.commit_grid()
-#
-#             zf  = instance.get_zf()
-#             thl = instance.get_profile_THL()
-#             qt  = instance.get_profile_QT()
-#             for i in range(0,instance.k):
-#                 print "%3d %6.1f - %7.3f %7.3f - %8.4f %8.4f"%(i, zf[i].value_in(units.m), thl_in[i], thl[i].value_in(units.K), qt_in[i], qt[i].value_in(units.shu))
-#             # get rid of units
-#             thl = [t.value_in(units.K) for t in thl]
-#             rmsT  = rms(thl, thl_in)
-#             rmsQT = rms(qt, qt_in)
-#             print n, ' threads:'
-#             print 'RMS error in thl', rmsT
-#             print 'RMS error in qt', rmsQT
-#
-#             # demand that the rms error btw input profiles and extracted average profiles is small
-#             # DALES adds some random fluctuations, so the average != input
-#             assert rmsT < 1e-2
-#             assert rmsQT < 1e-6
-#
-#             #print "The retrieved THL profile is:", thl
-#             #print "The retrieved QT profile is:", qt
-#             #print "The retrieved zf levels:", instance.get_zf()
-#             #print "The retrieved zh levels:", instance.get_zh()
-#
-#             i,j,k,xsize,ysize = instance.get_params_grid()
-#             print "Grid size", (i, j, k)
-#             print "Horizontal extent of model", (xsize,ysize)
-#
-#             instance.cleanup_code()
-#             instance.stop()
-#             print
-#
+    def test_rico_restart(self):
+        rundir = "work-rico3"
+        instance1 = Dales(case="rico", workdir=rundir, **kwargs)
+        tim = instance1.get_model_time()
+        instance1.evolve_model(tim + (20 | units.s))
+        instance1.write_restart()
+        instance1.cleanup_code()
+        instance1.stop()
+        instance2 = Dales(workdir=rundir, **kwargs)
+        instance2.evolve_model(tim + (40 | units.s))
+        t1 = instance2.grid.T.value_in(units.K)
+        instance2.cleanup_code()
+        instance2.stop()
+        cleanup_data(rundir)
+        rundir = "work-rico4"
+        instance3 = Dales(case="rico", workdir=rundir, **kwargs)
+        tim = instance3.get_model_time()
+        instance3.evolve_model(tim + (60 | units.s))
+        t2 = instance3.grid.T.value_in(units.K)
+        instance3.cleanup_code()
+        instance3.stop()
+        cleanup_data(rundir)
+        assert (numpy.allclose(t1, t2, rtol=1.e-3))
+
+    def test_bomex_nudge(self):
+        rundir = "work-bomex9"
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
+        instance.commit_parameters()
+        zf = instance.nudging.z.value_in(units.m)
+        qt1 = instance.profiles.QT.value_in(units.shu)
+        zprof = 1. / ((zf / zf[-1] - 0.66) ** 2 + 1)
+        instance.nudging.QT = numpy.sum(qt1) * zprof / numpy.sum(zprof) | units.shu
+        instance.set_nudge_time_QT(100. | units.s)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (100 | units.s))
+        qt2 = instance.profiles.QT.value_in(units.shu)
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+        rundir = "work-bomex10"
+        instance = Dales(case="bomex", workdir=rundir, **kwargs)
+        instance.evolve_model(tim + (100 | units.s))
+        qt3 = instance.profiles.QT.value_in(units.shu)
+        assert (not numpy.array_equal(qt1, qt2) and not numpy.array_equal(qt2, qt3))
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
 #     def test8(self):
 #         print "Test 8: instantiate, set a forcing, run 30 seconds and retrieve profiles"
 #         # the effect of the forcing is seen in the U profile at the same height as the forcing was places
@@ -465,206 +464,3 @@ class TestDalesInterface(TestWithMPI):
 #
 #
 #
-#     def test9(self):
-#         print "Test 9: get 3D data and compare with slab averages"
-#
-#         # root mean square difference between vectors a and b
-#         def rms(a, b):
-#             return (((a-b)**2).mean())**0.5
-#
-#         instance = Dales(number_of_workers=2,**default_options)
-#         tim=instance.get_model_time()
-#         instance.commit_grid()
-#
-#         tend = numpy.zeros(instance.k)
-#         tend[5] = -1
-#         instance.set_tendency_U(tend | units.m/units.s**2)
-#
-#         instance.evolve_model(tim + (180 | units.s))
-#
-#         def getU(imin=0, imax=instance.itot, jmin=0, jmax=instance.jtot, kmin=0, kmax=instance.k):
-#             points = numpy.mgrid[imin:imax, jmin:jmax, kmin:kmax]
-#             points = points.reshape(3, -1)
-#             i,j,k = points
-#             print 'i', i
-#             print 'j', j
-#             print 'k', k
-#
-#             field = instance.get_field_U(i,j,k)
-#             field = field.reshape ((imax-imin, jmax-jmin, kmax-kmin))
-#             return field
-#
-#
-#         #field = field.reshape ((isize, jsize, ksize))
-#
-#         #print 'vertical profile U'
-#         #print getU(imin=3,imax=4,jmin=8,jmax=9) # a vertical profile
-#
-#         #print 'horizontal profile U at k=5'
-#         #print getU(imin=1,imax=10, jmin=8,jmax=9, kmin=5, kmax=6) # a vertical profile
-#
-#
-#         #print 'horizontal profile U at k=6'
-#         #print getU(imin=1,imax=10, jmin=8,jmax=9, kmin=6, kmax=7) # a vertical profile
-#
-#         # get slab averages
-#         U = instance.get_profile_U()
-#         V = instance.get_profile_V()
-#         W = instance.get_profile_W()
-#         THL = instance.get_profile_THL()
-#         QT = instance.get_profile_QT()
-#
-#         # get 3D profiles
-#         U3   = instance.get_field('U')
-#         V3   = instance.get_field('V')
-#         W3   = instance.get_field('W')
-#         THL3 = instance.get_field('THL')
-#         QT3  = instance.get_field('QT')
-#
-#
-#         # calculate own slab averages of 3D profiles
-#         U3a   = U3.mean(axis=0).mean(axis=0)
-#         V3a   = V3.mean(axis=0).mean(axis=0)
-#         W3a   = W3.mean(axis=0).mean(axis=0)
-#         THL3a = THL3.mean(axis=0).mean(axis=0)
-#         QT3a  = QT3.mean(axis=0).mean(axis=0)
-#
-#         # rms difference btw retrieved and calculated slab averages
-#         rmsU    = rms(U,   U3a)
-#         rmsV    = rms(V,   V3a)
-#         rmsW    = rms(W,   W3a)
-#         rmsTHL  = rms(THL, THL3a)
-#         rmsQT   = rms(QT,  QT3a)
-#
-#         print 'RMS errors (U, V, W, THL, QT)', rmsU, rmsV, rmsW, rmsTHL, rmsQT
-#         print THL3 [0, 0, 0:4]
-# #        print instance.get_field('THL', imin)
-#
-#         assert rmsU   < 1e-12 | units.m / units.s
-#         assert rmsV   < 1e-12 | units.m / units.s
-#         assert rmsW   < 1e-12 | units.m / units.s
-#         assert rmsTHL < 1e-12 | units.K
-#         assert rmsQT  < 1e-12
-#
-#         instance.cleanup_code()
-#         instance.stop()
-#
-#
-#     def test10(self):
-#         fileName = 'reference-data/test10.pkl'
-#         save = False #True
-#
-#         print "Test 10: get 3D data, compare with stored reference"
-#
-#         # summed root mean square difference between vectors a and b
-#         def rmsSum(a, b):
-#             return (((a-b)**2).sum())**0.5
-#
-#         instance = Dales(number_of_workers=1,**default_options)
-#         tim=instance.get_model_time()
-#         instance.commit_grid()
-#
-#        # tend = numpy.zeros(instance.k)
-#        # tend[5] = -1
-#        # instance.set_tendency_U(tend)
-#
-#         instance.evolve_model(tim + (300 | units.s), exactEnd=0)
-#
-#         # get 3D profiles
-#         U3   = instance.get_field('U')
-#         V3   = instance.get_field('V')
-#         W3   = instance.get_field('W')
-#         THL3 = instance.get_field('THL')
-#         QT3  = instance.get_field('QT')
-#
-#         if save:
-#             outFile = open(fileName, 'wb')
-#             pkl = (U3, V3, W3, THL3, QT3)
-#             pickle.dump(pkl, outFile)
-#             print('Saved reference profiles in', fileName)
-#         else:
-#             inFile = open(fileName, 'rb')
-#             pkl = pickle.load(inFile)
-#             U3p, V3p, W3p, THL3p, QT3p = pkl
-#             rmsU   = rmsSum(U3, U3p)
-#             rmsV   = rmsSum(V3, V3p)
-#             rmsW   = rmsSum(W3, W3p)
-#             rmsTHL = rmsSum(THL3, THL3p)
-#             rmsQT  = rmsSum(QT3, QT3p)
-#
-#             print 'RMS errors (U, V, W, THL, QT)', rmsU, rmsV, rmsW, rmsTHL, rmsQT
-#
-#             assert rmsU   < 1e-9 | units.m / units.s
-#             assert rmsV   < 1e-9 | units.m / units.s
-#             assert rmsW   < 1e-9 | units.m / units.s
-#             assert rmsTHL < 1e-9 | units.K
-#             assert rmsQT  < 1e-9
-#
-#         instance.cleanup_code()
-#         instance.stop()
-#
-#
-#
-#     def test11(self):
-#         print("Test 11: set 3D data, get it back, compare")
-#
-#         fieldunits = {
-#                 'U'   : units.m / units.s,
-#                 'V'   : units.m / units.s,
-#                 'W'   : units.m / units.s,
-#                 'THL' : units.K,
-#                 'QT'  : units.shu,
-#             }
-#
-#         # write a single grid point at i,j,k, read back
-#         def testSingle(i,j,k):
-#             #a = numpy.random.random((1,1,1)) # 3D matrix with one element
-#             a = numpy.random.random()  | fieldunits[field]# scalar
-#             b = dales.get_field(field, i, i+1, j, j+1, k, k+1)
-# #            b = drop_units(field, b)
-#             dales.set_field(field, a, i, j, k)
-#             c = dales.get_field(field, i, i+1, j, j+1, k, k+1)
-# #            c = drop_units(field, c)
-#             #~ print field, (i,j,k), 'was:', b, 'set: ', a, 'get:', c
-#             self.assertEquals(a,c)
-#
-#         # write to a block [i:i+si, j:j+sj, k:k+sk], read back
-#         def testBlock(i,j,k, si, sj, sk):
-#             a = numpy.random.random((si,sj,sk)) | fieldunits[field]
-#             b = dales.get_field(field, i, i+si, j, j+sj, k, k+sk)
-# #            b = drop_units(field, b)
-#             dales.set_field(field, a, i, j, k)
-#             c = dales.get_field(field, i, i+si, j, j+sj, k, k+sk)
-# #            c = drop_units(field, c)
-#             print field, (i,j,k),  (si,sj,sk) #'was:', b, 'set: ', a, 'get:', c
-#             self.assertEquals(a,c)
-#
-#         for n in (1,2,4):
-#             print ' --- ', n, 'dales workers --- '
-#             dales = Dales(number_of_workers=n,**default_options)
-#             dales.commit_grid()
-#
-#             # set random grid elements for all fields, read back
-#             for s in range(0,50):
-#                 for field in ('U', 'V', 'W', 'THL', 'QT'):
-#                     i = numpy.random.randint(0,dales.itot)
-#                     j = numpy.random.randint(0,dales.jtot)
-#                     k = numpy.random.randint(0,dales.k)
-#                     testSingle(i, j, k)
-#
-#             for s in range(0,50):
-#                 for field in ('U', 'V', 'W', 'THL', 'QT'):
-#                     i = numpy.random.randint(0,dales.itot)
-#                     j = numpy.random.randint(0,dales.jtot)
-#                     k = numpy.random.randint(0,dales.k)
-#
-#                     si = numpy.random.randint(1,dales.itot-i+1)
-#                     sj = numpy.random.randint(1,dales.jtot-j+1)
-#                     sk = numpy.random.randint(1,dales.k-k+1)
-#                     testBlock(i, j, k, si, sj, sk)
-#
-#
-#
-#
-#             dales.cleanup_code()
-#             dales.stop()
