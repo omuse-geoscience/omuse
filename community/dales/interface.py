@@ -488,19 +488,35 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         CommonCode.__init__(self, DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
 
+        inputdir = None
+
         # Set working directory
         self.workdir = "."
         if "workdir" in options:
             self.workdir = options["workdir"]
+            if os.path.exists(self.workdir): # This is a restart
+                inputdir = self.workdir
 
         # Set experiment name
         if "exp" in options:
             self.parameters_RUN.iexpnr = int(options.get("exp"))
 
+        # Set input directory
+        if "inputdir" in options:
+            if inputdir is None:
+                inputdir = options["inputdir"]
+            else:
+                print "Input directory specification %s ignored, because it was already set to %s" % \
+                      (options["inputdir"], inputdir)
+
         # Look up input directory
-        inputdir = options.get("inputdir", None)
-        if inputdir is None and "case" in options:
-            inputdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dales-repo", "cases", options["case"])
+        if "case" in options:
+            if inputdir is None:
+                inputdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dales-repo", "cases",
+                                        options["case"])
+            else:
+                print "Dales case directory specification %s ignored, because it was already set to %s" % \
+                      (options["case"], inputdir)
 
         # Register input data files
         input_files = {k: None for k in Dales.input_file_options.keys()}
@@ -662,7 +678,13 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         self.change_dir(os.path.abspath(self.workdir))
         self.set_input_file(filename)
         filepath = os.path.join(self.workdir, filename)
+        replace = False
+        if filepath == self._nml_file:
+            filepath += '~'
+            replace = True
         CodeWithNamelistParameters.write_namelist_parameters(self, filepath, do_patch=self._nml_file)
+        if replace:
+            os.rename(filepath, filepath[:-1])
         Dales.write_initial_profile_file(self.initial_profile_grid,
                                          filepath=os.path.join(self.workdir, "prof.inp.%3.3i" % iexpnr))
         Dales.write_initial_scalars(self.initial_scalar_grid,
@@ -671,7 +693,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
                                              filepath=os.path.join(self.workdir, "lscale.inp.%3.3i" % iexpnr))
         self.workdir = os.path.abspath(self.workdir)
         for f in self.extra_input_files:
-            shutil.copy2(f, self.workdir)
+            if os.path.abspath(f) != os.path.join(self.workdir, os.path.basename(f)):
+                shutil.copy2(f, self.workdir)
 
         # print "code options written to %s"%dalesinputfile
 
@@ -1059,7 +1082,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     def get_grid_position(self, i, j, k):
         itot, jtot, ktot, x, y = self.get_params_grid()
-        return i * x / itot, j * y / jtot, self.zf[k]
+        return i * x / itot, j * y / jtot, self.get_zf(k)
 
     def get_xy_grid_range(self):
         imin, imax, jmin, jmax, kmin, kmax = self.get_grid_range()
