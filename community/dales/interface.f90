@@ -37,6 +37,7 @@ module dales_interface
     
 contains
 
+    ! Sets the variance nudging type
     function set_qt_forcing(forcing_type) result(ret)
         integer::            ret
         integer,intent(in):: forcing_type
@@ -48,6 +49,7 @@ contains
         endif
     end function set_qt_forcing
 
+    ! Sets the dales input file
     function set_input_file(ifile) result(ret)
         integer::                      ret
         character(256),intent(in)::    ifile
@@ -56,6 +58,7 @@ contains
         ret=0
     end function set_input_file
 
+    ! Returns the dales input file
     function get_input_file(ifile) result(ret)
         integer::                       ret
         character(256),intent(out)::    ifile
@@ -64,18 +67,17 @@ contains
         ret=0
     end function get_input_file
 
-      ! set the working directory of the process. 
-      ! returns 0 on success
+    ! set the working directory of the dales worker process
     function change_dir(directory) result(ret)
 #if defined (__INTEL_COMPILER)
       USE IFPORT   ! for intel chdir function.
 #endif
-
       integer::                      ret
       character(256),intent(in)::   directory
       ret = chdir(directory)
     end function change_dir
 
+    ! Sets the simulation starting date
     function set_start_date(date) result(ret)
         integer::                      ret
         integer,intent(in)::           date
@@ -84,6 +86,7 @@ contains
         ret=0
     end function set_start_date
 
+    ! Sets the simulation starting timestamp
     function set_start_time(time) result(ret)
         integer::                      ret
         integer,intent(in)::           time
@@ -92,7 +95,7 @@ contains
         ret=0
     end function set_start_time
     
-    
+    ! Dales instantiation function
     function initialize_code() result(ret)
         integer:: ret
         
@@ -102,6 +105,7 @@ contains
         ret=0
     end function
 
+    ! Dales initializer function
     function commit_parameters() result(ret)
         integer:: ret
 
@@ -117,11 +121,13 @@ contains
         endif
     end function
 
+    ! Trivial placeholder method
     function recommit_parameters() result(ret)
         integer:: ret
         ret=0
     end function
 
+    ! Switch from/to adaptive time stepping
     function set_exact_end(t) result(ret)
         integer::                      ret
         logical, intent(in) ::         t
@@ -130,6 +136,7 @@ contains
         ret=0
     end function set_exact_end
 
+    ! Returns the adaptive time stepping flag
     function get_exact_end(t) result(ret)
         integer::                       ret
         logical,intent(out)::           t
@@ -137,7 +144,6 @@ contains
         t=exactEnd
         ret=0
     end function get_exact_end
-
 
     ! evolve the model to time tend
     ! returns 1 if the end of the simulation was reached (timeleft == 0)
@@ -187,6 +193,7 @@ contains
 
     end function
 
+    ! Dales finalizer method
     function cleanup_code() result(ret)
         integer :: ret
 
@@ -194,6 +201,7 @@ contains
         ret=0
     end function
 
+    ! Returns the model fixed timestep
     function get_timestep(dt) result(ret)
         real(8),intent(out):: dt
         integer            :: ret
@@ -202,6 +210,7 @@ contains
         ret=0
     end function
 
+    ! Returns the model time
     function get_model_time(t) result(ret)
         real(8),intent(out):: t
         integer::             ret
@@ -210,6 +219,7 @@ contains
         ret=0
     end function get_model_time
 
+    ! Sets the (uniform) surface pressure
     function set_surface_pressure(p) result(ret)
 
         use modsurface, only : qtsurf
@@ -227,9 +237,9 @@ contains
         endif
       
         ret = 0
-
     end function set_surface_pressure
 
+    ! Returns the model surface pressure
     function get_surface_pressure(p) result(ret)
       real(8),intent(out)::  p
       integer::             ret
@@ -238,17 +248,18 @@ contains
       ret = 0
     end function get_surface_pressure
     
-
+    ! Trivial placeholder method
     function commit_grid() result(ret)
         integer::             ret
         ret=0
     end function
 
-
 !!!!! get functions for vertical profiles / slab averages
     !   g_k is a dummy array
     !   a is the returned result
-    !   n is the array length    
+    !   n is the array length
+
+    ! Returns eastward wind profile
     function get_profile_U_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -258,6 +269,7 @@ contains
       ret = gatherlayeravg(u0(2:i1, 2:j1, g_k(1:n)), a)
     end function get_profile_U_
 
+    ! Returns northward wind profile
     function get_profile_V_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -266,7 +278,8 @@ contains
 
       ret = gatherlayeravg(v0(2:i1, 2:j1, g_k(1:n)), a)
     end function get_profile_V_
- 
+
+    ! Returns vertical wind profile
     function get_profile_W_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -276,6 +289,7 @@ contains
       ret = gatherlayeravg(w0(2:i1, 2:j1, g_k(1:n)), a)
     end function get_profile_W_
 
+    ! Returns the vertical liquid pot.temp. profile
     function get_profile_THL_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -285,6 +299,7 @@ contains
       ret = gatherlayeravg(thl0(2:i1, 2:j1, g_k(1:n)), a)
     end function get_profile_THL_
 
+    ! Returns the total humidity profile
     function get_profile_QT_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -294,6 +309,7 @@ contains
       ret = gatherlayeravg(qt0(2:i1, 2:j1, g_k(1:n)), a)
     end function get_profile_QT_
 
+    ! Returns the liquid water content profile
     function get_profile_QL_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -303,7 +319,7 @@ contains
       ret = gatherlayeravg(ql0(2:i1, 2:j1, g_k(1:n)), a)
     end function get_profile_QL_
 
-
+    ! Returns the ice water content profile
     function get_profile_QL_ice_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -315,11 +331,9 @@ contains
       do i=1,n
         a(i)=a_(g_k(i))
       enddo
-      
     end function get_profile_QL_ice_
 
-    
-
+    ! Returns the rain water profile
     function get_profile_QR_(g_k, a, n) result(ret)
       use modmicrodata, only: iqr
       use modglobal, only: nsv
@@ -337,7 +351,7 @@ contains
 
     end function get_profile_QR_
 
-
+    ! Returns the TKE profile
     function get_profile_E12_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -347,6 +361,7 @@ contains
       ret = gatherlayeravg(e120(2:i1, 2:j1, g_k(1:n)), a)
     end function get_profile_E12_
 
+    ! Returns the real temperature profile
     function get_profile_T_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_k
@@ -355,7 +370,8 @@ contains
       
       ret = gatherlayeravg(tmp0(2:i1, 2:j1, g_k(1:n)), a)
     end function get_profile_T_
-    
+
+    ! Returns the vertical layer center heights
     function get_zf_(g_k, a, n) result(ret)
        use modglobal, only: zf
       integer, intent(in)                 :: n
@@ -367,6 +383,7 @@ contains
       ret = 0
     end function get_zf_
 
+    ! Returns the vertical layer interface heights
     function get_zh_(g_k, a, n) result(ret)
       use modglobal, only: zh
       integer, intent(in)                 :: n
@@ -378,6 +395,7 @@ contains
       ret = 0
     end function get_zh_
 
+    ! Returns the vertical layer center pressures
     function get_presf_(g_k, a, n) result(ret)
       use modfields, only: presf
       integer, intent(in)                  :: n
@@ -389,6 +407,7 @@ contains
       ret = 0
     end function get_presf_
 
+    ! Returns the vertical layer interface pressures
     function get_presh_(g_k, a, n) result(ret)
       use modfields, only: presh
       integer, intent(in)                  :: n
@@ -399,7 +418,6 @@ contains
       a = presh(g_k(1:n))
       ret = 0
     end function get_presh_
-
 
     ! Cloud fraction getter
     ! Note: in contrast to the other profile getters,
@@ -412,9 +430,10 @@ contains
       integer                             :: ret
       
       ret = gatherCloudFrac(ql0(2:i1, 2:j1, :), g_k, a)
-    end function get_cloudfraction    
-    
+    end function get_cloudfraction
 !!! end of vertical profile getters
+
+    ! Total rain water content getter
     function get_rain(rain) result(ret)
       use mpi
       use modmpi, only: comm3d, my_real, mpierr, myid, nprocs
@@ -436,11 +455,12 @@ contains
       endif
       ret = 0
     end function get_rain
-    
-    
-!!!!! set functions for vertical tendency vectors
+
+    ! set functions for vertical tendency vectors
     !   a is the profile to set
     !   n is the array length - assumed to be the number of layers in the model   
+
+    ! Sets the eastward wind tendency profile
     function set_tendency_U(a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(in)      :: a
@@ -448,7 +468,8 @@ contains
       u_tend = a
       ret = 0
     end function set_tendency_U
-    
+
+    ! Sets the northward wind tendency profile
     function set_tendency_V(a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(in)      :: a
@@ -457,6 +478,7 @@ contains
       ret = 0
     end function set_tendency_V
 
+    ! Sets the liquid water pot. temperature profile
     function set_tendency_THL(a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(in)      :: a
@@ -465,6 +487,7 @@ contains
       ret = 0
     end function set_tendency_THL
 
+    ! Sets the total humidity tendency profile
     function set_tendency_QT(a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(in)      :: a
@@ -473,6 +496,7 @@ contains
       ret = 0
     end function set_tendency_QT
 
+    ! Sets the liquid water content tendency
    function set_tendency_QL(a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(in)      :: a
@@ -481,6 +505,7 @@ contains
       ret = 0
     end function set_tendency_QL
 
+    ! Sets the liquid water reference profile
     function set_ref_profile_QL(a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(in)      :: a
@@ -489,6 +514,7 @@ contains
       ret = 0
     end function set_ref_profile_QL
 
+
     function set_qt_variability_factor(a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(in)      :: a
@@ -496,7 +522,6 @@ contains
       qt_alpha = a
       ret = 0
     end function set_qt_variability_factor
-
 
 !!!!! indexed get/set functions for vertical tendency vectors
     function set_tendency_U_(g_k, a, n) result(ret)
@@ -508,6 +533,7 @@ contains
       ret = 0
     end function set_tendency_U_
 
+
     function get_tendency_U_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(out)     :: a
@@ -516,6 +542,7 @@ contains
       a(1:n) = u_tend(g_k(1:n))
       ret = 0
     end function get_tendency_U_
+
     
     function set_tendency_V_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
@@ -526,6 +553,7 @@ contains
       ret = 0
     end function set_tendency_V_
 
+
     function get_tendency_V_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(out)     :: a
@@ -534,6 +562,7 @@ contains
       a(1:n) = V_tend(g_k(1:n))
       ret = 0
     end function get_tendency_V_
+
     
     function set_tendency_THL_(g_k,a, n) result(ret)
       integer, intent(in)                 :: n
@@ -543,6 +572,7 @@ contains
       thl_tend(g_k(1:n)) = a(1:n)
       ret = 0
     end function set_tendency_THL_
+
 
     function get_tendency_THL_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
@@ -562,6 +592,7 @@ contains
       ret = 0
     end function set_tendency_QT_
 
+
     function get_tendency_QT_(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(out)     :: a
@@ -570,6 +601,7 @@ contains
       a(1:n) = qt_tend(g_k(1:n))
       ret = 0
     end function get_tendency_QT_
+
 
     function set_tendency_surface_pressure(p_tend) result(ret)
       real(8),intent(in)::  p_tend
@@ -588,9 +620,7 @@ contains
       
       ret = 0
     end function get_tendency_surface_pressure
-  
 !!! end of vertical tendency setters
-
 
 !!!!! indexed get/set functions for nudge targets
     function set_nudge_time_U(time) result(ret)
@@ -600,12 +630,14 @@ contains
       ret = 0
     end function set_nudge_time_U
 
+
     function get_nudge_time_U(time) result(ret)
       real, intent(out)      :: time
       integer               :: ret
       time = u_nudge_time
       ret = 0
     end function get_nudge_time_U
+
 
     function set_nudge_time_V(time) result(ret)
       real, intent(in)      :: time
@@ -614,12 +646,14 @@ contains
       ret = 0
     end function set_nudge_time_V
 
+
     function get_nudge_time_V(time) result(ret)
       real, intent(out)      :: time
       integer               :: ret
       time = v_nudge_time
       ret = 0
     end function get_nudge_time_V
+
 
     function set_nudge_time_THL(time) result(ret)
       real, intent(in)      :: time
@@ -628,12 +662,14 @@ contains
       ret = 0
     end function set_nudge_time_THL
 
+
     function get_nudge_time_THL(time) result(ret)
       real, intent(out)      :: time
       integer               :: ret
       time = thl_nudge_time
       ret = 0
     end function get_nudge_time_THL
+
     
     function set_nudge_time_QT(time) result(ret)
       real, intent(in)      :: time
@@ -641,6 +677,7 @@ contains
       qt_nudge_time = time
       ret = 0
     end function set_nudge_time_QT
+
 
     function get_nudge_time_QT(time) result(ret)
       real, intent(out)      :: time
@@ -658,6 +695,7 @@ contains
       u_nudge(g_k(1:n)) = a(1:n)
       ret = 0
     end function set_nudge_U
+
     
     function get_nudge_U(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
@@ -667,6 +705,7 @@ contains
       a(1:n) = u_nudge(g_k(1:n))
       ret = 0
     end function get_nudge_U
+
     
     function set_nudge_V(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
@@ -676,6 +715,7 @@ contains
       v_nudge(g_k(1:n)) = a(1:n)
       ret = 0
     end function set_nudge_V
+
     
     function get_nudge_V(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
@@ -685,6 +725,7 @@ contains
       a(1:n) = V_nudge(g_k(1:n))
       ret = 0
     end function get_nudge_V
+
     
     function set_nudge_THL(g_k,a, n) result(ret)
       integer, intent(in)                 :: n
@@ -695,6 +736,7 @@ contains
       ret = 0
     end function set_nudge_THL
 
+
     function get_nudge_THL(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(out)     :: a
@@ -704,15 +746,16 @@ contains
       ret = 0
     end function get_nudge_THL
 
+
     function set_nudge_QT(g_k,a, n) result(ret)
       integer, intent(in)                 :: n
       real, dimension(n), intent(in)      :: a
       integer, dimension(n), intent(in)   :: g_k
       integer                             :: ret
       qt_nudge(g_k(1:n)) = a(1:n)
-      write(*,*) 'qt_nudge', qt_nudge
       ret = 0
     end function set_nudge_QT
+
 
     function get_nudge_QT(g_k, a, n) result(ret)
       integer, intent(in)                 :: n
@@ -723,8 +766,6 @@ contains
       ret = 0
     end function get_nudge_QT
 !!! end of nudge target getters/setters
-
-
     
 !!! getter functions for full 3D fields - using index arrays
     function get_field_U(g_i,g_j,g_k,a,n) result(ret)
@@ -735,6 +776,7 @@ contains
       ret = gathervol(g_i,g_j,g_k,a,n,u0(2:i1,2:j1,1:kmax))
     end function get_field_U
 
+
     function get_field_V(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -742,6 +784,7 @@ contains
       integer                             :: ret
       ret = gathervol(g_i,g_j,g_k,a,n,v0(2:i1,2:j1,1:kmax))
     end function get_field_V
+
 
     function get_field_W(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
@@ -751,6 +794,7 @@ contains
       ret = gathervol(g_i,g_j,g_k,a,n,w0(2:i1,2:j1,1:kmax))
     end function get_field_W
 
+
      function get_field_THL(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -758,6 +802,7 @@ contains
        integer                             :: ret
        ret = gathervol(g_i,g_j,g_k,a,n,thl0(2:i1,2:j1,1:kmax))
      end function get_field_THL
+
 
      function get_field_QT(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
@@ -767,6 +812,7 @@ contains
        ret = gathervol(g_i,g_j,g_k,a,n,qt0(2:i1,2:j1,1:kmax))
      end function get_field_QT
 
+
      function get_field_QL(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -774,6 +820,7 @@ contains
        integer                             :: ret
        ret = gathervol(g_i,g_j,g_k,a,n,ql0(2:i1,2:j1,1:kmax))
      end function get_field_QL
+
 
      function get_field_Qsat(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
@@ -783,6 +830,7 @@ contains
        ret = gathervol(g_i,g_j,g_k,a,n,qsat(2:i1,2:j1,1:kmax))
      end function get_field_Qsat
 
+
      function get_field_E12(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -790,6 +838,7 @@ contains
        integer                             :: ret
        ret = gathervol(g_i,g_j,g_k,a,n,e120(2:i1,2:j1,1:kmax))
      end function get_field_E12
+
      
      function get_field_T(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
@@ -879,7 +928,11 @@ contains
        integer, dimension(n), intent(in)   :: g_i,g_j
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
-       ret = gatherlayer(g_i,g_j,a,n,LE(2:i1,2:j1))
+       if(allocated(LE)) then
+           ret = gatherlayer(g_i,g_j,a,n,LE(2:i1,2:j1))
+       else
+           ret = 1
+       end if
      end function get_field_LE
 
      ! Surface sensible heat flux field getter
@@ -888,7 +941,11 @@ contains
        integer, dimension(n), intent(in)   :: g_i,g_j
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
-       ret = gatherlayer(g_i,g_j,a,n,H(2:i1,2:j1))
+       if(allocated(H)) then
+           ret = gatherlayer(g_i,g_j,a,n,H(2:i1,2:j1))
+       else
+           ret = 1
+       end if
      end function get_field_H
 
      ! Surface Obukhov length field getter
