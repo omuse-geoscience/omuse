@@ -330,6 +330,46 @@ class DalesInterface(CodeInterface,
         returns(a=0. | units.K)
 
     @remote_function(must_handle_array=True)
+    def get_field_rswd(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rswdir(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rswdif(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rswu(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rlwd(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rlwu(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rswdcs(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rswucs(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rlwdcs(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
+    def get_field_rlwucs(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.W / units.m ** 2)
+
+    @remote_function(must_handle_array=True)
     def get_field_LWP(g_i=0, g_j=0):
         returns(a=0. | units.kg / units.m ** 2)
 
@@ -1108,7 +1148,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
                         state_guard="before_new_set_instance")
         obj.set_grid_range('grid', 'get_grid_range')
         obj.add_getter('grid', 'get_grid_position', names="xyz")
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T']:
+        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
+                  'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
             obj.add_getter('grid', 'get_field_' + x, names=[x])
         for x in ['U', 'V', 'W', 'THL', 'QT']:
             obj.add_setter('grid', 'set_field_' + x, names=[x])
