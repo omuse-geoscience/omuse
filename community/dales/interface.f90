@@ -18,6 +18,7 @@ module dales_interface
     use modglobal, only: i1,j1,k1,itot,jtot,kmax,lmoist
     use modsurfdata, only: ps, ustar, z0m, z0h, tskin, qskin, LE, H, obl, thlflux, qtflux, svflux, dudz, dvdz, &
             dqtdz, dthldz, thls, qts, thvs, svs, ustin, wqsurf, wtsurf, wsvsurf, z0, z0mav, z0hav
+    use modraddata, only: swd, swdir, swdif, swu, lwd, lwu, swdca, swuca, lwdca, lwuca
     use modmicrodata, only: iqr
     use modglobal, only: rtimee,rdt,fname_options,timeleft,tres,timee,rk3step,dt_lim
     use modstartup, only : do_writerestartfiles    
@@ -768,6 +769,7 @@ contains
 !!! end of nudge target getters/setters
     
 !!! getter functions for full 3D fields - using index arrays
+    ! Eastward wind velocity volume field getter
     function get_field_U(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -777,6 +779,7 @@ contains
     end function get_field_U
 
 
+    ! Northward wind velocity volume field getter
     function get_field_V(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -785,7 +788,7 @@ contains
       ret = gathervol(g_i,g_j,g_k,a,n,v0(2:i1,2:j1,1:kmax))
     end function get_field_V
 
-
+    ! Upward wind velocity volume field getter
     function get_field_W(g_i,g_j,g_k,a,n) result(ret)
       integer, intent(in)                 :: n
       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -794,16 +797,16 @@ contains
       ret = gathervol(g_i,g_j,g_k,a,n,w0(2:i1,2:j1,1:kmax))
     end function get_field_W
 
-
-     function get_field_THL(g_i,g_j,g_k,a,n) result(ret)
+    ! Liquid water potential temperature volume field getter
+    function get_field_THL(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
        real,    dimension(n), intent(out)  :: a
        integer                             :: ret
        ret = gathervol(g_i,g_j,g_k,a,n,thl0(2:i1,2:j1,1:kmax))
-     end function get_field_THL
+    end function get_field_THL
 
-
+     ! Total humidity volume field getter
      function get_field_QT(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -812,7 +815,7 @@ contains
        ret = gathervol(g_i,g_j,g_k,a,n,qt0(2:i1,2:j1,1:kmax))
      end function get_field_QT
 
-
+     ! Liquid water content volume field getter
      function get_field_QL(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -821,7 +824,7 @@ contains
        ret = gathervol(g_i,g_j,g_k,a,n,ql0(2:i1,2:j1,1:kmax))
      end function get_field_QL
 
-
+     ! Saturation humidity volume field getter
      function get_field_Qsat(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -830,7 +833,7 @@ contains
        ret = gathervol(g_i,g_j,g_k,a,n,qsat(2:i1,2:j1,1:kmax))
      end function get_field_Qsat
 
-
+     ! Turbulent kinetic energy volume field getter
      function get_field_E12(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -839,7 +842,7 @@ contains
        ret = gathervol(g_i,g_j,g_k,a,n,e120(2:i1,2:j1,1:kmax))
      end function get_field_E12
 
-     
+     ! Temperature volume field getter
      function get_field_T(g_i,g_j,g_k,a,n) result(ret)
        integer, intent(in)                 :: n
        integer, dimension(n), intent(in)   :: g_i,g_j,g_k
@@ -847,6 +850,96 @@ contains
        integer                             :: ret
        ret = gathervol(g_i,g_j,g_k,a,n,tmp0(2:i1,2:j1,1:kmax))
      end function get_field_T
+
+     ! Downwelling shortwave radiative flux getter
+     function get_field_rswd(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,swd(2:i1,2:j1,1:kmax))
+     end function get_field_rswd
+
+     ! Upwelling shortwave radiative flux getter
+     function get_field_rswu(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,swu(2:i1,2:j1,1:kmax))
+     end function get_field_rswu
+
+     ! Downwelling direct shortwave radiative flux getter
+     function get_field_rswdir(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,swdir(2:i1,2:j1,1:kmax))
+     end function get_field_rswdir
+
+     ! Downwelling diffuse shortwave radiative flux getter
+     function get_field_rswdif(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,swdif(2:i1,2:j1,1:kmax))
+     end function get_field_rswdif
+
+     ! Downwelling longwave radiative flux getter
+     function get_field_rlwd(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,lwd(2:i1,2:j1,1:kmax))
+     end function get_field_rlwd
+
+     ! Upwelling longwave radiative flux getter
+     function get_field_rlwu(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,lwu(2:i1,2:j1,1:kmax))
+     end function get_field_rlwu
+
+     ! Clear-sky downwelling shortwave radiative flux getter
+     function get_field_rswdcs(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,swdca(2:i1,2:j1,1:kmax))
+     end function get_field_rswdcs
+
+     ! Clear-sky upwelling shortwave radiative flux getter
+     function get_field_rswucs(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,swuca(2:i1,2:j1,1:kmax))
+     end function get_field_rswucs
+
+     ! Clear-sky downwelling longwave radiative flux getter
+     function get_field_lswd(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,lwdca(2:i1,2:j1,1:kmax))
+     end function get_field_lswd
+
+     ! Clear-sky upwelling longwave radiative flux getter
+     function get_field_rlwucs(g_i,g_j,g_k,a,n) result(ret)
+       integer, intent(in)                 :: n
+       integer, dimension(n), intent(in)   :: g_i,g_j,g_k
+       real,    dimension(n), intent(out)  :: a
+       integer                             :: ret
+       ret = gathervol(g_i,g_j,g_k,a,n,lwuca(2:i1,2:j1,1:kmax))
+     end function get_field_rlwucs
      !!! end of full 3D field getter functions
 
      ! getter function for LWP - a 2D field, vertical integral of ql
