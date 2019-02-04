@@ -111,6 +111,28 @@ class TestDalesInterface(TestWithMPI):
         instance.stop()
         cleanup_data(rundir)
 
+    def test_run_cblstrong(self):
+        rundir = "work-cblstrong"
+        instance = Dales(case="cblstrong", workdir=rundir, **kwargs)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (30 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_cblweak(self):
+        rundir = "work-cblweak"
+        instance = Dales(case="cblweak", workdir=rundir, **kwargs)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (30 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
     def test_load_bomex(self):
         rundir = "work-bomex"
         instance = Dales(case="bomex", workdir=rundir, **kwargs)

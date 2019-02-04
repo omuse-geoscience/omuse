@@ -68,16 +68,18 @@ class AsciiReader(DalesReader):
             f.readline()
             first_row = f.readline()
         if first_row.startswith(AsciiReader.comment_char):
-            cols = first_row[1:].split()
+            cols = first_row[1:].replace("(z)", "").replace(',', ' ').split()
         else:
-            cols = first_row[:].split()
+            cols = first_row[:].replace("(z)", "").replace(',', ' ').split()
         for col in cols:
             tokens = [s for s in re.split("\(|\)|\[|\]", col)]
             self.variables.append(tokens[0])
             self.units.append(tokens[1] if len(tokens) > 1 else "1")
-        if "zf" in self.variables:
-            index = self.variables.index("zf")
-            self.variables[index] = "height"
+        for z in ["z", "zf", "zc", "zm"]:
+            if z in self.variables:
+                index = self.variables.index(z)
+                self.variables[index] = "height"
+                break
         if "height" in self.variables:
             self.dimensions.append("height")
         self.data = numpy.loadtxt(self.filepath, skiprows=2).transpose()
@@ -120,7 +122,8 @@ class NetcdfReader(DalesReader):
 
     def get_heights(self, var):
         v = self.dataset.variables.get(var, None)
-        if not v: return []
+        if not v:
+            return []
         for lev_type in ["zt", "zm"]:
             if lev_type in v.dimensions:
                 dim = self.dataset.variables.get(lev_type, None)
@@ -128,7 +131,8 @@ class NetcdfReader(DalesReader):
 
     def get_times(self, var):
         v = self.dataset.variables.get(var, None)
-        if not v: return []
+        if not v:
+            return []
         if "time" in v.dimensions:
             dim = self.dataset.variables.get("time", None)
             return dim[:] if dim else []
