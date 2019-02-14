@@ -436,6 +436,10 @@ class OpenIFS(CommonCode):
             return self.get_field_Pfull_(i,k)
         elif(fid == "Phalf"):
             return self.get_field_Phalf_(i,k)
+        elif(fid == "Zgfull"):
+            return self.get_field_Zgfull_(i,k)
+        elif(fid == "Zghalf"):
+            return self.get_field_Zghalf_(i,k)
         elif(fid == "U"):
             return self.get_field_U_(i,k)
         elif(fid == "V"):
