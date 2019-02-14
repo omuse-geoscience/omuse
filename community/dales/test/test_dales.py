@@ -22,6 +22,8 @@ def cleanup_data(rundir):
         os.remove(rundir)
 
 
+# Unsupported test cases: aerosolrad, chem, example, fog, heterogen, hireslapse, neutral
+
 class TestDalesInterface(TestWithMPI):
 
     def test_namopt_file_is_written(self):
@@ -431,6 +433,65 @@ class TestDalesInterface(TestWithMPI):
         instance.evolve_model(tim + (100 | units.s))
         qt3 = instance.profiles.QT.value_in(units.shu)
         assert (not numpy.array_equal(qt1, qt2) and not numpy.array_equal(qt2, qt3))
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_arm_brown(self):
+        rundir = "arm_brown"
+        instance = Dales(case="arm_brown", workdir=rundir, **kwargs)
+        instance.parameters_DOMAIN.itot = 64
+        instance.parameters_DOMAIN.jtot = 64
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_arm_unstable(self):
+        rundir = "arm_unstable"
+        instance = Dales(case="arm_unstable", workdir=rundir, **kwargs)
+        instance.parameters_DOMAIN.itot = 64
+        instance.parameters_DOMAIN.jtot = 64
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_dycoms(self):
+        rundir = "dycoms"
+        instance = Dales(case="dycoms_rf02", workdir=rundir, **kwargs)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_gabls(self):
+        rundir = "gabls1"
+        instance = Dales(case="gabls1", workdir=rundir, **kwargs)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_run_smoke(self):
+        rundir = "smoke"
+        instance = Dales(case="smoke", workdir=rundir, **kwargs)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
