@@ -3,8 +3,8 @@
 module openifs_interface
 
     use ifslib,     only: static_init, initialize, finalize, get_gp_geom,& 
-                        & jstep, step, PFULL, PHALF, WIND_U, WIND_V, TEMPERATURE,&
-                        & SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
+                        & jstep, step, PFULL, PHALF, ZGFULL, ZGHALF, WIND_U, WIND_V,&
+                        & TEMPERATURE, SPEC_HUMIDITY, ICE_WATER, LIQ_WATER, CLOUD_FRACTION,&
                         & OZONE, SURF_Q_FLUX, SURF_L_FLUX, SURF_I_FLUX, SURF_TL_FLUX,&
                         & SURF_TS_FLUX,SURF_AERO_Z0,SURF_HEAT_Z0,CONV_RAIN_FLUX,&
                         & CONV_SNOW_FLUX,STRAT_RAIN_FLUX,STRAT_SNOW_FLUX
@@ -299,6 +299,28 @@ module openifs_interface
             ret = get_field(g_i,g_k,a,n,PHALF)
 
         end function get_field_Phalf_
+
+        function get_field_Zgfull_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,ZGFULL)
+
+        end function get_field_Zgfull_
+
+        function get_field_Zghalf_(g_i,g_k,a,n) result(ret)
+
+            integer, intent(in)::                   n
+            integer, dimension(n), intent(in)::     g_i,g_k
+            real(8), dimension(n), intent(out)::    a(n)
+            integer::                               ret
+
+            ret = get_field(g_i,g_k,a,n,ZGHALF)
+
+        end function get_field_Zghalf_
 
         function get_field_U_(g_i,g_k,a,n) result(ret)
 
