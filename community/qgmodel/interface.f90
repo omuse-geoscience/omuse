@@ -283,7 +283,7 @@ function evolve_model(tend) result(ret)
   real(8) :: tend
   
   if(timestep_method.EQ."euler") then
-    ret=evolve_leapfrog(tend)
+    ret=evolve_euler(tend)
     return
   endif
   if(timestep_method.EQ."leapfrog") then

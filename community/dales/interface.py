@@ -513,6 +513,9 @@ class DalesInterface(CodeInterface,
     def write_restart():
         returns()
 
+    @remote_function
+    def write_restart():
+        returns()
 
 class Dales(CommonCode, CodeWithNamelistParameters):
     QT_FORCING_GLOBAL = 0
