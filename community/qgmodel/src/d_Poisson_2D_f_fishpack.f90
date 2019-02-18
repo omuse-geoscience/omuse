@@ -36,7 +36,7 @@ by=Ly
 ! Setting the coefficient q to 0.
 ! Note that this is the way to use Helmholtz Solver to solve Poisson problem!
 !*******************************************************************************
-q=(lambda*lambda)
+q=-(lambda*lambda)
 
 !******************************************************************************
 ! NOTE THE SIGN CONVENTION USED FOR THE POISSON EQUATION!!!!!!!!!!!!!!!!!!!!!!!
@@ -68,7 +68,7 @@ ptrb = 0.0d0
 CALL HWSCRT(&
 &    ax, bx, nx, 1, bd_ax, bd_bx, &
 &    ay, by, ny, 1, bd_ay, bd_by, &
-&    lambda, &
+&    q, &
 &    f, nx+1,&
 &    ptrb, stat, workarea &
 &)

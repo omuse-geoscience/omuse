@@ -344,6 +344,8 @@ class Dales(CommonCode):
     QT_FORCING_VARIANCE=2
 
     def __init__(self,**options):
+        self._input_file=options.get("input_file", "namoptions.001")
+
         CommonCode.__init__(self,  DalesInterface(**options), **options)
         self.stopping_conditions = StoppingConditions(self)
 
@@ -356,24 +358,42 @@ class Dales(CommonCode):
         self.dx = None
         self.dy = None
 
-        #print ("DalesInterface.__init__", options)
         if 'workdir' in options:
             # print('Dales.__init__() : setting workdir.')
             self.set_workdir(options['workdir'])            
+
+        self._workdir=self.get_workdir()
+
+        self.read_input_file()
+
+    def read_input_file(self):
+        inputfile=os.path.join(self._workdir,self.parameters.input_file)
+
+        self.params = f90nml.read(inputfile)
+        self.parameters.grid_size_xy = self.params["DOMAIN"]["itot"],self.params["DOMAIN"]["jtot"]
+        self.parameters.grid_extent_xy = [self.params["DOMAIN"]["xsize"],self.params["DOMAIN"]["ysize"]] | units.m
+
+        #print ("DalesInterface.__init__", options)
         
     def commit_parameters(self):
-        workdir=self.get_workdir()
-        inputfile=os.path.join(workdir,self.parameters.input_file)
-        dalesinputfile=os.path.join(workdir,"_"+self.parameters.input_file)
-        if not os.path.exists(os.path.join(workdir,inputfile)):
+      
+        if self.parameters.input_file != self._input_file:
+          print "rereading namelist options file..."
+          self.read_input_file()
+
+        inputfile=os.path.join(self._workdir,self.parameters.input_file)
+        dalesinputfile=os.path.join(self._workdir,"_"+self.parameters.input_file)
+        if not os.path.exists(os.path.join(self._workdir,inputfile)):
             raise Exception("File %s not found"%inputfile)
         
-        self.params = f90nml.read(inputfile)
         
         patch=dict()
         patch["RUN"]=dict(  lwarmstart=self.parameters.restart_flag,
                             startfile=self.parameters.restart_file, 
-                            trestart=self.parameters.trestart.value_in(units.s))
+                            trestart=self.parameters.trestart.value_in(units.s) )
+        if self.parameters.grid_size_xy:
+            patch["DOMAIN"]=dict( itot=self.parameters.grid_size_xy[0],
+                                  jtot=self.parameters.grid_size_xy[1] )
         f90nml.patch(inputfile,patch,dalesinputfile)
         self.set_input_file(dalesinputfile)
 
@@ -393,7 +413,7 @@ class Dales(CommonCode):
         object.add_interface_parameter(
             "input_file",
             "the input file name",
-            "namoptions.001",
+            self._input_file,
             "before_set_interface_parameter"
         )
         object.add_interface_parameter(
@@ -475,6 +495,19 @@ class Dales(CommonCode):
             0,
             "before_set_interface_parameter"
         )
+        object.add_interface_parameter(
+            "grid_size_xy",
+            "tuple of number grid cells in x and y direction (None means use namelist default)",
+            None,
+            "before_set_interface_parameter"
+        )
+        object.add_interface_parameter(
+            "grid_extent_xy",
+            "tuple or vector of physical grid size in x and y direction (None means use namelist default)",
+            None,
+            "before_set_interface_parameter"
+        )
+
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -695,11 +728,17 @@ class Dales(CommonCode):
     def get_grid_position(self,i,j,k):
         return i*self.dx,j*self.dy,self.zf[k]
 
+    def get_surface_field_position(self,i,j):
+        return i*self.dx,j*self.dy
+
     def get_profile_grid_range(self):
         return (0,self.get_kmax()-1)
 
     def get_surface_grid_range(self):
         return ()
+
+    def get_surface_field_grid_range(self):
+        return (0,self.get_itot()-1,0,self.get_jtot()-1)
 
     def get_profile_grid_position(self,k):
         return self.zf[k]
@@ -729,4 +768,11 @@ class Dales(CommonCode):
         object.define_grid('surface', grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
         object.set_grid_range('surface', 'get_surface_grid_range')
         object.add_getter('surface', 'get_surface_pressure',  names=['pressure'])
+        object.add_getter('surface', 'get_rain',  names=['rain'])
 
+        object.define_grid('surface_field', grid_class=datamodel.RectilinearGrid,state_guard="before_new_set_instance")
+        object.set_grid_range('surface_field', 'get_surface_field_grid_range')
+        object.add_getter('surface_field', 'get_surface_field_position', names="xy")
+        object.add_getter('surface_field', 'get_field_LWP',  names=['LWP'])
+        object.add_getter('surface_field', 'get_field_TWP',  names=['TWP'])
+        object.add_getter('surface_field', 'get_field_RWP',  names=['RWP'])

@@ -721,8 +721,8 @@ class QGmodel(CommonCode):
     def forcings(self):
         return self.wind_field
     
-    def define_particle_sets(self, object):
-        object.define_grid('grid',axes_names = ['x','y'])
+    def define_grids(self, object):
+        object.define_grid('grid',axes_names = ['x','y'],grid_class=datamodel.CartesianGrid)
         object.set_grid_range('grid', 'get_index_range_inclusive')    
         object.add_getter('grid', 'get_dpsi_dt', names=('dpsi_dt',))
         object.add_getter('grid', 'get_psi1_state', names=('psi',))
@@ -731,7 +731,7 @@ class QGmodel(CommonCode):
         object.add_setter('grid', 'set_psi2_state', names=('psi_prev',))
         object.add_getter('grid', 'get_position_of_index', names=('x','y'))
 
-        object.define_grid('wind_field',axes_names = ['x','y'])
+        object.define_grid('wind_field',axes_names = ['x','y'],grid_class=datamodel.CartesianGrid)
         object.set_grid_range('wind_field', 'get_wind_field_index_range_inclusive')    
         object.add_getter('wind_field', 'get_wind_field', names=('tau_x',))
         object.add_setter('wind_field', 'set_wind_field', names=('tau_x',))
@@ -740,7 +740,7 @@ class QGmodel(CommonCode):
         self._boundaries={}
         for i,side in enumerate(["west","east","south","north"]):
           name="boundary_"+side
-          object.define_grid(name,axes_names = ['x','y'])
+          object.define_grid(name,axes_names = ['x','y'],grid_class=datamodel.CartesianGrid)
           object.set_grid_range(name, 'get_boundary_index_range_inclusive')    
           object.add_getter(name, 'get_boundary_state', names=('psi','dpsi_dt'))
           object.add_setter(name, 'set_boundary_state', names=('psi','dpsi_dt'))
