@@ -86,27 +86,37 @@ class OpenIFSInterface(CodeInterface,
     def commit_grid():
         pass
 
-    # Utility method returning the full u-component flow field
+    # Utility method returning the pressure on full model levels
     @remote_function(must_handle_array=True)
     def get_field_Pfull_(i = 0,k = 0):
         returns (out = 0. | units.Pa)
 
-    # Utility method returning the full u-component flow field
+    # Utility method returning the pressure on half model levels
     @remote_function(must_handle_array=True)
     def get_field_Phalf_(i = 0,k = 0):
         returns (out = 0. | units.Pa)
 
-    # Utility method returning the full u-component flow field
+    # Utility method returning the geopotential height on full levels
+    @remote_function(must_handle_array=True)
+    def get_field_Zgfull_(i = 0,k = 0):
+        returns (out = 0. | units.m**2 / units.s**2)
+
+    # Utility method returning the geopotential height on half levels
+    @remote_function(must_handle_array=True)
+    def get_field_Zghalf_(i = 0,k = 0):
+        returns (out = 0. | units.m**2 / units.s**2)
+
+    # Utility method returning the eastward wind component
     @remote_function(must_handle_array=True)
     def get_field_U_(i = 0,k = 0):
         returns (out = 0. | units.m / units.s)
 
-    # Utility method returning the full v-component flow field
+    # Utility method returning the northward wind component
     @remote_function(must_handle_array=True)
     def get_field_V_(i = 0,k = 0):
         returns (out = 0. | units.m / units.s)
 
-    # Utility method returning the full temperature field
+    # Utility method returning the temperature field
     @remote_function(must_handle_array=True)
     def get_field_T_(i = 0,k = 0):
         returns (out = 0. | units.K)
@@ -431,6 +441,10 @@ class OpenIFS(CommonCode):
             return self.get_field_Pfull_(i,k)
         elif(fid == "Phalf"):
             return self.get_field_Phalf_(i,k)
+        elif(fid == "Zgfull"):
+            return self.get_field_Zgfull_(i,k)
+        elif(fid == "Zghalf"):
+            return self.get_field_Zghalf_(i,k)
         elif(fid == "U"):
             return self.get_field_U_(i,k)
         elif(fid == "V"):
