@@ -32,6 +32,8 @@ LIBS+=$(NETCDFF_LIBS)
 
 .PHONY: all $(BUILDDIR)_%/lib download
 
+all: src/q-gcm
+
 qgcm_worker: src/q-gcm  ${TARGETS}
 	
 ${TARGETS}: qgcm_worker_%: worker_code.f90 $(BUILDDIR)_%/libq-gcm.a $(BUILDDIR)_%/q-gcm_utility.o $(BUILDDIR)_%/omuse_q-gcm.o interface_%.o 

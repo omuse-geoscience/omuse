@@ -245,7 +245,7 @@ function initialize_leapfrog() result(ret)
   integer :: ret,i
 
 ! naive initialization of psi_2
-!  psi_2=psi_1
+  psi_2=psi_1
   chi_prev=0.
 ! note in principle the only way to restart consistently is by writing and
 ! reading psi_2 and chi_prev! 
@@ -283,7 +283,7 @@ function evolve_model(tend) result(ret)
   real(8) :: tend
   
   if(timestep_method.EQ."euler") then
-    ret=evolve_leapfrog(tend)
+    ret=evolve_euler(tend)
     return
   endif
   if(timestep_method.EQ."leapfrog") then

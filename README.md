@@ -27,7 +27,13 @@ In addition to the AMUSE dependencies, OMUSE needs/ can use the following packag
  + matplotlib basemap
  + netCDF and netCDF for fortran and the python bindings
 
+### Reporting issues ###
+
+Issues can be reported at the OMUSE issue tracker; for framework issues, report them at the 
+AMUSE [repository](https://github.com/amusecode/amuse).
+
 ### Contribution guidelines ###
 
-Contributed code/ code interfaces are welcome. A primer for interfacing a code and other documentation can be found on the amuse website
-(www.amusecode.org)
+Contributions are welcome. Note that most framework development happens at the AMUSE [repository](https://github.com/amusecode/amuse)
+A primer for writing code interfaces and other documentation can be found on the amuse website
+(www.amusecode.org).

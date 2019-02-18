@@ -34,7 +34,7 @@ function swan_compute(COMPUT) result(ret)
   logical :: STPNOW
   character*18 :: DTTIWR   
   character*4 COMPUT
-
+  ret=0
   
   IF (NUMOBS .GT. 0) THEN
     IF (OPTG.NE.5) THEN
@@ -300,6 +300,7 @@ end function
 function swan_init_coord(coordinates,projection_method) result(ret)
   integer :: ret
   character*12 coordinates,projection_method
+  ret=0
 
   if(coordinates.EQ."cartesian") then
     KSPHER=0
@@ -332,6 +333,7 @@ function swan_init_regular_grid(mxc_,myc_,xpc_,ypc_,xlenc_,ylenc_,alpc_,wrap_x) 
   integer :: ret,mxc_,myc_,MXS,MYS,i,j
   real :: ALTMP,xpc_,ypc_,xlenc_,ylenc_,alpc_,VALX,VALY
   logical :: wrap_x
+  ret=0
 
   if(OPTG.NE.1) then
     ret=-1
@@ -461,6 +463,7 @@ end function
 
 function swan_init_unstructured_grid() result(ret)
   integer :: ret,istat
+  ret=0
 
   OPTG  = 5
   XPC   = 0.
@@ -512,6 +515,7 @@ end function
 function swan_init_regular_input_grid(i, mx_,my_,xp_,yp_,alp_,dx_,dy_) result(ret)
   integer :: i,IGRID,IGRID1,mx_,my_,ret
   real :: xp_,yp_,dx_,dy_,alp_,ALTMP
+  ret=0
   
   IGRID1=i
   IGTYPE(IGRID1) = 1
@@ -559,6 +563,7 @@ end function
 
 function swan_init_unstructured_input_grid(i) result(ret)
   integer :: i,IGRID1,ret
+  ret=0
   
   IGRID1=i
 
@@ -573,7 +578,6 @@ function swan_init_unstructured_input_grid(i) result(ret)
   MYG(IGRID1)    = 1
   LEDS(IGRID1) = 1
 
-  ret=0
 end function
 
 function swan_init_curvilinear_input_grids() result(ret)
@@ -599,6 +603,7 @@ function swan_init_unstructured_comp_grid() result(ret)
   integer :: ret
   logical LOGCOM(6)
   logical STPNOW 
+  ret=0
   
   CALL SwanInitCompGrid (LOGCOM)
   IF (STPNOW()) THEN
@@ -621,6 +626,7 @@ end function
 function swan_init_unstructured_boundary() result(ret)
   integer :: ret
   logical :: STPNOW
+  ret=0
   
   CALL SwanBpntlist()
   IF (STPNOW()) THEN
@@ -632,11 +638,11 @@ end function
 
 function swan_physics_gen3() result(ret)
   integer :: ret
+  ret=0
   IGEN = 3
   IWIND = 3 ! note if there is no wind?? (determined by LWINDR, but...possibly make module variable (in fact good idea))
   IWCAP = 1
   IF (NSTATM.EQ.1 .AND. ICOND.EQ.0) ICOND = 1
-  ret=0
 end function
 
 function swan_physics_breaking() result(ret)
@@ -717,6 +723,7 @@ function swan_unstructured_add_boundary_from_file( marker, filename) result(ret)
       TYPE(verttype), DIMENSION(:), POINTER :: vert
       TYPE(facetype), DIMENSION(:), POINTER :: face
 
+  ret=0
 
   vert => gridobject%vert_grid
   face => gridobject%face_grid
@@ -886,6 +893,7 @@ function swan_regular_add_boundary_from_file( side, filename) result(ret)
       TYPE(XYPT), POINTER :: CURR, TMP
 
       CHARACTER(80) :: MSGSTR  
+  ret=0
     
   KOUNTR  = 0
   FRST%JX = 0
@@ -1138,6 +1146,7 @@ end function
 
 function swan_compute_wave_induced_force_unstructured() result(ret)
   integer :: ret
+  ret=0
 
   if(.not.allocated(AC2).OR. & 
      .not.allocated(COMPDA).OR. &
@@ -1149,8 +1158,6 @@ function swan_compute_wave_induced_force_unstructured() result(ret)
   endif
 
   CALL SwanComputeForce ( FORCE(1,1), FORCE(1,2), AC2, COMPDA(1,JDP2), SPCSIG, SPCDIR )
-
-  ret=0
 
 end function
 
