@@ -515,7 +515,7 @@ class OpenIFS(CommonCode):
             raise Exception("Unknown precipitation flux identidier:",fid)
 
     def get_volume_field(self,fid):
-        ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
+        ktop = (self.ktot + 1) if (fid == "Phalf" or fid == "Zghalf") else self.ktot
         pts = numpy.mgrid[0:self.itot,0:ktop]
         i,k = pts.reshape(2,-1)
         return self.get_field(fid,i,k).reshape((self.itot,ktop))
@@ -525,13 +525,13 @@ class OpenIFS(CommonCode):
         return self.get_field(fid,i,k)
 
     def get_profile_field(self,fid,colindex):
-        ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
+        ktop = (self.ktot + 1) if (fid == "Phalf" or fid == "Zghalf") else self.ktot
         i,k = numpy.ones([ktop])*colindex,numpy.arange(0,ktop)
         return self.get_field(fid,i,k)
 
     # like get_profile_field, but gets several columns at once
     def get_profile_fields(self,fid,colindex):
-        ktop = (self.ktot + 1) if fid == "Phalf" else self.ktot
+        ktop = (self.ktot + 1) if (fid == "Phalf" or fid == "Zghalf") else self.ktot
 
         i,k = numpy.meshgrid(colindex,numpy.arange(ktop))
         i,k = i.T.reshape(-1), k.T.reshape(-1) #i = a,a,a,...,b,b,b,...   if colindex = [a, b, ...] 
