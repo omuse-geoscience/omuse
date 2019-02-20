@@ -420,7 +420,7 @@ module openifs_interface
 
             ret = 0
             if(myproc == 1) then
-                if(fldid == PHALF) then
+                if(fldid == PHALF .or. fldid == ZGHALF) then
                     allocate(b(ngptotg,nflevg+1),stat=ret)
                 else
                     allocate(b(ngptotg,nflevg),stat=ret)
