@@ -521,6 +521,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     QT_FORCING_GLOBAL = 0
     QT_FORCING_LOCAL = 1
     QT_FORCING_VARIANCE = 2
+    QT_FORCING_STRONG = 3
 
     input_file_options = {"namelist": "namoptions", "profiles": "prof.inp", "forcings": "lscale.inp",
                           "scalars": "scalar.inp"}
