@@ -10,7 +10,7 @@ from amuse.rfi.core import CodeInterface
 from amuse.rfi.core import remote_function
 from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.support.parameter_tools import CodeWithNamelistParameters
-from dalesreader import make_file_reader
+from .dalesreader import make_file_reader
 from omuse.units import units
 from parameters import namelist_parameters
 
@@ -164,6 +164,14 @@ class DalesInterface(CodeInterface,
     @remote_function(must_handle_array=True)
     def get_presh_(k=0):
         returns(out=0. | units.Pa)
+
+    @remote_function(must_handle_array=True)
+    def get_rhof_(k=0):
+        returns(out=0. | units.kg / units.m**3)
+
+    @remote_function(must_handle_array=True)
+    def get_rhobf_(k=0):
+        returns(out=0. | units.kg / units.m**3)
 
     # setter functions for vertical tendencies / forcings
     @remote_function(must_handle_array=True)
@@ -978,6 +986,22 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         else:
             indices = k
         return self.get_presf_(indices)
+    
+    def get_rhof(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_rhof_(indices)
+
+    def get_rhobf(self, k=None):
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_rhobf_(indices)
 
     # retrieve a 3D field
     # indices are one-based, for zero-based index access use the grids
