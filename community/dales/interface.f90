@@ -417,6 +417,31 @@ contains
         ret = 0
     end function get_presh_
 
+    ! Returns the full level density
+    function get_rhof_(g_k, a, n) result(ret)
+        use modfields, only : rhof
+        integer, intent(in) :: n
+        integer, dimension(n), intent(in) :: g_k
+        real, dimension(n), intent(out) :: a
+        integer :: ret
+
+        a = rhof(g_k(1:n))
+        ret = 0
+    end function get_rhof_
+
+      ! Returns the full level base density
+    function get_rhobf_(g_k, a, n) result(ret)
+        use modfields, only : rhobf
+        integer, intent(in) :: n
+        integer, dimension(n), intent(in) :: g_k
+        real, dimension(n), intent(out) :: a
+        integer :: ret
+
+        a = rhobf(g_k(1:n))
+        ret = 0
+    end function get_rhobf_
+      
+
     ! Cloud fraction getter
     ! Note: in contrast to the other profile getters,
     ! this one relies on g_k to define slabs
