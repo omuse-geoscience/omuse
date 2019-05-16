@@ -10,15 +10,13 @@ This repository contains the source tree for OMUSE.
 
 ### How do I get set up? ###
 
-To install first install [AMUSE](http://www.amusecode.org). 
+There are various option to install OMUSE. For example:
 
-Set the environment variable `DOWNLOAD_CODES` to `latest`.
-
-Add the `src` directory to the `PYTHON_PATH` environment variable.
-
-Then type `python setyp.py build_codes --inplace` to build the codes. 
-
-The file `build.log` will report errors in the build process.
+- First install [AMUSE](http://www.amusecode.org). 
+- Set the environment variable `DOWNLOAD_CODES` to `latest`.
+- Add the OMUSE `src` directory to the `PYTHONPATH` environment variable.
+- Then type `python setyp.py build_codes --inplace` to build the codes. 
+- The file `build.log` will report errors in the build process.
 
 The community codes of OMUSE can be build manually by going into ea:
 
