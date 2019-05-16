@@ -75,6 +75,7 @@ clean:
 	rm $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD) -rf
 
 distclean: clean
+	rm -rf $(OIFSDIR)
 
 download:
 	$(GIT_CLONE_CMD) https://git.ecmwf.int//scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)	
