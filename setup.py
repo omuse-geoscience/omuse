@@ -7,7 +7,7 @@ support.use("system")
 support.set_package_name("omuse")
 from support.setup_codes import setup_commands
 
-name = 'amuse'
+name = 'omuse'
 version = "1.2.0"
 author = 'The Amuse/ Omuse/ Hymuse Team'
 author_email = 'info@amusecode.org'
@@ -20,7 +20,9 @@ install_requires = [
     'nose>=0.11.1',
     'mpi4py>=1.1.0',
     'h5py>=1.1.0',
-    'amuse-framework>=12.0.0rc3'
+    'amuse-framework>=12.0.0rc3',
+    'netCDF4>=1.4.0',
+    'f90nml>=1.0.0'
 ]
 description = 'OMUSE: the MUSE package for Oceanography and Climate sciences'
 with open("README.md", "r") as fh:
