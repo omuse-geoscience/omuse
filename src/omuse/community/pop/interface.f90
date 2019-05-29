@@ -1867,8 +1867,15 @@ end function
 ! the land-only blocks not present in the rest of the POP simulation
 subroutine initialize_global_grid
 
-    !read latlon_only from grid file
-    call read_horiz_grid(horiz_grid_file, .true.)
+    select case (horiz_grid_opt)
+    case ('internal')
+      call horiz_grid_internal(.true.)
+    case ('file')
+      call broadcast_scalar(horiz_grid_file, master_task)
+      call read_horiz_grid(horiz_grid_file,.true.)
+    case default
+      call exit_POP(sigAbort,'ERROR: unknown horizontal grid option')
+    end select
 
     !read_horiz_grid allocates ULAT_G and ULON_G on all nodes
     !deallocate on all but the master
