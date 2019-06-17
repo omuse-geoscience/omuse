@@ -10,11 +10,11 @@ This repository contains the source tree for OMUSE.
 
 ### How do I get set up? ###
 
-There are various option to install OMUSE. For example:
+Easiest way is to use a pip developer install:
 
-- First install [AMUSE](http://www.amusecode.org). 
+- (optional) first do a develop install of [AMUSE](http://www.amusecode.org), 
 - Set the environment variable `DOWNLOAD_CODES` to `latest`.
-- Add the OMUSE `src` directory to the `PYTHONPATH` environment variable.
+- then do `pip install -e .` from the root of the package
 - Then type `python setyp.py build_codes --inplace` to build the codes. 
 - The file `build.log` will report errors in the build process.
 
@@ -24,7 +24,7 @@ The community codes of OMUSE can be build manually by going into ea:
  + src/omuse/community/swan
  + etc
 
-and typing: (first `make download` for some) `make`
+and typing: first `make download` (for some) and then `make`
 
 OMUSE has been tested on OSX and linux machines, with ifort and gfortran 
 compilers, on desktop machines and on the Carthesius supercomputer.
