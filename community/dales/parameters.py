@@ -10,7 +10,7 @@ namelist_parameters = (
     dict(name="ysize", group_name="DOMAIN", short="ysize", dtype="float64", default=6400. | units.m, description="Horizontal size of the simulated domain in y", ptype="nml"),
     dict(name="xlat", group_name="DOMAIN", short="xlat", dtype="float64", default=52 | units.deg, description="latitude of domain", ptype="nml"),
     dict(name="xlon", group_name="DOMAIN", short="xlon", dtype="float64", default=0 | units.deg, description="longitude of domain", ptype="nml"),
-    dict(name="xyear", group_name="DOMAIN", short="xyear", dtype="float64", default=0 | units.yr, description="year, only for time units in netcdf", ptype="nml"),
+#    dict(name="xyear", group_name="DOMAIN", short="xyear", dtype="float64", default=0 | units.yr, description="year, only for time units in netcdf", ptype="nml"),
     dict(name="xday", group_name="DOMAIN", short="xday", dtype="float64", default=1 | units.day, description="start day, number of the day", ptype="nml"),
     dict(name="xtime", group_name="DOMAIN", short="xtime", dtype="float64", default=1 | units.hour, description="start time, UTC time of the day", ptype="nml"),
     dict(name="ksp", group_name="DOMAIN", short="ksp", dtype="float64", default=None, description="lower height of sponge layer in grid cells", ptype="nml"),
@@ -94,7 +94,8 @@ namelist_parameters = (
     dict(name="lsmagorinsky", group_name="NAMSUBGRID", short="lsmagorinsky", dtype="bool", default=False, description="Switch for smagorinsky subgrid scheme ", ptype="nml"),
     dict(name="cs", group_name="NAMSUBGRID", short="cs", dtype="float64", default=-1., description="Smagorinsky constant", ptype="nml"),
     dict(name="nmason", group_name="NAMSUBGRID", short="nmason", dtype="float64", default=2., description="Exponent in Mason correction function", ptype="nml"),
-    dict(name="sgs_surface_fix", group_name="NAMSUBGRID", short="sgs_surface_fix", dtype="bool", default=True, description="Switch to apply a fix to the coupling of SFS TKE to the surface (experimental)", ptype="nml"),
+#    dict(name="sgs_surface_fix", group_name="NAMSUBGRID", short="sgs_surface_fix", dtype="bool", default=True, description="Switch to apply a fix to the coupling of SFS TKE to the surface (experimental)", ptype="nml"), # removed in dales 4.2
+
 #
 # skipped NAMAGScross
 # skipped NAMBUDGET

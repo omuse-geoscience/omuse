@@ -143,9 +143,9 @@ class DalesInterface(CodeInterface,
         returns(out=0. | units.m ** 2 / units.m ** 2)
 
     # getter for accumulated surface rain flux
-    @remote_function()
-    def get_rain():
-        returns(out=0. | units.kg / units.m ** 2)
+#    @remote_function()
+#    def get_rain():
+#        returns(out=0. | units.kg / units.m ** 2)
 
     # getter functions for height levels
     # these take a dummy array as input, and return output of the same length
@@ -325,9 +325,9 @@ class DalesInterface(CodeInterface,
     def get_field_QL(g_i=0, g_j=0, g_k=0):
         returns(a=0. | units.mfu)
 
-    @remote_function(must_handle_array=True)
-    def get_field_Qsat(g_i=0, g_j=0, g_k=0):
-        returns(a=0. | units.mfu)
+#    @remote_function(must_handle_array=True)
+#    def get_field_Qsat(g_i=0, g_j=0, g_k=0):
+#        returns(a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
     def get_field_E12(g_i=0, g_j=0, g_k=0):
@@ -1209,7 +1209,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.define_grid('scalars', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         obj.set_grid_range('scalars', 'get_scalar_grid_range')
         obj.add_getter('scalars', 'get_surface_pressure', names=['pressure'])
-        obj.add_getter('scalars', 'get_rain', names=['rain'])
+        # obj.add_getter('scalars', 'get_rain', names=['rain'])
         for name in ["wt", "wq", "z0m", "z0h"]:
             obj.add_getter('scalars', 'get_' + name + "_surf", names=[name])
             obj.add_setter('scalars', 'set_' + name + "_surf", names=[name])

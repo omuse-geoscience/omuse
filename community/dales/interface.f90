@@ -14,7 +14,7 @@ module dales_interface
             u_nudge, v_nudge, thl_nudge, qt_nudge, u_nudge_time, v_nudge_time, thl_nudge_time, qt_nudge_time
 
     !TODO: Expose everything so this module only depends on daleslib
-    use modfields, only : u0, v0, w0, thl0, qt0, ql0, qsat, e120, tmp0, sv0, um, vm, wm, thlm, qtm, surf_rain
+    use modfields, only : u0, v0, w0, thl0, qt0, ql0, e120, tmp0, sv0, um, vm, wm, thlm, qtm !, surf_rain
     use modglobal, only : i1, j1, k1, itot, jtot, kmax, lmoist
     use modsurfdata, only : ps, ustar, z0m, z0h, tskin, qskin, LE, H, obl, thlflux, qtflux, svflux, dudz, dvdz, &
             dqtdz, dthldz, thls, qts, thvs, svs, ustin, wqsurf, wtsurf, wsvsurf, z0, z0mav, z0hav
@@ -457,27 +457,27 @@ contains
     !!! end of vertical profile getters
 
     ! Total rain water content getter
-    function get_rain(rain) result(ret)
-        use mpi
-        use modmpi, only : comm3d, my_real, mpierr, myid, nprocs
-        use modglobal, only : itot, jtot, ifmessages
-
-        real, intent(out) :: rain
-        integer :: ret
-
-        rain = sum(surf_rain(2:i1, 2:j1))
-        write (ifmessages, *) 'local rain sum', rain
-
-        !in-place reduction
-        if (myid == 0) then
-            CALL mpi_reduce(MPI_IN_PLACE, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
-            rain = rain / (itot * jtot)
-            write (ifmessages, *) 'global rain avg', rain
-        else
-            CALL mpi_reduce(rain, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
-        endif
-        ret = 0
-    end function get_rain
+!    function get_rain(rain) result(ret)
+!        use mpi
+!        use modmpi, only : comm3d, my_real, mpierr, myid, nprocs
+!        use modglobal, only : itot, jtot
+!
+!        real, intent(out) :: rain
+!        integer :: ret
+!
+!        rain = sum(surf_rain(2:i1, 2:j1))
+!        write (*,*) 'local rain sum', rain
+!
+!        !in-place reduction
+!        if (myid == 0) then
+!            CALL mpi_reduce(MPI_IN_PLACE, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
+!            rain = rain / (itot * jtot)
+!            write (*,*) 'global rain avg', rain
+!        else
+!            CALL mpi_reduce(rain, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
+!        endif
+!        ret = 0
+!    end function get_rain
 
     ! set functions for vertical tendency vectors
     !   a is the profile to set
@@ -849,13 +849,13 @@ contains
     end function get_field_QL
 
     ! Saturation humidity volume field getter
-    function get_field_Qsat(g_i, g_j, g_k, a, n) result(ret)
-        integer, intent(in) :: n
-        integer, dimension(n), intent(in) :: g_i, g_j, g_k
-        real, dimension(n), intent(out) :: a
-        integer :: ret
-        ret = gathervol(g_i, g_j, g_k, a, n, qsat(2:i1, 2:j1, 1:kmax))
-    end function get_field_Qsat
+    !function get_field_Qsat(g_i, g_j, g_k, a, n) result(ret)
+    !    integer, intent(in) :: n
+    !    integer, dimension(n), intent(in) :: g_i, g_j, g_k
+    !    real, dimension(n), intent(out) :: a
+    !    integer :: ret
+    !    ret = gathervol(g_i, g_j, g_k, a, n, qsat(2:i1, 2:j1, 1:kmax))
+    !end function get_field_Qsat
 
     ! Turbulent kinetic energy volume field getter
     function get_field_E12(g_i, g_j, g_k, a, n) result(ret)
