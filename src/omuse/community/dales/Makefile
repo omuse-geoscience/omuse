@@ -98,6 +98,7 @@ clean:
 	$(RM) -f worker_code.* dales_worker test/fortran_test
 
 distclean: clean
+	$(RM) -rf $(DALESDIR)
 
 download:
 	$(GIT_CLONE_CMD) $(GIT_REPO) $(DALESDIR)

@@ -1,6 +1,6 @@
 # standard amuse configuration include
 # config.mk will be made after ./configure has run
-AMUSE_DIR?=../../../..
+AMUSE_DIR?=$(shell amusifier --get-amuse-dir)
 -include $(AMUSE_DIR)/config.mk
 
 MPIFC ?= mpif90
@@ -27,7 +27,11 @@ POPDIR=$(CURDIR)/eSalsa-POP
 POPFFLAGS := $(POPFFLAGS) $(NETCDF_FLAGS) $(NETCDFF_FLAGS) $(NETCDF_LIBS) $(NETCDFF_LIBS)
 FS_FLAGS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
 
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
+CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
+
+POPREPO=https://github.com/nlesc-smcm/eSalsa-POP
+POPREPOBRANCH=master
+
 
 .PHONY: all download src_%/lib
 
@@ -46,7 +50,7 @@ eSalsa-POP:
 endif
 
 download:
-	git clone -b amuse https://github.com/NLeSC/eSalsa-POP.git
+	git clone -b $(POPREPOBRANCH) $(POPREPO)
 
 clean:
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h *.mod

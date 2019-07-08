@@ -1,6 +1,6 @@
 # standard amuse configuration include
 # config.mk will be made after ./configure has run
-AMUSE_DIR?=../../../..
+AMUSE_DIR?=$(shell amusifier --get-amuse-dir)
 -include $(AMUSE_DIR)/config.mk
 
 MPIFC ?= mpif90
@@ -20,7 +20,7 @@ FS_LIBS +=  $(OIFS_GRIB_API_LIB)  $(OIFS_LAPACK_LIB)
 
 OIFSDIR = oifs-repo
 
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
+CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 
 # choose compiler - if not specified already using environment variables
 CPPFLAGS = -cpp
@@ -75,6 +75,7 @@ clean:
 	rm $(OIFSDIR)/make/$(OIFS_COMP)-$(OIFS_BUILD) -rf
 
 distclean: clean
+	rm -rf $(OIFSDIR)
 
 download:
 	$(GIT_CLONE_CMD) https://git.ecmwf.int//scm/~g.vandenoord_esciencecenter.nl/oifs40r1-lib.git $(OIFSDIR)	
