@@ -94,7 +94,7 @@ namelist_parameters = (
     dict(name="lsmagorinsky", group_name="NAMSUBGRID", short="lsmagorinsky", dtype="bool", default=False, description="Switch for smagorinsky subgrid scheme ", ptype="nml"),
     dict(name="cs", group_name="NAMSUBGRID", short="cs", dtype="float64", default=-1., description="Smagorinsky constant", ptype="nml"),
     dict(name="nmason", group_name="NAMSUBGRID", short="nmason", dtype="float64", default=2., description="Exponent in Mason correction function", ptype="nml"),
-    dict(name="sgs_surface_fix", group_name="NAMSUBGRID", short="sgs_surface_fix", dtype="bool", default=True, description="Switch to apply a fix to the coupling of SFS TKE to the surface (experimental)", ptype="nml"),
+#    dict(name="sgs_surface_fix", group_name="NAMSUBGRID", short="sgs_surface_fix", dtype="bool", default=True, description="Switch to apply a fix to the coupling of SFS TKE to the surface (experimental)", ptype="nml"),
 #
 # skipped NAMAGScross
 # skipped NAMBUDGET
