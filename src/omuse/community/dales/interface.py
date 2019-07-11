@@ -608,13 +608,13 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     @staticmethod
     def read_initial_profiles(filepath):
         if filepath is None:
-            zf = numpy.arange(0., 5000., 50.) | units.m
+            zf = numpy.arange(25., 5000., 50.) | units.m
             grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
             grid.qt = numpy.full(zf.shape, 0.005) | units.shu
             grid.thl = numpy.full(zf.shape, 292.5) | units.K
             grid.u = numpy.full(zf.shape, 1. / numpy.sqrt(2.)) | units.m / units.s
             grid.v = numpy.full(zf.shape, 1. / numpy.sqrt(2.)) | units.m / units.s
-            grid.e12 = numpy.full(zf.shape, 1.) | units.m / units.s
+            grid.e12 = numpy.full(zf.shape, 0.01) | units.m / units.s
         else:
             reader = make_file_reader(filepath)
             var = reader.variables[0] if len(reader.variables) > 0 else "zf"
