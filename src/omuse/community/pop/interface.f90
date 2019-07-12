@@ -104,6 +104,9 @@ function initialize_code() result(ret)
 
   call POP_Initialize0(errorCode)
 
+! always allocate
+  allocate(KMT_G(nx_global,ny_global))
+
   if (errorCode /= POP_Success) then
     ret=-1
   else
@@ -124,6 +127,10 @@ function commit_parameters() result(ret)
 
   ret=0
   errorCode = POP_Success
+
+  if(topography_opt.NE.'amuse') then
+    deallocate(KMT_G) ! will be reallocated later
+  endif
 
   call POP_Initialize(errorCode)
 
@@ -997,6 +1004,22 @@ function get_number_of_vertical_levels(km_) result(ret)
   ret=0
 end function
 
+function get_dz(k, dz_) result(ret)
+  integer :: ret
+  integer, intent(in) :: k
+  real*8,  intent(out) :: dz_
+  dz_=dz(k)
+  ret=0
+end function
+
+function set_dz(k, dz_) result(ret)
+  integer :: ret
+  integer, intent(in) :: k
+  real*8, intent(in) :: dz_
+  dz(k)=dz_
+  ret=0
+end function
+
 function get_node_depth(g_i, g_j, depth_, n) result(ret)
   integer :: ret,n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1024,6 +1047,31 @@ function get_element_depth(g_i, g_j, depth_, n) result(ret)
 
   ret=0
 end function
+
+function set_KMT(g_i,g_j, KMT_, n) result(ret)
+  integer :: i,ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  integer, dimension(n), intent(in) :: KMT_
+
+  do i=1,n
+      KMT_G(g_i(i), g_j(i))=KMT_(i)
+  enddo
+
+  ret=0
+end function
+
+function get_KMT(g_i,g_j, KMT_, n) result(ret)
+  integer :: i,ret,n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  integer, dimension(n), intent(out) :: KMT_
+
+  do i=1,n
+      KMT_(i)=KMT_G(g_i(i), g_j(i))
+  enddo
+
+  ret=0
+end function
+
 
 function get_zt(k, zt_, n) result(ret)
   integer :: ret,n,i
