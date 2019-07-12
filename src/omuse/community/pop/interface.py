@@ -46,6 +46,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     include_headers = ['worker_code.h']
     use_modules = ['pop_interface']
     
+    MODE_TEST = 'test'
     MODE_NORMAL = '320x384x40'
     MODE_HIGH = '3600x2400x42'
     MODE_320x384x40='320x384x40'
@@ -58,12 +59,14 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         CodeInterface.__init__(self, name_of_the_worker=self.name_of_the_worker(mode), **keyword_arguments)
         LiteratureReferencesMixIn.__init__(self)
 
-        if 'AMUSE_DIR' in os.environ:
-            amuse_dir = os.environ['AMUSE_DIR']
-            path = amuse_dir + '/src/omuse/community/pop/'
-            self.change_directory(path)
+        #~ if 'AMUSE_DIR' in os.environ:
+            #~ amuse_dir = os.environ['AMUSE_DIR']
+            #~ path = amuse_dir + '/src/omuse/community/pop/'
+            #~ self.change_directory(path)
 
-        if mode in [self.MODE_NORMAL,self.MODE_320x384x40]:
+        if mode in [self.MODE_TEST]:
+            self.set_namelist_filename('pop_in_lowres')
+        elif mode in [self.MODE_NORMAL,self.MODE_320x384x40]:
             self.set_namelist_filename('pop_in_lowres')
         elif mode in [self.MODE_HIGH,self.MODE_3600x2400x42]:
             self.set_namelist_filename('pop_in_highres')
@@ -143,6 +146,14 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     def get_number_of_vertical_levels():
         returns (km=0)    
 
+    #get&set the vertical grid spacings
+    @remote_function(can_handle_array=True)
+    def get_dz(k=0):
+        returns (dz=0. | units.cm)
+    @remote_function(can_handle_array=True)
+    def set_dz(k=0,dz=0. | units.cm):
+        returns ()
+
     #returns the maximal depth at this position
     @remote_function(must_handle_array=True)
     def get_node_depth(i=0,j=0):
@@ -150,6 +161,14 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     @remote_function(must_handle_array=True)
     def get_element_depth(i=0,j=0):
         returns (depth=0. | units.cm)
+
+    @remote_function(must_handle_array=True)
+    def set_KMT(i=0,j=0,depth_level=0):
+        returns ()
+    @remote_function(must_handle_array=True)
+    def get_KMT(i=0,j=0):
+        returns (depth_level=0)
+
 
     #returns x velocity for 3D grid
     @remote_function(must_handle_array=True)
@@ -607,6 +626,12 @@ class POP(CommonCode):
 
     def commit_parameters(self):
         self.set_nprocs(self.nprocs)
+        if self.parameters.topography_option=='amuse':
+            kmax=self.get_number_of_vertical_levels()
+            if len(self.parameters.vertical_layer_thicknesses==kmax):
+                self.set_dz(self.parameters.vertical_layer_thicknesses)
+            else:
+                raise Exception("length of parameter vertical_layer_thicknesses needs to be {0}".format(kmax))
         self.overridden().commit_parameters()
 
     def get_firstlast_node(self):
@@ -734,7 +759,7 @@ class POP(CommonCode):
             "get_topography_option",
             "set_topography_option",
             "topography_option",
-            "Option for topography should be either \'internal\' or \'file\'",
+            "Option for topography should be either \'amuse\',\'internal\' or \'file\'",
             default_value = 'internal'
         )
         object.add_method_parameter(
@@ -949,5 +974,8 @@ class POP(CommonCode):
             "Input filename for reading the default settings, should be either pop_in_lowres or pop_in_highres",
             default_value = 'pop_in_lowres'
         )
-
- 
+        object.add_interface_parameter(
+            "vertical_layer_thicknesses",
+            "input layer thicknesses (in case topography_opt==amuse) ",
+            [] | units.cm
+        )

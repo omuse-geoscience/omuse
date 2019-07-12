@@ -558,8 +558,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             if inputdir is None:
                 inputdir = options["inputdir"]
             else:
-                print "Input directory specification %s ignored, because it was already set to %s" % \
-                      (options["inputdir"], inputdir)
+                print("Input directory specification %s ignored, because it was already set to %s" % 
+                      (options["inputdir"], inputdir))
 
         # Look up input directory
         if "case" in options:
@@ -567,8 +567,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
                 inputdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dales-repo", "cases",
                                         options["case"])
             else:
-                print "Dales case directory specification %s ignored, because it was already set to %s" % \
-                      (options["case"], inputdir)
+                print("Dales case directory specification %s ignored, because it was already set to %s" %
+                      (options["case"], inputdir))
 
         # Register input data files
         input_files = {k: None for k in Dales.input_file_options.keys()}
@@ -595,7 +595,9 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             self.read_namelist_parameters(namelist)
             self._nml_file = namelist
         else:
-            print "Could not find file %s, falling back to default options" % namelist
+            if namelist is not None:
+                print("could not find namelist file %s" % namelist)
+            print("using default parameters")
             self._nml_file = None
 
         self.initial_profile_grid = self.read_initial_profiles(input_files.get("profiles", None))
@@ -608,13 +610,13 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     @staticmethod
     def read_initial_profiles(filepath):
         if filepath is None:
-            zf = numpy.arange(0., 5000., 50.) | units.m
+            zf = numpy.arange(25., 5000., 50.) | units.m
             grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
             grid.qt = numpy.full(zf.shape, 0.005) | units.shu
             grid.thl = numpy.full(zf.shape, 292.5) | units.K
             grid.u = numpy.full(zf.shape, 1. / numpy.sqrt(2.)) | units.m / units.s
             grid.v = numpy.full(zf.shape, 1. / numpy.sqrt(2.)) | units.m / units.s
-            grid.e12 = numpy.full(zf.shape, 1.) | units.m / units.s
+            grid.e12 = numpy.full(zf.shape, 0.01) | units.m / units.s
         else:
             reader = make_file_reader(filepath)
             var = reader.variables[0] if len(reader.variables) > 0 else "zf"
@@ -1100,7 +1102,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         profile = None
         kmin, kmax = self.get_z_grid_range()
         indices = numpy.arange(kmin, kmax + 1)
-        print kmin, kmax
+        #~ print kmin, kmax
         if field == 'U':
             profile = self.get_profile_U_(indices)
         elif field == 'V':
@@ -1118,7 +1120,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         elif field == 'T':
             profile = self.get_profile_T_(indices)
         else:
-            print('get_profile called with undefined field', field)
+            raise Exception('get_profile called with undefined field %s'%field)
         return profile
 
     def get_itot(self):
