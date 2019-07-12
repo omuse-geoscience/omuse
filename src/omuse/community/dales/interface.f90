@@ -460,19 +460,19 @@ contains
     function get_rain(rain) result(ret)
         use mpi
         use modmpi, only : comm3d, my_real, mpierr, myid, nprocs
-        use modglobal, only : itot, jtot, ifmessages
+        use modglobal, only : itot, jtot
 
         real, intent(out) :: rain
         integer :: ret
 
         rain = sum(surf_rain(2:i1, 2:j1))
-        write (ifmessages, *) 'local rain sum', rain
+        write (*, *) 'local rain sum', rain
 
         !in-place reduction
         if (myid == 0) then
             CALL mpi_reduce(MPI_IN_PLACE, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
             rain = rain / (itot * jtot)
-            write (ifmessages, *) 'global rain avg', rain
+            write (*, *) 'global rain avg', rain
         else
             CALL mpi_reduce(rain, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
         endif
