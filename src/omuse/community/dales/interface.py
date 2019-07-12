@@ -873,6 +873,10 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_method(state, "get_model_time")
             obj.add_method(state, "get_timestep")
 
+        for state in ["RUN", "EVOLVED"]:
+            obj.add_method(state, 'get_zf_')
+
+
         # protect field getters
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
                   'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
