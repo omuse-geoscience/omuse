@@ -873,6 +873,50 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_method(state, "get_model_time")
             obj.add_method(state, "get_timestep")
 
+        # protect field getters
+        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
+                  'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
+            for state in ["RUN", "EVOLVED"]:
+                obj.add_method(state, 'get_field_' + x)
+
+        #protect field setters
+        for x in ['U', 'V', 'W', 'THL', 'QT']:
+            for state in ["RUN", "EVOLVED"]:
+                obj.add_method(state, 'set_field_' + x)
+
+        # protect profile getters
+        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
+            for state in ["RUN", "EVOLVED"]:
+                obj.add_method(state, 'get_profile_' + x)
+
+        # protect nudge getter
+        # protect nudge setter
+        for x in ['U', 'V', 'THL', 'QT']:
+            for state in ["RUN", "EVOLVED"]:
+                obj.add_method(state, 'get_nudge_' + x)
+                obj.add_method(state, 'set_nudge_' + x)
+
+        # and forcings...
+        for x in ['U', 'V', 'THL', 'QT']:
+            for state in ["RUN", "EVOLVED"]:
+                obj.add_method(state, 'get_tendency_' + x + '_')
+                obj.add_method(state, 'set_tendency_' + x + '_')
+
+        # and scalars...
+        for name in ["wt", "wq", "z0m", "z0h"]:
+            for state in ["RUN", "EVOLVED"]:
+                obj.add_method(state, 'get_' + x + '_surf')
+                obj.add_method(state, 'set_' + x + '_surf')
+        for state in ["RUN", "EVOLVED"]:
+            obj.add_method(state, 'get_surface_pressure')
+            obj.add_method(state, 'get_rain')
+
+        # finally surface fields..
+        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "thlflux",
+                     "qtflux", "dudz", "dvdz", "dqtdz", "dthldz"]:
+            for state in ["RUN", "EVOLVED"]:
+                obj.add_method(state, 'get_field_' + name)
+
         obj.add_transition("RUN", "EVOLVED", "evolve_model", False)
         obj.add_method("EVOLVED", "evolve_model")
 
