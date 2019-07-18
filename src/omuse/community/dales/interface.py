@@ -876,6 +876,9 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         for state in ["RUN", "EVOLVED"]:
             obj.add_method(state, 'get_zf_')
 
+        for state in ["EDIT", "RUN", "EVOLVED"]:
+            obj.add_method(state, 'get_params_grid')
+
 
         # protect field getters
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
