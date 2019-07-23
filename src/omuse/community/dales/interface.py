@@ -761,6 +761,12 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
         self.overridden().commit_parameters()
 
+        #  cache grid parameters after committing the grid
+        self.params_grid_cache =  self.overridden().get_params_grid()
+        
+    def get_params_grid(self):
+        return self.params_grid_cache
+    
     def define_parameters(self, obj):
         CodeWithNamelistParameters.define_parameters(self, obj)
 
@@ -874,7 +880,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_method(state, "get_timestep")
 
         for state in ["RUN", "EVOLVED"]:
-            obj.add_method(state, 'get_zf_')
+            obj.add_method(state, 'get_zf')
 
         for state in ["EDIT", "RUN", "EVOLVED"]:
             obj.add_method(state, 'get_params_grid')
@@ -928,138 +934,139 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.add_method("EVOLVED", "evolve_model")
 
     # wrapping functions for hiding the dummy array passed to getter functions
-    def get_profile_U(self, k=None):
+    def get_profile_U(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_U_(indices)
+        return self.get_profile_U_(indices, **kwargs)
 
-    def get_profile_V(self, k=None):
+    def get_profile_V(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_V_(indices)
+        return self.get_profile_V_(indices, **kwargs)
 
-    def get_profile_W(self, k=None):
+    def get_profile_W(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
-            indices = numpy.arange(kmin, kmax + 1)
+            indices = numpy.arange(kmin, kmax + 1, **kwargs)
         else:
             indices = k
         return self.get_profile_W_(indices)
 
-    def get_profile_THL(self, k=None):
+    def get_profile_THL(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_THL_(indices)
+        return self.get_profile_THL_(indices, **kwargs)
 
-    def get_profile_QT(self, k=None):
+    def get_profile_QT(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_QT_(indices)
+        return self.get_profile_QT_(indices, **kwargs)
 
-    def get_profile_QL(self, k=None):
+    def get_profile_QL(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_QL_(indices)
+        return self.get_profile_QL_(indices, **kwargs)
 
-    def get_profile_QL_ice(self, k=None):
+    def get_profile_QL_ice(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_QL_ice_(indices)
+        return self.get_profile_QL_ice_(indices, **kwargs)
 
-    def get_profile_QR(self, k=None):
+    def get_profile_QR(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_QR_(indices)
+        return self.get_profile_QR_(indices, **kwargs)
 
-    def get_profile_E12(self, k=None):
+    def get_profile_E12(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_E12_(indices)
+        return self.get_profile_E12_(indices, **kwargs)
 
-    def get_profile_T(self, k=None):
+    def get_profile_T(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_profile_T_(indices)
+        return self.get_profile_T_(indices, **kwargs)
 
-    def get_zf(self, k=None):
+    def get_zf(self, k=None, **kwargs):
+        #print('get_zf', kwargs)
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_zf_(indices)
+        return self.get_zf_(indices, **kwargs)
 
-    def get_zh(self, k=None):
+    def get_zh(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_zh_(indices)
+        return self.get_zh_(indices, **kwargs)
 
-    def get_presh(self, k=None):
+    def get_presh(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_presh_(indices)
+        return self.get_presh_(indices, **kwargs)
 
-    def get_presf(self, k=None):
+    def get_presf(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_presf_(indices)
+        return self.get_presf_(indices, **kwargs)
     
-    def get_rhof(self, k=None):
+    def get_rhof(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_rhof_(indices)
+        return self.get_rhof_(indices, **kwargs)
 
-    def get_rhobf(self, k=None):
+    def get_rhobf(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
         else:
             indices = k
-        return self.get_rhobf_(indices)
+        return self.get_rhobf_(indices, **kwargs)
 
     # retrieve a 3D field
     # indices are one-based, for zero-based index access use the grids
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
-    def get_field(self, field, imin=1, imax=None, jmin=1, jmax=None, kmin=1, kmax=None):
+    def get_field(self, field, imin=1, imax=None, jmin=1, jmax=None, kmin=1, kmax=None, **kwargs):
 
         grid_range = ()
         if imax is None or jmax is None or kmax is None:
@@ -1083,31 +1090,31 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             i, j, k = points
 
         if field == 'U':
-            field = self.get_field_U(i, j, k)
+            field = self.get_field_U(i, j, k, **kwargs)
         elif field == 'V':
-            field = self.get_field_V(i, j, k)
+            field = self.get_field_V(i, j, k, **kwargs)
         elif field == 'W':
-            field = self.get_field_W(i, j, k)
+            field = self.get_field_W(i, j, k, **kwargs)
         elif field == 'THL':
-            field = self.get_field_THL(i, j, k)
+            field = self.get_field_THL(i, j, k, **kwargs)
         elif field == 'QT':
-            field = self.get_field_QT(i, j, k)
+            field = self.get_field_QT(i, j, k, **kwargs)
         elif field == 'QL':
-            field = self.get_field_QL(i, j, k)
+            field = self.get_field_QL(i, j, k, **kwargs)
         elif field == 'Qsat':
-            field = self.get_field_Qsat(i, j, k)
+            field = self.get_field_Qsat(i, j, k, **kwargs)
         elif field == 'E12':
-            field = self.get_field_E12(i, j, k)
+            field = self.get_field_E12(i, j, k, **kwargs)
         elif field == 'T':
-            field = self.get_field_T(i, j, k)
+            field = self.get_field_T(i, j, k, **kwargs)
         elif field == 'LWP':  # LWP - 2D field, k ignored
-            field = self.get_field_LWP(i, j)
+            field = self.get_field_LWP(i, j, **kwargs)
             return field.reshape((imax - imin, jmax - jmin))  # separate return here, to reshape to 2D
         elif field == 'RWP':  # RWP - 2D field, k ignored
-            field = self.get_field_RWP(i, j)
+            field = self.get_field_RWP(i, j, **kwargs)
             return field.reshape((imax - imin, jmax - jmin))  # separate return here, to reshape to 2D
         elif field == 'TWP':  # TWP - 2D field, k ignored
-            field = self.get_field_TWP(i, j)
+            field = self.get_field_TWP(i, j, **kwargs)
             return field.reshape((imax - imin, jmax - jmin))  # separate return here, to reshape to 2D
         else:
             raise Exception('get_field called with undefined variable name %s' % field)
@@ -1117,7 +1124,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     # set a 3D field
     # indices are one-based, for zero-based index access use the grids
     # field is 'U', 'V', 'W', 'THL', 'QT'
-    def set_field(self, field, a, imin=1, jmin=1, kmin=1):
+    def set_field(self, field, a, imin=1, jmin=1, kmin=1, **kwargs):
 
         # set max indices from the size of a 
         try:
@@ -1135,41 +1142,41 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             k = kmin
 
         if field == 'U':
-            self.set_field_U(i, j, k, a)
+            self.set_field_U(i, j, k, a, **kwargs)
         elif field == 'V':
-            self.set_field_V(i, j, k, a)
+            self.set_field_V(i, j, k, a, **kwargs)
         elif field == 'W':
-            self.set_field_W(i, j, k, a)
+            self.set_field_W(i, j, k, a, **kwargs)
         elif field == 'THL':
-            self.set_field_THL(i, j, k, a)
+            self.set_field_THL(i, j, k, a, **kwargs)
         elif field == 'QT':
-            self.set_field_QT(i, j, k, a)
+            self.set_field_QT(i, j, k, a, **kwargs)
         else:
             raise Exception('set_field called with undefined variable name %s' % field)
 
     # retrieve a 1D vertical profile - wrapper function consistent with get_field
     # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
-    def get_profile(self, field):
+    def get_profile(self, field, **kwargs):
         profile = None
         kmin, kmax = self.get_z_grid_range()
         indices = numpy.arange(kmin, kmax + 1)
         #~ print kmin, kmax
         if field == 'U':
-            profile = self.get_profile_U_(indices)
+            profile = self.get_profile_U_(indices, **kwargs)
         elif field == 'V':
-            profile = self.get_profile_V_(indices)
+            profile = self.get_profile_V_(indices, **kwargs)
         elif field == 'W':
-            profile = self.get_profile_W_(indices)
+            profile = self.get_profile_W_(indices, **kwargs)
         elif field == 'THL':
-            profile = self.get_profile_THL_(indices)
+            profile = self.get_profile_THL_(indices, **kwargs)
         elif field == 'QT':
-            profile = self.get_profile_QT_(indices)
+            profile = self.get_profile_QT_(indices, **kwargs)
         elif field == 'QL':
-            profile = self.get_profile_QL_(indices)
+            profile = self.get_profile_QL_(indices, **kwargs)
         elif field == 'E12':
-            profile = self.get_profile_E12_(indices)
+            profile = self.get_profile_E12_(indices,**kwargs )
         elif field == 'T':
-            profile = self.get_profile_T_(indices)
+            profile = self.get_profile_T_(indices, **kwargs)
         else:
             raise Exception('get_profile called with undefined field %s'%field)
         return profile
