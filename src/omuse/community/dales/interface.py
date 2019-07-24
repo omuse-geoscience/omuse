@@ -526,6 +526,33 @@ class DalesInterface(CodeInterface,
         returns()
 
 class Dales(CommonCode, CodeWithNamelistParameters):
+    """OMUSE Dales Interface.
+
+    Parameters
+    ----------
+    workdir : str, optional
+        Working directory for DALES. Output files are placed here.
+    exp : int, optional
+        Experiment number, used to number input files, e.g. prof.inp.001 .
+    inputdir : str, optional
+        Directory for input files, copied to workdir.
+    case : str, optional
+        Specify one of the cases bundled with DALES. Valid names include 'bomex', 'rico', 'atex', 'fog'.
+        Input files are copied to workdir.
+    number_of_workers : int, optional
+        Number of MPI tasks to use. General OMUSE option. Default = 1.
+    channel_type : str, optional
+         Communication channel between Python and DALES worker processes. Options 'mpi' or 'sockets'. General OMUSE option.
+    redirection : str, optional
+         Options for re-directing stdout and stderr of the DALES process. General OMUSE option.
+         'none' for no redirection,  'file' for redirection to files.
+    redirect_stdout_file, redirect_stderr_file : str, optional.
+         File names for redirection of stdout, stderr, see above. General OMUSE option.
+
+    If workdir doesn't exist, and either inputdir or case is given, input files are copied from the provided directory to workdir.
+    If workdir doesn't exist, and no case or input files are provided, built-in defaults are used.
+    """
+
     QT_FORCING_GLOBAL = 0
     QT_FORCING_LOCAL = 1
     QT_FORCING_VARIANCE = 2
@@ -1147,9 +1174,11 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         else:
             raise Exception('set_field called with undefined variable name %s' % field)
 
-    # retrieve a 1D vertical profile - wrapper function consistent with get_field
-    # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
+    # get_profile - wrapper function consistent with get_field
     def get_profile(self, field):
+        """
+        Retrieve a 1D vertical profile. Field is one of 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'.
+        """
         profile = None
         kmin, kmax = self.get_z_grid_range()
         indices = numpy.arange(kmin, kmax + 1)
