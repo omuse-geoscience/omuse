@@ -4,18 +4,20 @@ A warm air bubble experiment using the DALES Python interface
 This script performs the following steps:
 * create a Dales object
 * set parameters
-* create an initial state with a warm air bubble on a constant-theta_l background
+* create an initial state with a warm air bubble on a constant liquid-water-potential temperature (thl) background
 * perform time evolution, periodically storing the model variables
 * plot a time series of the model using matplotlib.
 
 """
 
 from __future__ import division
+from __future__ import print_function
 
-import numpy 
-from omuse.units import units
 from omuse.community.dales.interface import Dales
+from omuse.units import units
 import matplotlib.pyplot as plt
+import numpy
+
 
 # create Dales object
 d=Dales(workdir='dalesdir', channel_type='sockets', number_of_workers=1)
@@ -32,17 +34,21 @@ d.parameters_DOMAIN.ysize = 6400 | units.m
 
 
 # Select advection schemes
-d.parameters_DYNAMICS.iadv_mom = 62
-d.parameters_DYNAMICS.iadv_thl = 52
-d.parameters_DYNAMICS.iadv_qt = 52
-d.parameters_DYNAMICS.iadv_tke = 52
+d.parameters_DYNAMICS.iadv_mom = 6 # 6th order advection for momentum
+d.parameters_DYNAMICS.iadv_thl = 5 # 5th order advection for scalars, less overshoots than 6th order
+d.parameters_DYNAMICS.iadv_qt  = 5
+d.parameters_DYNAMICS.iadv_tke = 5
 
 # turn off randomization of the initial state
 d.parameters_RUN.randqt  = 0 | units.shu
 d.parameters_RUN.randthl = 0 | units.K
-d.parameters_RUN.randu   = 0 | units. m / units.s
+d.parameters_RUN.randu   = 0 | units.m / units.s
 
+# turn on adaptive time stepping and set more conservative time step limits
 d.parameters_RUN.ladaptive = True
+d.parameters_RUN.courant  = 0.5
+d.parameters_RUN.peclet   = 0.1
+
 d.parameters_PHYSICS.lcoriol = False
 d.parameters_PHYSICS.igrw_damp = 3    # Wind in the sponge layer dampened towards average wind (for symmetric evolution)
 
@@ -51,7 +57,7 @@ d.grid[:,:,:].U = 0 | units.m / units.s
 d.grid[:,:,:].V = 0 | units.m / units.s
 d.grid[:,:,:].W = 0 | units.m / units.s
 
-# set specific humidity
+# set a low specific humidity -> no cloud formation
 d.grid[:,:,:].QT = 0.001 | units.kg / units.kg
 
 
@@ -97,12 +103,12 @@ bubble = make_bubble(d.grid, r = 500 | units.m, center = (3200|units.m, 3200|uni
 d.grid[:,:,:].THL += 0.5 * bubble | units.K
 
 # evolve model, save a sequence of 3D snapshots at times specified below:
-times = numpy.linspace(0, 3600, 11)  | units.s
+times = numpy.linspace(0, 40, 11) | units.minute
 
 states = []
 for t in times:
     state = {}
-    print("Evolving to ", str(t))
+    print("Evolving to", str(t))
     d.evolve_model(t)
 
     # save model variables
@@ -116,10 +122,12 @@ for t in times:
 
 C,R = 3,4 # number of columns and rows in plot
 
-#field,unit = 'qt', units.shu
-#field,unit = 'ql', units.shu
-field,unit = 'thl', units.K
-#field,unit = 'T', units.K
+# select field to plot
+field,unit = 'thl', units.K    # liquid water potential temperature
+#field,unit = 'T', units.K     # temperature
+#field,unit = 'qt', units.shu  # total specific humidity
+#field,unit = 'ql', units.shu  # specific cloud liquid water
+
 
 # find range of the variable over all the saved snapshots
 vmin=1e10
@@ -127,9 +135,8 @@ vmax=-1e10
 for ind in range(len(states)):
     vmin = min(vmin, numpy.amin(states[ind][field].value_in(unit)))
     vmax = max(vmax, numpy.amax(states[ind][field].value_in(unit)))
-print ('Variable range:', vmin, vmax)
 delta = vmax-vmin
-vmax = vmin+delta/2 # adjust the range for better view of the later stages
+vmax = vmin+delta/4 # adjust the range for better view of the later stages
 
 # set up the grid extents for proper y and z axes on the plot
 e = (0, d.grid.y[0,-1,0].value_in(units.m), 0, d.grid.z[0,0,-1].value_in(units.m)) #(left, right, bottom, top)
