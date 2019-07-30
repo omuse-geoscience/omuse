@@ -880,7 +880,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_method(state, "get_timestep")
 
         for state in ["RUN", "EVOLVED"]:
-            obj.add_method(state, 'get_zf')
+            obj.add_method(state, 'get_zf_')
 
         for state in ["EDIT", "RUN", "EVOLVED"]:
             obj.add_method(state, 'get_params_grid')
