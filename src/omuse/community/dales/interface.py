@@ -791,15 +791,12 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
         #  cache grid parameters after committing the grid
         self.params_grid_cache =  self.overridden().get_params_grid()
-        print("high-level commit_parameters finished")
 
-    def commit_grid():
-        self.overridden().commit_grid()
-        print("high-level commit_grid finished")
-        
     def get_params_grid(self):
-        if params_grid_cache in self:
-            return self.params_grid_cache
+        if not hasattr(self, 'params_grid_cache'):
+            # if the cache is not there, create it
+            self.params_grid_cache =  self.overridden().get_params_grid()
+        return self.params_grid_cache
     
     def define_parameters(self, obj):
         CodeWithNamelistParameters.define_parameters(self, obj)
