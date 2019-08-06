@@ -28,13 +28,15 @@ CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 # on ECMWF Cray, all compilers are invoked as ftn, so this test does not work. Specify  DALES_FCFLAGS outside this script on Cray.
 
-ifeq ($(FC), ifort)
+ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
+# using ifort
   DALES_FCFLAGS ?= -r8 -xHost -fpp
   SYST ?= localpc_ifort
   export SYST
 endif
 
-ifeq ($(FC), gfortran)
+ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
+# using gfortran
   DALES_FCFLAGS ?= -fdefault-real-8 -cpp
   SYST ?= gfortran
   export SYST
