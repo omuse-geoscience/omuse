@@ -10,8 +10,9 @@ Welcome to OMUSE's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   installing
    dales/dales
-
+   singularity
 	    
 
 Indices and tables
