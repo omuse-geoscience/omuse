@@ -71,7 +71,7 @@ d.grid[:,:,:].QT = 0.001 | units.kg / units.kg
 
 def make_bubble(grid, r, center=None, gaussian=False):
     if center is None:
-        ci = ((numpy.array(d.grid.THL.shape) - 1)*.5)
+        ci = ((numpy.array(grid.THL.shape) - 1)*.5)
         ci = (int(ci[0]), int(ci[1]), int(ci[2]))
         print('ci', ci)
         center=(grid[ci].x.value_in(units.m), grid[ci].y.value_in(units.m), grid[ci].z.value_in(units.m))
@@ -84,7 +84,7 @@ def make_bubble(grid, r, center=None, gaussian=False):
     Z = grid[0,0,:].z.value_in(units.m)
     r = r.value_in(units.m)
     
-    bubble = numpy.zeros(d.grid.THL.shape)
+    bubble = numpy.zeros(grid.THL.shape)
     for index, v in numpy.ndenumerate(bubble):
         i,j,k = index
         x = X[i] - center[0]
