@@ -9,7 +9,7 @@ module dales_interface
             my_task, master_task, gatherlayer, &
             FIELDID_U, FIELDID_V, FIELDID_W, FIELDID_THL, FIELDID_QT, &
             u_tend, v_tend, thl_tend, qt_tend, ql_tend, ps_tend, ql_ref, qt_alpha, &
-            gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice, &
+            gatherlayeravg, gathervol, localindex, gatherlwp, gathercloudfrac, gatherlayericeavg, geticecontent, &
             qt_forcing_type, QT_FORCING_GLOBAL, QT_FORCING_LOCAL, QT_FORCING_VARIANCE, &
             u_nudge, v_nudge, thl_nudge, qt_nudge, u_nudge_time, v_nudge_time, thl_nudge_time, qt_nudge_time
 
@@ -326,7 +326,7 @@ contains
         real, dimension(kmax) :: a_
         integer :: i, ret
 
-        ret = gather_ice(a_)
+        ret = gatherlayericeavg(a_)
         do i = 1, n
             a(i) = a_(g_k(i))
         enddo
@@ -452,7 +452,7 @@ contains
         real, dimension(n), intent(out) :: a
         integer :: ret
 
-        ret = gatherCloudFrac(ql0(2:i1, 2:j1, :), g_k, a)
+        ret = gathercloudfrac(ql0(2:i1, 2:j1, :), g_k, a)
     end function get_cloudfraction
     !!! end of vertical profile getters
 
@@ -846,8 +846,19 @@ contains
         ret = gathervol(g_i, g_j, g_k, a, n, ql0(2:i1, 2:j1, 1:kmax))
     end function get_field_QL
 
+    ! Ice water content volume field getter
+    function get_field_QL_ice(g_i, g_j, g_k, a, n) result(ret)
+        integer, intent(in) :: n
+        integer, dimension(n), intent(in) :: g_i, g_j, g_k
+        real, dimension(n), intent(out) :: a
+        integer :: ret
+        real    :: qli(2:i1, 2:j1, 1:kmax)
+        ret = geticecontent(qli)
+        ret = gathervol(g_i, g_j, g_k, a, n, qli)
+    end function get_field_QL_ice
+
     ! Returns the rain water profile
-    function get_field_QR(g_i, g_j, g_k, g_k, a, n) result(ret)
+    function get_field_QR(g_i, g_j, g_k, a, n) result(ret)
         use modmicrodata, only : iqr
         use modglobal, only : nsv
         integer, intent(in) :: n
@@ -996,7 +1007,7 @@ contains
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
-        ret = gatherLWP(g_i, g_j, a, n, ql0(2:i1, 2:j1, 1:kmax))
+        ret = gatherlwp(g_i, g_j, a, n, ql0(2:i1, 2:j1, 1:kmax))
     end function get_field_LWP
 
     ! getter function for TWP - Total Water Path - 2D field, vertical integral of qt
@@ -1005,7 +1016,7 @@ contains
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
-        ret = gatherLWP(g_i, g_j, a, n, qt0(2:i1, 2:j1, 1:kmax))
+        ret = gatherlwp(g_i, g_j, a, n, qt0(2:i1, 2:j1, 1:kmax))
     end function get_field_TWP
 
     ! Rain water path - like LWP but for rain water
@@ -1015,7 +1026,7 @@ contains
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
-        ret = gatherLWP(g_i, g_j, a, n, sv0(2:i1, 2:j1, 1:kmax, iqr))
+        ret = gatherlwp(g_i, g_j, a, n, sv0(2:i1, 2:j1, 1:kmax, iqr))
     end function get_field_RWP
 
     ! Surface friction velocity field getter
@@ -1099,22 +1110,22 @@ contains
     end function get_field_obl
 
     ! Surface theta-l flux field getter
-    function get_field_wt(g_i, g_j, a, n) result(ret)
+    function get_field_thlflux(g_i, g_j, a, n) result(ret)
         integer, intent(in) :: n
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
         ret = gatherlayer(g_i, g_j, a, n, thlflux(2:i1, 2:j1))
-    end function get_field_wt
+    end function get_field_thlflux
 
     ! Surface moisture flux field getter
-    function get_field_wq(g_i, g_j, a, n) result(ret)
+    function get_field_qtflux(g_i, g_j, a, n) result(ret)
         integer, intent(in) :: n
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
         ret = gatherlayer(g_i, g_j, a, n, qtflux(2:i1, 2:j1))
-    end function get_field_wq
+    end function get_field_qtflux
 
     ! Surface eastward wind vertical gradient getter
     function get_field_dudz(g_i, g_j, a, n) result(ret)
