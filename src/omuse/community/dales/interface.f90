@@ -15,6 +15,7 @@ module dales_interface
 
     !TODO: Expose everything so this module only depends on daleslib
     use modfields, only : u0, v0, w0, thl0, qt0, ql0, qsat, e120, tmp0, sv0, um, vm, wm, thlm, qtm, surf_rain
+    use modpois, only : p
     use modglobal, only : i1, j1, k1, itot, jtot, kmax, lmoist
     use modsurfdata, only : ps, ustar, z0m, z0h, tskin, qskin, LE, H, obl, thlflux, qtflux, svflux, dudz, dvdz, &
             dqtdz, dthldz, thls, qts, thvs, svs, ustin, wqsurf, wtsurf, wsvsurf, z0, z0mav, z0hav
@@ -441,7 +442,6 @@ contains
         ret = 0
     end function get_rhobf_
       
-
     ! Cloud fraction getter
     ! Note: in contrast to the other profile getters,
     ! this one relies on g_k to define slabs
@@ -466,13 +466,11 @@ contains
         integer :: ret
 
         rain = sum(surf_rain(2:i1, 2:j1))
-        write (*, *) 'local rain sum', rain
 
         !in-place reduction
         if (myid == 0) then
             CALL mpi_reduce(MPI_IN_PLACE, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
             rain = rain / (itot * jtot)
-            write (*, *) 'global rain avg', rain
         else
             CALL mpi_reduce(rain, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
         endif
@@ -848,6 +846,23 @@ contains
         ret = gathervol(g_i, g_j, g_k, a, n, ql0(2:i1, 2:j1, 1:kmax))
     end function get_field_QL
 
+    ! Returns the rain water profile
+    function get_field_QR(g_i, g_j, g_k, g_k, a, n) result(ret)
+        use modmicrodata, only : iqr
+        use modglobal, only : nsv
+        integer, intent(in) :: n
+        integer, dimension(n), intent(in) :: g_i, g_j, g_k
+        real, dimension(n), intent(out) :: a
+        integer :: ret
+
+        if (nsv >= iqr) then
+            ret = gathervol(g_i, g_j, g_k, a, n, sv0(2:i1, 2:j1, 1:kmax, iqr))
+        else
+            a = 0  ! Dales doesn't have the requested rain field
+            ret = 1
+        endif
+    end function get_field_QR
+
     ! Saturation humidity volume field getter
     function get_field_Qsat(g_i, g_j, g_k, a, n) result(ret)
         integer, intent(in) :: n
@@ -874,6 +889,15 @@ contains
         integer :: ret
         ret = gathervol(g_i, g_j, g_k, a, n, tmp0(2:i1, 2:j1, 1:kmax))
     end function get_field_T
+
+    ! Modified pressure volume field getter
+    function get_field_pi(g_i, g_j, g_k, a, n) result(ret)
+        integer, intent(in) :: n
+        integer, dimension(n), intent(in) :: g_i, g_j, g_k
+        real, dimension(n), intent(out) :: a
+        integer :: ret
+        ret = gathervol(g_i, g_j, g_k, a, n, p(2:i1, 2:j1, 1:kmax))
+    end function get_field_pi
 
     ! Downwelling shortwave radiative flux getter
     function get_field_rswd(g_i, g_j, g_k, a, n) result(ret)
@@ -1075,22 +1099,22 @@ contains
     end function get_field_obl
 
     ! Surface theta-l flux field getter
-    function get_field_thlflux(g_i, g_j, a, n) result(ret)
+    function get_field_wt(g_i, g_j, a, n) result(ret)
         integer, intent(in) :: n
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
         ret = gatherlayer(g_i, g_j, a, n, thlflux(2:i1, 2:j1))
-    end function get_field_thlflux
+    end function get_field_wt
 
     ! Surface moisture flux field getter
-    function get_field_qtflux(g_i, g_j, a, n) result(ret)
+    function get_field_wq(g_i, g_j, a, n) result(ret)
         integer, intent(in) :: n
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
         ret = gatherlayer(g_i, g_j, a, n, qtflux(2:i1, 2:j1))
-    end function get_field_qtflux
+    end function get_field_wq
 
     ! Surface eastward wind vertical gradient getter
     function get_field_dudz(g_i, g_j, a, n) result(ret)
