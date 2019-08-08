@@ -338,6 +338,10 @@ class DalesInterface(CodeInterface,
         returns(a=0. | units.K)
 
     @remote_function(must_handle_array=True)
+    def get_field_pi(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.m ** 2 / units.s ** 2)
+
+    @remote_function(must_handle_array=True)
     def get_field_rswd(g_i=0, g_j=0, g_k=0):
         returns(a=0. | units.W / units.m ** 2)
 
@@ -479,7 +483,7 @@ class DalesInterface(CodeInterface,
     def get_wq_surf():
         returns(wqflux=0. | units.m / units.s)
 
-    # setter functions for wtflux and qtflux
+    # setter functions for wtflux and wq
     @remote_function
     def set_wt_surf(wtflux=0. | units.m * units.s ** -1 * units.K):
         returns()
@@ -900,56 +904,38 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_method(state, "get_model_time")
             obj.add_method(state, "get_timestep")
 
-        for state in ["RUN", "EVOLVED"]:
-            obj.add_method(state, 'get_zf_')
-
         for state in ["EDIT", "RUN", "EVOLVED"]:
             obj.add_method(state, 'get_params_grid')
 
-
-        # protect field getters
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
-                  'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
-            for state in ["RUN", "EVOLVED"]:
-                obj.add_method(state, 'get_field_' + x)
-
-        #protect field setters
-        for x in ['U', 'V', 'W', 'THL', 'QT']:
-            for state in ["RUN", "EVOLVED"]:
-                obj.add_method(state, 'set_field_' + x)
-
-        # protect profile getters
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
-            for state in ["RUN", "EVOLVED"]:
-                obj.add_method(state, 'get_profile_' + x)
-
-        # protect nudge getter
-        # protect nudge setter
-        for x in ['U', 'V', 'THL', 'QT']:
-            for state in ["RUN", "EVOLVED"]:
-                obj.add_method(state, 'get_nudge_' + x)
-                obj.add_method(state, 'set_nudge_' + x)
-
-        # and forcings...
-        for x in ['U', 'V', 'THL', 'QT']:
-            for state in ["RUN", "EVOLVED"]:
-                obj.add_method(state, 'get_tendency_' + x + '_')
-                obj.add_method(state, 'set_tendency_' + x + '_')
-
-        # and scalars...
-        for name in ["wt", "wq", "z0m", "z0h"]:
-            for state in ["RUN", "EVOLVED"]:
-                obj.add_method(state, 'get_' + x + '_surf')
-                obj.add_method(state, 'set_' + x + '_surf')
         for state in ["RUN", "EVOLVED"]:
+            obj.add_method(state, 'get_zf_')
+            obj.add_method(state, 'get_zh_')
+            obj.add_method(state, 'get_presf_')
+            obj.add_method(state, 'get_presh_')
+            obj.add_method(state, 'get_rhof_')
+            obj.add_method(state, 'get_rhobf_')
             obj.add_method(state, 'get_surface_pressure')
             obj.add_method(state, 'get_rain')
-
-        # finally surface fields..
-        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "thlflux",
-                     "qtflux", "dudz", "dvdz", "dqtdz", "dthldz"]:
-            for state in ["RUN", "EVOLVED"]:
-                obj.add_method(state, 'get_field_' + name)
+            for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif', 'rswu',
+                      'rlwd', 'rlwu', 'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
+                obj.add_method(state, 'get_field_' + x)
+            for x in ['U', 'V', 'W', 'THL', 'QT']:
+                obj.add_method(state, 'set_field_' + x)
+            for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'QR', 'E12', 'T']:
+                obj.add_method(state, 'get_profile_' + x)
+            for x in ['U', 'V', 'THL', 'QT']:
+                obj.add_method(state, 'get_nudge_' + x)
+                obj.add_method(state, 'set_nudge_' + x)
+            for x in ['U', 'V', 'THL', 'QT']:
+                # TODO: (GvdO): is this necessary, should we list underscored or higher level functions?
+                obj.add_method(state, 'get_tendency_' + x + '_')
+                obj.add_method(state, 'set_tendency_' + x + '_')
+            for x in ["wt", "wq", "z0m", "z0h"]:
+                obj.add_method(state, 'get_' + x + '_surf')
+                obj.add_method(state, 'set_' + x + '_surf')
+            for x in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "wt",
+                         "wq", "dudz", "dvdz", "dqtdz", "dthldz"]:
+                obj.add_method(state, 'get_field_' + x)
 
         obj.add_transition("RUN", "EVOLVED", "evolve_model", False)
         obj.add_method("EVOLVED", "evolve_model")
@@ -1258,7 +1244,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
                         state_guard="before_new_set_instance")
         obj.set_grid_range('grid', 'get_grid_range')
         obj.add_getter('grid', 'get_grid_position', names="xyz")
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
+        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
                   'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
             obj.add_getter('grid', 'get_field_' + x, names=[x])
         for x in ['U', 'V', 'W', 'THL', 'QT']:
@@ -1268,6 +1254,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
                         state_guard="before_new_set_instance")
         obj.set_grid_range('profiles', 'get_z_grid_range')
         obj.add_getter('profiles', 'get_z_grid_position', names="z")
+        obj.add_getter('profiles', 'get_presf', names="P")
         for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
             obj.add_getter('profiles', 'get_profile_' + x + '_', names=[x])
 
@@ -1285,8 +1272,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.set_grid_range('forcings', 'get_z_grid_range')
         obj.add_getter('forcings', 'get_z_grid_position', names="z")
         for x in ['U', 'V', 'THL', 'QT']:
-            obj.add_getter('forcings', 'get_tendency_' + x + '_', names=['tendency_' + x])
-            obj.add_setter('forcings', 'set_tendency_' + x + '_', names=['tendency_' + x])
+            obj.add_getter('forcings', 'get_tendency_' + x + '_', names=[x])
+            obj.add_setter('forcings', 'set_tendency_' + x + '_', names=[x])
 
         obj.define_grid('scalars', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         obj.set_grid_range('scalars', 'get_scalar_grid_range')
@@ -1299,6 +1286,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.define_grid('surface_fields', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         obj.set_grid_range('surface_fields', 'get_xy_grid_range')
         obj.add_getter('surface_fields', 'get_xy_grid_position', names="xy")
-        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "thlflux",
-                     "qtflux", "dudz", "dvdz", "dqtdz", "dthldz"]:
+        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "wt",
+                     "wq", "dudz", "dvdz", "dqtdz", "dthldz"]:
             obj.add_getter('surface_fields', 'get_field_' + name, names=[name])
