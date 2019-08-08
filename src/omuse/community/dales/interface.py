@@ -326,6 +326,14 @@ class DalesInterface(CodeInterface,
         returns(a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
+    def get_field_QL_ice(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.mfu)
+
+    @remote_function(must_handle_array=True)
+    def get_field_QR(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.mfu)
+
+    @remote_function(must_handle_array=True)
     def get_field_Qsat(g_i=0, g_j=0, g_k=0):
         returns(a=0. | units.mfu)
 
@@ -916,7 +924,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_method(state, 'get_rhobf_')
             obj.add_method(state, 'get_surface_pressure')
             obj.add_method(state, 'get_rain')
-            for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif', 'rswu',
+            for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QR', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif', 'rswu',
                       'rlwd', 'rlwu', 'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
                 obj.add_method(state, 'get_field_' + x)
             for x in ['U', 'V', 'W', 'THL', 'QT']:
@@ -933,8 +941,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             for x in ["wt", "wq", "z0m", "z0h"]:
                 obj.add_method(state, 'get_' + x + '_surf')
                 obj.add_method(state, 'set_' + x + '_surf')
-            for x in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "wt",
-                         "wq", "dudz", "dvdz", "dqtdz", "dthldz"]:
+            for x in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "qtflux",
+                      "thlflux", "dudz", "dvdz", "dqtdz", "dthldz"]:
                 obj.add_method(state, 'get_field_' + x)
 
         obj.add_transition("RUN", "EVOLVED", "evolve_model", False)
@@ -1246,8 +1254,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
                         state_guard="before_new_set_instance")
         obj.set_grid_range('fields', 'get_grid_range')
         obj.add_getter('fields', 'get_grid_position', names="xyz")
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd',
-                  'rlwu', 'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
+        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'QR', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif',
+                  'rswu', 'rlwd', 'rlwu', 'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
             obj.add_getter('fields', 'get_field_' + x, names=[x])
         for x in ['U', 'V', 'W', 'THL', 'QT']:
             obj.add_setter('fields', 'set_field_' + x, names=[x])
@@ -1257,7 +1265,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.set_grid_range('profiles', 'get_z_grid_range')
         obj.add_getter('profiles', 'get_z_grid_position', names="z")
         obj.add_getter('profiles', 'get_presf', names="P")
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
+        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'QR', 'E12', 'T']:
             obj.add_getter('profiles', 'get_profile_' + x + '_', names=[x])
 
         # nudge grid  -experimental-
@@ -1280,7 +1288,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.define_grid('scalars', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         obj.set_grid_range('scalars', 'get_scalar_grid_range')
         obj.add_getter('scalars', 'get_surface_pressure', names=['pressure'])
-        obj.add_getter('scalars', 'get_rain', names=['rain'])
+        obj.add_getter('scalars', 'get_rain', names=['QR'])
         for name in ["wt", "wq", "z0m", "z0h"]:
             obj.add_getter('scalars', 'get_' + name + "_surf", names=[name])
             obj.add_setter('scalars', 'set_' + name + "_surf", names=[name])
@@ -1288,5 +1296,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.define_grid('surface_fields', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
         obj.set_grid_range('surface_fields', 'get_xy_grid_range')
         obj.add_getter('surface_fields', 'get_xy_grid_position', names="xy")
-        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "wt", "wq"]:
+        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl"]:
             obj.add_getter('surface_fields', 'get_field_' + name, names=[name])
+        obj.add_getter('surface_fields', 'get_field_qtflux', names="wq")
+        obj.add_getter('surface_fields', 'get_field_thlflux', names="wt")
