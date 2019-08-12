@@ -1253,7 +1253,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.define_grid("fields", axes_names="xyz", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
         obj.set_grid_range("fields", "get_grid_range")
-        obj.add_getter("fields", "get_grid_position", names=["xyz"])
+        obj.add_getter("fields", "get_grid_position", names="xyz")
         for x in ["U", "V", "W", "THL", "QT", "QL", "QL_ice", "QR", "E12", "T", "pi", "rswd", "rswdir", "rswdif",
                   "rswu", "rlwd", "rlwu", "rswdcs", "rswucs", "rlwdcs", "rlwucs"]:
             obj.add_getter("fields", "get_field_" + x, names=[x])
