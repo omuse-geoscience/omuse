@@ -247,6 +247,38 @@ class TestDalesInterface(TestWithMPI):
         instance.stop()
         cleanup_data(rundir)
 
+    def test_grid_profiles_sp(self):
+        rundir = "work-sp6"
+        instance = Dales(case="sp-testcase", workdir=rundir, number_of_workers=4, **kwargs)
+        instance.parameters_DOMAIN.itot = 64
+        instance.parameters_DOMAIN.jtot = 64
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (5 | units.s))
+        a1 = instance.profiles[0:10].P.value_in(units.Pa)
+        a2 = instance.get_presf_(numpy.arange(1, 11)).value_in(units.Pa)
+        assert numpy.array_equal(a1, a2)
+        a1 = instance.profiles[0:10].rho.value_in(units.kg / units.m**3)
+        a2 = instance.get_rhof_(numpy.arange(1, 11)).value_in(units.kg / units.m**3)
+        assert numpy.array_equal(a1, a2)
+        a1 = instance.profiles[0:10].rhob.value_in(units.kg / units.m**3)
+        a2 = instance.get_rhobf_(numpy.arange(1, 11)).value_in(units.kg / units.m**3)
+        assert numpy.array_equal(a1, a2)
+        a1 = instance.profiles[0:10].A.value_in(units.m**2 / units.m**2)
+        a2 = instance.get_cloudfraction(numpy.arange(1, 11)).value_in(units.m**2 / units.m**2)
+        assert numpy.array_equal(a1, a2)
+        a1 = instance.profiles[0:10].QL.value_in(units.kg**2 / units.kg**2)
+        a2 = instance.get_profile_QL(numpy.arange(1, 11)).value_in(units.kg**2 / units.kg**2)
+        assert numpy.array_equal(a1, a2)
+        a1 = instance.profiles[0:10].QL_ice.value_in(units.kg**2 / units.kg**2)
+        a2 = instance.get_profile_QL_ice(numpy.arange(1, 11)).value_in(units.kg**2 / units.kg**2)
+        assert numpy.array_equal(a1, a2)
+        a1 = instance.profiles[0:10].QR.value_in(units.kg**2 / units.kg**2)
+        a2 = instance.get_profile_QR(numpy.arange(1, 11)).value_in(units.kg**2 / units.kg**2)
+        assert numpy.array_equal(a1, a2)
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
     def test_set_bomex_t_field(self):
         rundir = "work-bomex4"
         instance = Dales(case="bomex", workdir=rundir, **kwargs)
@@ -389,7 +421,7 @@ class TestDalesInterface(TestWithMPI):
         instance.stop()
         cleanup_data(rundir)
 
-    def test_bomex_q3d(self):
+    def test_bomex_3d_fields(self):
         rundir = "work-bomex9"
         instance = Dales(case="bomex", workdir=rundir, **kwargs)
         tim = instance.get_model_time()
@@ -400,6 +432,8 @@ class TestDalesInterface(TestWithMPI):
         ice_volume = instance.fields.QL_ice.value_in(units.mfu)
         ice_profile = instance.profiles.QL_ice.value_in(units.mfu)
         assert numpy.sum(ice_volume) == numpy.sum(ice_profile)
+        pi = instance.fields.pi.value_in(units.m ** 2 / units.s ** 2)
+        assert numpy.max(numpy.abs(pi)) < 10.
         instance.cleanup_code()
         instance.stop()
         cleanup_data(rundir)
