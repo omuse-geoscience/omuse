@@ -923,6 +923,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             obj.add_method(state, 'get_rhof_')
             obj.add_method(state, 'get_rhobf_')
             obj.add_method(state, 'get_surface_pressure')
+            obj.add_method(state, 'get_cloudfraction')
             obj.add_method(state, 'get_rain')
             for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QR', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif', 'rswu',
                       'rlwd', 'rlwu', 'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
@@ -1176,7 +1177,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         profile = None
         kmin, kmax = self.get_z_grid_range()
         indices = numpy.arange(kmin, kmax + 1)
-        #~ print kmin, kmax
         if field == 'U':
             profile = self.get_profile_U_(indices)
         elif field == 'V':
@@ -1250,53 +1250,56 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     def define_grids(self, obj):
 
         # Volume grid
-        obj.define_grid('fields', axes_names="xyz", grid_class=datamodel.RectilinearGrid,
+        obj.define_grid("fields", axes_names="xyz", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('fields', 'get_grid_range')
-        obj.add_getter('fields', 'get_grid_position', names="xyz")
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'QR', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif',
-                  'rswu', 'rlwd', 'rlwu', 'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
-            obj.add_getter('fields', 'get_field_' + x, names=[x])
-        for x in ['U', 'V', 'W', 'THL', 'QT']:
-            obj.add_setter('fields', 'set_field_' + x, names=[x])
+        obj.set_grid_range("fields", "get_grid_range")
+        obj.add_getter("fields", "get_grid_position", names=["xyz"])
+        for x in ["U", "V", "W", "THL", "QT", "QL", "QL_ice", "QR", "E12", "T", "pi", "rswd", "rswdir", "rswdif",
+                  "rswu", "rlwd", "rlwu", "rswdcs", "rswucs", "rlwdcs", "rlwucs"]:
+            obj.add_getter("fields", "get_field_" + x, names=[x])
+        for x in ["U", "V", "W", "THL", "QT"]:
+            obj.add_setter("fields", "set_field_" + x, names=[x])
 
-        obj.define_grid('profiles', axes_names="z", grid_class=datamodel.RectilinearGrid,
+        obj.define_grid("profiles", axes_names="z", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('profiles', 'get_z_grid_range')
-        obj.add_getter('profiles', 'get_z_grid_position', names="z")
-        obj.add_getter('profiles', 'get_presf', names="P")
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'QR', 'E12', 'T']:
-            obj.add_getter('profiles', 'get_profile_' + x + '_', names=[x])
+        obj.set_grid_range("profiles", "get_z_grid_range")
+        obj.add_getter("profiles", "get_z_grid_position", names=["z"])
+        obj.add_getter("profiles", "get_presf_", names=["P"])
+        obj.add_getter("profiles", "get_rhof_", names=["rho"])
+        obj.add_getter("profiles", "get_rhobf_", names=["rhob"])
+        obj.add_getter("profiles", "get_cloudfraction", names=["A"])
+        for x in ["U", "V", "W", "THL", "QT", "QL", "QL_ice", "QR", "E12", "T"]:
+            obj.add_getter("profiles", "get_profile_" + x + "_", names=[x])
 
         # nudge grid  -experimental-
-        obj.define_grid('nudging_profiles', axes_names="z", grid_class=datamodel.RectilinearGrid,
+        obj.define_grid("nudging_profiles", axes_names="z", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('nudging_profiles', 'get_z_grid_range')
-        obj.add_getter('nudging_profiles', 'get_z_grid_position', names="z")
-        for x in ['U', 'V', 'THL', 'QT']:
-            obj.add_getter('nudging_profiles', 'get_nudge_' + x, names=[x])
-            obj.add_setter('nudging_profiles', 'set_nudge_' + x, names=[x])
+        obj.set_grid_range("nudging_profiles", "get_z_grid_range")
+        obj.add_getter("nudging_profiles", "get_z_grid_position", names="z")
+        for x in ["U", "V", "THL", "QT"]:
+            obj.add_getter("nudging_profiles", "get_nudge_" + x, names=[x])
+            obj.add_setter("nudging_profiles", "set_nudge_" + x, names=[x])
 
-        obj.define_grid('forcing_profiles', axes_names="z", grid_class=datamodel.RectilinearGrid,
+        obj.define_grid("forcing_profiles", axes_names="z", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('forcing_profiles', 'get_z_grid_range')
-        obj.add_getter('forcing_profiles', 'get_z_grid_position', names="z")
-        for x in ['U', 'V', 'THL', 'QT']:
-            obj.add_getter('forcing_profiles', 'get_tendency_' + x + '_', names=[x])
-            obj.add_setter('forcing_profiles', 'set_tendency_' + x + '_', names=[x])
+        obj.set_grid_range("forcing_profiles", "get_z_grid_range")
+        obj.add_getter("forcing_profiles", "get_z_grid_position", names="z")
+        for x in ["U", "V", "THL", "QT"]:
+            obj.add_getter("forcing_profiles", "get_tendency_" + x + "_", names=[x])
+            obj.add_setter("forcing_profiles", "set_tendency_" + x + "_", names=[x])
 
-        obj.define_grid('scalars', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
-        obj.set_grid_range('scalars', 'get_scalar_grid_range')
-        obj.add_getter('scalars', 'get_surface_pressure', names=['pressure'])
-        obj.add_getter('scalars', 'get_rain', names=['QR'])
+        obj.define_grid("scalars", grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
+        obj.set_grid_range("scalars", "get_scalar_grid_range")
+        obj.add_getter("scalars", "get_surface_pressure", names=["Ps"])
+        obj.add_getter("scalars", "get_rain", names=["QR"])
         for name in ["wt", "wq", "z0m", "z0h"]:
-            obj.add_getter('scalars', 'get_' + name + "_surf", names=[name])
-            obj.add_setter('scalars', 'set_' + name + "_surf", names=[name])
+            obj.add_getter("scalars", "get_" + name + "_surf", names=[name])
+            obj.add_setter("scalars", "set_" + name + "_surf", names=[name])
 
-        obj.define_grid('surface_fields', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
-        obj.set_grid_range('surface_fields', 'get_xy_grid_range')
-        obj.add_getter('surface_fields', 'get_xy_grid_position', names="xy")
+        obj.define_grid("surface_fields", grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
+        obj.set_grid_range("surface_fields", "get_xy_grid_range")
+        obj.add_getter("surface_fields", "get_xy_grid_position", names="xy")
         for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl"]:
-            obj.add_getter('surface_fields', 'get_field_' + name, names=[name])
-        obj.add_getter('surface_fields', 'get_field_qtflux', names="wq")
-        obj.add_getter('surface_fields', 'get_field_thlflux', names="wt")
+            obj.add_getter("surface_fields", "get_field_" + name, names=[name])
+        obj.add_getter("surface_fields", "get_field_qtflux", names=["wq"])
+        obj.add_getter("surface_fields", "get_field_thlflux", names=["wt"])
