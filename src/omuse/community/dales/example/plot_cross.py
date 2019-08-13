@@ -20,7 +20,7 @@ import sys
 
 dales_procs = 1
 case = "rico"
-workdir = "draw2d"
+workdir = "plot2d_" + case
 forcingFlag = False
 dt = 30 | units.s
 fields = [('THL', units.K),
