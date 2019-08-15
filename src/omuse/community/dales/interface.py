@@ -167,11 +167,11 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_rhof_(k=0):
-        returns(out=0. | units.kg / units.m**3)
+        returns(out=0. | units.kg / units.m ** 3)
 
     @remote_function(must_handle_array=True)
     def get_rhobf_(k=0):
-        returns(out=0. | units.kg / units.m**3)
+        returns(out=0. | units.kg / units.m ** 3)
 
     # setter functions for vertical tendencies / forcings
     @remote_function(must_handle_array=True)
@@ -423,11 +423,11 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_field_LE(g_i=0, g_j=0):
-        returns(a=0. | units.W / units.m**2)
+        returns(a=0. | units.W / units.m ** 2)
 
     @remote_function(must_handle_array=True)
     def get_field_H(g_i=0, g_j=0):
-        returns(a=0. | units.W / units.m**2)
+        returns(a=0. | units.W / units.m ** 2)
 
     @remote_function(must_handle_array=True)
     def get_field_obl(g_i=0, g_j=0):
@@ -537,6 +537,7 @@ class DalesInterface(CodeInterface,
     def write_restart():
         returns()
 
+
 class Dales(CommonCode, CodeWithNamelistParameters):
     """OMUSE Dales Interface.
 
@@ -571,7 +572,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     QT_FORCING_STRONG = 3
 
     input_file_options = {"namelist": "namoptions", "profiles": "prof.inp", "forcings": "lscale.inp",
-                          "scalars": "scalar.inp"}
+                          "scalars": "scalar.inp", "base_profiles": "baseprof.inp"}
 
     def __init__(self, **options):
         # Namelist file
@@ -585,7 +586,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         self.workdir = "."
         if "workdir" in options:
             self.workdir = options["workdir"]
-            if os.path.exists(self.workdir): # This is a restart
+            if os.path.exists(self.workdir):  # This is a restart
                 inputdir = self.workdir
 
         # Set experiment name
@@ -597,7 +598,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             if inputdir is None:
                 inputdir = options["inputdir"]
             else:
-                print("Input directory specification %s ignored, because it was already set to %s" % 
+                print("Input directory specification %s ignored, because it was already set to %s" %
                       (options["inputdir"], inputdir))
 
         # Look up input directory
@@ -639,15 +640,51 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             print("using default parameters")
             self._nml_file = None
 
-        self.initial_profile_grid = self.read_initial_profiles(input_files.get("profiles", None))
+        self.initial_profile_grid = self.read_initial_profiles(input_files.get("profiles", None),
+                                                               input_files.get("base_profiles", None))
         self.initial_large_scale_forcings_grid = self.read_initial_forcings(input_files.get("forcings", None),
                                                                             self.initial_profile_grid.z)
         self.initial_scalar_grid = self.read_initial_scalars(input_files.get("scalars", None),
                                                              self.parameters_RUN.nsv,
                                                              self.initial_profile_grid.z)
+        if "z" in options:
+            self.set_z_axis(options["z"], options.get("interpolator", None))
+
+    def set_z_axis(self, z, interpolator=None):
+        assert numpy.all(numpy.diff(z.value_in(units.m)) > 0)
+
+        def default_interp(s, x, xp, yp):
+            return numpy.interp(x, xp, yp)
+
+        interp_func = default_interp if interpolator is None else interpolator
+        z_old = self.initial_profile_grid.z.value_in(units.m)
+
+        profile_grid = new_rectilinear_grid((len(z),), cell_centers=[z], axes_names=["z"])
+        variables = {"qt": units.shu, "thl": units.K, "u": units.m / units.s, "v": units.m / units.s,
+                     "e12": units.m / units.s, "rhobf": units.kg / units.m**3}
+        for varname, varunit in variables.iteritems():
+            y_old = getattr(self.initial_profile_grid, varname).value_in(varunit)
+            setattr(profile_grid, varname, interp_func(varname, z.value_in(units.m), z_old, y_old) | varunit)
+        self.initial_profile_grid = profile_grid
+
+        forcings_grid = new_rectilinear_grid((len(z),), cell_centers=[z], axes_names=["z"])
+        variables = {"ug": units.m / units.s, "vg": units.m / units.s, "wfls": units.m / units.s,
+                     "dqtdxls": units.shu / units.s, "dqtdyls": units.shu / units.s,
+                     "dqtdtls": units.shu * units.m / units.s**2, "dthlrad": units.shu / units.s}
+        for varname, varunit in variables.iteritems():
+            y_old = getattr(self.initial_large_scale_forcings_grid, varname).value_in(varunit).flatten()
+            setattr(forcings_grid, varname, interp_func(varname, z.value_in(units.m), z_old, y_old) | varunit)
+        self.initial_large_scale_forcings_grid = forcings_grid
+
+        scalars_grid = new_rectilinear_grid((len(z),), cell_centers=[z], axes_names=["z"])
+        for sv in self.initial_scalar_grid.get_attribute_names_defined_in_store():
+            if sv.startswith("sv"):
+                y_old = getattr(self.initial_scalar_grid, sv).value_in(units.shu).flatten()
+                setattr(scalars_grid, sv, interp_func(sv, z.value_in(units.m), z_old, y_old) | units.shu)
+        self.initial_scalar_grid = scalars_grid
 
     @staticmethod
-    def read_initial_profiles(filepath):
+    def read_initial_profiles(filepath, filepath_rhobf):
         if filepath is None:
             zf = numpy.arange(25., 5000., 50.) | units.m
             grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
@@ -670,6 +707,9 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.u = get_vars("u") | units.m / units.s
             grid.v = get_vars("v") | units.m / units.s
             grid.e12 = get_vars("tke", 1.) | units.m / units.s
+        if filepath_rhobf is not None and os.path.isfile(filepath_rhobf):
+            reader = make_file_reader(filepath_rhobf)
+            grid.rhobf = reader["rhobf"][:] | units.kg / units.m ** 3
         return grid
 
     @staticmethod
@@ -731,7 +771,17 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.qt.value_in(units.shu),
             grid.u.value_in(units.m / units.s),
             grid.v.value_in(units.m / units.s),
-            grid.e12.value_in(units.m / units.s))), header=header)
+            grid.e12.value_in(units.m / units.s))), header=header, fmt="%.4e")
+
+    @staticmethod
+    def write_base_profile_file(grid, filepath):
+        if not hasattr(grid, "rhobf"):
+            return
+        header = """ baseprofiles
+    height         rhobf             """
+        numpy.savetxt(filepath, numpy.column_stack((
+            grid.z.value_in(units.m),
+            grid.rhobf.value_in(units.kg / units.m**3))), header=header, fmt="%.4e")
 
     @staticmethod
     def write_large_scale_forcing_file(grid, filepath):
@@ -746,7 +796,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.dqtdyls.value_in(units.shu / units.s),
             grid.dqtdtls.value_in(units.shu * units.m / units.s ** 2),
             grid.dthlrad.value_in(units.shu / units.s),
-        )), header=header)
+        )), header=header, fmt="%.4e")
 
     @staticmethod
     def write_initial_scalars(grid, filepath):
@@ -757,7 +807,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             if att.startswith("sv"):
                 header += "             " + att
                 cols.append(grid.get_all_values_of_attribute_in_store(att).value_in(units.shu))
-        numpy.savetxt(filepath, numpy.column_stack(tuple(cols)), header=header)
+        numpy.savetxt(filepath, numpy.column_stack(tuple(cols)), header=header, fmt="%.4e")
 
     def commit_parameters(self):
         if not os.path.isdir(self.workdir):
@@ -780,6 +830,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             os.rename(filepath, filepath[:-1])
         Dales.write_initial_profile_file(self.initial_profile_grid,
                                          filepath=os.path.join(self.workdir, "prof.inp.%3.3i" % iexpnr))
+        Dales.write_base_profile_file(self.initial_profile_grid,
+                                      filepath=os.path.join(self.workdir, "baseprof.inp.%3.3i" % iexpnr))
         Dales.write_initial_scalars(self.initial_scalar_grid,
                                     filepath=os.path.join(self.workdir, "scalar.inp.%3.3i" % iexpnr))
         Dales.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid,
@@ -788,8 +840,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         for f in self.extra_input_files:
             if os.path.abspath(f) != os.path.join(self.workdir, os.path.basename(f)):
                 shutil.copy2(f, self.workdir)
-
-        # print "code options written to %s"%dalesinputfile
 
         # check this...
         dt = self.parameters.starttime
@@ -907,6 +957,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.add_method("INITIALIZED", "set_workdir")
         obj.add_method("INITIALIZED", "set_input_file")
         obj.add_method("INITIALIZED", "set_start_date_time")
+        obj.add_method("INITIALIZED", "set_z_axis")
 
         for state in ["EDIT", "RUN", "EVOLVED"]:
             obj.add_method(state, "get_model_time")
@@ -1061,7 +1112,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         else:
             indices = k
         return self.get_presf_(indices)
-    
+
     def get_rhof(self, k=None):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
@@ -1194,7 +1245,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         elif field == 'T':
             profile = self.get_profile_T_(indices)
         else:
-            raise Exception('get_profile called with undefined field %s'%field)
+            raise Exception('get_profile called with undefined field %s' % field)
         return profile
 
     def get_itot(self):

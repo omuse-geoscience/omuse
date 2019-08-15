@@ -5,8 +5,8 @@ from amuse.test.amusetest import TestWithMPI
 from omuse.community.dales.interface import Dales
 from omuse.units import units
 
-kwargs = {}
-# kwargs=dict(channel_type="sockets",redirection="none")
+# kwargs = {}
+kwargs = dict(channel_type="sockets", redirection="none")
 # kwargs=dict(redirection="none",debugger="gdb")
 
 logging.basicConfig(level=logging.DEBUG)
@@ -105,6 +105,17 @@ class TestDalesInterface(TestWithMPI):
     def test_run_rico(self):
         rundir = "work-rico2"
         instance = Dales(case="rico", workdir=rundir, **kwargs)
+        tim = instance.get_model_time()
+        instance.evolve_model(tim + (10 | units.s))
+        newtim = instance.get_model_time()
+        assert newtim > tim
+        instance.cleanup_code()
+        instance.stop()
+        cleanup_data(rundir)
+
+    def test_modify_rico(self):
+        rundir = "work-rico3"
+        instance = Dales(case="rico", workdir=rundir, z=numpy.arange(5, 2000, 10) | units.m, **kwargs)
         tim = instance.get_model_time()
         instance.evolve_model(tim + (10 | units.s))
         newtim = instance.get_model_time()
