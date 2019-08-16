@@ -552,6 +552,14 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     case : str, optional
         Specify one of the cases bundled with DALES. Valid names include 'bomex', 'rico', 'atex', 'fog'.
         Input files are copied to workdir.
+    z : numpy array, optional
+        Override the vertical discretization with an array of increasing heights. The array is assumed to have a length
+        unit attached to it.
+    interpolator: function handle, optional
+        In case of a user-specified vertical discretization, this function determines the interpolation method used to
+        obtain the initial profiles at the desired resolution. Should be a function f(str,z_new,z_old,y) where the first
+        argument denotes the variable, the second and third resp. the new and old z-axes and the latter the profile values
+        on the opriginal axis, returning an array of values on the new axis. Default = None, meaning linear interpolation.
     number_of_workers : int, optional
         Number of MPI tasks to use. General OMUSE option. Default = 1.
     channel_type : str, optional
