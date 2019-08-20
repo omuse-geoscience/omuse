@@ -43,3 +43,5 @@ src/omuse/community/dales/dales-repo/*
 src/omuse/community/oifs/oifslib/*
 src/omuse/community/oifs/oifs-repo/*
 src/omuse/community/spifs/*
+# Default ignored files
+src/omuse/community/dales/.idea/workspace.xml
