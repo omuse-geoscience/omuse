@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os.path
 import shutil
 
@@ -167,11 +169,11 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_rhof_(k=0):
-        returns(out=0. | units.kg / units.m**3)
+        returns(out=0. | units.kg / units.m ** 3)
 
     @remote_function(must_handle_array=True)
     def get_rhobf_(k=0):
-        returns(out=0. | units.kg / units.m**3)
+        returns(out=0. | units.kg / units.m ** 3)
 
     # setter functions for vertical tendencies / forcings
     @remote_function(must_handle_array=True)
@@ -326,6 +328,14 @@ class DalesInterface(CodeInterface,
         returns(a=0. | units.mfu)
 
     @remote_function(must_handle_array=True)
+    def get_field_QL_ice(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.mfu)
+
+    @remote_function(must_handle_array=True)
+    def get_field_QR(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.mfu)
+
+    @remote_function(must_handle_array=True)
     def get_field_Qsat(g_i=0, g_j=0, g_k=0):
         returns(a=0. | units.mfu)
 
@@ -336,6 +346,10 @@ class DalesInterface(CodeInterface,
     @remote_function(must_handle_array=True)
     def get_field_T(g_i=0, g_j=0, g_k=0):
         returns(a=0. | units.K)
+
+    @remote_function(must_handle_array=True)
+    def get_field_pi(g_i=0, g_j=0, g_k=0):
+        returns(a=0. | units.m ** 2 / units.s ** 2)
 
     @remote_function(must_handle_array=True)
     def get_field_rswd(g_i=0, g_j=0, g_k=0):
@@ -411,11 +425,11 @@ class DalesInterface(CodeInterface,
 
     @remote_function(must_handle_array=True)
     def get_field_LE(g_i=0, g_j=0):
-        returns(a=0. | units.W / units.m**2)
+        returns(a=0. | units.W / units.m ** 2)
 
     @remote_function(must_handle_array=True)
     def get_field_H(g_i=0, g_j=0):
-        returns(a=0. | units.W / units.m**2)
+        returns(a=0. | units.W / units.m ** 2)
 
     @remote_function(must_handle_array=True)
     def get_field_obl(g_i=0, g_j=0):
@@ -479,7 +493,7 @@ class DalesInterface(CodeInterface,
     def get_wq_surf():
         returns(wqflux=0. | units.m / units.s)
 
-    # setter functions for wtflux and qtflux
+    # setter functions for wtflux and wq
     @remote_function
     def set_wt_surf(wtflux=0. | units.m * units.s ** -1 * units.K):
         returns()
@@ -525,6 +539,7 @@ class DalesInterface(CodeInterface,
     def write_restart():
         returns()
 
+
 class Dales(CommonCode, CodeWithNamelistParameters):
     """OMUSE Dales Interface.
 
@@ -542,6 +557,14 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     case : str, optional
         Specify one of the cases bundled with DALES. Valid names include 'bomex', 'rico', 'atex', 'fog'.
         Input files are copied to workdir.
+    z : numpy array, optional
+        Override the vertical discretization with an array of increasing heights. The array is assumed to have a length
+        unit attached to it.
+    interpolator: function handle, optional
+        In case of a user-specified vertical discretization, this function determines the interpolation method used to
+        obtain the initial profiles at the desired resolution. Should be a function f(str,z_new,z_old,y) where the first
+        argument denotes the variable, the second and third resp. the new and old z-axes and the latter the profile values
+        on the opriginal axis, returning an array of values on the new axis. Default = None, meaning linear interpolation.
     number_of_workers : int, optional
         Number of MPI tasks to use. General OMUSE option. Default = 1.
     channel_type : str, optional
@@ -560,7 +583,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     QT_FORCING_STRONG = 3
 
     input_file_options = {"namelist": "namoptions", "profiles": "prof.inp", "forcings": "lscale.inp",
-                          "scalars": "scalar.inp"}
+                          "scalars": "scalar.inp", "base_profiles": "baseprof.inp"}
 
     def __init__(self, **options):
         # Namelist file
@@ -574,7 +597,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         self.workdir = "."
         if "workdir" in options:
             self.workdir = options["workdir"]
-            if os.path.exists(self.workdir): # This is a restart
+            if os.path.exists(self.workdir):  # This is a restart
                 inputdir = self.workdir
 
         # Set experiment name
@@ -586,7 +609,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             if inputdir is None:
                 inputdir = options["inputdir"]
             else:
-                print("Input directory specification %s ignored, because it was already set to %s" % 
+                print("Input directory specification %s ignored, because it was already set to %s" %
                       (options["inputdir"], inputdir))
 
         # Look up input directory
@@ -628,15 +651,54 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             print("using default parameters")
             self._nml_file = None
 
-        self.initial_profile_grid = self.read_initial_profiles(input_files.get("profiles", None))
+        self.initial_profile_grid = self.read_initial_profiles(input_files.get("profiles", None),
+                                                               input_files.get("base_profiles", None))
         self.initial_large_scale_forcings_grid = self.read_initial_forcings(input_files.get("forcings", None),
                                                                             self.initial_profile_grid.z)
         self.initial_scalar_grid = self.read_initial_scalars(input_files.get("scalars", None),
                                                              self.parameters_RUN.nsv,
                                                              self.initial_profile_grid.z)
+        if "z" in options:
+            self.set_z_axis(options["z"], options.get("interpolator", None))
+
+        self.parameters_DOMAIN.kmax = len(self.initial_profile_grid.z)
+        print("Setting kmax to", self.parameters_DOMAIN.kmax)
+            
+    def set_z_axis(self, z, interpolator=None):
+        assert numpy.all(numpy.diff(z.value_in(units.m)) > 0)
+
+        def default_interp(s, x, xp, yp):
+            return numpy.interp(x, xp, yp)
+
+        interp_func = default_interp if interpolator is None else interpolator
+        z_old = self.initial_profile_grid.z.value_in(units.m)
+
+        profile_grid = new_rectilinear_grid((len(z),), cell_centers=[z], axes_names=["z"])
+        variables = {"qt": units.shu, "thl": units.K, "u": units.m / units.s, "v": units.m / units.s,
+                     "e12": units.m / units.s, "rhobf": units.kg / units.m**3}
+        for varname, varunit in variables.iteritems():
+            y_old = getattr(self.initial_profile_grid, varname).value_in(varunit)
+            setattr(profile_grid, varname, interp_func(varname, z.value_in(units.m), z_old, y_old) | varunit)
+        self.initial_profile_grid = profile_grid
+
+        forcings_grid = new_rectilinear_grid((len(z),), cell_centers=[z], axes_names=["z"])
+        variables = {"ug": units.m / units.s, "vg": units.m / units.s, "wfls": units.m / units.s,
+                     "dqtdxls": units.shu / units.s, "dqtdyls": units.shu / units.s,
+                     "dqtdtls": units.shu * units.m / units.s**2, "dthlrad": units.shu / units.s}
+        for varname, varunit in variables.iteritems():
+            y_old = getattr(self.initial_large_scale_forcings_grid, varname).value_in(varunit).flatten()
+            setattr(forcings_grid, varname, interp_func(varname, z.value_in(units.m), z_old, y_old) | varunit)
+        self.initial_large_scale_forcings_grid = forcings_grid
+
+        scalars_grid = new_rectilinear_grid((len(z),), cell_centers=[z], axes_names=["z"])
+        for sv in self.initial_scalar_grid.get_attribute_names_defined_in_store():
+            if sv.startswith("sv"):
+                y_old = getattr(self.initial_scalar_grid, sv).value_in(units.shu).flatten()
+                setattr(scalars_grid, sv, interp_func(sv, z.value_in(units.m), z_old, y_old) | units.shu)
+        self.initial_scalar_grid = scalars_grid
 
     @staticmethod
-    def read_initial_profiles(filepath):
+    def read_initial_profiles(filepath, filepath_rhobf):
         if filepath is None:
             zf = numpy.arange(25., 5000., 50.) | units.m
             grid = new_rectilinear_grid((len(zf),), cell_centers=[zf], axes_names=["z"])
@@ -659,6 +721,9 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.u = get_vars("u") | units.m / units.s
             grid.v = get_vars("v") | units.m / units.s
             grid.e12 = get_vars("tke", 1.) | units.m / units.s
+        if filepath_rhobf is not None and os.path.isfile(filepath_rhobf):
+            reader = make_file_reader(filepath_rhobf)
+            grid.rhobf = reader["rhobf"][:] | units.kg / units.m ** 3
         return grid
 
     @staticmethod
@@ -720,7 +785,17 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.qt.value_in(units.shu),
             grid.u.value_in(units.m / units.s),
             grid.v.value_in(units.m / units.s),
-            grid.e12.value_in(units.m / units.s))), header=header)
+            grid.e12.value_in(units.m / units.s))), header=header, fmt="%.4e")
+
+    @staticmethod
+    def write_base_profile_file(grid, filepath):
+        if not hasattr(grid, "rhobf"):
+            return
+        header = """ baseprofiles
+    height         rhobf             """
+        numpy.savetxt(filepath, numpy.column_stack((
+            grid.z.value_in(units.m),
+            grid.rhobf.value_in(units.kg / units.m**3))), header=header, fmt="%.4e")
 
     @staticmethod
     def write_large_scale_forcing_file(grid, filepath):
@@ -735,7 +810,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             grid.dqtdyls.value_in(units.shu / units.s),
             grid.dqtdtls.value_in(units.shu * units.m / units.s ** 2),
             grid.dthlrad.value_in(units.shu / units.s),
-        )), header=header)
+        )), header=header, fmt="%.4e")
 
     @staticmethod
     def write_initial_scalars(grid, filepath):
@@ -746,7 +821,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             if att.startswith("sv"):
                 header += "             " + att
                 cols.append(grid.get_all_values_of_attribute_in_store(att).value_in(units.shu))
-        numpy.savetxt(filepath, numpy.column_stack(tuple(cols)), header=header)
+        numpy.savetxt(filepath, numpy.column_stack(tuple(cols)), header=header, fmt="%.4e")
 
     def commit_parameters(self):
         if not os.path.isdir(self.workdir):
@@ -769,6 +844,8 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             os.rename(filepath, filepath[:-1])
         Dales.write_initial_profile_file(self.initial_profile_grid,
                                          filepath=os.path.join(self.workdir, "prof.inp.%3.3i" % iexpnr))
+        Dales.write_base_profile_file(self.initial_profile_grid,
+                                      filepath=os.path.join(self.workdir, "baseprof.inp.%3.3i" % iexpnr))
         Dales.write_initial_scalars(self.initial_scalar_grid,
                                     filepath=os.path.join(self.workdir, "scalar.inp.%3.3i" % iexpnr))
         Dales.write_large_scale_forcing_file(self.initial_large_scale_forcings_grid,
@@ -777,8 +854,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         for f in self.extra_input_files:
             if os.path.abspath(f) != os.path.join(self.workdir, os.path.basename(f)):
                 shutil.copy2(f, self.workdir)
-
-        # print "code options written to %s"%dalesinputfile
 
         # check this...
         dt = self.parameters.starttime
@@ -905,61 +980,45 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.add_method("INITIALIZED", "set_workdir")
         obj.add_method("INITIALIZED", "set_input_file")
         obj.add_method("INITIALIZED", "set_start_date_time")
+        obj.add_method("INITIALIZED", "set_z_axis")
 
         for state in ["EDIT", "RUN", "EVOLVED"]:
             obj.add_method(state, "get_model_time")
             obj.add_method(state, "get_timestep")
 
-        for state in ["RUN", "EVOLVED"]:
-            obj.add_method(state, 'get_zf_')
-
         for state in ["EDIT", "RUN", "EVOLVED"]:
             obj.add_method(state, 'get_params_grid')
 
-
-        # protect field getters
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
-                  'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
-            for state in ["RUN", "EVOLVED"]:
+        for state in ["RUN", "EVOLVED"]:
+            obj.add_method(state, 'get_zf_')
+            obj.add_method(state, 'get_zh_')
+            obj.add_method(state, 'get_presf_')
+            obj.add_method(state, 'get_presh_')
+            obj.add_method(state, 'get_rhof_')
+            obj.add_method(state, 'get_rhobf_')
+            obj.add_method(state, 'get_surface_pressure')
+            obj.add_method(state, 'get_cloudfraction')
+            obj.add_method(state, 'get_rain')
+            for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QR', 'E12', 'T', 'pi', 'rswd', 'rswdir', 'rswdif', 'rswu',
+                      'rlwd', 'rlwu', 'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
                 obj.add_method(state, 'get_field_' + x)
-
-        #protect field setters
-        for x in ['U', 'V', 'W', 'THL', 'QT']:
-            for state in ["RUN", "EVOLVED"]:
+            for x in ['U', 'V', 'W', 'THL', 'QT']:
                 obj.add_method(state, 'set_field_' + x)
-
-        # protect profile getters
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
-            for state in ["RUN", "EVOLVED"]:
+            for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'QR', 'E12', 'T']:
                 obj.add_method(state, 'get_profile_' + x)
-
-        # protect nudge getter
-        # protect nudge setter
-        for x in ['U', 'V', 'THL', 'QT']:
-            for state in ["RUN", "EVOLVED"]:
+            for x in ['U', 'V', 'THL', 'QT']:
                 obj.add_method(state, 'get_nudge_' + x)
                 obj.add_method(state, 'set_nudge_' + x)
-
-        # and forcings...
-        for x in ['U', 'V', 'THL', 'QT']:
-            for state in ["RUN", "EVOLVED"]:
+            for x in ['U', 'V', 'THL', 'QT']:
+                # TODO: (GvdO): is this necessary, should we list underscored or higher level functions?
                 obj.add_method(state, 'get_tendency_' + x + '_')
                 obj.add_method(state, 'set_tendency_' + x + '_')
-
-        # and scalars...
-        for name in ["wt", "wq", "z0m", "z0h"]:
-            for state in ["RUN", "EVOLVED"]:
+            for x in ["wt", "wq", "z0m", "z0h"]:
                 obj.add_method(state, 'get_' + x + '_surf')
                 obj.add_method(state, 'set_' + x + '_surf')
-        for state in ["RUN", "EVOLVED"]:
-            obj.add_method(state, 'get_surface_pressure')
-            obj.add_method(state, 'get_rain')
-
-        # finally surface fields..
-        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "thlflux",
-                     "qtflux", "dudz", "dvdz", "dqtdz", "dthldz"]:
-            for state in ["RUN", "EVOLVED"]:
-                obj.add_method(state, 'get_field_' + name)
+            for x in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "qtflux",
+                      "thlflux", "dudz", "dvdz", "dqtdz", "dthldz"]:
+                obj.add_method(state, 'get_field_' + x)
 
         obj.add_transition("RUN", "EVOLVED", "evolve_model", False)
         obj.add_method("EVOLVED", "evolve_model")
@@ -1193,7 +1252,6 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         profile = None
         kmin, kmax = self.get_z_grid_range()
         indices = numpy.arange(kmin, kmax + 1)
-        #~ print kmin, kmax
         if field == 'U':
             profile = self.get_profile_U_(indices, **kwargs)
         elif field == 'V':
@@ -1211,7 +1269,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         elif field == 'T':
             profile = self.get_profile_T_(indices, **kwargs)
         else:
-            raise Exception('get_profile called with undefined field %s'%field)
+            raise Exception('get_profile called with undefined field %s' % field)
         return profile
 
     def get_itot(self):
@@ -1265,51 +1323,58 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return ()
 
     def define_grids(self, obj):
-        obj.define_grid('grid', axes_names="xyz", grid_class=datamodel.RectilinearGrid,
-                        state_guard="before_new_set_instance")
-        obj.set_grid_range('grid', 'get_grid_range')
-        obj.add_getter('grid', 'get_grid_position', names="xyz")
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T', 'rswd', 'rswdir', 'rswdif', 'rswu', 'rlwd', 'rlwu',
-                  'rswdcs', 'rswucs', 'rlwdcs', 'rlwucs']:
-            obj.add_getter('grid', 'get_field_' + x, names=[x])
-        for x in ['U', 'V', 'W', 'THL', 'QT']:
-            obj.add_setter('grid', 'set_field_' + x, names=[x])
 
-        obj.define_grid('profiles', axes_names="z", grid_class=datamodel.RectilinearGrid,
+        # Volume grid
+        obj.define_grid("fields", axes_names="xyz", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('profiles', 'get_z_grid_range')
-        obj.add_getter('profiles', 'get_z_grid_position', names="z")
-        for x in ['U', 'V', 'W', 'THL', 'QT', 'QL', 'QL_ice', 'E12', 'T']:
-            obj.add_getter('profiles', 'get_profile_' + x + '_', names=[x])
+        obj.set_grid_range("fields", "get_grid_range")
+        obj.add_getter("fields", "get_grid_position", names="xyz")
+        for x in ["U", "V", "W", "THL", "QT", "QL", "QL_ice", "QR", "E12", "T", "pi", "rswd", "rswdir", "rswdif",
+                  "rswu", "rlwd", "rlwu", "rswdcs", "rswucs", "rlwdcs", "rlwucs"]:
+            obj.add_getter("fields", "get_field_" + x, names=[x])
+        for x in ["U", "V", "W", "THL", "QT"]:
+            obj.add_setter("fields", "set_field_" + x, names=[x])
+
+        obj.define_grid("profiles", axes_names="z", grid_class=datamodel.RectilinearGrid,
+                        state_guard="before_new_set_instance")
+        obj.set_grid_range("profiles", "get_z_grid_range")
+        obj.add_getter("profiles", "get_z_grid_position", names=["z"])
+        obj.add_getter("profiles", "get_presf_", names=["P"])
+        obj.add_getter("profiles", "get_rhof_", names=["rho"])
+        obj.add_getter("profiles", "get_rhobf_", names=["rhob"])
+        obj.add_getter("profiles", "get_cloudfraction", names=["A"])
+        for x in ["U", "V", "W", "THL", "QT", "QL", "QL_ice", "QR", "E12", "T"]:
+            obj.add_getter("profiles", "get_profile_" + x + "_", names=[x])
 
         # nudge grid  -experimental-
-        obj.define_grid('nudging', axes_names="z", grid_class=datamodel.RectilinearGrid,
+        obj.define_grid("nudging_profiles", axes_names="z", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('nudging', 'get_z_grid_range')
-        obj.add_getter('nudging', 'get_z_grid_position', names="z")
-        for x in ['U', 'V', 'THL', 'QT']:
-            obj.add_getter('nudging', 'get_nudge_' + x, names=[x])
-            obj.add_setter('nudging', 'set_nudge_' + x, names=[x])
+        obj.set_grid_range("nudging_profiles", "get_z_grid_range")
+        obj.add_getter("nudging_profiles", "get_z_grid_position", names="z")
+        for x in ["U", "V", "THL", "QT"]:
+            obj.add_getter("nudging_profiles", "get_nudge_" + x, names=[x])
+            obj.add_setter("nudging_profiles", "set_nudge_" + x, names=[x])
 
-        obj.define_grid('forcings', axes_names="z", grid_class=datamodel.RectilinearGrid,
+        obj.define_grid("forcing_profiles", axes_names="z", grid_class=datamodel.RectilinearGrid,
                         state_guard="before_new_set_instance")
-        obj.set_grid_range('forcings', 'get_z_grid_range')
-        obj.add_getter('forcings', 'get_z_grid_position', names="z")
-        for x in ['U', 'V', 'THL', 'QT']:
-            obj.add_getter('forcings', 'get_tendency_' + x + '_', names=['tendency_' + x])
-            obj.add_setter('forcings', 'set_tendency_' + x + '_', names=['tendency_' + x])
+        obj.set_grid_range("forcing_profiles", "get_z_grid_range")
+        obj.add_getter("forcing_profiles", "get_z_grid_position", names="z")
+        for x in ["U", "V", "THL", "QT"]:
+            obj.add_getter("forcing_profiles", "get_tendency_" + x + "_", names=[x])
+            obj.add_setter("forcing_profiles", "set_tendency_" + x + "_", names=[x])
 
-        obj.define_grid('scalars', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
-        obj.set_grid_range('scalars', 'get_scalar_grid_range')
-        obj.add_getter('scalars', 'get_surface_pressure', names=['pressure'])
-        obj.add_getter('scalars', 'get_rain', names=['rain'])
+        obj.define_grid("scalars", grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
+        obj.set_grid_range("scalars", "get_scalar_grid_range")
+        obj.add_getter("scalars", "get_surface_pressure", names=["Ps"])
+        obj.add_getter("scalars", "get_rain", names=["QR"])
         for name in ["wt", "wq", "z0m", "z0h"]:
-            obj.add_getter('scalars', 'get_' + name + "_surf", names=[name])
-            obj.add_setter('scalars', 'set_' + name + "_surf", names=[name])
+            obj.add_getter("scalars", "get_" + name + "_surf", names=[name])
+            obj.add_setter("scalars", "set_" + name + "_surf", names=[name])
 
-        obj.define_grid('surface_fields', grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
-        obj.set_grid_range('surface_fields', 'get_xy_grid_range')
-        obj.add_getter('surface_fields', 'get_xy_grid_position', names="xy")
-        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl", "thlflux",
-                     "qtflux", "dudz", "dvdz", "dqtdz", "dthldz"]:
-            obj.add_getter('surface_fields', 'get_field_' + name, names=[name])
+        obj.define_grid("surface_fields", grid_class=datamodel.RectilinearGrid, state_guard="before_new_set_instance")
+        obj.set_grid_range("surface_fields", "get_xy_grid_range")
+        obj.add_getter("surface_fields", "get_xy_grid_position", names="xy")
+        for name in ["LWP", "RWP", "TWP", "ustar", "z0m", "z0h", "tskin", "qskin", "LE", "H", "obl"]:
+            obj.add_getter("surface_fields", "get_field_" + name, names=[name])
+        obj.add_getter("surface_fields", "get_field_qtflux", names=["wq"])
+        obj.add_getter("surface_fields", "get_field_thlflux", names=["wt"])
