@@ -67,7 +67,7 @@ ifeq ($(DOWNLOAD_CODES), latest)
     GIT_CLONE_CMD = git clone --depth=1 -b $(DALES_GIT_BRANCH)
 endif
 
-all: dales dales_worker test/fortran_test
+all: dales dales_worker test/run_dales
 
 update: $(DALESDIR) 
 	cd $(DALESDIR); git pull
@@ -83,7 +83,7 @@ dales_worker: worker_code.f90 $(OBJS) interface.f90 dales
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
-test/fortran_test: test/fortran_test.f90 $(OBJS) interface.f90 dales
+test/run_dales: test/run_dales.f90 $(OBJS) interface.f90 dales
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
