@@ -43,12 +43,14 @@ contains
     function set_qt_forcing(forcing_type) result(ret)
         integer :: ret
         integer, intent(in) :: forcing_type
-        if (forcing_type >= 0 .and. forcing_type <= 2) then
-            qt_forcing_type = forcing_type
-            ret = 0
-        else
+        if (forcing_type >= 0 .and. forcing_type <= 3) then
+           write(*,*) 'Setting qt forcing type', forcing_type
+           qt_forcing_type = forcing_type
+           ret = 0
+         else
+            write(*,*) 'qt forcing type out of range', forcing_type
             ret = 1
-        endif
+         endif
     end function set_qt_forcing
 
     ! Sets the dales input file

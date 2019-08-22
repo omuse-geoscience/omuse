@@ -17,9 +17,6 @@ from omuse.units import units
 from parameters import namelist_parameters
 
 
-# needs a bit of work for "non-local" runs
-# (ie mechanism to copy input files...)
-
 class DalesInterface(CodeInterface,
                      CommonCodeInterface,
                      StoppingConditionInterface,
@@ -97,7 +94,7 @@ class DalesInterface(CodeInterface,
         pass
 
     # getter functions for vertical profiles - slab averages
-    # these take a dummy array as input, and return output of the same length
+    # these take an index array as input, and return output of the same length
 
     @remote_function(must_handle_array=True)
     def get_profile_U_(k=0):
@@ -150,7 +147,7 @@ class DalesInterface(CodeInterface,
         returns(out=0. | units.kg / units.m ** 2)
 
     # getter functions for height levels
-    # these take a dummy array as input, and return output of the same length
+    # these take an index array as input, and return output of the same length
     @remote_function(must_handle_array=True)
     def get_zf_(k=0):
         returns(out=0. | units.m)
@@ -502,7 +499,7 @@ class DalesInterface(CodeInterface,
     def set_wq_surf(wqflux=0. | units.m / units.s):
         returns()
 
-    # setter functions for average momentum and heat roughness
+    # getter functions for average momentum and heat roughness
     @remote_function
     def get_z0m_surf():
         returns(z0m=0. | units.m)
@@ -572,8 +569,10 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     redirection : str, optional
          Options for re-directing stdout and stderr of the DALES process. General OMUSE option.
          'none' for no redirection,  'file' for redirection to files.
-    redirect_stdout_file, redirect_stderr_file : str, optional.
-         File names for redirection of stdout, stderr, see above. General OMUSE option.
+    redirect_stdout_file : str, optional.
+         File name for redirection of stdout, see above. General OMUSE option.
+    redirect_stderr_file : str, optional.
+         File name for redirection of stderr, see above. General OMUSE option.
 
     """
 
@@ -1023,7 +1022,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         obj.add_transition("RUN", "EVOLVED", "evolve_model", False)
         obj.add_method("EVOLVED", "evolve_model")
 
-    # wrapping functions for hiding the dummy array passed to getter functions
+    # wrapping functions for hiding the index array passed to getter functions
     def get_profile_U(self, k=None, **kwargs):
         if k is None:
             kmin, kmax = self.get_z_grid_range()
@@ -1245,7 +1244,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             raise Exception('set_field called with undefined variable name %s' % field)
 
     # get_profile - wrapper function consistent with get_field
-    def get_profile(self, field):
+    def get_profile(self, field, **kwargs):
         """
         Retrieve a 1D vertical profile. Field is one of 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'.
         """
