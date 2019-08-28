@@ -12,11 +12,11 @@ from amuse.rfi.core import CodeInterface
 from amuse.rfi.core import remote_function
 from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.support.parameter_tools import CodeWithNamelistParameters
-from .dalesreader import make_file_reader
+from dalesreader import make_file_reader
 from omuse.units import units
 from parameters import namelist_parameters
 
-
+ 
 class DalesInterface(CodeInterface,
                      CommonCodeInterface,
                      StoppingConditionInterface,
@@ -614,7 +614,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         # Look up input directory
         if "case" in options:
             if inputdir is None:
-                inputdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dales-repo", "cases",
+                inputdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "cases",
                                         options["case"])
             else:
                 print("Dales case directory specification %s ignored, because it was already set to %s" %
