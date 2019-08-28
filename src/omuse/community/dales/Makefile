@@ -67,7 +67,7 @@ ifeq ($(DOWNLOAD_CODES), latest)
     GIT_CLONE_CMD = git clone --depth=1 -b $(DALES_GIT_BRANCH)
 endif
 
-all: dales dales_worker test/run_dales
+all: dales dales_worker test/run_dales data
 
 update: $(DALESDIR) 
 	cd $(DALESDIR); git pull
@@ -107,3 +107,7 @@ $(DALESDIR):
 	@echo "ERROR: need to download Dales, but DOWNLOAD_CODES is not set" 
 	@false 
 endif
+
+data:
+	mkdir -p data
+	cp -r dales-repo/cases data/
