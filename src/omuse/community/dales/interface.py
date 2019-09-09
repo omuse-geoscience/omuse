@@ -530,23 +530,20 @@ class DalesInterface(CodeInterface,
 
     @remote_function
     def write_restart():
-        returns()
-
-    @remote_function
-    def write_restart():
+        """Write a Dales restart file at the current time stamp
+        """
         returns()
 
 
 class Dales(CommonCode, CodeWithNamelistParameters):
     """OMUSE Dales Interface.
 
-    If *workdir* doesn't exist, and either inputdir or case is given, input files are copied from the provided directory to workdir.
-    If *workdir* doesn't exist, and no case or input files are provided, built-in defaults are used.
-
     Parameters
     ----------
     workdir : str, optional
-        Working directory for DALES. Output files are placed here.
+        Working directory for DALES. Output files are placed here. If *workdir* doesn't exist, and either inputdir or
+        case is given, input files are copied from the provided directory to workdir.
+        If *workdir* doesn't exist, and no case or input files are provided, built-in defaults are used.
     exp : int, optional
         Experiment number, used to number input files, e.g. prof.inp.001 .
     inputdir : str, optional
@@ -1024,6 +1021,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     # wrapping functions for hiding the index array passed to getter functions
     def get_profile_U(self, k=None, **kwargs):
+        """Dales eastward wind profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Eastward vertical wind profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1032,6 +1043,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_U_(indices, **kwargs)
 
     def get_profile_V(self, k=None, **kwargs):
+        """Dales northward wind profile retrieval method
+
+         Parameters
+         ----------
+         k : integer array, optional
+             Restrict profile to this set of vertical indices.
+         async : boolean, optional
+             Execute function asynchronously, return request object
+
+         Returns
+         -------
+         numpy.array
+            Northward vertical wind profile
+         """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1040,6 +1065,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_V_(indices, **kwargs)
 
     def get_profile_W(self, k=None, **kwargs):
+        """Dales upward wind profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Upward vertical wind profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1, **kwargs)
@@ -1048,6 +1087,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_W_(indices)
 
     def get_profile_THL(self, k=None, **kwargs):
+        """Dales liquid water virtual temperature profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Liquid water virtual temperature vertical profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1056,6 +1109,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_THL_(indices, **kwargs)
 
     def get_profile_QT(self, k=None, **kwargs):
+        """Dales total humidity profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Total humidity vertical profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1064,6 +1131,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_QT_(indices, **kwargs)
 
     def get_profile_QL(self, k=None, **kwargs):
+        """Dales liquid water content profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Liquid water content vertical profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1072,6 +1153,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_QL_(indices, **kwargs)
 
     def get_profile_QL_ice(self, k=None, **kwargs):
+        """Dales ice water content profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Ice water content vertical profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1080,6 +1175,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_QL_ice_(indices, **kwargs)
 
     def get_profile_QR(self, k=None, **kwargs):
+        """Dales rain water content profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Rain water content vertical profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1088,6 +1197,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_QR_(indices, **kwargs)
 
     def get_profile_E12(self, k=None, **kwargs):
+        """Dales turbulence kinetic energy profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Turbulence kinetic energy vertical profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1096,6 +1219,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_E12_(indices, **kwargs)
 
     def get_profile_T(self, k=None, **kwargs):
+        """Dales temperature profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Temperature vertical profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1104,7 +1241,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_profile_T_(indices, **kwargs)
 
     def get_zf(self, k=None, **kwargs):
-        #print('get_zf', kwargs)
+        """Dales full level heights retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Full level heights
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1113,6 +1263,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_zf_(indices, **kwargs)
 
     def get_zh(self, k=None, **kwargs):
+        """Dales half level heights retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Half level heights
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1120,7 +1284,43 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             indices = k
         return self.get_zh_(indices, **kwargs)
 
+    def get_presf(self, k=None, **kwargs):
+        """Dales full level mean pressure retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Full level mean pressure profile
+        """
+        if k is None:
+            kmin, kmax = self.get_z_grid_range()
+            indices = numpy.arange(kmin, kmax + 1)
+        else:
+            indices = k
+        return self.get_presf_(indices, **kwargs)
+
     def get_presh(self, k=None, **kwargs):
+        """Dales half level mean pressure retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Half level mean pressure profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1128,15 +1328,21 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             indices = k
         return self.get_presh_(indices, **kwargs)
 
-    def get_presf(self, k=None, **kwargs):
-        if k is None:
-            kmin, kmax = self.get_z_grid_range()
-            indices = numpy.arange(kmin, kmax + 1)
-        else:
-            indices = k
-        return self.get_presf_(indices, **kwargs)
-    
     def get_rhof(self, k=None, **kwargs):
+        """Dales mean density profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Full level mean density profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1145,6 +1351,20 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return self.get_rhof_(indices, **kwargs)
 
     def get_rhobf(self, k=None, **kwargs):
+        """Dales base density profile retrieval method
+
+        Parameters
+        ----------
+        k : integer array, optional
+            Restrict profile to this set of vertical indices.
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            Full level density base profile
+        """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
             indices = numpy.arange(kmin, kmax + 1)
@@ -1152,10 +1372,33 @@ class Dales(CommonCode, CodeWithNamelistParameters):
             indices = k
         return self.get_rhobf_(indices, **kwargs)
 
-    # retrieve a 3D field
-    # indices are one-based, for zero-based index access use the grids
-    # field is 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'
     def get_field(self, field, imin=1, imax=None, jmin=1, jmax=None, kmin=1, kmax=None, **kwargs):
+        """Dales volume field retrieval method
+
+        Parameters
+        ----------
+        field : str
+                Variable shortname: either LWP, RWP, TWP, U, V, W, THL, T, QT, QL, Qsat
+        imin : integer, optional
+               Lower one-based x-bound of data block
+        imax : integer, optional
+               Upper one-based x-bound of data block
+        jmin : integer, optional
+               Lower one-based y-bound of data block
+        jmax : integer, optional
+               Upper one-based y-bound of data block
+        kmin : integer, optional
+               Lower one-based z-bound of data block
+        kmax : integer, optional
+               Upper one-based z-bound of data block
+        async : boolean, optional
+            Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            3D block containing variable values
+        """
 
         grid_range = ()
         if imax is None or jmax is None or kmax is None:
@@ -1214,6 +1457,23 @@ class Dales(CommonCode, CodeWithNamelistParameters):
     # indices are one-based, for zero-based index access use the grids
     # field is 'U', 'V', 'W', 'THL', 'QT'
     def set_field(self, field, a, imin=1, jmin=1, kmin=1, **kwargs):
+        """Dales volume field insertion method
+
+        Parameters
+        ----------
+        field : str
+                prognostic variable shortname: either U, V, W, THL, QT
+        a    :  numpy.array
+                Block of values for substitution in state
+        imin :  integer, optional
+                Lower one-based x-bound of data block
+        jmin :  integer, optional
+                Lower one-based y-bound of data block
+        kmin :  integer, optional
+                Lower one-based z-bound of data block
+        async : boolean, optional
+                Execute function asynchronously, return request object
+        """
 
         # set max indices from the size of a 
         try:
@@ -1245,8 +1505,19 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
     # get_profile - wrapper function consistent with get_field
     def get_profile(self, field, **kwargs):
-        """
-        Retrieve a 1D vertical profile. Field is one of 'U', 'V', 'W', 'THL', 'QT', 'QL', 'E12', 'T'.
+        """Dales generic profile retrieval method
+
+        Parameters
+        ----------
+        field : str
+                Variable shortname: either U, V, W, THL, T, QT, QL, E12
+        async : boolean, optional
+                Execute function asynchronously, return request object
+
+        Returns
+        -------
+        numpy.array
+            1D array containing mean vertical profile values
         """
         profile = None
         kmin, kmax = self.get_z_grid_range()
@@ -1272,25 +1543,74 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         return profile
 
     def get_itot(self):
+        """Dales number of grid cells in x-direction
+
+        Returns
+        -------
+        int
+            Number of grid cells along U-direction
+        """
         return self.get_params_grid()[0]
 
     def get_jtot(self):
+        """Dales number of grid cells in y-direction
+
+        Returns
+        -------
+        int
+            Number of grid cells along V-direction
+        """
         return self.get_params_grid()[1]
 
     def get_ktot(self):
+        """Dales number of grid cells in z-direction
+
+        Returns
+        -------
+        int
+            Number of vertical layers
+        """
         return self.get_params_grid()[2]
 
     def get_xsize(self):
+        """Dales domain extent in x-direction
+
+        Returns
+        -------
+        float
+            Domain length (in m) along U-direction
+        """
         return self.get_params_grid()[3]
 
     def get_ysize(self):
+        """Dales domain extent in y-direction
+
+        Returns
+        -------
+        float
+            Domain length (in m) along V-direction
+        """
         return self.get_params_grid()[4]
 
     def get_dx(self):
+        """Dales grid cell size in x-direction
+
+        Returns
+        -------
+        float
+            Grid resolution (in m) along U-direction
+        """
         itot, jtot, ktot, x, y = self.get_params_grid()
         return x / itot
 
     def get_dy(self):
+        """Dales grid cell size in y-direction
+
+        Returns
+        -------
+        float
+            Grid resolution (in m) along V-direction
+        """
         itot, jtot, ktot, x, y = self.get_params_grid()
         return y / jtot
 
