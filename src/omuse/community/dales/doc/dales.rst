@@ -3,6 +3,7 @@ DALES interface
 
 This is the OMUSE interface to DALES, the Dutch Atmospheric Large-Eddy Simulation.
 
+autodoc_mock_imports = ["amuse"]
 .. autoclass:: omuse.community.dales.interface.Dales
    :members:
 
