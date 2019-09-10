@@ -40,7 +40,8 @@ release = u''
 # ones.
 extensions = ['sphinx.ext.autodoc','sphinx.ext.napoleon']
 
-autodoc_mock_imports = ["amuse", "netCDF4"]
+# Mock omuse units due to broken imports
+autodoc_mock_imports = ["amuse", "netCDF4", "omuse.units"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
