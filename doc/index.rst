@@ -12,6 +12,7 @@ Welcome to OMUSE's documentation!
 
    installing
    dales/dales
+   asynchronous
    singularity
 	    
 
