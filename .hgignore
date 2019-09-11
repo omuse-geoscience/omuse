@@ -43,3 +43,7 @@ src/omuse/community/dales/dales-repo/*
 src/omuse/community/oifs/oifslib/*
 src/omuse/community/oifs/oifs-repo/*
 src/omuse/community/spifs/*
+src/omuse/community/iemic/iemic_worker*
+src/omuse/community/iemic/worker_code.*
+src/omuse/community/iemic/src/
+.pytest_cache/
