@@ -13,8 +13,9 @@ Welcome to OMUSE's documentation!
    installing
    dales/dales
    asynchronous
+   units
    singularity
-	    
+
 
 Indices and tables
 ==================
