@@ -1372,7 +1372,7 @@ function set_vert_grid_option(option) result (ret)
   character (char_len), intent(in) :: option
   ret=0
 
-  if (option == 'file' .OR. option == 'internal') then
+  if (option == 'file' .OR. option == 'internal' .OR. option=='amuse') then
     vert_grid_opt = option
   else 
     ret=-1
