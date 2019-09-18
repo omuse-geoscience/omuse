@@ -626,7 +626,7 @@ class POP(CommonCode):
 
     def commit_parameters(self):
         self.set_nprocs(self.nprocs)
-        if self.parameters.topography_option=='amuse':
+        if self.parameters.vert_grid_opt=='amuse':
             kmax=self.get_number_of_vertical_levels()
             if len(self.parameters.vertical_layer_thicknesses==kmax):
                 self.set_dz(self.parameters.vertical_layer_thicknesses)
@@ -744,7 +744,7 @@ class POP(CommonCode):
             "get_vert_grid_option",
             "set_vert_grid_option",
             "vert_grid_option",
-            "Option for vertical grid should be either \'internal\' or \'file\'",
+            "Option for vertical grid should be either \'internal\', \'amuse\' or \'file\'",
             default_value = 'internal'
         )
         object.add_method_parameter(
