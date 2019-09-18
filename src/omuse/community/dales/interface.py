@@ -1279,7 +1279,7 @@ class Dales(CommonCode, CodeWithNamelistParameters):
         """
         if k is None:
             kmin, kmax = self.get_z_grid_range()
-            indices = numpy.arange(kmin, kmax + 1)
+            indices = numpy.arange(kmin, kmax + 2)
         else:
             indices = k
         return self.get_zh_(indices, **kwargs)
