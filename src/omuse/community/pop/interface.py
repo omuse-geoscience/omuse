@@ -626,7 +626,7 @@ class POP(CommonCode):
 
     def commit_parameters(self):
         self.set_nprocs(self.nprocs)
-        if self.parameters.vert_grid_opt=='amuse':
+        if self.parameters.vert_grid_option=='amuse':
             kmax=self.get_number_of_vertical_levels()
             if len(self.parameters.vertical_layer_thicknesses==kmax):
                 self.set_dz(self.parameters.vertical_layer_thicknesses)
