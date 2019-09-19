@@ -13,7 +13,7 @@ mkdir ${SINGULARITY_ROOTFS}/opt/splib
 yum -y update
 yum install -y epel-release
 yum groupinstall -y "Development Tools"
-yum install -y git mercurial gcc-gfortran cmake python-devel python-pip python-wheel wget openmpi-devel mpi4py-openmpi netcdf-devel netcdf-fortran-devel fftw-devel gmp-devel mpfr-devel gsl-devel atls atlas-devel blas-devel lapack-devel perl-Digest-MD5 perl-Time-Piece perl-IO-Compress
+yum install -y git mercurial gcc-gfortran cmake python-devel python-pip python-wheel wget openmpi-devel mpi4py-openmpi netcdf-devel netcdf-fortran-devel fftw-devel gmp-devel mpfr-devel gsl-devel atls atlas-devel blas-devel lapack-devel perl-Digest-MD5 perl-Time-Piece perl-IO-Compress tkinter
 
 pip install --upgrade --ignore-installed pip setuptools
 pip install moviepy f90nml numpy scipy matplotlib nose h5py docutils netCDF4 shapely psutil cython
