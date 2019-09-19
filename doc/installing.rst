@@ -5,7 +5,7 @@ Install required programs and libraries:
 
 * make
 * cmake
-* python
+* python (version 2 or 3, 2 is better supported)
 * gcc
 * gfortran
 * mpi
