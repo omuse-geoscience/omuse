@@ -103,6 +103,7 @@ RCP<ParameterList> continuationParams(new ParameterList());
 RCP<Epetra_Comm> comm;
 RCP<Ocean> ocean;
 Continuation<RCP<Ocean>, RCP<ParameterList>> continuation;
+std::ofstream devNull("/dev/null");
 #pragma GCC diagnostic pop
 }
 
@@ -110,6 +111,7 @@ int32_t initialize()
 {
     comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
     outFile = rcpFromRef(std::cout);
+    cdataFile = rcpFromRef(devNull);
     return set_default_params();
 }
 
