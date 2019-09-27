@@ -5,11 +5,13 @@
 
 #include "Ocean.H"
 #include "Continuation.H"
+#include "Utils.H"
 
 #include "interface.hpp"
 
 namespace
 {
+using namespace Utils;
 using namespace Teuchos;
 
 ParameterList&
@@ -102,7 +104,7 @@ RCP<ParameterList> continuationParams(new ParameterList());
 
 RCP<Epetra_Comm> comm;
 RCP<Ocean> ocean;
-Continuation<RCP<Ocean>, RCP<ParameterList>> continuation;
+RCP<Continuation<RCP<Ocean>, RCP<ParameterList>>> continuation;
 std::ofstream devNull("/dev/null");
 #pragma GCC diagnostic pop
 }
@@ -150,7 +152,7 @@ int32_t commit_parameters()
     ocean = rcp(new Ocean(comm, oceanParams));
     ocean->setPar("Combined Forcing", 0.0);
     ocean->getState('V')->PutScalar(0.0);
-    continuation = ContinuationType(ocean, continuationParams);
+    continuation = rcp(new ContinuationType(ocean, continuationParams));
     return 0;
 }
 
@@ -162,10 +164,15 @@ int32_t initialize_code()
 
 int32_t step()
 {
-    int status = continuation.run();
+    int status = continuation->run();
 
     return status;
 }
 
 int32_t cleanup_code()
-{ return 0; }
+{
+    continuation = Teuchos::null;
+    ocean = Teuchos::null;
+    comm = Teuchos::null;
+    return 0;
+}

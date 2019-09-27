@@ -10,12 +10,6 @@ class iemicInterfaceTests(TestWithMPI):
         instance.initialize()
         instance.commit_parameters()
         instance.initialize_code()
-        instance.stop()
-
-    def test2(self):
-        instance = iemicInterface()
-        instance.initialize()
-        instance.commit_parameters()
-        instance.initialize_code()
         instance.step()
+        instance.cleanup_code()
         instance.stop()
