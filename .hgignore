@@ -47,3 +47,5 @@ src/omuse/community/iemic/iemic_worker*
 src/omuse/community/iemic/worker_code.*
 src/omuse/community/iemic/src/
 .pytest_cache/
+# Default ignored files
+src/omuse/community/dales/.idea/workspace.xml

@@ -28,13 +28,15 @@ CODE_GENERATOR = $(AMUSE_DIR)/build.py
 
 # on ECMWF Cray, all compilers are invoked as ftn, so this test does not work. Specify  DALES_FCFLAGS outside this script on Cray.
 
-ifeq ($(FC), ifort)
+ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
+# using ifort
   DALES_FCFLAGS ?= -r8 -xHost -fpp
   SYST ?= localpc_ifort
   export SYST
 endif
 
-ifeq ($(FC), gfortran)
+ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
+# using gfortran
   DALES_FCFLAGS ?= -fdefault-real-8 -cpp
   SYST ?= gfortran
   export SYST
@@ -65,7 +67,7 @@ ifeq ($(DOWNLOAD_CODES), latest)
     GIT_CLONE_CMD = git clone --depth=1 -b $(DALES_GIT_BRANCH)
 endif
 
-all: dales dales_worker test/fortran_test
+all: dales dales_worker test/run_dales data
 
 update: $(DALESDIR) 
 	cd $(DALESDIR); git pull
@@ -81,7 +83,7 @@ dales_worker: worker_code.f90 $(OBJS) interface.f90 dales
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
-test/fortran_test: test/fortran_test.f90 $(OBJS) interface.f90 dales
+test/run_dales: test/run_dales.f90 $(OBJS) interface.f90 dales
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) -c interface.f90 -o interface.o
 	$(MPIFC) $(FCFLAGS) $(DALES_FCFLAGS) -I$(INCLUDEDIR) $(SC_FLAGS) $(FS_FLAGS) $< interface.o $(CODE_LIB) $(FS_LIBS) -o $@
 
@@ -105,3 +107,7 @@ $(DALESDIR):
 	@echo "ERROR: need to download Dales, but DOWNLOAD_CODES is not set" 
 	@false 
 endif
+
+data:
+	mkdir -p data
+	cp -r dales-repo/cases data/

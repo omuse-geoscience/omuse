@@ -9,12 +9,13 @@ module dales_interface
             my_task, master_task, gatherlayer, &
             FIELDID_U, FIELDID_V, FIELDID_W, FIELDID_THL, FIELDID_QT, &
             u_tend, v_tend, thl_tend, qt_tend, ql_tend, ps_tend, ql_ref, qt_alpha, &
-            gatherlayeravg, gathervol, localindex, gatherLWP, gatherCloudFrac, gather_ice, &
+            gatherlayeravg, gathervol, localindex, gatherlwp, gathercloudfrac, gatherlayericeavg, geticecontent, &
             qt_forcing_type, QT_FORCING_GLOBAL, QT_FORCING_LOCAL, QT_FORCING_VARIANCE, &
             u_nudge, v_nudge, thl_nudge, qt_nudge, u_nudge_time, v_nudge_time, thl_nudge_time, qt_nudge_time
 
     !TODO: Expose everything so this module only depends on daleslib
     use modfields, only : u0, v0, w0, thl0, qt0, ql0, qsat, e120, tmp0, sv0, um, vm, wm, thlm, qtm, surf_rain
+    use modpois, only : p
     use modglobal, only : i1, j1, k1, itot, jtot, kmax, lmoist
     use modsurfdata, only : ps, ustar, z0m, z0h, tskin, qskin, LE, H, obl, thlflux, qtflux, svflux, dudz, dvdz, &
             dqtdz, dthldz, thls, qts, thvs, svs, ustin, wqsurf, wtsurf, wsvsurf, z0, z0mav, z0hav
@@ -42,12 +43,14 @@ contains
     function set_qt_forcing(forcing_type) result(ret)
         integer :: ret
         integer, intent(in) :: forcing_type
-        if (forcing_type >= 0 .and. forcing_type <= 2) then
-            qt_forcing_type = forcing_type
-            ret = 0
-        else
+        if (forcing_type >= 0 .and. forcing_type <= 3) then
+           write(*,*) 'Setting qt forcing type', forcing_type
+           qt_forcing_type = forcing_type
+           ret = 0
+         else
+            write(*,*) 'qt forcing type out of range', forcing_type
             ret = 1
-        endif
+         endif
     end function set_qt_forcing
 
     ! Sets the dales input file
@@ -325,7 +328,7 @@ contains
         real, dimension(kmax) :: a_
         integer :: i, ret
 
-        ret = gather_ice(a_)
+        ret = gatherlayericeavg(a_)
         do i = 1, n
             a(i) = a_(g_k(i))
         enddo
@@ -441,7 +444,6 @@ contains
         ret = 0
     end function get_rhobf_
       
-
     ! Cloud fraction getter
     ! Note: in contrast to the other profile getters,
     ! this one relies on g_k to define slabs
@@ -452,7 +454,7 @@ contains
         real, dimension(n), intent(out) :: a
         integer :: ret
 
-        ret = gatherCloudFrac(ql0(2:i1, 2:j1, :), g_k, a)
+        ret = gathercloudfrac(ql0(2:i1, 2:j1, :), g_k, a)
     end function get_cloudfraction
     !!! end of vertical profile getters
 
@@ -466,13 +468,11 @@ contains
         integer :: ret
 
         rain = sum(surf_rain(2:i1, 2:j1))
-        write (*, *) 'local rain sum', rain
 
         !in-place reduction
         if (myid == 0) then
             CALL mpi_reduce(MPI_IN_PLACE, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
             rain = rain / (itot * jtot)
-            write (*, *) 'global rain avg', rain
         else
             CALL mpi_reduce(rain, rain, 1, MY_REAL, MPI_SUM, 0, comm3d, ret)
         endif
@@ -848,6 +848,34 @@ contains
         ret = gathervol(g_i, g_j, g_k, a, n, ql0(2:i1, 2:j1, 1:kmax))
     end function get_field_QL
 
+    ! Ice water content volume field getter
+    function get_field_QL_ice(g_i, g_j, g_k, a, n) result(ret)
+        integer, intent(in) :: n
+        integer, dimension(n), intent(in) :: g_i, g_j, g_k
+        real, dimension(n), intent(out) :: a
+        integer :: ret
+        real    :: qli(2:i1, 2:j1, 1:kmax)
+        ret = geticecontent(qli)
+        ret = gathervol(g_i, g_j, g_k, a, n, qli)
+    end function get_field_QL_ice
+
+    ! Returns the rain water profile
+    function get_field_QR(g_i, g_j, g_k, a, n) result(ret)
+        use modmicrodata, only : iqr
+        use modglobal, only : nsv
+        integer, intent(in) :: n
+        integer, dimension(n), intent(in) :: g_i, g_j, g_k
+        real, dimension(n), intent(out) :: a
+        integer :: ret
+
+        if (nsv >= iqr) then
+            ret = gathervol(g_i, g_j, g_k, a, n, sv0(2:i1, 2:j1, 1:kmax, iqr))
+        else
+            a = 0  ! Dales doesn't have the requested rain field
+            ret = 1
+        endif
+    end function get_field_QR
+
     ! Saturation humidity volume field getter
     function get_field_Qsat(g_i, g_j, g_k, a, n) result(ret)
         integer, intent(in) :: n
@@ -874,6 +902,15 @@ contains
         integer :: ret
         ret = gathervol(g_i, g_j, g_k, a, n, tmp0(2:i1, 2:j1, 1:kmax))
     end function get_field_T
+
+    ! Modified pressure volume field getter
+    function get_field_pi(g_i, g_j, g_k, a, n) result(ret)
+        integer, intent(in) :: n
+        integer, dimension(n), intent(in) :: g_i, g_j, g_k
+        real, dimension(n), intent(out) :: a
+        integer :: ret
+        ret = gathervol(g_i, g_j, g_k, a, n, p(2:i1, 2:j1, 1:kmax))
+    end function get_field_pi
 
     ! Downwelling shortwave radiative flux getter
     function get_field_rswd(g_i, g_j, g_k, a, n) result(ret)
@@ -972,7 +1009,7 @@ contains
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
-        ret = gatherLWP(g_i, g_j, a, n, ql0(2:i1, 2:j1, 1:kmax))
+        ret = gatherlwp(g_i, g_j, a, n, ql0(2:i1, 2:j1, 1:kmax))
     end function get_field_LWP
 
     ! getter function for TWP - Total Water Path - 2D field, vertical integral of qt
@@ -981,7 +1018,7 @@ contains
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
-        ret = gatherLWP(g_i, g_j, a, n, qt0(2:i1, 2:j1, 1:kmax))
+        ret = gatherlwp(g_i, g_j, a, n, qt0(2:i1, 2:j1, 1:kmax))
     end function get_field_TWP
 
     ! Rain water path - like LWP but for rain water
@@ -991,7 +1028,7 @@ contains
         integer, dimension(n), intent(in) :: g_i, g_j
         real, dimension(n), intent(out) :: a
         integer :: ret
-        ret = gatherLWP(g_i, g_j, a, n, sv0(2:i1, 2:j1, 1:kmax, iqr))
+        ret = gatherlwp(g_i, g_j, a, n, sv0(2:i1, 2:j1, 1:kmax, iqr))
     end function get_field_RWP
 
     ! Surface friction velocity field getter
