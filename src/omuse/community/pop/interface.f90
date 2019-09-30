@@ -1960,6 +1960,9 @@ subroutine calc_tpoints_global
 !
 !-----------------------------------------------------------------------
 
+    TLAT_G=0
+    TLON_G=0
+
     do j=2,ny_global
     do i=2,nx_global
 
