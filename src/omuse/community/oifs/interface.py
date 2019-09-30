@@ -1,4 +1,6 @@
 from __future__ import print_function
+from __future__ import division
+
 import os
 import numpy
 import datetime
@@ -421,13 +423,13 @@ class OpenIFS(CommonCode):
         object.add_method("EVOLVED","evolve_model_from_cloud_scheme")
 
     def get_start_datetime(self):
-        d = self.get_start_date()
-        years = d / 10000
-        months = (d % 10000) / 100
+        d = int(self.get_start_date())
+        years = d // 10000
+        months = (d % 10000) // 100
         days = d % 100
-        t = self.get_start_time().value_in(units.s)
-        hours = t / 3600
-        minutes = (t - 3600 * hours)/60
+        t = int(self.get_start_time().value_in(units.s))
+        hours = t // 3600
+        minutes = (t - 3600 * hours)//60
         seconds = t - 3600 * hours - 60 * minutes
         return datetime.datetime(year=years,
                                  month=months,

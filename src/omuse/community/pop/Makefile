@@ -2,7 +2,9 @@
 # config.mk will be made after ./configure has run
 AMUSE_DIR?=$(shell amusifier --get-amuse-dir)
 -include $(AMUSE_DIR)/config.mk
+.NOTPARALLEL:
 
+export PYTHONPATH := $(PYTHONPATH):$(AMUSE_DIR)/src:$(AMUSE_DIR)/test
 MPIFC ?= mpif90
 
 #MPIFC = ifort -I/cm/shared/apps/mpich/ge/open64/64/3.1/include -L/cm/shared/apps/mpich/ge/open64/64/3.1/lib -lmpich 
@@ -63,7 +65,7 @@ distclean: clean
 	rm -rf eSalsa-POP
 
 src_%/libpop.a: src_%/POP_DomainSizeMod.F90 eSalsa-POP
-	make -C src_$* POPARCH=$(POPARCH) POPEXEDIR="$(CURDIR)/src_$*" POPDIR="$(POPDIR)" AMUSE_DIR="$(realpath $(AMUSE_DIR))" POPFFLAGS="$(POPFFLAGS)" MPIFC="$(MPIFC)"
+	make -j1 -C src_$* POPARCH=$(POPARCH) POPEXEDIR="$(CURDIR)/src_$*" POPDIR="$(POPDIR)" AMUSE_DIR="$(realpath $(AMUSE_DIR))" POPFFLAGS="$(POPFFLAGS)" MPIFC="$(MPIFC)"
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
