@@ -1,3 +1,4 @@
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 # %run make_eddy_track_AVISO.py
 
@@ -34,12 +35,12 @@ Scroll down to line ~640 to get started
 #mpl_use('Agg')
 import sys
 import glob as glob
-from py_eddy_tracker_classes import plt, np, dt, Dataset, time, \
+from .py_eddy_tracker_classes import plt, np, dt, Dataset, time, \
                                     datestr2datetime, gaussian_resolution, \
                                     get_cax, collection_loop, track_eddies, \
                                     anim_figure, pcol_2dxy
-from py_eddy_tracker_property_classes import SwirlSpeed
-import make_eddy_tracker_list_obj as eddy_tracker
+from .py_eddy_tracker_property_classes import SwirlSpeed
+from . import make_eddy_tracker_list_obj as eddy_tracker
 import scipy.ndimage as ndimage
 import scipy.interpolate as interpolate
 import scipy.spatial as spatial
@@ -47,7 +48,7 @@ from dateutil import parser
 from mpl_toolkits.basemap import Basemap
 import yaml
 from datetime import datetime
-import cPickle as pickle
+import pickle as pickle
 
 
 def timeit(method):
@@ -58,7 +59,7 @@ def timeit(method):
         ts = datetime.now()
         result = method(*args, **kw)
         te = datetime.now()
-        print '-----> %s : %s sec' % (method.__name__, te - ts)
+        print('-----> %s : %s sec' % (method.__name__, te - ts))
         return result
     return timed
 
@@ -141,9 +142,9 @@ class PyEddyTracker (object):
         LONMIN, LONMAX = self.LONMIN, self.LONMAX
         LATMIN, LATMAX = self.LATMIN, self.LATMAX
 
-        print '--- Setting initial indices to *%s* domain' % self.THE_DOMAIN
-        print '------ LONMIN = %s, LONMAX = %s, LATMIN = %s, LATMAX = %s' % (
-                                           LONMIN, LONMAX, LATMIN, LATMAX)
+        print('--- Setting initial indices to *%s* domain' % self.THE_DOMAIN)
+        print('------ LONMIN = %s, LONMAX = %s, LATMIN = %s, LATMAX = %s' % (
+                                           LONMIN, LONMAX, LATMIN, LATMAX))
         LATMIN_OFFSET = LATMIN + (0.5 * (LATMAX - LATMIN))
         self.i0, _ = self.nearest_point(LONMIN, LATMIN_OFFSET)
         self.i1, _ = self.nearest_point(LONMAX, LATMIN_OFFSET)
@@ -197,7 +198,7 @@ class PyEddyTracker (object):
         around 2d variables.
         Padded matrices are needed only for geostrophic velocity computation.
         """
-        print '--- Setting padding indices with PAD = %s' % pad
+        print('--- Setting padding indices with PAD = %s' % pad)
 
         self.pad = pad
 
@@ -297,7 +298,7 @@ class PyEddyTracker (object):
         method getSurfGeostrVel()
         NOTE: this should serve for ROMS too
         """
-        print '--- Computing Coriolis (f), dx (pm), dy (pn) for padded grid'
+        print('--- Computing Coriolis (f), dx (pm), dy (pn) for padded grid')
         # Get GRAVITY / Coriolis
         self._gof = np.sin(np.deg2rad(self.latpad()))
         self._gof *= 4.
@@ -399,7 +400,7 @@ class PyEddyTracker (object):
         Use Basemap to make a landmask
         Format is 1 == ocean, 0 == land
         """
-        print '--- Computing Basemap'
+        print('--- Computing Basemap')
         # Create Basemap instance for Mercator projection.
         self.M = Basemap(
             projection='merc',
@@ -870,10 +871,10 @@ if __name__ == '__main__':
     try:
         YAML_FILE = sys.argv[1]
     except Exception:
-        print("".join(("\nTo run use 'python make_eddy_track_AVISO.py ",
-                       "eddy_tracker_configuration.yaml'\n")))
+        print(("".join(("\nTo run use 'python make_eddy_track_AVISO.py ",
+                       "eddy_tracker_configuration.yaml'\n"))))
 
-    print("\nLaunching with yaml file: %s" % YAML_FILE)
+    print(("\nLaunching with yaml file: %s" % YAML_FILE))
 
     # --------------------------------------------------------------------------
 
@@ -886,7 +887,7 @@ if __name__ == '__main__':
     # Setup configuration
     DATA_DIR = config['PATHS']['DATA_DIR']
     SAVE_DIR = config['PATHS']['SAVE_DIR']
-    print '\nOutputs saved to', SAVE_DIR
+    print('\nOutputs saved to', SAVE_DIR)
     RW_PATH = config['PATHS']['RW_PATH']
 
     DIAGNOSTIC_TYPE = config['DIAGNOSTIC_TYPE']
@@ -1050,8 +1051,8 @@ if __name__ == '__main__':
                       sla_grd.get_resolution() ** 2)
     PIXMAX = np.round((np.pi * config['RADMAX'] ** 2) /
                       sla_grd.get_resolution() ** 2)
-    print '--- Pixel range = %s-%s' % (np.int(PIXMIN),
-                                       np.int(PIXMAX))
+    print('--- Pixel range = %s-%s' % (np.int(PIXMIN),
+                                       np.int(PIXMAX)))
 
     A_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
     C_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
@@ -1065,7 +1066,7 @@ if __name__ == '__main__':
 
     START_TIME = time.time()
 
-    print '\nStart tracking'
+    print('\nStart tracking')
 
     for AVISO_FILE in AVISO_FILES:
 
@@ -1093,7 +1094,7 @@ if __name__ == '__main__':
         if active:
 
             #rec_START_TIME = time.time()
-            print '--- AVISO_FILE:', AVISO_FILE
+            print('--- AVISO_FILE:', AVISO_FILE)
 
             # Holding variables
             A_eddy.reset_holding_variables()
@@ -1107,7 +1108,7 @@ if __name__ == '__main__':
                 if 'Gaussian' in SMOOTHING_TYPE:
 
                     if 'first_record' not in locals():
-                        print '------ applying Gaussian high-pass filter'
+                        print('------ applying Gaussian high-pass filter')
                     # Set landpoints to zero
                     #np.place(sla, sla_grd.mask == 0, 0.)
                     sla[sla_grd.mask == 0] = 0.
@@ -1120,8 +1121,8 @@ if __name__ == '__main__':
                 elif 'Hanning' in SMOOTHING_TYPE:
 
                     if 'first_record' not in locals():
-                        print '------ applying %s passes of Hanning filter' \
-                                                               % SMOOTH_FAC
+                        print('------ applying %s passes of Hanning filter' \
+                                                               % SMOOTH_FAC)
                     # Do SMOOTH_FAC passes of 2d Hanning filter
                     sla = func_hann2d_fast(sla, SMOOTH_FAC)
 
@@ -1225,12 +1226,12 @@ if __name__ == '__main__':
                 A_CS = ax.contour(sla_grd.lon(),
                                   sla_grd.lat(),
                                   A_eddy.sla, A_eddy.CONTOUR_PARAMETER)
-                print A_eddy.CONTOUR_PARAMETER
+                print(A_eddy.CONTOUR_PARAMETER)
                 # Note that C_CS is in reverse order
                 C_CS = ax.contour(sla_grd.lon(),
                                   sla_grd.lat(),
                                   C_eddy.sla, C_eddy.CONTOUR_PARAMETER)
-                print C_eddy.CONTOUR_PARAMETER
+                print(C_eddy.CONTOUR_PARAMETER)
 
             else:
                 Exception
@@ -1355,8 +1356,8 @@ if __name__ == '__main__':
             if not first_record:
 
                 if A_eddy.VERBOSE:
-                    print('--- saving to nc', A_eddy.SAVE_DIR)
-                    print('--- saving to nc', C_eddy.SAVE_DIR)
+                    print(('--- saving to nc', A_eddy.SAVE_DIR))
+                    print(('--- saving to nc', C_eddy.SAVE_DIR))
                     print('+++')
 
                 A_eddy.write2netcdf(rtime)
@@ -1373,6 +1374,6 @@ if __name__ == '__main__':
     print('\n')
 
     # Total running time
-    print 'Duration', str((time.time() - START_TIME) / 3600.), 'hours!'
+    print('Duration', str((time.time() - START_TIME) / 3600.), 'hours!')
 
-    print '\nOutputs saved to', SAVE_DIR
+    print('\nOutputs saved to', SAVE_DIR)

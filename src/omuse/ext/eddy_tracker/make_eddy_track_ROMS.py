@@ -1,3 +1,4 @@
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 # %run make_eddy_track_ROMS.py
 
@@ -31,11 +32,11 @@ Version 2.0.6
 ===========================================================================
 """
 
-from py_eddy_tracker_classes import *
-from make_eddy_tracker_list_obj import *
-from make_eddy_track_AVISO import *
+from .py_eddy_tracker_classes import *
+from .make_eddy_tracker_list_obj import *
+from .make_eddy_track_AVISO import *
 from dateutil import parser
-import roms_grid as rg
+from . import roms_grid as rg
 
 
 
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     SAVE_DIR = '/marula/emason/runs2009/na_2009_7pt5km/eddy_tracking_exps/sla_2/'
 
     
-    print 'SAVE_DIR', SAVE_DIR
+    print('SAVE_DIR', SAVE_DIR)
     
     
     # Choose type of diagnostic 
@@ -368,7 +369,7 @@ if __name__ == '__main__':
         # See CSS11 section B2 (0.4 degree radius)
         PIXMIN = np.round((np.pi * RADMIN**2) / grd.get_resolution()**2)
         PIXMAX = np.round((np.pi * RADMAX**2) / grd.get_resolution()**2)
-        print '--- Pixel range = %s-%s' % (np.int(PIXMIN), np.int(PIXMAX))
+        print('--- Pixel range = %s-%s' % (np.int(PIXMIN), np.int(PIXMAX)))
         A_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
         C_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
         #A_eddy.radmin = np.float64(grd.get_resolution(radmin))
@@ -458,7 +459,7 @@ if __name__ == '__main__':
             file_time = time.time()
             filename = (DIRECTORY + MODEL.lower() + '_' + FILETYPE.lower() +
                        '_Y' + str(Yr) + 'M' + str(Mo) + '.nc')
-            print 'Opening file:', filename
+            print('Opening file:', filename)
             if start:
                 start = False
                 record_range = get_ROMS_data(filename)
@@ -494,7 +495,7 @@ if __name__ == '__main__':
             for record in np.arange(record_range):
                 
                 #rec_start_time = time.time()
-                print '--- record', record + 1
+                print('--- record', record + 1)
                 
                 # Reset holding variables to empty arrays
                 A_eddy.reset_holding_variables()
@@ -562,7 +563,7 @@ if __name__ == '__main__':
                         
                         if 'Gaussian' in SMOOTHING:
                             if 'first_record' not in locals():
-                                print '--- applying Gaussian high-pass filter to SLA'
+                                print('--- applying Gaussian high-pass filter to SLA')
                             # Set landpoints to zero
                             sla *= grd.mask()
                             # High pass filter
@@ -612,7 +613,7 @@ if __name__ == '__main__':
                 # Get contours of Q/sla parameter
                 if 'first_record' not in locals():
                 
-                    print '------ getting SLA contours for eddies'
+                    print('------ getting SLA contours for eddies')
                     contfig = plt.figure(99)
                     ax = contfig.add_subplot(111)
                 
@@ -753,16 +754,16 @@ if __name__ == '__main__':
                 #saving_start_time = time.time()
                 if not first_record:
                     if VERBOSE:
-                        print '--- saving to nc'
+                        print('--- saving to nc')
 
                     A_eddy.write2netcdf(rtime)
                     C_eddy.write2netcdf(rtime)
                 #print 'Saving the eddies', time.time() - saving_start_time, 'seconds'
                 
             # Running time for a single monthly file
-            print '--- duration', str((time.time() - file_time) / 60.), 'minutes'
+            print('--- duration', str((time.time() - file_time) / 60.), 'minutes')
   
     # Total running time    
-    print 'Duration', str((time.time() - start_time) / 3600.), 'hours!'
+    print('Duration', str((time.time() - start_time) / 3600.), 'hours!')
 
-    print '\nsavedir', savedir
+    print('\nsavedir', savedir)

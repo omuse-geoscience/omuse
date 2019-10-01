@@ -1,3 +1,4 @@
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 # %run make_eddy_tracker_list_obj.py
 
@@ -32,11 +33,11 @@ Version 2.0.6
 
 
 """
-from py_eddy_tracker_classes import *
+from .py_eddy_tracker_classes import *
 import scipy.spatial as spatial
 import scipy.interpolate as interpolate
 #from haversine import haversine # needs compiling with f2py
-import haversine_distmat_python as haversine # pure python version
+from . import haversine_distmat_python as haversine # pure python version
 from operator import itemgetter
 
 def haversine_distance_vector(lon1, lat1, lon2, lat2):
@@ -104,17 +105,17 @@ def uniform_resample(x, y, **kwargs):#, method='interp1d', kind='linear'):
        kind    : type of interpolation (interp1d only)
        extrapolate : IS NOT RELIABLE (sometimes nans occur)
     """
-    if kwargs.has_key('method'):
+    if 'method' in kwargs:
         method = kwargs['method']
     else:
         method = 'interp1d'
 
-    if kwargs.has_key('extrapolate'):
+    if 'extrapolate' in kwargs:
         extrapolate = kwargs['extrapolate']
     else:
         extrapolate = None
         
-    if kwargs.has_key('num_fac'):
+    if 'num_fac' in kwargs:
         num_fac = kwargs['num_fac']
     else:
         num_fac = 2
@@ -128,7 +129,7 @@ def uniform_resample(x, y, **kwargs):#, method='interp1d', kind='linear'):
 
     # Do 1d interpolations
     if strcompare('interp1d', method):
-        if kwargs.has_key('kind'):
+        if 'kind' in kwargs:
             kind = kwargs['kind']
         else:
             kind = 'linear'
@@ -517,8 +518,8 @@ class TrackList (object):
         """
         for track in self.tracklist:
             track.alive = False
-        print('------ all %s tracks killed for final saving'
-               % self.SIGN_TYPE.replace('one', 'onic').lower())
+        print(('------ all %s tracks killed for final saving'
+               % self.SIGN_TYPE.replace('one', 'onic').lower()))
 
     def create_netcdf(self, directory, savedir,
                       grd=None, YMIN=None, YMAX=None,
@@ -866,7 +867,7 @@ class TrackList (object):
 
         # Print final message and return
         if stopper:
-            print('All %ss saved' % self.SIGN_TYPE.replace('one', 'onic').lower())
+            print(('All %ss saved' % self.SIGN_TYPE.replace('one', 'onic').lower()))
             return
 
         # Get index to first currently active track
@@ -1079,17 +1080,17 @@ class RossbyWaveSpeed (object):
         if self.start:
             lon, lat = get_lon_lat(xpt, ypt)
             if 'Global' in self.THE_DOMAIN:
-                print "".join(('--------- setting ellipse for first tracked ',
+                print("".join(('--------- setting ellipse for first tracked ',
                             'eddy at %s, %s in the %s domain'
-                                % (lon, lat, self.THE_DOMAIN)))
+                                % (lon, lat, self.THE_DOMAIN))))
                 c = np.abs(self._get_rlongwave_spd(xpt, ypt))[0]
-                print "".join(('--------- with extratropical long baroclinic ',
-                            'Rossby wave phase speed of %s m/s' % c))
+                print("".join(('--------- with extratropical long baroclinic ',
+                            'Rossby wave phase speed of %s m/s' % c)))
             elif self.THE_DOMAIN in ('BlackSea', 'MedSea'):
-                print "".join(('--------- setting search radius of %s m for '
+                print("".join(('--------- setting search radius of %s m for '
                                 % self.distance[0],
                             'first tracked eddy at %s, %s in the %s domain'
-                                % (lon, lat, self.THE_DOMAIN)))
+                                % (lon, lat, self.THE_DOMAIN))))
             else:
                 Exception
             self.start = False
@@ -1347,20 +1348,20 @@ if __name__ == '__main__':
     index = 0
 
     trackA = track_list(index, lon_ini, lat_ini, time_ini, 0, 0)
-    print 'trackA lon:', trackA.tracklist[0].lon
+    print('trackA lon:', trackA.tracklist[0].lon)
 
     # update track 0
     trackA.update_track(0, -22, 34, 333344, 0, 0)
     trackA.update_track(0, -87, 37, 443344, 0, 0)
     trackA.update_track(0, -57, 57, 543344, 0, 0)
-    print 'trackA lon:', trackA.tracklist[0].lon
+    print('trackA lon:', trackA.tracklist[0].lon)
 
     # start a new track
     trackA.append_list(-33, 45, 57435, 0, 0)
-    print '\ntrackA lat:', trackA.tracklist[1].lat
+    print('\ntrackA lat:', trackA.tracklist[1].lat)
 
     trackA.update_track(1, -32, 32, 4453344, 0, 0)
-    print 'trackA lat:', trackA.tracklist[1].lat
+    print('trackA lat:', trackA.tracklist[1].lat)
 
     # Pickle
     output = open('data.pkl', 'wb')

@@ -1,3 +1,4 @@
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 # %run roms_grid.py
 '''
@@ -36,7 +37,7 @@ import netCDF4 as netcdf
 #from matplotlib.mlab import load
 import numpy as np
 import matplotlib.path as Path
-from make_eddy_track_AVISO import PyEddyTracker
+from .make_eddy_track_AVISO import PyEddyTracker
 from mpl_toolkits.basemap import Basemap
 
 
@@ -84,7 +85,7 @@ class RomsGrid (PyEddyTracker):
         # Initialise the grid object
         """
         super(RomsGrid, self).__init__()
-        print '\nInitialising the *RomsGrid*'
+        print('\nInitialising the *RomsGrid*')
         self.THE_DOMAIN = THE_DOMAIN
         self.PRODUCT = PRODUCT
         self.LONMIN = LONMIN
@@ -102,8 +103,8 @@ class RomsGrid (PyEddyTracker):
                 with netcdf.Dataset(root() + self.GRDFILE) as nc:
                     self.GRDFILE = root() + self.GRDFILE
             except Exception:
-                print 'No file at: ', self.GRDFILE
-                print 'or at ', root() + self.GRDFILE
+                print('No file at: ', self.GRDFILE)
+                print('or at ', root() + self.GRDFILE)
                 raise Exception # no grid file found
 
         with netcdf.Dataset(self.GRDFILE) as nc:
@@ -348,7 +349,7 @@ class RomsGrid (PyEddyTracker):
         Use Basemap to make a landmask
         Format is 1 == ocean, 0 == land
         """
-        print '--- Computing Basemap'
+        print('--- Computing Basemap')
         # Create Basemap instance for Mercator projection.
         self.M = Basemap(
             projection='merc',
