@@ -8,6 +8,11 @@ from omuse.units import units
 from omuse.units import constants
 from omuse.ext import spherical_geometry
 
+try:
+    from itertools import zip_longest
+except ImportError:
+    from itertools import izip_longest as zip_longest
+
 # Best Track/Objective Aid/Wind Radii Format 
 # http://www.nrlmry.navy.mil/atcf_web/docs/database/new/abrdeck.html
 
@@ -122,7 +127,7 @@ class ATCF_format_reader(object):
         for line in lines:
           l=line[:-1].split(',')
           item=dict()
-          for x,y in itertools.izip_longest(fields,l[:len(fields)], fillvalue=""):
+          for x,y in zip_longest(fields,l[:len(fields)], fillvalue=""):
               item[x]=y
           data.append(item)
         self.data=data
@@ -214,7 +219,7 @@ class HollandHurricane(object):
         self.track=track
         t0=track[0]["time"]
         self.ndata=len(track)
-        self.times=map(lambda x: (x["time"]-t0).total_seconds(),track) | units.s
+        self.times=[(x["time"]-t0).total_seconds() for x in track] | units.s
     def add_translation_velocity(self,track):
         n=len(track)
         for i in range(n):

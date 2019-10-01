@@ -1,6 +1,6 @@
 from amuse.units.trigo import *
 from omuse.units import units
-import _seawater
+from . import _seawater
 
 def dens(S,T,P=0. | units.dbar):
     """  Density of sea water """
@@ -132,23 +132,23 @@ if __name__=="__main__":
   S=35. | units.psu
   T=10 | units.Celsius
   P=0. | units.dbar
-  print EOS_linear( S,T)
-  print EOS_linear.__doc__
-  print EOS_UNESCO( S,T)
-  print EOS_UNESCO.__doc__
+  print(EOS_linear( S,T))
+  print(EOS_linear.__doc__)
+  print(EOS_UNESCO( S,T))
+  print(EOS_UNESCO.__doc__)
 
   for x in [dens,svan,sigma,drhodt,alpha,drhods,beta, R_cond,cond, heatcap,
        adtgrad,temppot,temppot0,soundvel]:
-      print x(S,T,P)
-      print x.__doc__
+      print(x(S,T,P))
+      print(x.__doc__)
       
   R=cond(S,T,P)    
-  print salt(R,T,P)
-  print salt.__doc__
-  print freezept(S,P)
-  print freezept.__doc__
-  print depth(P,0.)
-  print depth.__doc__
+  print(salt(R,T,P))
+  print(salt.__doc__)
+  print(freezept(S,P))
+  print(freezept.__doc__)
+  print(depth(P,0.))
+  print(depth.__doc__)
   
   
 

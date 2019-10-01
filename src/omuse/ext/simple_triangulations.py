@@ -77,7 +77,7 @@ def unstructured_square_domain_sets(L=1000 | units.km,N=10):
     x,y,triangles,boundaries=square_domain(N=N)
     nodes=UnstructuredGrid(len(x))
     elements=UnstructuredGrid(len(triangles))
-    nb=map(lambda x:len(x),boundaries)
+    nb=[len(x) for x in boundaries]
     bnodes=numpy.zeros(numpy.sum(nb)-3, dtype='i')
     bnodes[:nb[0]]=boundaries[0][:]
     bnodes[nb[0]:nb[0]+nb[1]-1]=boundaries[1][1:]
@@ -111,5 +111,5 @@ if __name__=="__main__":
     for i,b in enumerate(boundaries):
       b.nodes.vmark=i+1
 
-    print elements[0].nodes.indices()
-    print boundaries.nodes
+    print(elements[0].nodes.indices())
+    print(boundaries.nodes)

@@ -161,7 +161,7 @@ def test_transform():
     dth=(a1<a2)*a1+(a1>=a2)*a2
     assert abs(ys-y0).max().number < 1.e-12
     assert in_rad(dth).max() < 1.e-12
-    print "test ok"
+    print("test ok")
 
 
 if __name__=="__main__":
