@@ -260,7 +260,7 @@ class CDORemapper(CommonCode):
         #construct a cell_corners array that CDO understands
         dims = grid.shape
         cell_corners = numpy.zeros((2, grid.size*4), dtype=numpy.double) #always 4 corners for structured grid
-        print grid._cell_corners.shape
+        print(grid._cell_corners.shape)
         for k in range(len(cell_corners)):
             index = 0
             for j in range(dims[1]):
@@ -281,10 +281,10 @@ class CDORemapper(CommonCode):
         if type(grid) is UnstructuredGrid:
             self.set_src_grid_dims(grid.size, 0)
             self.set_src_grid_corners(grid._num_corners)
-            self.set_src_grid_center_lon(range(grid.size), grid.lon)
-            self.set_src_grid_center_lat(range(grid.size), grid.lat)
-            self.set_src_grid_corner_lon(range(grid.size * grid._num_corners), grid._cell_corners[0].flatten())
-            self.set_src_grid_corner_lat(range(grid.size * grid._num_corners), grid._cell_corners[1].flatten())
+            self.set_src_grid_center_lon(numpy.arange(grid.size), grid.lon)
+            self.set_src_grid_center_lat(numpy.arange(grid.size), grid.lat)
+            self.set_src_grid_corner_lon(numpy.arange(grid.size * grid._num_corners), grid._cell_corners[0].flatten())
+            self.set_src_grid_corner_lat(numpy.arange(grid.size * grid._num_corners), grid._cell_corners[1].flatten())
 
         if type(grid) is StructuredGrid:
             num_corners = 4 #structured grids have exactly 4 corners
@@ -307,13 +307,13 @@ class CDORemapper(CommonCode):
             else:
                 lat = grid.lat
             lat = numpy.swapaxes(lat,0,1)
-            self.set_src_grid_center_lon(range(size), lon.flatten())
-            self.set_src_grid_center_lat(range(size), lat.flatten())
+            self.set_src_grid_center_lon(numpy.arange(size), lon.flatten())
+            self.set_src_grid_center_lat(numpy.arange(size), lat.flatten())
 
             cell_corners = self._structured_corners_to_cdo_corners(grid)
 
-            self.set_src_grid_corner_lon(range(grid.size * num_corners), cell_corners[0])
-            self.set_src_grid_corner_lat(range(grid.size * num_corners), cell_corners[1])
+            self.set_src_grid_corner_lon(numpy.arange(grid.size * num_corners), cell_corners[0])
+            self.set_src_grid_corner_lat(numpy.arange(grid.size * num_corners), cell_corners[1])
 
     def get_src_grid(self):
         return self._src_grid
@@ -329,10 +329,10 @@ class CDORemapper(CommonCode):
         if type(grid) is UnstructuredGrid:
             self.set_dst_grid_dims(grid.size, 0)
             self.set_dst_grid_corners(grid._num_corners)
-            self.set_dst_grid_center_lon(range(grid.size), grid.lon)
-            self.set_dst_grid_center_lat(range(grid.size), grid.lat)
-            self.set_dst_grid_corner_lon(range(grid.size * grid._num_corners), grid._cell_corners[0].flatten())
-            self.set_dst_grid_corner_lat(range(grid.size * grid._num_corners), grid._cell_corners[1].flatten())
+            self.set_dst_grid_center_lon(numpy.arange(grid.size), grid.lon)
+            self.set_dst_grid_center_lat(numpy.arange(grid.size), grid.lat)
+            self.set_dst_grid_corner_lon(numpy.arange(grid.size * grid._num_corners), grid._cell_corners[0].flatten())
+            self.set_dst_grid_corner_lat(numpy.arange(grid.size * grid._num_corners), grid._cell_corners[1].flatten())
 
         if type(grid) is StructuredGrid:
             num_corners = 4 #structured grids have exactly 4 corners
@@ -353,13 +353,13 @@ class CDORemapper(CommonCode):
             else:
                 lat = grid.lat
             lat = numpy.swapaxes(lat,0,1)
-            self.set_dst_grid_center_lon(range(grid.size), lon.flatten())
-            self.set_dst_grid_center_lat(range(grid.size), lat.flatten())
+            self.set_dst_grid_center_lon(numpy.arange(grid.size), lon.flatten())
+            self.set_dst_grid_center_lat(numpy.arange(grid.size), lat.flatten())
 
             cell_corners = self._structured_corners_to_cdo_corners(grid)
 
-            self.set_dst_grid_corner_lon(range(grid.size * num_corners), cell_corners[0])
-            self.set_dst_grid_corner_lat(range(grid.size * num_corners), cell_corners[1])
+            self.set_dst_grid_corner_lon(numpy.arange(grid.size * num_corners), cell_corners[0])
+            self.set_dst_grid_corner_lat(numpy.arange(grid.size * num_corners), cell_corners[1])
 
     def get_dst_grid(self):
         return self._dst_grid
@@ -437,7 +437,7 @@ class CDORemapper(CommonCode):
 
     def save_remapping_to_file(self, filename):
         num_links = self.get_num_links()
-        (src, dst, w1, w2, w3) = self.get_remap_links(range(num_links))
+        (src, dst, w1, w2, w3) = self.get_remap_links(numpy.arange(num_links))
 
         remapping = numpy.array(zip(src, dst, w1, w2, w3), dtype='i32, i32, f64, f64, f64')
         remapping.tofile(filename)
@@ -457,7 +457,7 @@ class CDORemapper(CommonCode):
         w2 = remapping['f3']
         w3 = remapping['f4']
         
-        ind = range(num_links)
+        ind = numpy.arange(num_links)
         self.set_src_address(ind, src)
         self.set_dst_address(ind, dst)
         self.set_weights(ind, w1, w2, w3)
