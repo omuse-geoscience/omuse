@@ -54,7 +54,7 @@ if __name__=="__main__":
     lat1=0. | units.deg
     lon2=1. | units.deg
     lat2=0. | units.deg
-    print distance(lat1,lon1,lat2,lon2, R=R).in_(units.km)
+    print(distance(lat1,lon1,lat2,lon2, R=R).in_(units.km))
 
     lon1=0. | units.deg
     lat1=0. | units.deg
@@ -65,5 +65,5 @@ if __name__=="__main__":
     d1=distance(lat1,lon1,lat2,lon2)
     d2=distance(lat2,lon2,lat3,lon3)
     d3=distance(lat3,lon3,lat1,lon1)
-    print d1,d2,d3
-    print triangle_area(d1,d2,d3,R=R)/4/trigo.pi/R**2
+    print(d1,d2,d3)
+    print(triangle_area(d1,d2,d3,R=R)/4/trigo.pi/R**2)

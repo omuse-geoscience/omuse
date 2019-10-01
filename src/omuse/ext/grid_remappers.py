@@ -82,8 +82,8 @@ class conservative_spherical_remapper(object):
         source_copy, target_copy, channel3 = self._get_grid_copies_and_channel(source, target, attributes)
 
         #indices for interacting with CDORemapper
-        index_i_src = range(source.size)         
-        index_i_dst = range(target.size)         
+        index_i_src = list(range(source.size))         
+        index_i_dst = list(range(target.size))         
        
         for attribute in attributes:
             #obtain source values and unit
@@ -109,8 +109,8 @@ class conservative_spherical_remapper(object):
         source_copy, target_copy, channel3 = self._get_grid_copies_and_channel(source.nodes, target.nodes, attributes)
 
         #indices for interacting with CDORemapper
-        index_i_src = range(source.elements.size)
-        index_i_dst = range(target.elements.size)
+        index_i_src = list(range(source.elements.size))
+        index_i_dst = list(range(target.elements.size))
        
         for attribute in attributes:
             #obtain source values and unit
