@@ -102,7 +102,7 @@ _setter_string="""
 def parameter_getter_setters(filename="getter_setters.f90"):
     filestring=""
     py_to_f={"string" : "character(len=*) ", "float64" : "real*8", "float32" : "real", "int32" : "integer", "bool" : "logical"}
-    for par,d in parameters.iteritems():
+    for par,d in parameters.items():
       if d["ptype"] in ["simple"]:
         filestring+=_setter_string.format(d["short"],py_to_f[d["dtype"]])
       if d["ptype"] in ["simple","getter"]:
@@ -151,7 +151,7 @@ _unstructured_input_grid_template="""
 
 def input_grid_string(template=_unstructured_input_grid_template):
     filestring=""
-    for var,d in input_grid_variables.iteritems():
+    for var,d in input_grid_variables.items():
         for getset,getset_template in zip("sg",["{1}={0}","{0}={1}"]):
             args=d["forvar"]
             igrid=d["igrid"]
@@ -305,7 +305,7 @@ class SwanInterface(CodeInterface,
     def set_exc_value(field_index="i",exception_value='d'):
         returns ()
 
-    for par,d in parameters.iteritems():
+    for par,d in parameters.items():
         dtype=d["dtype"]
         if hasattr(d["default"],"unit"):
           unit=d["default"].unit.reference_string()
@@ -321,7 +321,7 @@ class SwanInterface(CodeInterface,
               "  function.addParameter('"+short+"', dtype='"+dtype+"', direction=function.IN, unit="+unit+")\n"
               "  function.result_type = 'int32'\n  return function")
 
-    for var,d in input_grid_variables.iteritems():
+    for var,d in input_grid_variables.items():
         pyvars=d["pyvar"]
         forvars=d["forvar"]
         unit=d["unit"].reference_string()
@@ -406,7 +406,7 @@ class Swan(InCodeComponentImplementation):
 
         object.add_method('GRID', 'set_grid_position_unstructured')
         object.add_method('GRID', 'set_grid_lonlat_unstructured')
-        for var,d in input_grid_variables.iteritems():
+        for var,d in input_grid_variables.items():
             for state in ['INPUTGRID','RUN','EVOLVED']:
                 object.add_method(state, 'set_input_'+var+'_regular')
                 object.add_method(state, 'set_input_'+var+'_unstructured')
@@ -541,7 +541,7 @@ class Swan(InCodeComponentImplementation):
             object.add_getter('forcings', 'get_grid_'+coordinates+'_unstructured', names=axes_names)
 
 
-        for var,d in input_grid_variables.iteritems():
+        for var,d in input_grid_variables.items():
             #~ if eval("self.get_use_input_"+var+"()"):
             if getattr(self.parameters,"use_input_"+var):
                 object.add_getter('forcings', 'get_input_'+var+'_'+self._input_grid_type, names=d["pyvar"])
