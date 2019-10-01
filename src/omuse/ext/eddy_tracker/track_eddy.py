@@ -1,21 +1,22 @@
+from __future__ import print_function
 #!/usr/bin/env python
 
 import scipy.ndimage as ndimage
 import scipy.interpolate as interpolate
 import scipy.spatial as spatial
 
-from py_eddy_tracker_classes import plt, np, dt, Dataset, time, \
+from .py_eddy_tracker_classes import plt, np, dt, Dataset, time, \
                                     datestr2datetime, gaussian_resolution, \
                                     get_cax, collection_loop, track_eddies, \
                                     anim_figure, pcol_2dxy
-from py_eddy_tracker_property_classes import SwirlSpeed
+from .py_eddy_tracker_property_classes import SwirlSpeed
 
 from mpl_toolkits.basemap import Basemap, maskoceans
 
 import numpy
 from matplotlib import pyplot
 
-from make_eddy_track_AVISO import *
+from .make_eddy_track_AVISO import *
 
 
 #config = {}
@@ -146,7 +147,7 @@ class GenericGrid (PyEddyTracker):
         if not hasattr(self, "_resolution"):
 
             lon = self.lon()[:]
-            print lon.shape
+            print(lon.shape)
             count = 0
             sum = 0.0
             for i in range(len(lon)):
@@ -172,7 +173,7 @@ class GenericGrid (PyEddyTracker):
 
             self._resolution = (diff_lon + diff_lat) / 2.0
 
-            print "resolution=", self._resolution
+            print("resolution=", self._resolution)
 
         #original code computes a geometric mean of diff_lon and diff_lat
         #but I have no clue why that would be necessary
@@ -237,8 +238,8 @@ def find_eddies(grd):
                    grd.get_resolution() ** 2)
     PIXMAX = np.round((np.pi * config['RADMAX'] ** 2) /
                    grd.get_resolution() ** 2)
-    print '--- Pixel range = %s-%s' % (np.int(PIXMIN),
-                                   np.int(PIXMAX))
+    print('--- Pixel range = %s-%s' % (np.int(PIXMIN),
+                                   np.int(PIXMAX)))
 
     A_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
     C_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
