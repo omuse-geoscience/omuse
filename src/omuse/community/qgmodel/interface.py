@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy
 from amuse.community import *
 from amuse.community.interface.common import CommonCode, CommonCodeInterface
@@ -1161,38 +1163,38 @@ class QGmodelWithRefinements(QGmodel):
       self._gridy=self.grid.y
       
       if minpos[0]<parent_minpos[0]+dx/2:
-        print "linking west boundary"
+        print("linking west boundary")
         sys.parameters.boundary_west=self.parameters.boundary_west
         sys.west_boundary_updater=self.west_boundary_updater
       else:
-        print "west boundary interpolated"
+        print("west boundary interpolated")
         sys.parameters.boundary_west="interface"
         sys.west_boundary_updater=self.interpolate_grid
       
       if maxpos[0]>parent_maxpos[0]-dx/2:
-        print "linking east boundary"
+        print("linking east boundary")
         sys.parameters.boundary_east=self.parameters.boundary_east
         sys.east_boundary_updater=self.east_boundary_updater
       else:
-        print "east boundary interpolated"
+        print("east boundary interpolated")
         sys.parameters.boundary_east="interface"
         sys.east_boundary_updater=self.interpolate_grid
   
       if minpos[1]<parent_minpos[1]+dy/2:
-        print "linking south boundary"
+        print("linking south boundary")
         sys.parameters.boundary_south=self.parameters.boundary_south
         sys.south_boundary_updater=self.south_boundary_updater
       else:
-        print "south boundary interpolated"
+        print("south boundary interpolated")
         sys.parameters.boundary_south="interface"
         sys.south_boundary_updater=self.interpolate_grid
         
       if maxpos[1]>parent_maxpos[1]-dy/2:
-        print "linking north boundary"
+        print("linking north boundary")
         sys.parameters.boundary_north=self.parameters.boundary_north
         sys.north_boundary_updater=self.north_boundary_updater
       else:
-        print "north boundary interpolated"
+        print("north boundary interpolated")
         sys.parameters.boundary_north="interface"
         sys.north_boundary_updater=self.interpolate_grid
       if not hasattr(sys,"get_psi_dpsidt"):
@@ -1219,17 +1221,17 @@ class QGmodelWithRefinements(QGmodel):
       while tnow<tend-dt/2:
         self.overridden().evolve_model(tnow+dt/2)
         for sys in self.refinements:
-          if self.verbose:  print "update boundaries...",
+          if self.verbose:  print("update boundaries...", end=' ')
           sys.update_boundaries()
-          if self.verbose:  print "done"
+          if self.verbose:  print("done")
           sys.evolve_model(tnow+dt)
         self.overridden().evolve_model(tnow+dt)
         if len(self.refinements): 
-          if self.verbose: print "update refined regions...",
+          if self.verbose: print("update refined regions...", end=' ')
           self.update_refined_regions()
           if restriction_correction is not None:
             restriction_correction(self.grid)
-          if self.verbose: print "done"
+          if self.verbose: print("done")
         tnow=self.model_time
 
     def evolve_model_EREB(self,tend,dt=None):
@@ -1239,26 +1241,26 @@ class QGmodelWithRefinements(QGmodel):
       first=True
       tnow=self.model_time
       while tnow<tend-dt/2:
-        if self.verbose:  print "update boundaries...",
+        if self.verbose:  print("update boundaries...", end=' ')
         if first:
           for sys in self.refinements:
-            if self.verbose:  print "update boundaries...",
+            if self.verbose:  print("update boundaries...", end=' ')
             sys.update_boundaries()
-          if self.verbose:  print "done"
+          if self.verbose:  print("done")
           first=False
         for sys in self.refinements:
           sys.evolve_model(tnow+dt/2)
         self.overridden().evolve_model(tnow+dt/2)
 
-        if self.verbose: print "update refined regions...",
+        if self.verbose: print("update refined regions...", end=' ')
         if len(self.refinements): 
           self.update_refined_regions()
-        if self.verbose: print "done"
+        if self.verbose: print("done")
 
         self.overridden().evolve_model(tnow+dt)
-        if self.verbose:  print "update boundaries...",
+        if self.verbose:  print("update boundaries...", end=' ')
         for sys in self.refinements:
-          if self.verbose:  print "update boundaries...",
+          if self.verbose:  print("update boundaries...", end=' ')
           sys.update_boundaries()
         for sys in self.refinements:
           sys.evolve_model(tnow+dt)
@@ -1271,13 +1273,13 @@ class QGmodelWithRefinements(QGmodel):
       tnow=self.model_time
       while tnow<tend-dt/2:
         for sys in self.refinements:
-          if self.verbose:  print "update boundaries...",
+          if self.verbose:  print("update boundaries...", end=' ')
           sys.update_boundaries()
-          if self.verbose:  print "done"
+          if self.verbose:  print("done")
         if len(self.refinements): 
-          if self.verbose: print "update refined regions...",
+          if self.verbose: print("update refined regions...", end=' ')
           self.update_refined_regions()
-          if self.verbose: print "done"
+          if self.verbose: print("done")
         self.overridden().evolve_model(tnow+dt)
         for sys in self.refinements:
           sys.evolve_model(tnow+dt)
@@ -1289,13 +1291,13 @@ class QGmodelWithRefinements(QGmodel):
       tnow=self.model_time
       while tnow<tend-dt/2:
         if len(self.refinements): 
-          if self.verbose: print "update refined regions...",
+          if self.verbose: print("update refined regions...", end=' ')
           self.update_refined_regions()
-          if self.verbose: print "done"
+          if self.verbose: print("done")
         for sys in self.refinements:
-          if self.verbose:  print "update boundaries...",
+          if self.verbose:  print("update boundaries...", end=' ')
           sys.update_boundaries()
-          if self.verbose:  print "done"
+          if self.verbose:  print("done")
         self.overridden().evolve_model(tnow+dt)
         for sys in self.refinements:
           sys.evolve_model(tnow+dt)

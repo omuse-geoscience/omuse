@@ -99,7 +99,7 @@ class FortranCodeGenerator(object):
     def parameter_getter_setters(self):
         filestring=""
         py_to_f=self.datatypedict
-        for par,d in self.parameter_definition.iteritems():
+        for par,d in self.parameter_definition.items():
           if d["ptype"] in ["ro"]:
             filestring+=self._getter_string.format(d["short"],py_to_f[d["dtype"]])
           if d["ptype"] in ["simple"]:
@@ -113,7 +113,7 @@ class FortranCodeGenerator(object):
 
     def grid_getter_setters(self):
         string=""
-        for var, d in self.grid_variable_definition.iteritems():
+        for var, d in self.grid_variable_definition.items():
             vartype=d.get("vartype", None)
             dtype=d.get("dtype", "float64")
             ndim=d.get("ndim", 1)
@@ -135,7 +135,7 @@ class FortranCodeGenerator(object):
 
     def generate_parameter_interface_functions(self):
         output=""
-        for par,d in self.parameter_definition.iteritems():
+        for par,d in self.parameter_definition.items():
             dtype=d["dtype"]
             if hasattr(d["default"],"unit"):
               unit=d["default"].unit.reference_string()
@@ -174,7 +174,7 @@ class FortranCodeGenerator(object):
 
     def generate_grid_interface_functions(self):
         output=""
-        for var, d in self.grid_variable_definition.iteritems():
+        for var, d in self.grid_variable_definition.items():
             vartype=d.get("vartype", None)
             dtype=d.get("dtype", "float64")
             dtype=dtype.__name__ if isinstance(dtype, type) else str(dtype)
@@ -247,6 +247,6 @@ if __name__=="__main__":
     "test2" : dict( pyvar=["y"], forvar=["y"], dtype="float64", ndim=2, index_ranges=[(1,"nla"),(1,"nla")])
   }
   f=FortranCodeGenerator(grid_variable_definition=grid_var)
-  print f.grid_getter_setters()
-  print f.generate_grid_interface_functions()
+  print(f.grid_getter_setters())
+  print(f.generate_grid_interface_functions())
   
