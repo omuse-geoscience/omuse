@@ -1,3 +1,4 @@
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 # %run py_eddy_tracker_property_classes.py
 
@@ -307,8 +308,8 @@ class Amplitude (object):
             #cmin, cmax = (self.sla.min(), self.sla.max())
             cm = plt.cm.gist_ncar
             #cm = plt.cm.hsv
-            print self.h0_check.shape
-            print self.contlon.shape
+            print(self.h0_check.shape)
+            print(self.contlon.shape)
             
             plt.title('Local max/min count: %s, Amp: %s' % (
                              self.local_extrema, self.amplitude))
@@ -323,8 +324,8 @@ class Amplitude (object):
                         cmap=cm, vmin=cmin, vmax=cmax)
             #plt.scatter(centlon_lmi, centlat_lmi, c='k')
             #plt.scatter(centlon_e, centlat_e, c='w')
-            print self.local_extrema
-            print self.local_extrema_inds
+            print(self.local_extrema)
+            print(self.local_extrema_inds)
             lmi_j, lmi_i = np.where(self.local_extrema_inds)
             #lmi_i = lmi_i[0] + self.eddy.imin
             #lmi_j = lmi_j[0] + self.eddy.jmin

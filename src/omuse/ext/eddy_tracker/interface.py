@@ -1,3 +1,4 @@
+from __future__ import print_function
 from amuse.support.exceptions import AmuseException
 from amuse.units import units
 from amuse.units.quantities import is_quantity
@@ -21,12 +22,12 @@ except:
 
 import numpy
 
-from py_eddy_tracker_classes import plt, np, dt, Dataset, time, \
+from .py_eddy_tracker_classes import plt, np, dt, Dataset, time, \
                                     datestr2datetime, gaussian_resolution, \
                                     get_cax, collection_loop, track_eddies, \
                                     anim_figure, pcol_2dxy
-from py_eddy_tracker_property_classes import SwirlSpeed
-from make_eddy_track_AVISO import *
+from .py_eddy_tracker_property_classes import SwirlSpeed
+from .make_eddy_track_AVISO import *
 
 
 
@@ -76,7 +77,7 @@ class EddyTracker(object):
         if lon.shape != lat.shape:
             raise Exception("Expecting longitude and latitude arrays to be of same shape")
 
-        print 'lon.shape', lon.shape
+        print('lon.shape', lon.shape)
 
         self.grd = grd = GenericGrid(lon.shape[1], lon.shape[0], lons=lon, lats=lat, sla=None, **config)
 
@@ -123,10 +124,10 @@ class EddyTracker(object):
                    grd.get_resolution() ** 2)
         PIXMAX = np.round((np.pi * config['RADMAX'] ** 2) /
                    grd.get_resolution() ** 2)
-        print '--- Pixel range = %s-%s' % (np.int(PIXMIN),
-                                   np.int(PIXMAX))
+        print('--- Pixel range = %s-%s' % (np.int(PIXMIN),
+                                   np.int(PIXMAX)))
 
-        print "resolution", grd.get_resolution()
+        print("resolution", grd.get_resolution())
 
         A_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
         C_eddy.PIXEL_THRESHOLD = [PIXMIN, PIXMAX]
@@ -284,8 +285,8 @@ class EddyTracker(object):
         # Save inactive eddies to nc file
         if not self.first_record:
             if A_eddy.VERBOSE:
-                print('--- saving to nc', A_eddy.SAVE_DIR)
-                print('--- saving to nc', C_eddy.SAVE_DIR)
+                print(('--- saving to nc', A_eddy.SAVE_DIR))
+                print(('--- saving to nc', C_eddy.SAVE_DIR))
                 print('+++')
 
             A_eddy.write2netcdf(rtime)
@@ -358,7 +359,7 @@ class EddyTracker(object):
         self.A_eddy.write2netcdf(rtime, stopper=1)
         self.C_eddy.write2netcdf(rtime, stopper=1)
 
-        print 'Outputs saved to', self.SAVE_DIR
+        print('Outputs saved to', self.SAVE_DIR)
 
 
 
@@ -469,7 +470,7 @@ class GenericGrid (PyEddyTracker):
         if not hasattr(self, "_resolution"):
 
             lon = self.lon()[:]
-            print lon.shape
+            print(lon.shape)
             count = 0
             sum = 0.0
             for i in range(len(lon)):

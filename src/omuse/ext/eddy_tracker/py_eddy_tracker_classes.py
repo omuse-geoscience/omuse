@@ -1,3 +1,4 @@
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 # %run py_eddy_tracker_classes.py
 
@@ -40,10 +41,10 @@ import matplotlib.dates as dt
 import matplotlib.path as path
 import matplotlib.patches as patch
 import mpl_toolkits.basemap.pyproj as pyproj
-import make_eddy_tracker_list_obj as eddy_tracker
-from py_eddy_tracker_property_classes import Amplitude, EddyProperty, interpolate
+from . import make_eddy_tracker_list_obj as eddy_tracker
+from .py_eddy_tracker_property_classes import Amplitude, EddyProperty, interpolate
 #from haversine import haversine # needs compiling with f2py
-import haversine_distmat_python as haversine 
+from . import haversine_distmat_python as haversine 
 import scipy.sparse as sparse
 
 
@@ -109,7 +110,7 @@ def anim_figure(A_eddy, C_eddy, Mx, My, MMx, MMy, cmap, rtime, DIAGNOSTIC_TYPE,
     """
     def plot_tracks(Eddy, track_length, rtime, col, ax, plot_all):
         if plot_all:
-            eddylist = range(len(Eddy.tracklist))
+            eddylist = list(range(len(Eddy.tracklist)))
         else:
             eddylist = Eddy.get_active_tracks(rtime)
         for i in eddylist:
@@ -580,7 +581,7 @@ def collection_loop(CS, grd, rtime, A_list_obj, C_list_obj,
 
         if VERBOSE:
             message = '------ doing collection %s, contour value %s'
-            print message % (collind, CS.cvalues[collind])
+            print(message % (collind, CS.cvalues[collind]))
 
         # Loop over individual CS contours (i.e., every eddy in field)
         for cont in coll.get_paths():
@@ -1163,12 +1164,12 @@ def track_eddies(Eddy, first_record):
             dx_unused = dx[1:]  # index/indices to the unused eddy/eddies
 
             if debug_dist:
-                print 'delta_area', delta_area
-                print 'delta_amp', delta_amp
-                print 'dist_arr', dist_arr
-                print 'dx', dx
-                print 'dx0', dx0
-                print 'dx_unused', dx_unused
+                print('delta_area', delta_area)
+                print('delta_amp', delta_amp)
+                print('dist_arr', dist_arr)
+                print('dx', dx)
+                print('dx0', dx0)
+                print('dx_unused', dx_unused)
 
             # Update eddy track dx0
             if not Eddy.TRACK_EXTRA_VARIABLES:
@@ -1212,9 +1213,9 @@ def track_eddies(Eddy, first_record):
                 new_eddy_inds[bind] = True
 
             if debug_dist:
-                print 'backup_ind', backup_ind
-                print 'backup_ind[dx_unused]', backup_ind[dx_unused]
-                print 'backup_ind[dx_unused].shape', backup_ind[dx_unused].shape
+                print('backup_ind', backup_ind)
+                print('backup_ind[dx_unused]', backup_ind[dx_unused])
+                print('backup_ind[dx_unused].shape', backup_ind[dx_unused].shape)
                 debug_ax = fig.add_subplot(133)
                 im = plt.imshow(dist_mat, interpolation='none',
                                 origin='lower', cmap=debug_cmap)
@@ -1235,7 +1236,7 @@ def track_eddies(Eddy, first_record):
     if np.any(new_eddy_inds):
 
         if False:
-            print '------adding %s new eddies' % new_eddy_inds.sum()
+            print('------adding %s new eddies' % new_eddy_inds.sum())
 
         for neind, a_new_eddy in enumerate(new_eddy_inds):
 
@@ -1303,7 +1304,7 @@ def accounting(Eddy, old_ind, centlon, centlat,
     if first_record:  # is True then all eddies are new
         new_eddy = True
         if Eddy.VERBOSE:
-            print '------ writing first record'
+            print('------ writing first record')
 
     #kwargs = {'temp': cent_temp, 'salt': cent_salt,
               #'contour_e': contour_e, 'contour_s': contour_s,
@@ -1360,8 +1361,8 @@ def accounting(Eddy, old_ind, centlon, centlat,
             Eddy.insert_at_index('new_shape_error', Eddy.index, shape_error)
 
         if Eddy.new_list:  # initialise a new list
-            print ('------ starting a new track list for %s' %
-                   Eddy.SIGN_TYPE.replace('nic', 'nes'))
+            print(('------ starting a new track list for %s' %
+                   Eddy.SIGN_TYPE.replace('nic', 'nes')))
             Eddy.new_list = False
 
         args = (centlon, centlat, rtime, uavg, teke,
