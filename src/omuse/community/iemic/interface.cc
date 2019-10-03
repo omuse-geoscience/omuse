@@ -14,6 +14,9 @@ namespace
 using namespace Utils;
 using namespace Teuchos;
 
+enum class Parameter : unsigned char
+{ u = 0, v, w, p, t, s, count };
+
 ParameterList&
 insert_sublist(ParameterList& list, const std::string& name)
 {
@@ -107,6 +110,27 @@ RCP<Ocean> ocean;
 RCP<Continuation<RCP<Ocean>, RCP<ParameterList>>> continuation;
 std::ofstream devNull("/dev/null");
 #pragma GCC diagnostic pop
+
+int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
+{
+    auto paramCount = static_cast<size_t>(Parameter::count);
+    auto N = ocean->getNdim();
+    auto M = ocean->getMdim();
+    auto L = ocean->getLdim();
+    auto paramOffset = static_cast<unsigned char>(param);
+
+    auto gvec = AllGather(*ocean->state_);
+    auto vec = gvec->operator()(0);
+
+    for (int x = 0; x < n; x++) {
+        int idx = (paramCount * i[x])
+                + (paramCount * N * j[x])
+                + (paramCount * N * M * k[x]);
+        var[x] = vec->operator[](idx);
+    }
+    return 0;
+}
+
 }
 
 int32_t initialize()
@@ -176,3 +200,21 @@ int32_t cleanup_code()
     comm = Teuchos::null;
     return 0;
 }
+
+int32_t get_u(int *i, int *j, int *k, double *var, int n)
+{ return get_param(Parameter::u, i, j, k, var, n); }
+
+int32_t get_v(int *i, int *j, int *k, double *var, int n)
+{ return get_param(Parameter::v, i, j, k, var, n); }
+
+int32_t get_w(int *i, int *j, int *k, double *var, int n)
+{ return get_param(Parameter::w, i, j, k, var, n); }
+
+int32_t get_p(int *i, int *j, int *k, double *var, int n)
+{ return get_param(Parameter::p, i, j, k, var, n); }
+
+int32_t get_t(int *i, int *j, int *k, double *var, int n)
+{ return get_param(Parameter::t, i, j, k, var, n); }
+
+int32_t get_s(int *i, int *j, int *k, double *var, int n)
+{ return get_param(Parameter::s, i, j, k, var, n); }
