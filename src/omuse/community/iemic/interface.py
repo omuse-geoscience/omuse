@@ -43,6 +43,30 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def cleanup_code():
         returns ()
 
+    @remote_function(must_handle_array=True)
+    def get_u(i=0, j=0, k=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_v(i=0, j=0, k=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_w(i=0, j=0, k=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_p(i=0, j=0, k=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_t(i=0, j=0, k=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_s(i=0, j=0, k=0):
+        returns (var=0.)
+
 class iemic(InCodeComponentImplementation):
     def __init__(self, **options):
         InCodeComponentImplementation.__init__(self,  iemicInterface(**options), **options)
