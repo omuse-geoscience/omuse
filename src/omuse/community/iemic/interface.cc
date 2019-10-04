@@ -123,14 +123,14 @@ int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
     auto vec = gvec->operator()(0);
 
     for (int x = 0; x < n; x++) {
-        int idx = (paramCount * i[x])
+        int idx = paramOffset
+                + (paramCount * i[x])
                 + (paramCount * N * j[x])
                 + (paramCount * N * M * k[x]);
         var[x] = vec->operator[](idx);
     }
     return 0;
 }
-
 }
 
 int32_t initialize()
