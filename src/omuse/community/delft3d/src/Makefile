@@ -36,6 +36,7 @@ delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse:
 	cp -r dflowfm_omuse delft3dfm/src/engines_gpl/dflowfm/packages/
 
 delft3dfm/src/Makefile:  | delft3dfm delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse
+	-patch -p0 -ddelft3dfm/src < ./patches/configure.ac.patch
 	cd delft3dfm/src; ./autogen.sh
 	cd delft3dfm/src/third_party_open/kdtree2; ./autogen.sh
 	cd delft3dfm/src; ./configure --prefix=$(INSTALLDIR) --with-netcdf --with-mpi --with-metis --with-petsc

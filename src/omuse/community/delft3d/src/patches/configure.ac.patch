@@ -1,0 +1,13 @@
+Index: configure.ac
+===================================================================
+--- configure.ac	(revision 64866)
++++ configure.ac	(working copy)
+@@ -557,6 +557,8 @@
+ engines_gpl/dflowfm/packages/dflowfm-cli_exe/src/Makefile
+ engines_gpl/dflowfm/packages/dflowfm_kernel/Makefile
+ engines_gpl/dflowfm/packages/dflowfm_kernel/src/Makefile
++engines_gpl/dflowfm/packages/dflowfm_omuse/Makefile
++engines_gpl/dflowfm/packages/dflowfm_omuse/src/Makefile
+ engines_gpl/dflowfm/packages/Makefile
+ engines_gpl/dflowfm/scripts/parallel/Makefile
+ engines_gpl/dflowfm/scripts/team-city/Makefile
