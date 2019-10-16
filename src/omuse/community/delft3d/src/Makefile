@@ -42,7 +42,7 @@ delft3dfm/src/Makefile:  | delft3dfm delft3dfm/src/engines_gpl/dflowfm/packages/
 	cd delft3dfm/src; ./configure --prefix=$(INSTALLDIR) --with-netcdf --with-mpi --with-metis --with-petsc
 
 libdflowfm_omuse.a: delft3dfm/src/Makefile
-#~ 	make -C delft3dfm/src/
+	make -C delft3dfm/src/
 	make -C delft3dfm/src/engines_gpl/dflowfm/
 	ln -s delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_kernel/src/.libs/libdflowfm.a libdflowfm.a
 	ln -s delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse/src/.libs/libdflowfm_omuse.a libdflowfm_omuse.a
