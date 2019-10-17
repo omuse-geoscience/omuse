@@ -132,7 +132,7 @@ class era5cached(object):
 if __name__=="__main__":
   
     e=era5cached(variables=["2m_temperature", "total_precipitation"], nwse_boundingbox=[40, 0, 0, 60]| units.deg)
-    print(e.grid)
+    print(e.grid) # note grid has prepended the names with _ (because long names are not valid python var names)
 
     t1=e.grid._2m_temperature.copy()
     e.evolve_model(24. | units.hour)
