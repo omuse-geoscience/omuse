@@ -32,20 +32,20 @@ $(CODELIB): $(CODEOBJS)
 delft3dfm:
 	$(error delft3dfm source not found )
 
-delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse:
+delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse: dflowfm_omuse/src/dflowfm_omuse_lib.F90
 	cp -r dflowfm_omuse delft3dfm/src/engines_gpl/dflowfm/packages/
+	-patch -p0 -N -ddelft3dfm/src < ./patches/configure.ac.patch
 
 delft3dfm/src/Makefile:  | delft3dfm delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse
-	-patch -p0 -ddelft3dfm/src < ./patches/configure.ac.patch
 	cd delft3dfm/src; ./autogen.sh
 	cd delft3dfm/src/third_party_open/kdtree2; ./autogen.sh
 	cd delft3dfm/src; ./configure --prefix=$(INSTALLDIR) --with-netcdf --with-mpi --with-metis --with-petsc
 
-libdflowfm_omuse.a: delft3dfm/src/Makefile
+libdflowfm_omuse.a: delft3dfm/src/Makefile delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse/src/dflowfm_omuse_lib.F90
 	make -C delft3dfm/src/
 	make -C delft3dfm/src/engines_gpl/dflowfm/
-	ln -s delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_kernel/src/.libs/libdflowfm.a libdflowfm.a
-	ln -s delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse/src/.libs/libdflowfm_omuse.a libdflowfm_omuse.a
+	ln -f -s delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_kernel/src/.libs/libdflowfm.a libdflowfm.a
+	ln -f -s delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse/src/.libs/libdflowfm_omuse.a libdflowfm_omuse.a
 
 include: libdflowfm_omuse.a
 	ln -s delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse/src include
