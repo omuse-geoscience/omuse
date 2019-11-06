@@ -30,6 +30,65 @@ contains
   
   end function
 
+ ! Flow node numbering:
+ ! 1:ndx2D, ndx2D+1:ndxi, ndxi+1:ndx1Db, ndx1Db:ndx
+ ! ^ 2D int ^ 1D int      ^ 1D bnd       ^ 2D bnd ^ total
+
+  function get_2d_flow_nodes_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=1
+    imax=ndx2d
+    ret=0
+  end function
+
+  function get_1d_flow_nodes_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=ndx2d+1
+    imax=ndxi
+    ret=0
+  end function
+
+  function get_1d_boundary_nodes_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=ndxi+1
+    imax=ndx1Db
+    ret=0
+  end function
+
+  function get_2d_boundary_nodes_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=ndx1Db+1
+    imax=ndx
+    ret=0
+  end function
+
+  function get_x_position(i, x, n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    x(1:n)=xz(i(1:n))
+    ret=0
+  end function
+
+  function get_y_position(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    x(1:n)=yz(i(1:n))
+    ret=0
+  end function
+
+  function get_water_level(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    x(1:n)=s1(i(1:n))
+    ret=0
+  end function
 
 end module
 
