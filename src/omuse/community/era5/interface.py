@@ -1,5 +1,5 @@
 import os
-import sha
+import hashlib
 import numpy
 import datetime
 
@@ -80,7 +80,7 @@ class era5cached(object):
 
     @staticmethod
     def generate_outputfile(name, request, directory="./"):
-        filename="_era5_cache_"+sha.sha(name+repr(request)).hexdigest() + ".nc"
+        filename="_era5_cache_"+hashlib.sha1((name+repr(request)).encode()).hexdigest() + ".nc"
         return os.path.join(directory, filename)
   
     def maintain_cache(self, datafile):

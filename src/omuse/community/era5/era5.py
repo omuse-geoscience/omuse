@@ -427,10 +427,11 @@ def build_request(variable ="land_sea_mask", year="1979", month="01", day="01", 
             request["day"] = day
 
     if area is not None:
-        request["area"]=list(area)
+        request["area"]=[int(a) for a in area]
 
     return(name, request)
 
 def fetch(name, request, outputfile):
     connection = cdsapi.Client()
+    print(name,request,outputfile)
     connection.retrieve(name, request, outputfile)
