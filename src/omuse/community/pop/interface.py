@@ -628,7 +628,7 @@ class POP(CommonCode):
         self.set_nprocs(self.nprocs)
         if self.parameters.vert_grid_option=='amuse':
             kmax=self.get_number_of_vertical_levels()
-            if len(self.parameters.vertical_layer_thicknesses==kmax):
+            if len(self.parameters.vertical_layer_thicknesses)==kmax:
                 self.set_dz(self.parameters.vertical_layer_thicknesses)
             else:
                 raise Exception("length of parameter vertical_layer_thicknesses needs to be {0}".format(kmax))
