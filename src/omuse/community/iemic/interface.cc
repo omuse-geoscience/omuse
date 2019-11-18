@@ -177,6 +177,11 @@ int32_t commit_parameters()
     ocean->setPar("Combined Forcing", 0.0);
     ocean->getState('V')->PutScalar(0.0);
     continuation = rcp(new ContinuationType(ocean, continuationParams));
+
+    std::cout<<ocean->getNdim()<<std::endl;
+    std::cout<<ocean->getMdim()<<std::endl;
+    std::cout<<ocean->getLdim()<<std::endl;
+
     return 0;
 }
 
@@ -218,3 +223,24 @@ int32_t get_t(int *i, int *j, int *k, double *var, int n)
 
 int32_t get_s(int *i, int *j, int *k, double *var, int n)
 { return get_param(Parameter::s, i, j, k, var, n); }
+
+int32_t get_nrange(int *_min, int *_max)
+{ 
+  *_min=0;
+  *_max=ocean->getNdim()-1;
+  return 0; 
+}
+
+int32_t get_mrange(int *_min, int *_max)
+{ 
+  *_min=0;
+  *_max=ocean->getMdim()-1;
+  return 0; 
+}
+
+int32_t get_lrange(int *_min, int *_max)
+{ 
+  *_min=0;
+  *_max=ocean->getLdim()-1;
+  return 0; 
+}
