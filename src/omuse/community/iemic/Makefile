@@ -12,9 +12,14 @@ CODE_GENERATOR:=amusifier
 MPICXX   ?= mpicxx
 
 CFLAGS   += -Wall -g
-LDFLAGS  += -lm $(MUSE_LD_FLAGS)
+# explicitly locate parallel hdf5
+LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi/lib64 -lhdf5 
 
-CODELIB = src/opt/lib/libiemic.dylib
+IEMICLIBPATH=$(realpath src/opt/lib)
+
+CODELIB=$(IEMICLIBPATH)/libiemic.so
+
+LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -ljdqz_tools -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
 
 OBJS = interface.o
 
@@ -22,11 +27,11 @@ all: iemic_worker
 
 update: | src/jdqzpp/ src/i-emic/
 	cd src/jdqzpp; git pull
-	cd src/i-emic/; git pull
+	cd src/i-emic; git pull
 
 src/jdqzpp/:
 ifdef DOWNLOAD_CODES
-	cd src/; git clone https://github.com/erik808/jdqzpp.git
+	cd src; git clone https://github.com/erik808/jdqzpp.git
 else
 	@echo "ERROR: need to download JDQZPP, but DOWNLOAD_CODES is not set"
 	@false
@@ -41,7 +46,7 @@ src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake: | src/jdqzpp/build/
 
 src/i-emic/:
 ifdef DOWNLOAD_CODES
-	cd src/; git clone https://github.com/nlesc-smcm/i-emic.git
+	cd src; git clone https://github.com/nlesc-smcm/i-emic.git
 else
 	@echo "ERROR: need to download i-emic, but DOWNLOAD_CODES is not set"
 	@false
@@ -70,10 +75,10 @@ worker_code.h: interface.py
 	$(CODE_GENERATOR) --type=H interface.py iemicInterface -o $@
 
 iemic_worker: worker_code.o $(OBJS) $(CODELIB)
-	$(MPICXX) $(LDFLAGS) -Lsrc/opt/lib/ -rpath src/opt/lib/ $^ -o $@
+	$(MPICXX) $(LDFLAGS) -Wl,-rpath $(IEMICLIBPATH) $^ -o $@ $(LIBS)
 
 %.o: %.cc $(CODELIB) src/opt/include/Config.mk
-	$(CXX) $(CXXFLAGS) -std=c++11 -isystemsrc/opt/include/ -c -o $@ $<
+	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
 
 worker_code.o: worker_code.h
 interface.o: interface.hpp
