@@ -1,6 +1,4 @@
-# standard amuse configuration include
-# config.mk will be made after ./configure has run
-AMUSE_DIR?=../../../..
+AMUSE_DIR ?= $(shell amusifier --get-amuse-dir)
 -include $(AMUSE_DIR)/config.mk
 
 CFLAGS   += -Wall -g
