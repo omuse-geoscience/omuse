@@ -1,4 +1,4 @@
-AMUSE_DIR?=../../../..
+AMUSE_DIR ?= $(shell amusifier --get-amuse-dir)
 -include ${AMUSE_DIR}/config.mk
 
 CODE_GENERATOR = $(AMUSE_DIR)/build.py
