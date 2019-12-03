@@ -7,7 +7,7 @@ from omuse.units import units
 from omuse.units import quantities
 from amuse.datamodel import new_cartesian_grid
 
-import era5
+from . import era5
 
 from netCDF4 import Dataset
 
@@ -15,9 +15,11 @@ _era5_units_to_omuse={ "none" : units.none, "K" : units.K, "m" : units.m}
 
 class era5cached(object):
 
-    def __init__(self, maxcache=None, cachedir="./", 
+    def __init__(self, maxcache=None, cachedir="./__era5_cache", 
                  start_datetime=datetime.datetime(1979,1,2), variables=[], nwse_boundingbox=None):
         self.maxcache=maxcache
+        if not os.path.exists(cachedir):
+            os.mkdir(cachedir)
         self.cachedir=cachedir
         self.download_timespan="day"
         self.nwse_boundingbox=nwse_boundingbox
@@ -128,19 +130,3 @@ class era5cached(object):
         except AttributeError:
             d.history = appendtxt
         d.close()
-
-if __name__=="__main__":
-  
-    e=era5cached(variables=["2m_temperature", "total_precipitation"], nwse_boundingbox=[40, 0, 0, 60]| units.deg)
-    print(e.grid) # note grid has prepended the names with _ (because long names are not valid python var names)
-
-    t1=e.grid._2m_temperature.copy()
-    e.evolve_model(24. | units.hour)
-    t2=e.grid._2m_temperature
-        
-    import matplotlib
-    matplotlib.use("TkAgg")
-    from matplotlib import pyplot
-    #~ pyplot.imshow(e.grid.land_sea_mask)
-    pyplot.imshow((t2-t1).value_in(units.K))
-    pyplot.show()
