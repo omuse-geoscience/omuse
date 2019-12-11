@@ -1,14 +1,23 @@
 module dflowfm_omuse
+!~   use hash
+
+! global node counts
+
+    character(len=256) :: input_configfile = "amuse.mdu"
 
 
 contains
 
   function initialize() result(ret)
+    integer :: ret
+    ret=0
+  end function
+
+  function commit_parameters() result(ret)
     use dflowfm_omuse_lib
     integer :: ret
-    character(len=256) :: somefile = "westerscheldt.mdu"
   
-    ret=initialize_dflowfm(somefile)
+    ret=initialize_dflowfm(input_configfile)
   
   end function
   
