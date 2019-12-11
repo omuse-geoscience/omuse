@@ -1,5 +1,10 @@
-from amuse.community import *
-from amuse.datamodel import *
+from amuse.rfi.core import CodeInterface
+from amuse.support.interface import InCodeComponentImplementation
+from amuse.support.parameter_tools import CodeWithIniFileParameters
+from amuse.rfi.core import legacy_function,remote_function
+from amuse import datamodel
+
+from omuse.units import units
 
 class DFlowFMInterface(CodeInterface):
 
@@ -10,6 +15,10 @@ class DFlowFMInterface(CodeInterface):
     
     @remote_function
     def initialize():
+        returns ()
+
+    @remote_function
+    def commit_parameters():
         returns ()
         
     @remote_function
@@ -48,14 +57,34 @@ class DFlowFMInterface(CodeInterface):
     def get_water_level(index=0):
         returns (h=0. | units.m)
 
-class DFlowFM(InCodeComponentImplementation):
+class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
 
     def __init__(self, **options):
+        self._ini_file=options.get("ini_file","")
+        CodeWithIniFileParameters.__init__(self, options.get("parameters", dict()) ) 
         self._coordinates="cartesian"
         InCodeComponentImplementation.__init__(self,  DFlowFMInterface(**options), **options)
-    
+        if self._ini_file:
+            self.parameters.ini_file=self._ini_file
+        
     def define_properties(self, handler):
         handler.add_property('get_model_time', public_name = "model_time")
+
+    def configuration_file_set(self):
+        self.read_inifile_parameters(self.parameters.ini_file)
+        handler=self.get_handler('PARAMETER')
+        CodeWithIniFileParameters.define_parameters(self,handler)
+
+
+    def define_parameters(self,handler):
+        CodeWithIniFileParameters.define_parameters(self, handler)
+      
+        handler.add_interface_parameter(
+            "ini_file",
+            "configuration file with simulation setup",
+            self._ini_file,
+            state_guard="configuration_file_set"
+        )
 
     def define_grids(self, handler):
         if self._coordinates=="cartesian":
@@ -79,10 +108,14 @@ class DFlowFM(InCodeComponentImplementation):
         handler.add_getter('boundary_2d_nodes', 'get_y_position', names=axes_names[1:2])
         handler.add_getter('boundary_2d_nodes', 'get_water_level', names=["water_level"])
 
+    def commit_parameters(self):
+        self.write_inifile_parameters("amuse.mdu")
+        self.overridden().commit_parameters()
 
     def define_state(self, handler):
         handler.set_initial_state('UNINITIALIZED')
         handler.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize')
+        handler.add_transition('INITIALIZED', 'PARAM', 'commit_parameters')
 
         for method in ["get_2d_flow_nodes_range",
                         "get_1d_flow_nodes_range",
@@ -90,5 +123,5 @@ class DFlowFM(InCodeComponentImplementation):
                         "get_2d_boundary_nodes_range",
                         "evolve_model",
                       ]:
-            handler.add_method('INITIALIZED', method)
+            handler.add_method('PARAM', method)
 
