@@ -71,7 +71,7 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_property('get_model_time', public_name = "model_time")
 
     def configuration_file_set(self):
-        self.read_inifile_parameters(self.parameters.ini_file)
+        self.read_inifile_parameters(self.parameters.ini_file, add_missing_parameters=True)
         handler=self.get_handler('PARAMETER')
         CodeWithIniFileParameters.define_parameters(self,handler)
 
@@ -109,8 +109,39 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_getter('boundary_2d_nodes', 'get_water_level', names=["water_level"])
 
     def commit_parameters(self):
-        self.write_inifile_parameters("amuse.mdu")
+        if self.channel.number_of_workers==1:
+            self.write_inifile_parameters("amuse.mdu")
+        else:
+            self.write_multiple_inifile_parameters("amuse.mdu")
         self.overridden().commit_parameters()
+
+    # convenience function to write multiple mdu files for parallel runs
+    # this is a bit ad-hoc, better make something in parameter_tools?
+    def write_multiple_inifile_parameters(self, outputfile):
+        if not self.ini_geometry.PartitionFile:
+                raise Exception("please set parameter ini_geometry.PartitionFile")
+        if self.ini_numerics.Icgsolver not in [6,7]:
+                raise Exception("please set ini_numerics.Icgsolver to 6 (PETSC) or 7 (GS)")
+ 
+        orig_netfile=self.ini_geometry.NetFile
+        orig_snapshotdir=self.ini_output.SnapshotDir
+        orig_restartfile=self.ini_restart.RestartFile
+
+        basename=outputfile.split('.')[0]
+        netbase=orig_netfile.rsplit("_net.nc")[0]
+        for i in range(self.channel.number_of_workers):
+            n = "{:04d}".format(i)
+            filename=basename + '_' + n + ".mdu"
+
+            self.ini_geometry.NetFile=netbase + '_' + n + '_net.nc'
+            self.ini_output.SnapshotDir='snapshots_' + n
+            #~ self.ini_restart.RestartFile=basename + '_' + n + '_rst.nc'
+
+            self.write_inifile_parameters(filename)
+        
+        self.ini_geometry.NetFile=orig_netfile
+        self.ini_output.SnapshotDir=orig_snapshotdir
+        self.ini_restart.RestartFile=orig_restartfile
 
     def define_state(self, handler):
         handler.set_initial_state('UNINITIALIZED')
