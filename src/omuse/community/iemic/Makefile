@@ -84,7 +84,7 @@ iemic_worker: worker_code.o $(OBJS) $(CODELIB)
 	$(MPICXX) $(LDFLAGS) -Wl,-rpath $(IEMICLIBPATH) $^ -o $@ $(LIBS)
 
 %.o: %.cc $(CODELIB) src/opt/include/Config.mk
-	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
 
 worker_code.o: worker_code.h
 interface.o: interface.hpp
