@@ -12,12 +12,18 @@ CODE_GENERATOR:=amusifier
 MPICXX   ?= mpicxx
 
 CFLAGS   += -Wall -g
-# explicitly locate parallel hdf5
-LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi/lib64 -lhdf5 
 
 IEMICLIBPATH=$(realpath src/opt/lib)
 
+UNAME := $(shell uname -s)
+ifeq ($(UNAME),Darwin)
+CODELIB=$(IEMICLIBPATH)/libiemic.dylib
+else
 CODELIB=$(IEMICLIBPATH)/libiemic.so
+
+# explicitly locate parallel hdf5
+LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi/lib64 -lhdf5
+endif
 
 LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -ljdqz_tools -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
 
