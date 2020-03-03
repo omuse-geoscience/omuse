@@ -5,7 +5,7 @@ Install required programs and libraries:
 
 * make
 * cmake
-* python (version 2 or 3, 2 is better supported)
+* python 3
 * gcc
 * gfortran
 * mpi
@@ -15,8 +15,7 @@ Install required programs and libraries:
   
 Set up and activate a virtual Python environment::
   
-    pip-2.7 install --user virtualenv
-    virtualenv omuse_env
+    python3 -m venv omuse_env
     source omuse_env/bin/activate
 
 Get the OMUSE source code, install its Python dependencies and set up a development build of OMUSE, where the codes will be built in place::
