@@ -1,8 +1,10 @@
-.*\.o$
-.*\.mod$
-.*\.pyc$
-.*\.a$
-.*\.exe$
+build.log
+amuse.cfg
+*.o
+*.mod
+*.pyc
+*.a
+*.exe
 worker_code.f90
 src/omuse/community/pop/src_320x384x40/compile/*
 src/omuse/community/pop/src_320x384x40/pop
@@ -49,3 +51,21 @@ src/omuse/community/iemic/src/
 .pytest_cache/
 # Default ignored files
 src/omuse/community/dales/.idea/workspace.xml
+src/omuse.egg-info/
+src/omuse/community/adcirc/src_v51/adcirc_src/
+src/omuse/community/cdo/cdo-1.7.0rc5/
+src/omuse/community/cdo/make_patches.py.bak
+src/omuse/community/cdo/src
+src/omuse/community/dales/dales-repo/
+src/omuse/community/dales/dales_worker
+src/omuse/community/dales/data/
+src/omuse/community/dales/test/run_dales
+src/omuse/community/iemic/jdqzpp/
+src/omuse/community/oifs/oifs-repo/
+src/omuse/community/pop/eSalsa-POP/
+src/omuse/community/pop/src_test/compile/
+src/omuse/community/qgcm/getter_setters.f90
+src/omuse/community/qgcm/qgcm_worker_hogg2006
+src/omuse/community/qgcm/qgcm_worker_hogg2006_20km
+src/omuse/community/qgcm/qgcm_worker_ocean_only
+src/omuse/community/qgmodel/qgmodel_worker
