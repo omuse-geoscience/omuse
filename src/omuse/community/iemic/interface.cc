@@ -17,65 +17,6 @@ using namespace Teuchos;
 enum class Parameter : unsigned char
 { u = 0, v, w, p, t, s, count };
 
-ParameterList&
-insert_sublist(ParameterList& list, const std::string& name)
-{
-    list.set(name, ParameterList(name));
-    return list.get<ParameterList>(name);
-}
-
-ParameterList
-default_ocean_params()
-{
-    ParameterList params("Ocean");
-    params.set("Load state", false);
-    params.set("Save state", false);
-    params.set("Input file", "ocean.h5");
-    params.set("Output file", "ocean.h5");
-    params.set("Store everything", false);
-
-    auto& thcm_params = insert_sublist(params, "THCM");
-    thcm_params.set("Problem Description", "North Atlantic");
-    thcm_params.set("Global Bound xmin", 286.0);
-    thcm_params.set("Global Bound xmax", 350.0);
-    thcm_params.set("Global Bound ymin", 10.0);
-    thcm_params.set("Global Bound ymax", 74.0);
-    thcm_params.set("Periodic", false);
-    thcm_params.set("Depth hdim", 4000.0);
-    thcm_params.set("Grid Stretching qz", 1.0);
-    thcm_params.set("Global Grid-Size n", 16);
-    thcm_params.set("Global Grid-Size m", 16);
-    thcm_params.set("Global Grid-Size l", 16);
-    thcm_params.set("Topography", 1);
-    thcm_params.set("Flat Bottom", false);
-    thcm_params.set("Read Land Mask", false);
-    thcm_params.set("Land Mask", "mask_natl16");
-    thcm_params.set("Coupled Temperature", 0);
-    thcm_params.set("Coupled Salinity", 0);
-
-    auto& start_params = insert_sublist(thcm_params, "Starting Parameters");
-    start_params.set("Combined Forcing", 0.0);
-    start_params.set("Solar Forcing", 0.0);
-    start_params.set("Salinity Forcing", 1.0);
-    start_params.set("Wind Forcing", 1.0);
-    start_params.set("Temperature Forcing", 10.0);
-    start_params.set("SPL1", 2.0e3);
-    start_params.set("SPL2", 0.01);
-
-    thcm_params.set("Mixing", 1);
-    thcm_params.set("Rho Mixing", false);
-    thcm_params.set("Taper", 1);
-    thcm_params.set("Restoring Temperature Profile", 1);
-    thcm_params.set("Restoring Salinity Profile", 1);
-    thcm_params.set("Freshwater Forcing", 1);
-    thcm_params.set("Levitus T", 1);
-    thcm_params.set("Levitus S", 1);
-    thcm_params.set("Wind Forcing", 2);
-    thcm_params.set("Scaling", "THCM");
-
-    return params;
-}
-
 ParameterList
 default_continuation_params()
 {
@@ -102,7 +43,7 @@ default_continuation_params()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wglobal-constructors"
 #pragma GCC diagnostic ignored "-Wexit-time-destructors"
-RCP<ParameterList> oceanParams(new ParameterList());
+ParameterList oceanParams;
 RCP<ParameterList> continuationParams(new ParameterList());
 
 RCP<Epetra_Comm> comm;
@@ -135,25 +76,49 @@ int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
 
 int32_t initialize()
 {
-    comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
-    outFile = rcpFromRef(std::cout);
-    cdataFile = rcpFromRef(devNull);
-    return set_default_params();
+    try {
+        comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
+        outFile = rcpFromRef(std::cout);
+        cdataFile = rcpFromRef(devNull);
+        return set_default_params();
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
 }
 
 int32_t set_default_params()
 {
-    oceanParams->operator=(default_ocean_params());
-    continuationParams->operator=(default_continuation_params());
-    return 0;
+    try {
+        oceanParams = Ocean::getDefaultInitParameters();
+        *continuationParams = default_continuation_params();
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
 }
 
 int32_t set_ocean_params(char *xmlFile)
 {
     ParameterList params;
-    updateParametersFromXmlFile(xmlFile, ptrFromRef(params));
-    oceanParams->operator=(params);
-    return 0;
+    try {
+        updateParametersFromXmlFile(xmlFile, ptrFromRef(params));
+        oceanParams = params;
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
 }
 
 int32_t get_ocean_params(char **)
@@ -162,9 +127,17 @@ int32_t get_ocean_params(char **)
 int32_t set_continuation_params(char *xmlFile)
 {
     ParameterList params;
-    updateParametersFromXmlFile(xmlFile, ptrFromRef(params));
-    continuationParams->operator=(params);
-    return 0;
+    try {
+        updateParametersFromXmlFile(xmlFile, ptrFromRef(params));
+        *continuationParams = params;
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
 }
 
 int32_t get_continuation_params(char **)
@@ -173,16 +146,21 @@ int32_t get_continuation_params(char **)
 int32_t commit_parameters()
 {
     using ContinuationType = Continuation<RCP<Ocean>, RCP<ParameterList>>;
-    ocean = rcp(new Ocean(comm, oceanParams));
-    ocean->setPar("Combined Forcing", 0.0);
-    ocean->getState('V')->PutScalar(0.0);
-    continuation = rcp(new ContinuationType(ocean, continuationParams));
 
-    std::cout<<ocean->getNdim()<<std::endl;
-    std::cout<<ocean->getMdim()<<std::endl;
-    std::cout<<ocean->getLdim()<<std::endl;
+    try {
+        ocean = rcp(new Ocean(comm, oceanParams));
+        ocean->setPar("Combined Forcing", 0.0);
+        ocean->getState('V')->PutScalar(0.0);
+        continuation = rcp(new ContinuationType(ocean, continuationParams));
 
-    return 0;
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
 }
 
 int32_t recommit_parameters()
@@ -225,22 +203,22 @@ int32_t get_s(int *i, int *j, int *k, double *var, int n)
 { return get_param(Parameter::s, i, j, k, var, n); }
 
 int32_t get_nrange(int *_min, int *_max)
-{ 
-  *_min=0;
-  *_max=ocean->getNdim()-1;
-  return 0; 
+{
+  *_min = 0;
+  *_max = ocean->getNdim() - 1;
+  return 0;
 }
 
 int32_t get_mrange(int *_min, int *_max)
-{ 
-  *_min=0;
-  *_max=ocean->getMdim()-1;
-  return 0; 
+{
+  *_min = 0;
+  *_max = ocean->getMdim() - 1;
+  return 0;
 }
 
 int32_t get_lrange(int *_min, int *_max)
-{ 
-  *_min=0;
-  *_max=ocean->getLdim()-1;
-  return 0; 
+{
+  *_min = 0;
+  *_max = ocean->getLdim() - 1;
+  return 0;
 }

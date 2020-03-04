@@ -35,7 +35,10 @@ update: | src/jdqzpp/ src/i-emic/
 	cd src/jdqzpp; git pull
 	cd src/i-emic; git pull
 
-src/jdqzpp/:
+src/:
+	mkdir -p $@
+
+src/jdqzpp/: | src/
 ifdef DOWNLOAD_CODES
 	cd src; git clone https://github.com/erik808/jdqzpp.git
 else
@@ -50,7 +53,7 @@ src/jdqzpp/build/: | src/jdqzpp/
 src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake: | src/jdqzpp/build/
 	cd $|; make install
 
-src/i-emic/:
+src/i-emic/: | src/
 ifdef DOWNLOAD_CODES
 	cd src; git clone https://github.com/nlesc-smcm/i-emic.git
 else
