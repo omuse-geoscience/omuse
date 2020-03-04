@@ -114,12 +114,22 @@ outputblock2="""\
  0   0.0  5.0     3                  ! turbulence global output
 """
 
-class adcirc_file_writer(file):
-  def write_var(self,*var):
-    self.write(' '.join([str(x) for x in var])+"\n")
-  def write_var_rows(self,*var):
-    for v in zip(var):
-      self.write_var(*v)
+class adcirc_file_writer(object):
+    def __init__(self,*args,**kwargs):
+        self.f=open(*args,**kwargs)
+    def __enter__(self):
+        return self
+    def close(self):
+        self.f.close()
+    def __exit__(self, *args):
+        self.f.close()
+    def write(self, *var):
+        self.f.write(*var)
+    def write_var(self,*var):
+        self.write(' '.join([str(x) for x in var])+"\n")
+    def write_var_rows(self,*var):
+        for v in zip(var):
+            self.write_var(*v)
 
 
 class adcirc_parameter_writer(object):
@@ -241,7 +251,7 @@ class adcirc_parameter_writer(object):
         f.write(outputblock2)
         if param['IDEN'] != 0: # param['IM'] in [21,31]:
           if param['RES_BC_FLAG'] not in [0,param['IDEN']]:
-            print param['RES_BC_FLAG'], param['IDEN']
+            print(param['RES_BC_FLAG'], param['IDEN'])
             raise Exception("RES_BC_FLAG should be equal to IDEN or 0")
           f.write_var(param['RES_BC_FLAG'],param['BCFLAG_LNM'],param['BCFLAG_TEMP'])
           if param['RES_BC_FLAG'] not in range(-4,5):
@@ -306,14 +316,14 @@ class adcirc_grid_writer(object):
       f.write_var(i+1,3,n[0],n[1],n[2])
 
     f.write_var(len(elev_boundary))
-    NETA=sum(map(lambda x:len(x[0]), elev_boundary))
+    NETA=sum([len(x[0]) for x in elev_boundary])
     f.write_var(NETA)
     for b,t in elev_boundary:
       f.write_var(len(b), t)
       for node in b: f.write_var(node)    
     
     f.write_var(len(flow_boundary))
-    NVEL=sum(map(lambda x:len(x[0]), flow_boundary))
+    NVEL=sum([len(x[0]) for x in flow_boundary])
     f.write_var(NVEL)
     for b,t in flow_boundary:
       f.write_var(len(b),t)
@@ -327,7 +337,7 @@ class adcirc_grid_writer(object):
     if density_forcing!="temperature":
       raise Exception("not implemented yet")
     else:
-      print "assumes constant temperature:", Tconst
+      print("assumes constant temperature:", Tconst)
 
     NP=len(nodes)
     NFEN=number_of_vertical_levels
@@ -361,11 +371,13 @@ class adcirc_grid_writer(object):
     self.write(x,y,depth,element_nodes,elev_boundary_nodes,flow_boundary_nodes)
 
 if __name__=="__main__":
-  from simple_triangulations import square_domain_sets
-  
-  nodes,elements,boundary=square_domain_sets(N=10)
+  from omuse.ext.simple_triangulations import unstructured_square_domain_sets
+
+  nodes,elements,dummy,boundary=unstructured_square_domain_sets(N=10)
   nodes.depth=4. | units.km
 
-  adcirc_grid_writer().write_grid(nodes,elements,[(boundary,0)])
+  #~ boundary=boundary[0]
+
+  adcirc_grid_writer().write_grid(nodes,elements,boundary,[])
   
-  adcirc_parameter_writer("test").write()
+  adcirc_parameter_writer().write()
