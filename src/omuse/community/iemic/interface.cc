@@ -169,6 +169,44 @@ int32_t recommit_parameters()
 int32_t initialize_code()
 { return 0; }
 
+int32_t test_grid(const char *fileName)
+{
+    int32_t result = 0;
+    auto N = ocean->getNdim();
+    auto M = ocean->getMdim();
+    auto L = ocean->getLdim();
+    auto paramCount = static_cast<size_t>(Parameter::count);
+    std::ofstream tmp(fileName ? fileName : "/dev/null");
+
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            for (int k = 0; k < L; k++) {
+                for (int p = 0; p < paramCount; p++) {
+                    int model;
+                    int i_, j_, k_, p_;
+                    int idx = p
+                            + (paramCount * i)
+                            + (paramCount * N * j)
+                            + (paramCount * N * M * k);
+
+                    ocean->gid2coord(idx, model, i_, j_, k_, p_);
+                    if (i != i_ || j != j_ || k != k_ || p != p_) {
+                        tmp << "Mismatch for gid: " << idx << std::endl
+                            << "i: " << i << " " << i_ << std::endl
+                            << "j: " << j << " " << j_ << std::endl
+                            << "k: " << k << " " << k_ << std::endl
+                            << "p: " << p << " " << p_ << std::endl;
+
+                        result++;
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 int32_t step()
 {
     int status = continuation->run();

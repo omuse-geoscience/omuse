@@ -43,6 +43,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
+    def test_grid(logFile="s"):
+        returns ()
+
+    @remote_function
     def step():
         returns ()
 
