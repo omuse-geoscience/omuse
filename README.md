@@ -1,8 +1,8 @@
 # OMUSE #
 
 OMUSE stands for Oceanographic MUltipurpose Software Environment. It is a 
-package to conduct numerical experiments in Oceanography and Climate 
-Science.
+package to conduct numerical experiments in oceanography and other Earth 
+sciences.
 
 ### What is this repository for? ###
 
