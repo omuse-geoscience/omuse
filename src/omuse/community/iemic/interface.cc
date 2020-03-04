@@ -169,7 +169,7 @@ int32_t recommit_parameters()
 int32_t initialize_code()
 { return 0; }
 
-int32_t test_grid(const char *fileName)
+int32_t test_grid(char *fileName)
 {
     int32_t result = 0;
     auto N = ocean->getNdim();
