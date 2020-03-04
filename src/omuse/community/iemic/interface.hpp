@@ -14,6 +14,7 @@ int32_t set_continuation_params(char *xmlFile);
 int32_t commit_parameters();
 int32_t recommit_parameters();
 int32_t initialize_code();
+int32_t test_grid(const char* logFile);
 int32_t step();
 int32_t cleanup_code();
 

@@ -40,6 +40,8 @@ class iemicInterfaceTests(TestWithMPI):
         assert not err, "err should be 0"
         val, err = instance.get_s([0],[0],[0])
         assert not err, "err should be 0"
+        err = instance.test_grid("")
+        assert not err, "err should be 0"
         err = instance.cleanup_code()
         assert not err, "err should be 0"
         err = instance.stop()
