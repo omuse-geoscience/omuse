@@ -15,7 +15,7 @@ Easiest way is to use a pip developer install:
 - (optional) first do a develop install of [AMUSE](http://www.amusecode.org), 
 - Set the environment variable `DOWNLOAD_CODES` to `latest`.
 - then do `pip install -e .` from the root of the package
-- Then type `python setyp.py build_codes --inplace` to build the codes. 
+- Then type `python setup.py build_codes --inplace` to build the codes. 
 - The file `build.log` will report errors in the build process.
 
 The community codes of OMUSE can be build manually by going into ea:
