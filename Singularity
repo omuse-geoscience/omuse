@@ -76,7 +76,8 @@ export FCFLAGS="-I/usr/include -I/usr/lib64/gfortran/modules -lnetcdff"
 # export SYST=gnu-fast  
 
 cd /opt
-hg clone https://bitbucket.org/omuse/omuse/
+#hg clone https://bitbucket.org/omuse/omuse/
+git clone https://github.com/omuse-geoscience/omuse
 cd omuse/
 
 python3 -m pip install -e .
