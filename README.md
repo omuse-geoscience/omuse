@@ -12,6 +12,7 @@ This repository contains the source tree for OMUSE.
 
 Easiest way is to use a pip developer install:
 
+- setup a python environment, e.g. using virtualenv,
 - (optional) first do a develop install of [AMUSE](http://www.amusecode.org), 
 - Set the environment variable `DOWNLOAD_CODES` to `latest`.
 - then do `pip install -e .` from the root of the package
