@@ -23,22 +23,6 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
-    def get_ocean_params():
-        returns (ocean_params="s")
-
-    @remote_function
-    def set_ocean_params(ocean_params="s"):
-        returns ()
-
-    @remote_function
-    def get_continuation_params():
-        returns (continuation_params="s")
-
-    @remote_function
-    def set_continuation_params(continuation_params="s"):
-        returns ()
-
-    @remote_function
     def commit_parameters():
         returns ()
 
