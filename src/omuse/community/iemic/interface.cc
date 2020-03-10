@@ -1,7 +1,6 @@
 #include <Epetra_Comm.h>
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
-#include <Teuchos_XMLParameterListHelpers.hpp>
 
 #include "Ocean.H"
 #include "Continuation.H"
@@ -104,44 +103,6 @@ int32_t set_default_params()
 
     return -1;
 }
-
-int32_t set_ocean_params(char *xmlFile)
-{
-    ParameterList params;
-    try {
-        updateParametersFromXmlFile(xmlFile, ptrFromRef(params));
-        oceanParams = params;
-        return 0;
-    } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
-    } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
-    }
-
-    return -1;
-}
-
-int32_t get_ocean_params(char **)
-{ return 1; }
-
-int32_t set_continuation_params(char *xmlFile)
-{
-    ParameterList params;
-    try {
-        updateParametersFromXmlFile(xmlFile, ptrFromRef(params));
-        *continuationParams = params;
-        return 0;
-    } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
-    } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
-    }
-
-    return -1;
-}
-
-int32_t get_continuation_params(char **)
-{ return 1; }
 
 int32_t commit_parameters()
 {
