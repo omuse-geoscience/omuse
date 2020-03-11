@@ -1,3 +1,4 @@
+from math import isnan
 from amuse.test.amusetest import TestWithMPI
 
 from .interface import iemicInterface
@@ -68,7 +69,7 @@ class iemicInterfaceTests(TestWithMPI):
         if paramType == "unknown":
             assert 0, "type can't be unknown"
 
-        print ("    " * n) + param + ": " + paramType
+        print ("    " * n) + param + ": " + paramType,
 
         param = sublist + param
 
@@ -76,10 +77,72 @@ class iemicInterfaceTests(TestWithMPI):
             subParamCount, err = instance.get_num_parameters(paramSet, param)
             self.assertEqual(err,0)
 
+            print
+
             for i in range(0, subParamCount):
                 subParamName, err = instance.get_parameter_name(paramSet, param, i)
                 self.assertEqual(err,0)
                 self.paramHelper(instance, paramSet, n+1, param + "?", subParamName)
+
+        elif paramType == "bool":
+            val, err = instance.get_bool_parameter(paramSet, param)
+            self.assertEqual(err,0)
+
+            default, err = instance.get_default_bool_parameter(paramSet, param)
+            self.assertEqual(err,0)
+            self.assertEqual(val, default)
+
+            print " (value: " + str(val) + ", default: " + str(default) + ")"
+
+            err = instance.set_bool_parameter(paramSet, param, val)
+            self.assertEqual(err,0)
+
+        elif paramType == "char":
+            print
+
+        elif paramType == "double":
+            val, err = instance.get_double_parameter(paramSet, param)
+            self.assertEqual(err,0)
+
+            default, err = instance.get_default_double_parameter(paramSet, param)
+            self.assertEqual(err,0)
+            if isnan(val):
+                self.assertEqual(isnan(val), isnan(default))
+            else:
+                self.assertEqual(val, default)
+
+            print " (value: " + str(val) + ", default: " + str(default) + ")"
+
+            err = instance.set_double_parameter(paramSet, param, val)
+            self.assertEqual(err,0)
+
+        elif paramType == "int":
+            val, err = instance.get_int_parameter(paramSet, param)
+            self.assertEqual(err,0)
+
+            default, err = instance.get_default_int_parameter(paramSet, param)
+            self.assertEqual(err,0)
+            self.assertEqual(val, default)
+
+            print " (value: " + str(val) + ", default: " + str(default) + ")"
+
+            err = instance.set_int_parameter(paramSet, param, val)
+            self.assertEqual(err,0)
+
+        elif paramType == "string":
+            val, err = instance.get_string_parameter(paramSet, param)
+            self.assertEqual(err,0)
+
+            default, err = instance.get_default_string_parameter(paramSet, param)
+            self.assertEqual(err,0)
+            self.assertEqual(val, default)
+
+            print " (value: " + str(val) + ", default: " + str(default) + ")"
+
+            err = instance.set_string_parameter(paramSet, param, val)
+
+        else:
+            assert 0, "unknow type!"
 
     def test3(self):
         instance = iemicInterface()
