@@ -34,8 +34,8 @@ Build codes, select the ones needed::
     python setup.py build_code --code-name swan    --inplace
     python setup.py build_code --code-name pop     --inplace
    
-or try to build all of them:
-
+or try to build all of them::
+  
     python setup.py develop_build
 
 
