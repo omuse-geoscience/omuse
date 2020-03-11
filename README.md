@@ -37,6 +37,10 @@ packages:
  + netCDF and netCDF for fortran and the python bindings
  + GRIB_API
 
+### Documentation ###
+
+Documentation can be found [here](https://omuse.readthedocs.io). In addition the base  [AMUSE documentation](https://amuse.readthedocs.io) can be consulted.
+
 ### Reporting issues ###
 
 Issues can be reported at the OMUSE issue tracker; for framework issues, 
