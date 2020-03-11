@@ -74,7 +74,25 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def get_lrange():
         returns(nmin=0,nmax=0)
 
+    @remote_function
+    def get_num_parameter_sets():
+        returns(num=0)
 
+    @remote_function
+    def get_parameter_set_name(i=0):
+        returns(name="")
+
+    @remote_function
+    def get_num_parameters(set_name="", param_name=""):
+        returns(num=0)
+
+    @remote_function
+    def get_parameter_name(set_name="", param_name="", i=0):
+        returns(name="")
+
+    @remote_function
+    def get_parameter_type(set_name="", param_name=""):
+        returns(name="")
 
 class iemic(InCodeComponentImplementation):
     def __init__(self, **options):
