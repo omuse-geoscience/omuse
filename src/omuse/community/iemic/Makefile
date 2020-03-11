@@ -27,7 +27,7 @@ endif
 
 LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -ljdqz_tools -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
 
-OBJS = interface.o
+OBJS = interface.o paramset.o
 
 all: iemic_worker
 
