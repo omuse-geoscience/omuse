@@ -300,3 +300,245 @@ int32_t get_parameter_type(char *param_set_name, char *param_name, char **name)
 
     return -1;
 }
+
+int32_t
+get_bool_parameter(char *param_set_name, char *param_name, bool *result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_param_value(param_name, *result);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+set_bool_parameter(char *param_set_name, char *param_name, bool val)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.set_param_value(param_name, val);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_default_bool_parameter(char *param_set_name, char *param_name, bool *result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_default_param_value(param_name, *result);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_char_parameter(char *param_set_name, char *param_name, char *result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_param_value(param_name, *result);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+set_char_parameter(char *param_set_name, char *param_name, char val)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.set_param_value(param_name, val);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_default_char_parameter(char *param_set_name, char *param_name, char *result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_default_param_value(param_name, *result);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_double_parameter(char *param_set_name, char *param_name, double *result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_param_value(param_name, *result);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+set_double_parameter(char *param_set_name, char *param_name, double val)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.set_param_value(param_name, val);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_default_double_parameter(char *param_set_name, char *param_name, double *result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_default_param_value(param_name, *result);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_int_parameter(char *param_set_name, char *param_name, int *result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_param_value(param_name, *result);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+set_int_parameter(char *param_set_name, char *param_name, int val)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.set_param_value(param_name, val);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_default_int_parameter(char *param_set_name, char *param_name, int *result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_default_param_value(param_name, *result);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_string_parameter(char *param_set_name, char *param_name, char **result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_param_value(param_name, resultString);
+        *result = const_cast<char*>(resultString.c_str());
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+set_string_parameter(char *param_set_name, char *param_name, char *val)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.set_param_value(param_name, std::string(val));
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_default_string_parameter(char *param_set_name, char *param_name, char **result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.get_default_param_value(param_name, resultString);
+        *result = const_cast<char*>(resultString.c_str());
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}

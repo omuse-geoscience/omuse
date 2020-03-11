@@ -94,6 +94,66 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def get_parameter_type(set_name="", param_name=""):
         returns(name="")
 
+    @remote_function
+    def get_bool_parameter(set_name="", param_name=""):
+        returns(value=False)
+
+    @remote_function
+    def set_bool_parameter(set_name="", param_name="", value=False):
+        returns()
+
+    @remote_function
+    def get_default_bool_parameter(set_name="", param_name=""):
+        returns(value=False)
+
+    #@remote_function
+    #def get_char_parameter(set_name="", param_name=""):
+    #    returns(value='c')
+
+    #@remote_function
+    #def set_char_parameter(set_name="", param_name="", value='c'):
+    #    returns()
+
+    #@remote_function
+    #def get_default_char_parameter(set_name="", param_name=""):
+    #    returns(value='c')
+
+    @remote_function
+    def get_double_parameter(set_name="", param_name=""):
+        returns(value=0.)
+
+    @remote_function
+    def set_double_parameter(set_name="", param_name="", value=0.):
+        returns()
+
+    @remote_function
+    def get_default_double_parameter(set_name="", param_name=""):
+        returns(value=0.)
+
+    @remote_function
+    def get_int_parameter(set_name="", param_name=""):
+        returns(value=0)
+
+    @remote_function
+    def set_int_parameter(set_name="", param_name="", value=0):
+        returns()
+
+    @remote_function
+    def get_default_int_parameter(set_name="", param_name=""):
+        returns(value=0)
+
+    @remote_function
+    def get_string_parameter(set_name="", param_name=""):
+        returns(value="")
+
+    @remote_function
+    def set_string_parameter(set_name="", param_name="", value=""):
+        returns()
+
+    @remote_function
+    def get_default_string_parameter(set_name="", param_name=""):
+        returns(value="")
+
 class iemic(InCodeComponentImplementation):
     def __init__(self, **options):
         InCodeComponentImplementation.__init__(self,  iemicInterface(**options), **options)
