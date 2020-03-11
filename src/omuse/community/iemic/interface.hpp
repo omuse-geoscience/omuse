@@ -20,4 +20,10 @@ int32_t get_w(int *i, int *j, int *k, double *var, int n);
 int32_t get_p(int *i, int *j, int *k, double *var, int n);
 int32_t get_t(int *i, int *j, int *k, double *var, int n);
 int32_t get_s(int *i, int *j, int *k, double *var, int n);
+
+int32_t get_num_parameter_sets(int *_num);
+int32_t get_parameter_set_name(int i, char **name);
+int32_t get_num_parameters(char *param_set_name, char *param_name, int *_num);
+int32_t get_parameter_name(char *param_set_name, char *param_name, int i, char **name);
+int32_t get_parameter_type(char *param_set_name, char *param_name, char **name);
 #endif

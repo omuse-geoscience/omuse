@@ -7,6 +7,7 @@
 #include "Utils.H"
 
 #include "interface.hpp"
+#include "paramset.hpp"
 
 namespace
 {
@@ -42,14 +43,19 @@ default_continuation_params()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wglobal-constructors"
 #pragma GCC diagnostic ignored "-Wexit-time-destructors"
-ParameterList oceanParams;
 RCP<ParameterList> continuationParams(new ParameterList());
+
+std::map<std::string, ParamSet> parameter_sets = {
+    { "ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) }
+};
 
 RCP<Epetra_Comm> comm;
 RCP<Ocean> ocean;
 RCP<Continuation<RCP<Ocean>, RCP<ParameterList>>> continuation;
 std::ofstream devNull("/dev/null");
 #pragma GCC diagnostic pop
+
+std::string resultString = "";
 
 int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
 {
@@ -92,7 +98,6 @@ int32_t initialize()
 int32_t set_default_params()
 {
     try {
-        oceanParams = Ocean::getDefaultInitParameters();
         *continuationParams = default_continuation_params();
         return 0;
     } catch (const std::exception& exc) {
@@ -109,7 +114,7 @@ int32_t commit_parameters()
     using ContinuationType = Continuation<RCP<Ocean>, RCP<ParameterList>>;
 
     try {
-        ocean = rcp(new Ocean(comm, oceanParams));
+        ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").get()));
         ocean->setPar("Combined Forcing", 0.0);
         ocean->getState('V')->PutScalar(0.0);
         continuation = rcp(new ContinuationType(ocean, continuationParams));
@@ -220,4 +225,78 @@ int32_t get_lrange(int *_min, int *_max)
   *_min = 0;
   *_max = ocean->getLdim() - 1;
   return 0;
+}
+
+int32_t get_num_parameter_sets(int *_num)
+{
+    *_num = parameter_sets.size();
+    return 0;
+}
+
+int32_t get_parameter_set_name(int i, char **name)
+{
+    try {
+        auto it = parameter_sets.begin();
+
+        if (i < 0 || i >= parameter_sets.size()) return -1;
+
+        std::advance(it, i);
+
+        resultString = it->first;
+        *name = const_cast<char*>(resultString.c_str());
+
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t get_num_parameters(char *param_set_name, char *param_name, int *_num)
+{
+    try {
+        *_num = parameter_sets.at(param_set_name).get_num_params(param_name);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+get_parameter_name(char *param_set_name, char *param_name, int i, char **name)
+{
+    try {
+        auto& paramSet = parameter_sets.at(param_set_name);
+        resultString = paramSet.get_param_name(param_name, i);
+        *name = const_cast<char*>(resultString.c_str());
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t get_parameter_type(char *param_set_name, char *param_name, char **name)
+{
+    try {
+        resultString = parameter_sets.at(param_set_name).get_param_type(param_name);
+        *name = const_cast<char*>(resultString.c_str());
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
 }
