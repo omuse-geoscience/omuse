@@ -235,7 +235,7 @@ class TestDalesInterface(TestWithMPI):
         u_profile1 = instance.profiles.U.value_in(units.m / units.s)
         u_profile2 = instance.get_profile_U().value_in(units.m / units.s)
         u_profile3 = instance.get_profile('U').value_in(units.m / units.s)
-        print "Lengths:", len(u_profile1), len(u_profile2), len(u_profile3)
+        #~ print("Lengths:", len(u_profile1), len(u_profile2), len(u_profile3))
         assert numpy.allclose(u_profile1, u_profile2, rtol=1.e-16)
         assert numpy.allclose(u_profile1, u_profile3, rtol=1.e-16)
         u_field = instance.fields.U.value_in(units.m / units.s)
