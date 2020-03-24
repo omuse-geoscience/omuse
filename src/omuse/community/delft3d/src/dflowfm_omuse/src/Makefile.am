@@ -26,7 +26,7 @@ dist-hook:
 	sed -i -e 's/^REGENERATE_VN[ \t]*=[ \t]*yes/REGENERATE_VN=no/' $(distdir)/Makefile.am
 	sed -i -e 's/^REGENERATE_VN[ \t]*=[ \t]*yes/REGENERATE_VN=no/' $(distdir)/Makefile.in
 
-libdflowfm_omuse_la_SOURCES= dflowfm_omuse_lib.F90
+libdflowfm_omuse_la_SOURCES= hash.f90 dflowfm_omuse_lib.F90
 
 # This line would prevent warnings from gfortran about assigned goto's (but introduce warning from ifort about unknown flag)
 #saadf.o : FFLAGS += -std=legacy

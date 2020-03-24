@@ -44,6 +44,15 @@ class DFlowFMInterface(CodeInterface):
     @remote_function
     def get_1d_boundary_nodes_range():
         returns (imin=0, imax=0)
+
+    @remote_function
+    def get_global_2d_flow_nodes_range():
+        returns (imin=0, imax=0)
+
+    @remote_function
+    def get_global_2d_boundary_nodes_range():
+        returns (imin=0, imax=0)
+
     
     @remote_function(must_handle_array=True)
     def get_x_position(index=0):
@@ -96,14 +105,14 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
 
         handler.define_grid('flow_2d_nodes',axes_names = axes_names, 
                 state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
-        handler.set_grid_range('flow_2d_nodes', 'get_2d_flow_nodes_range')
+        handler.set_grid_range('flow_2d_nodes', 'get_global_2d_flow_nodes_range')
         handler.add_getter('flow_2d_nodes', 'get_x_position', names=axes_names[0:1])
         handler.add_getter('flow_2d_nodes', 'get_y_position', names=axes_names[1:2])
         handler.add_getter('flow_2d_nodes', 'get_water_level', names=["water_level"])
 
         handler.define_grid('boundary_2d_nodes',axes_names = axes_names, 
                 state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
-        handler.set_grid_range('boundary_2d_nodes', 'get_2d_boundary_nodes_range')
+        handler.set_grid_range('boundary_2d_nodes', 'get_global_2d_boundary_nodes_range')
         handler.add_getter('boundary_2d_nodes', 'get_x_position', names=axes_names[0:1])
         handler.add_getter('boundary_2d_nodes', 'get_y_position', names=axes_names[1:2])
         handler.add_getter('boundary_2d_nodes', 'get_water_level', names=["water_level"])
@@ -148,10 +157,8 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize')
         handler.add_transition('INITIALIZED', 'PARAM', 'commit_parameters')
 
-        for method in ["get_2d_flow_nodes_range",
-                        "get_1d_flow_nodes_range",
-                        "get_1d_boundary_nodes_range",
-                        "get_2d_boundary_nodes_range",
+        for method in ["get_global_2d_flow_nodes_range",
+                       "get_global_2d_boundary_nodes_range",
                         "evolve_model",
                       ]:
             handler.add_method('PARAM', method)

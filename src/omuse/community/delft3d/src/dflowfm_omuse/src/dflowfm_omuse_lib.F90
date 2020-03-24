@@ -29,9 +29,77 @@ module dflowfm_omuse_lib
   use mpi
 #endif
 
+  use hashMod
+
   implicit none
 
+  type(hash_type) :: hash
+  integer :: ndx_loc, ndxi_loc, ndxi_glob, ndx_glob ! not available in dflowfm !?
+  integer, allocatable :: gid(:) ! gloabl id for local cells only
+
 contains
+
+  function initialize_index_map() result(ierr)
+     integer :: ierr,i
+  
+     if(ndxi.NE.ndx2d.OR.ndx1Db.NE.ndxi) then
+       print*, "err:", ndxi,ndx2d,ndx,ndx1Db
+       ierr=-1 ! assumption broken
+       return
+     endif
+
+     allocate(gid(ndx))
+
+     if(jampi.EQ.0) then
+       if(allocated(iglobal_s)) then
+         ierr=-2 ! unexpectedly allocated
+         return
+       endif
+
+       do i=1,ndx
+         gid(i)=i
+       enddo
+       ndxi_loc=ndxi
+       ndxi_glob=ndxi
+       ndx_loc=ndx
+       ndx_glob=ndx
+       
+     else
+ 
+       gid=-1
+
+       ndx_loc=0
+       ndxi_loc=0
+       do i=1,ndxi
+         if(idomain(i).EQ.my_rank) then
+           ndxi_loc=ndxi_loc+1
+         endif           
+       enddo
+       do i=1,ndx
+         if(idomain(i).EQ.my_rank) then
+           ndx_loc=ndx_loc+1
+           gid(i)=iglobal_s(i)
+         endif
+       enddo
+
+       call reduce_int_sum(ndxi_loc, ndxi_glob)
+       call reduce_int_sum(ndx_loc, ndx_glob)
+
+     endif
+  
+     call initHash(ndx/2+1, ndx, gid, hash)
+    
+     ierr=0
+     
+  end function
+
+  function find_index(global_index) result(local_index)
+      integer :: local_index, global_index
+      
+      local_index=find(global_index, gid, hash)
+      
+  end function 
+
 
   function initialize_dflowfm(config_file) result(ret)    
      character(len=*) :: config_file
@@ -60,7 +128,7 @@ contains
      if ( numranks.le.1 ) then
         jampi = 0
      end if
-  
+     
      !   make domain number string as soon as possible
      write(sdmn, '(I4.4)') my_rank
   
@@ -94,6 +162,16 @@ contains
      ! Just terminate if we get an error....
      if (inerr > 0) ret=-1
   
+!~      print*, "info:"
+!~      print*, ndx, ndx2d, ndkx
+!~      print*, ndxi,ndx1Db
+!~      print*, ndx2dr
+!~      print*, Nglobal_s, nump1d2d
+!~      print*, idomain(:5)
+!~      print*, iglobal_s(:5),size(iglobal_s)
+!~      print*, ndomains
+!~      print*, numk
+     
   end function 
   
   function evolve_model(tend) result(ret)
@@ -122,5 +200,60 @@ contains
      t = time1
      ret = 0
   end function 
+
+  function get_x_position_(i, x, n) result (ret)
+    integer :: ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    do i_=1,n
+      i__=find_index(i(i_))
+      if(i__.GT.0) then
+        if(gid(i__).NE.i(i_)) ret=-1 
+        x(i_)=xz(i__)
+      else
+        x(i_)=1
+      endif
+    enddo
+    ret=0
+#ifdef HAVE_MPI
+    call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+#endif
+  end function
+
+  function get_y_position_(i, x,n) result (ret)
+    integer :: ret,i(n),n,i_, i__
+    double precision :: x(n)
+    do i_=1,n
+      i__=find_index(i(i_))
+      if(i__.NE.0) then
+        if(gid(i__).NE.i(i_)) ret=-1 
+        x(i_)=yz(i__)
+      else
+        x(i_)=0
+      endif
+    enddo
+    ret=0
+#ifdef HAVE_MPI
+    call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+#endif
+  end function
+
+  function get_water_level_(i, x,n) result (ret)
+    integer :: ret,i(n),n,i_, i__
+    double precision :: x(n)
+    do i_=1,n
+      i__=find_index(i(i_))
+      if(i__.NE.0) then
+        if(gid(i__).NE.i(i_)) ret=-1 
+        x(i_)=s1(i__)
+      else
+        x(i_)=0
+      endif
+    enddo
+    ret=0
+#ifdef HAVE_MPI
+    call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+#endif
+  end function
 
 end module

@@ -32,7 +32,7 @@ $(CODELIB): $(CODEOBJS)
 delft3dfm:
 	$(error delft3dfm source not found )
 
-delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse: dflowfm_omuse/src/dflowfm_omuse_lib.F90
+delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse: dflowfm_omuse/src/dflowfm_omuse_lib.F90 dflowfm_omuse/src/hash.f90
 	cp -r dflowfm_omuse delft3dfm/src/engines_gpl/dflowfm/packages/
 	-patch -p0 -N -ddelft3dfm/src < ./patches/configure.ac.patch
 
