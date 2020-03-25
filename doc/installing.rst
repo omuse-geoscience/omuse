@@ -38,6 +38,10 @@ or try to build all of them::
   
     python setup.py develop_build
 
+Install Jupyter in the virtual environment, and make the virtual environment's Python available as a kernel in Jupyter 
+
+    python -m pip install ipykernel matplotlib
+    python -m ipykernel install --user --name=omuse-env
 
 
 Alternatively, see :ref:`Singularity-section` for instructions for setting up and using a Singularity container with
