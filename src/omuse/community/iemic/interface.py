@@ -19,10 +19,6 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
-    def set_default_params():
-        returns ()
-
-    @remote_function
     def commit_parameters():
         returns ()
 

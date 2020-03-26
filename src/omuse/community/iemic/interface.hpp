@@ -5,8 +5,6 @@
 
 int32_t initialize();
 
-int32_t set_default_params();
-
 int32_t commit_parameters();
 int32_t recommit_parameters();
 int32_t initialize_code();
