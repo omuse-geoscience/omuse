@@ -17,41 +17,17 @@ using namespace Teuchos;
 enum class Parameter : unsigned char
 { u = 0, v, w, p, t, s, count };
 
-ParameterList
-default_continuation_params()
-{
-    ParameterList params("Continuation parameters");
-    params.set("continuation parameter", "Combined Forcing");
-    params.set("initial step size", 7.0e-3);
-    params.set("minimum step size", 1.0e-8);
-    params.set("maximum step size", 1.0e-1);
-    params.set("destination 0", 1.0);
-    params.set("maximum number of steps", -1);
-    params.set("Newton tolerance", 1.0e-4);
-    params.set("destination tolerance", 1.0e-4);
-    params.set("minimum desired Newton iterations", 4);
-    params.set("maximum desired Newton iterations", 5);
-    params.set("maximum Newton iterations", 7);
-    params.set("enable backtracking", false);
-    params.set("backtracking steps", 0);
-    params.set("state tangent scaling", 1.0e-2);
-    params.set("enable Newton Chord hybrid solve", false);
-
-    return params;
-}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wglobal-constructors"
 #pragma GCC diagnostic ignored "-Wexit-time-destructors"
-RCP<ParameterList> continuationParams(new ParameterList());
-
 std::map<std::string, ParamSet> parameter_sets = {
-    { "ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) }
+    { "ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) },
+    { "continuation", ParamSet("OMUSE Continuation Parameters", ParamSet::tag<Continuation<RCP<Ocean>>>()) }
 };
 
 RCP<Epetra_Comm> comm;
 RCP<Ocean> ocean;
-RCP<Continuation<RCP<Ocean>, RCP<ParameterList>>> continuation;
+RCP<Continuation<RCP<Ocean>>> continuation;
 std::ofstream devNull("/dev/null");
 #pragma GCC diagnostic pop
 
@@ -85,21 +61,6 @@ int32_t initialize()
         comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
         outFile = rcpFromRef(std::cout);
         cdataFile = rcpFromRef(devNull);
-        return set_default_params();
-    } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
-    } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
-    }
-
-    return -1;
-}
-
-int32_t set_default_params()
-{
-    try {
-        *continuationParams = default_continuation_params();
-        return 0;
     } catch (const std::exception& exc) {
         std::cout << exc.what() << std::endl;
     } catch (...) {
@@ -111,13 +72,13 @@ int32_t set_default_params()
 
 int32_t commit_parameters()
 {
-    using ContinuationType = Continuation<RCP<Ocean>, RCP<ParameterList>>;
+    using ContinuationType = Continuation<RCP<Ocean>>;
 
     try {
         ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").get()));
         ocean->setPar("Combined Forcing", 0.0);
         ocean->getState('V')->PutScalar(0.0);
-        continuation = rcp(new ContinuationType(ocean, continuationParams));
+        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").get()));
 
         return 0;
     } catch (const std::exception& exc) {
