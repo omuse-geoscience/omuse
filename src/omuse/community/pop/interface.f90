@@ -22,10 +22,11 @@ module pop_interface
   use domain, only: distrb_clinic, nprocs_clinic, nprocs_tropic, clinic_distribution_type, &
          tropic_distribution_type, ew_boundary_type, ns_boundary_type
   use forcing_fields, only: SMF, SMFT, lsmft_avail, STF
-  use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, shf_interp_freq, shf_interp_type
+  use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, &
+                         shf_formulation, shf_interp_freq, shf_interp_type, shf_restore_tau
   use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, ws_data_update, ws_interp_freq, ws_interp_type, &
       ws_interp_next, ws_interp_last, ws_interp_inc
-  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_interp_freq, sfwf_interp_type, fwf_imposed
+  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
@@ -105,6 +106,7 @@ function initialize_code() result(ret)
   call POP_Initialize0(errorCode)
 
 ! always allocate
+!do same for horizontal grid(allocate first, deallocate if not amuse)
   allocate(KMT_G(nx_global,ny_global))
 
   if (errorCode /= POP_Success) then
@@ -131,6 +133,9 @@ function commit_parameters() result(ret)
   if(topography_opt.NE.'amuse') then
     deallocate(KMT_G) ! will be reallocated later
   endif
+  !if(horiz_grid_opt.EQ.'amuse') then
+  !  allocate (ULAT_G(nx_global, ny_global), &
+  !            ULON_G(nx_global, ny_global))
 
   call POP_Initialize(errorCode)
 
@@ -1052,7 +1057,6 @@ function set_KMT(g_i,g_j, KMT_, n) result(ret)
   integer :: i,ret,n
   integer, dimension(n), intent(in) :: g_i, g_j
   integer, dimension(n), intent(in) :: KMT_
-
   do i=1,n
       KMT_G(g_i(i), g_j(i))=KMT_(i)
   enddo
@@ -1335,7 +1339,7 @@ function set_horiz_grid_option(option) result (ret)
   character (char_len), intent(in) :: option
   ret=0
 
-  if (option == 'file' .OR. option == 'internal') then
+  if (option == 'file' .OR. option == 'internal' .OR. option == 'amuse') then
     horiz_grid_opt = option
   else 
     ret=-1
@@ -1811,6 +1815,19 @@ function change_directory(pathname) result (ret)
   ret=0
 end function
 
+function set_shf_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: type_
+  ret=0
+  if(type_ == 'amuse') then
+    shf_data_type = type_
+    shf_formulation = 'restoring' 
+    shf_interp_freq = 'every-timestep'
+    shf_interp_type = 'linear'
+  else
+    shf_data_type = type_
+  endif
+end function
 
 function get_shf_filename(filename) result (ret)
   integer :: ret
@@ -1834,6 +1851,24 @@ function set_shf_monthly_file(filename) result (ret)
   ret=0
 end function
 
+function set_sfwf_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: type_
+  ret=0
+  if(type_ == 'amuse') then
+    sfwf_data_type = type_
+    sfwf_formulation = 'restoring' 
+    sfwf_interp_freq = 'every-timestep'
+    sfwf_interp_type = 'linear'
+  elseif(type_ == 'analytic') then
+    sfwf_data_type = type_
+    sfwf_formulation = 'restoring' 
+    sfwf_interp_freq = 'every-timestep'
+    sfwf_interp_type = 'linear'
+  else
+    sfwf_data_type = type_
+  endif
+end function
 function get_sfwf_filename(filename) result (ret)
   integer :: ret
   character (char_len), intent(out) :: filename
@@ -1918,6 +1953,8 @@ subroutine initialize_global_grid
     select case (horiz_grid_opt)
     case ('internal')
       call horiz_grid_internal(.true.)
+    case ('amuse')
+      call horiz_grid_amuse(.true.)
     case ('file')
       call broadcast_scalar(horiz_grid_file, master_task)
       call read_horiz_grid(horiz_grid_file,.true.)

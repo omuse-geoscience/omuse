@@ -433,6 +433,9 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     #forcing options
     @remote_function
+    def set_shf_data_type(option='s'):
+        returns ()
+    @remote_function
     def get_shf_filename():
         returns (filename='s')
     @remote_function
@@ -440,6 +443,9 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns (type='s')
     @remote_function
     def set_shf_monthly_file(filename='s'):
+        returns ()
+    @remote_function
+    def set_sfwf_data_type(option='s'):
         returns ()
     @remote_function
     def get_sfwf_filename():
@@ -520,7 +526,9 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'set_topography_option')
         object.add_method('INITIALIZED', 'set_topography_file')
 
+        object.add_method('INITIALIZED', 'set_shf_data_type')
         object.add_method('INITIALIZED', 'set_shf_monthly_file')
+        object.add_method('INITIALIZED', 'set_sfwf_data_type')
         object.add_method('INITIALIZED', 'set_sfwf_monthly_file')
         object.add_method('INITIALIZED', 'set_ws_monthly_file')
 
@@ -731,7 +739,7 @@ class POP(CommonCode):
             "get_horiz_grid_option",
             "set_horiz_grid_option",
             "horiz_grid_option",
-            "Option for horizontal grid should be either \'internal\' or \'file\'",
+            "Option for horizontal grid should be either \'internal\', \'amuse\' or \'file\'",
             default_value = 'internal'
         )
         object.add_method_parameter(
@@ -921,16 +929,16 @@ class POP(CommonCode):
 
         object.add_method_parameter(
             "get_shf_data_type",
-            "",
+            "set_shf_data_type",
             "surface_heat_flux_forcing",
-            "Setting for surface heat flux",
+            "Option for surface heat flux should one of ['none', 'analytic', 'amuse', 'monthly', 'annual', 'n-hour']",
             default_value = 'none'
         )
         object.add_method_parameter(
             "get_sfwf_data_type",
-            "",
+            "set_sfwf_data_type",
             "surface_freshwater_flux_forcing",
-            "Setting for surface freshwater flux forcing",
+            "Options for surface salinity flux should be one of ['none', 'analytic', 'amuse', 'monthly', 'annual', 'n-hour']",
             default_value = 'none'
         )
         object.add_method_parameter(
