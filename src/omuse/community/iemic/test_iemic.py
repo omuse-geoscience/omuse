@@ -11,6 +11,9 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.initialize()
         self.assertEqual(err,0)
 
+        err = instance.set_double_parameter("continuation", "destination 0", 1.0)
+        self.assertEqual(err,0)
+
         err = instance.commit_parameters()
         self.assertEqual(err,0)
 
@@ -28,6 +31,9 @@ class iemicInterfaceTests(TestWithMPI):
     def test2(self):
         instance = iemicInterface()
         err = instance.initialize()
+        self.assertEqual(err,0)
+
+        err = instance.set_double_parameter("continuation", "destination 0", 1.0)
         self.assertEqual(err,0)
 
         err = instance.commit_parameters()
