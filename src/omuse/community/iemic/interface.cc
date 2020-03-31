@@ -61,6 +61,7 @@ int32_t initialize()
         comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
         outFile = rcpFromRef(std::cout);
         cdataFile = rcpFromRef(devNull);
+        return 0;
     } catch (const std::exception& exc) {
         std::cout << exc.what() << std::endl;
     } catch (...) {
