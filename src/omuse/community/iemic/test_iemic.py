@@ -69,6 +69,7 @@ class iemicInterfaceTests(TestWithMPI):
         instance.stop()
 
     def paramHelper(self, instance, paramSet, n, sublist, param):
+        print("!!>> |{0}|, |{1}|, |{2}|".format(paramSet, sublist,sublist+param)) 
         paramType, err = instance.get_parameter_type(paramSet, sublist + param)
         self.assertEqual(err,0)
 
@@ -176,4 +177,19 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.cleanup_code()
         self.assertEqual(err,0)
 
+        instance.stop()
+
+class iemicTests(TestWithMPI):
+  
+    def test1(self):
+        instance = iemic(redirection="none")
+                
+        sets=instance.parameter_set_names()
+        
+        for name in sets:
+          print("parameter set: {0}".format(name))
+          print(getattr(instance,name))
+          print()
+
+        instance.cleanup_code()
         instance.stop()
