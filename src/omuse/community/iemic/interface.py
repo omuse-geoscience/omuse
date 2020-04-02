@@ -98,6 +98,9 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def set_bool_parameter(set_name="", param_name="", value=False):
         returns()
 
+    def get_state_norm():
+        returns(norm=0.)
+
     @remote_function
     def get_default_bool_parameter(set_name="", param_name=""):
         returns(value=False)

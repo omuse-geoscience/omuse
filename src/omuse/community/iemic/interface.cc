@@ -6,6 +6,8 @@
 #include "Continuation.H"
 #include "Utils.H"
 
+#include <map>
+
 #include "interface.hpp"
 #include "paramset.hpp"
 
@@ -32,6 +34,44 @@ std::ofstream devNull("/dev/null");
 #pragma GCC diagnostic pop
 
 std::string resultString = "";
+
+map<int, RCP<Epetra_Vector>> states;
+map<int, RCP<Epetra_Vector>> matrices;
+
+int32_t new_state(int *id)
+{
+    if( states.size()>RAND_MAX/2 ) return -1;
+    *id=std::rand();
+    while(states.count(*id)) *id=std::rand();
+    RCP<Epetra_Vector> v = rcp(new Epetra_Vector(ocean->getState()->Map(), true));
+    states[*id]=v;
+    return 0;
+}
+
+int32_t remove_state(int id)
+{
+  if(states.erase(id))
+  {
+      return 0;
+  } else
+  {
+      return -1;
+  }
+}
+
+int32_t copy_state(int src, int target)
+{
+  if(! states.count(src) || ! states.count(target)) return -1;
+  *states[target]=*states[src];
+  return 0;
+}
+
+int32_t set_rhs(int target)
+{
+  if(! states.count(target)) return -1;
+  *states[target]=*ocean->getRHS();
+  return 0;
+}
 
 int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
 {
@@ -80,6 +120,11 @@ int32_t commit_parameters()
         ocean->setPar("Combined Forcing", 0.0);
         ocean->getState('V')->PutScalar(0.0);
         continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").get()));
+
+    //~ auto grid = ocean->getGlobalGrid();
+    //~ auto grid=ocean->getDomain()->GetGlobalGrid();
+    
+    //~ std::cout<<(-4000.)*(*grid)[2][15]<<std::endl;    
 
         return 0;
     } catch (const std::exception& exc) {
@@ -504,3 +549,14 @@ get_default_string_parameter(char *param_set_name, char *param_name, char **resu
 
     return -1;
 }
+
+int32_t get_state_norm(double *val)
+{ 
+  *val=Utils::norm(ocean->getState('V'));
+  return 0; 
+}
+
+// norm rhs (cont)
+// parameter (cont)
+// psimin, psimax (ocean writeData)
+// # newton iterations (continuation writeData)
