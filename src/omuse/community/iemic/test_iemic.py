@@ -1,8 +1,8 @@
 from math import isnan
 from amuse.test.amusetest import TestWithMPI
 
-from .interface import iemicInterface
-from .interface import iemic
+from omuse.community.iemic.interface import iemicInterface
+from omuse.community.iemic.interface import iemic
 
 class iemicInterfaceTests(TestWithMPI):
 
@@ -75,7 +75,7 @@ class iemicInterfaceTests(TestWithMPI):
         if paramType == "unknown":
             assert 0, "type can't be unknown"
 
-        print ("    " * n) + param + ": " + paramType,
+        print(("    " * n) + param + ": " + paramType, end=' ')
 
         param = sublist + param
 
@@ -83,7 +83,7 @@ class iemicInterfaceTests(TestWithMPI):
             subParamCount, err = instance.get_num_parameters(paramSet, param)
             self.assertEqual(err,0)
 
-            print
+            print()
 
             for i in range(0, subParamCount):
                 subParamName, err = instance.get_parameter_name(paramSet, param, i)
@@ -98,13 +98,13 @@ class iemicInterfaceTests(TestWithMPI):
             self.assertEqual(err,0)
             self.assertEqual(val, default)
 
-            print " (value: " + str(val) + ", default: " + str(default) + ")"
+            print(" (value: " + str(val) + ", default: " + str(default) + ")")
 
             err = instance.set_bool_parameter(paramSet, param, val)
             self.assertEqual(err,0)
 
         elif paramType == "char":
-            print
+            print()
 
         elif paramType == "double":
             val, err = instance.get_double_parameter(paramSet, param)
@@ -117,7 +117,7 @@ class iemicInterfaceTests(TestWithMPI):
             else:
                 self.assertEqual(val, default)
 
-            print " (value: " + str(val) + ", default: " + str(default) + ")"
+            print(" (value: " + str(val) + ", default: " + str(default) + ")")
 
             err = instance.set_double_parameter(paramSet, param, val)
             self.assertEqual(err,0)
@@ -130,7 +130,7 @@ class iemicInterfaceTests(TestWithMPI):
             self.assertEqual(err,0)
             self.assertEqual(val, default)
 
-            print " (value: " + str(val) + ", default: " + str(default) + ")"
+            print(" (value: " + str(val) + ", default: " + str(default) + ")")
 
             err = instance.set_int_parameter(paramSet, param, val)
             self.assertEqual(err,0)
@@ -143,7 +143,7 @@ class iemicInterfaceTests(TestWithMPI):
             self.assertEqual(err,0)
             self.assertEqual(val, default)
 
-            print " (value: " + str(val) + ", default: " + str(default) + ")"
+            print(" (value: " + str(val) + ", default: " + str(default) + ")")
 
             err = instance.set_string_parameter(paramSet, param, val)
 
@@ -165,7 +165,7 @@ class iemicInterfaceTests(TestWithMPI):
             paramCount, err = instance.get_num_parameters(paramSet)
             self.assertEqual(err,0)
 
-            print paramSet + "(" + str(paramCount) + "):"
+            print(paramSet + "(" + str(paramCount) + "):")
 
             for j in range(0, paramCount):
                 paramName, err = instance.get_parameter_name(paramSet, "", j)
