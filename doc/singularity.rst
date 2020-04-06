@@ -24,23 +24,19 @@ Create a directory which the container can use at runtime for storing notebooks:
 
     mkdir run
 
-Launch the container - start Jupyter server inside::
+Launch the container to start Jupyter server inside::
 
-    singularity run -B src/omuse/community/dales/example/:/opt/notebooks/,run:/run/user/ ./omuse.img 
+    singularity run --contain -B examples:/opt/notebooks,run:/run/user omuse.img 
     
-Then visit localhost:8888 with a browser.
-In the singularity command, the -B option specifies paths that will be mounted inside the container.
-This example shows the path of the dales examples folder, which contains the notebook `bubble-notebook.ipynb`
-demonstrating a warm air bubble simulation.
+Then visit the reported localhost:8888 with a browser.
 
-It is also possible to launch a shell inside the container::
+In the singularity command above, the --contain option disables mounting your home directory whereas the -B option specifies paths that will be mounted inside the container, in this case the examples distributed with OMUSE. If you have a folder with notebooks using OMUSE, you can mount this instead of the examples directory to execute them with the singularity container. The container above can also be used to run a regular python script that uses OMUSE functionality by piping the contents to the container python command::
 
-    singularity shell ./omuse.img
+    cat myscript.py | singularity exec --contain omuse.img python3 
 
-Inside the container, one can then run the example programs::
-  
-    cd src/omuse/community/dales/example/
-    python bubble.py
-    
+Finally, it is also possible to launch a shell inside the container::
 
-    
+    singularity shell --contain omuse.img
+
+to execute your python code with all OMUSE dependencies findable. We advise to use the --contain option whenever you
+have OMUSE installed on your host system in $HOME/.local 

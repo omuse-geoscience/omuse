@@ -25,8 +25,21 @@ From: centos:8
 
 %setup
 mkdir ${SINGULARITY_ROOTFS}/opt/splib
+mkdir ${SINGULARITY_ROOTFS}/opt/omuse
 
 %files
+LICENSE /opt/omuse/LICENSE
+MANIFEST.in /opt/omuse/MANIFEST.in
+NOTICE /opt/omuse/NOTICE
+omuse_logo.png /opt/omuse/omuse_logo.png
+pyproject.toml /opt/omuse/pyproject.toml
+README.md /opt/omuse/README.md
+setup.py /opt/omuse/setup.py
+src /opt/omuse/src
+support /opt/omuse/support
+test /opt/omuse/test
+examples /opt/omuse/examples
+doc /opt/omuse/doc
 
 %post
 yum -y update
@@ -75,10 +88,9 @@ export FCFLAGS="-I/usr/include -I/usr/lib64/gfortran/modules -lnetcdff"
 # more agressive DALES optimization options - targets the architecture where the image is built
 # export SYST=gnu-fast  
 
-cd /opt
+cd /opt/omuse
 #hg clone https://bitbucket.org/omuse/omuse/
-git clone https://github.com/omuse-geoscience/omuse
-cd omuse/
+#git clone https://github.com/omuse-geoscience/omuse
 
 python3 -m pip install -e .
 
@@ -110,8 +122,8 @@ MODULEPATH=/etc/modulefiles
 export LD_LIBRARY_PATH MODULEPATH
 
 %runscript
-     echo "Starting notebook..."
-     # echo "Open browser to localhost:8888"
+     echo "Starting omuse singularity container..."
+     echo "Open browser to localhost:8888"
      exec /usr/local/bin/jupyter notebook --notebook-dir=/opt/notebooks --ip=127.0.0.1 --port=8888 --no-browser
 
 # --ip is not always needed, but was necessary on Arch Linux (with extra docker-generated network interfaces ?)
