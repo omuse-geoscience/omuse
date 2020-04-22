@@ -1,13 +1,15 @@
 # standard amuse configuration include
 # config.mk will be made after ./configure has run
+ifeq ($(origin AMUSE_DIR), undefined)
+  AMUSE_DIR := $(shell amusifier --get-amuse-dir)
+endif
 AMUSE_DIR?=$(shell amusifier --get-amuse-dir)
 -include $(AMUSE_DIR)/config.mk
 
 MPIFC ?= mpif90
-FC      = $(MPIFC)
+FC    ?= $(MPIFC)
 
 FCFLAGS += -Isrc/include
-LDFLAGS += -lm $(MUSE_LD_FLAGS)
 
 OBJS = interface.o
 

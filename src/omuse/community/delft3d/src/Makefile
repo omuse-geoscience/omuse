@@ -1,5 +1,5 @@
 MPIFC ?= mpif90
-FC      = $(MPIFC)
+FC    ?= $(MPIFC)
 
 LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 
