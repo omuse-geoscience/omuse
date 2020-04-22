@@ -61,13 +61,13 @@ contains
     if ( jampi.eq.1 ) then
          
       num = count(iglobnum(1:n).eq.1)
-                    
+      
 #ifdef HAVE_MPI
       call mpi_allgather(num, 1, MPI_INTEGER, numglobcells, 1, MPI_INTEGER, DFM_COMM_DFMWORLD, ierror)
 #else 
       numglobcells(0)=num
 #endif
-         
+
       num = 0
       if ( my_rank.gt.0 ) then
         num = sum(numglobcells(0:my_rank-1))
@@ -158,7 +158,7 @@ contains
 
   function initialize_link_map() result(ierr)
      integer :: ierr,i, j, l1,l2, jaghost, idmn
-     double precision, dimension(:), allocatable :: dum
+     double precision, dimension(:), allocatable :: dum, dum2
       
      if(lnx1D.NE.0.OR.lnx1db.NE.lnxi) then
        print*, "err:", lnx1d,lnxi,lnx1db,lnx
@@ -241,15 +241,24 @@ contains
        print*, my_rank, lnxi_loc, lnxi_glob,lnx_loc, lnx_glob
 
        call get_global_numbering(lnxi, lgid)
-       if(lnx.GT.lnxi) call get_global_numbering(lnx-lnxi, lgid(lnxi+1:lnx), lnxi_glob)
+       if(lnx_glob.GT.lnxi_glob) call get_global_numbering(lnx-lnxi, lgid(lnxi+1:lnx), lnxi_glob)
       
        allocate(dum(lnx))
       
        dum=dble(lgid)
+
+!~        allocate(dum2(lnx))
+!~        where(lgid.NE.0) dum2=1.
+
        call update_ghosts(ITYPE_U, 1, lnx, dum, ierr)
        lgid=int(dum)
- 
+
+!~        call update_ghosts(ITYPE_U, 1, lnx, dum2, ierr)
+!~        print*, ">",my_rank, minval(dum2), maxval(dum2)
+
+
        deallocate(dum)
+!~        deallocate(dum2)
 
      endif
   
