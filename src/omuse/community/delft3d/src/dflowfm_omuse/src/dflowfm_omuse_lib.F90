@@ -35,9 +35,65 @@ module dflowfm_omuse_lib
 
   type(hash_type) :: hash
   integer :: ndx_loc, ndxi_loc, ndxi_glob, ndx_glob ! not available in dflowfm !?
-  integer, allocatable :: gid(:) ! gloabl id for local cells only
+  integer, allocatable :: gid(:) ! global id for local cells only (=iglobal_s)
+
+  type(hash_type) :: lhash
+  integer :: lnxi_loc, lnx_loc, lnxi_glob, lnx_glob ! not available in dflowfm !?
+  integer, allocatable :: lgid(:) ! global id for local links only
 
 contains
+
+  ! this is mirrors get_global_numbers, except no exchange of ghost info
+  subroutine get_global_numbering(n, iglobnum, offset)
+    integer, intent(in) :: n !< size of iglobnum
+    integer, dimension(:), intent(inout) :: iglobnum  !< input: array with 0 if not count or 1 if count output: array with global numbers. 
+    integer, optional, intent(in) :: offset
+
+    integer                                     :: i, num
+    integer                                     :: ierror
+
+    integer, dimension(:), allocatable :: numglobcells
+   
+    ierror = 1
+
+    allocate(numglobcells(0:max(ndomains-1,0)))
+            
+    if ( jampi.eq.1 ) then
+         
+      num = count(iglobnum(1:n).eq.1)
+                    
+#ifdef HAVE_MPI
+      call mpi_allgather(num, 1, MPI_INTEGER, numglobcells, 1, MPI_INTEGER, DFM_COMM_DFMWORLD, ierror)
+#else 
+      numglobcells(0)=num
+#endif
+         
+      num = 0
+      if ( my_rank.gt.0 ) then
+        num = sum(numglobcells(0:my_rank-1))
+      end if
+    else  ! jampi.eq.0
+      numglobcells(0) = count(iglobnum(1:n).eq.1)
+      num = 0
+    end if 
+
+    if(present(offset)) num=num+offset
+
+    ! renumber
+    do i=1,n
+      if ( iglobnum(i).ne.0 ) then
+        num = num+1
+        iglobnum(i) = num
+      end if
+    end do
+
+    ierror = 0
+  1234 continue
+
+    if ( allocated(numglobcells) ) deallocate(numglobcells)
+      
+  end subroutine get_global_numbering
+
 
   function initialize_index_map() result(ierr)
      integer :: ierr,i
@@ -78,8 +134,8 @@ contains
        do i=1,ndx
          if(idomain(i).EQ.my_rank) then
            ndx_loc=ndx_loc+1
-           gid(i)=iglobal_s(i)
          endif
+       gid(i)=iglobal_s(i)
        enddo
 
        call reduce_int_sum(ndxi_loc, ndxi_glob)
@@ -99,6 +155,110 @@ contains
       local_index=find(global_index, gid, hash)
       
   end function 
+
+  function initialize_link_map() result(ierr)
+     integer :: ierr,i, j, l1,l2, jaghost, idmn
+     double precision, dimension(:), allocatable :: dum
+      
+     if(lnx1D.NE.0.OR.lnx1db.NE.lnxi) then
+       print*, "err:", lnx1d,lnxi,lnx1db,lnx
+       ierr=-1 ! assumption broken
+       return
+     endif
+
+     allocate(lgid(lnx))
+
+     if(jampi.EQ.0) then
+       do i=1,lnx
+         lgid(i)=i
+       enddo
+       lnxi_loc=lnxi
+       lnxi_glob=lnxi
+       lnx_loc=lnx
+       lnx_glob=lnx
+       
+     else
+ 
+       lgid=0
+
+       lnxi_loc=0
+!~        lnx_loc=0
+
+!~        do i=1,ndx
+!~          if(idomain(i).NE.my_rank) cycle
+!~          do j=1,nd(i)%lnx
+!~            if(nd(i)%ln(j).GT.0) then
+!~              lnx_loc=lnx_loc+1
+!~              if(nd(i)%ln(j).LE.lnxi) lnxi_loc=lnxi_loc+1
+!~            endif
+!~          enddo
+!~        enddo
+
+!~        do i=1,lnxi
+!~          l1=lne(1,i)
+!~          l2=lne(2,i)
+!~          if(idomain(l1).EQ.my_rank.OR.idomain(l2).EQ.my_rank) then
+!~            if(idomain(l1).GE.idomain(l2)) then
+!~              lnxi_loc=lnxi_loc+1
+!~            endif
+!~          endif           
+!~        enddo
+!~        lnx_loc=lnxi_loc
+!~        do i=lnxi+1,lnx
+!~          l1=lne(1,i)
+!~          l2=lne(2,i)
+!~          if(idomain(l1).EQ.my_rank.OR.idomain(l2).EQ.my_rank) then
+!~            if(idomain(l1).GE.idomain(l2)) then
+!~              lnx_loc=lnx_loc+1
+!~            endif
+!~          endif           
+!~        enddo
+
+! this seems to work
+       do i=1,lnxi
+         l1=ln(1,i)
+         l2=ln(2,i)
+         call link_ghostdata(my_rank,idomain(l1),idomain(l2), jaghost, idmn) 
+         if(jaghost.EQ.0.AND.idmn.EQ.my_rank) then
+             lnxi_loc=lnxi_loc+1
+             lgid(i)=1
+         endif           
+       enddo
+       lnx_loc=lnxi_loc
+       do i=lnxi+1,lnx
+         l1=ln(1,i)
+         l2=ln(2,i)
+         call link_ghostdata(my_rank,idomain(l1),idomain(l2), jaghost, idmn) 
+         if(jaghost.EQ.0.AND.idmn.EQ.my_rank) then
+             lnx_loc=lnx_loc+1
+             lgid(i)=1
+         endif           
+       enddo
+
+       call reduce_int_sum(lnxi_loc, lnxi_glob)
+       call reduce_int_sum(lnx_loc, lnx_glob)
+       
+       print*, my_rank, lnxi_loc, lnxi_glob,lnx_loc, lnx_glob
+
+       call get_global_numbering(lnxi, lgid)
+       if(lnx.GT.lnxi) call get_global_numbering(lnx-lnxi, lgid(lnxi+1:lnx), lnxi_glob)
+      
+       allocate(dum(lnx))
+      
+       dum=dble(lgid)
+       call update_ghosts(ITYPE_U, 1, lnx, dum, ierr)
+       lgid=int(dum)
+ 
+       deallocate(dum)
+
+     endif
+  
+     call initHash(lnx/2+1, lnx, lgid, lhash)
+    
+     ierr=0
+
+
+  end function
 
 
   function initialize_dflowfm(config_file) result(ret)    
@@ -162,9 +322,11 @@ contains
      ! Just terminate if we get an error....
      if (inerr > 0) ret=-1
   
-!~      print*, "info:"
-!~      print*, ndx, ndx2d, ndkx
-!~      print*, ndxi,ndx1Db
+     print*, "info:"
+     print*, my_rank, numk, numL1D, numL
+     print*, my_rank, nump, ndx2d, ndxi, ndx1Db, ndx
+     print*, my_rank, lnx1D, lnxi, lnx1D, lnx
+
 !~      print*, ndx2dr
 !~      print*, Nglobal_s, nump1d2d
 !~      print*, idomain(:5)
@@ -202,57 +364,62 @@ contains
   end function 
 
   function get_x_position_(i, x, n) result (ret)
-    integer :: ret,i(n),n,i_, i__
+    integer :: ret_,ret,i(n),n,i_, i__
     double precision :: x(n)
     ret=0
+    ret_=0
     do i_=1,n
+      x(i_)=0
       i__=find_index(i(i_))
       if(i__.GT.0) then
         if(gid(i__).NE.i(i_)) ret=-1 
-        x(i_)=xz(i__)
-      else
-        x(i_)=1
+        if(idomain(i__).EQ.my_rank) x(i_)=xz(i__)
       endif
     enddo
-    ret=0
 #ifdef HAVE_MPI
     call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+    call reduce_int_sum(ret, ret_)
+    ret=ret_
 #endif
   end function
 
   function get_y_position_(i, x,n) result (ret)
-    integer :: ret,i(n),n,i_, i__
+    integer :: ret_,ret,i(n),n,i_, i__
     double precision :: x(n)
+    ret=0
+    ret_=0
     do i_=1,n
+      x(i_)=0
       i__=find_index(i(i_))
-      if(i__.NE.0) then
+      if(i__.GT.0) then
         if(gid(i__).NE.i(i_)) ret=-1 
-        x(i_)=yz(i__)
-      else
-        x(i_)=0
+        if(idomain(i__).EQ.my_rank) x(i_)=yz(i__)
       endif
     enddo
-    ret=0
 #ifdef HAVE_MPI
     call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+    call reduce_int_sum(ret, ret_)
+    ret=ret_
 #endif
   end function
 
   function get_water_level_(i, x,n) result (ret)
-    integer :: ret,i(n),n,i_, i__
+    integer :: ret_,ret,i(n),n,i_, i__
     double precision :: x(n)
+    ret=0
+    ret_=0
     do i_=1,n
+      x(i_)=0
       i__=find_index(i(i_))
-      if(i__.NE.0) then
+      if(i__.GT.0) then
         if(gid(i__).NE.i(i_)) ret=-1 
-        x(i_)=s1(i__)
-      else
-        x(i_)=0
+        if(idomain(i__).EQ.my_rank) x(i_)=s1(i__)
       endif
     enddo
-    ret=0
 #ifdef HAVE_MPI
     call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+    call reduce_int_sum(ret, ret_)
+    ret=ret_
 #endif
   end function
 

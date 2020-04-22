@@ -66,6 +66,36 @@ class DFlowFMInterface(CodeInterface):
     def get_water_level(index=0):
         returns (h=0. | units.m)
 
+    @remote_function
+    def get_net_nodes_range():
+        returns (imin=0, imax=0)
+
+    @remote_function(must_handle_array=True)
+    def get_x_position_net_nodes(index=0):
+        returns (x=0.) # units deg or m, set late in define_methods
+
+    @remote_function(must_handle_array=True)
+    def get_y_position_net_nodes(index=0):
+        returns (y=0.) # units deg or m, set late in define_methods
+
+    @remote_function
+    def get_internal_flow_links_range():
+        returns (imin=0, imax=0)
+
+    @remote_function
+    def get_boundary_flow_links_range():
+        returns (imin=0, imax=0)
+
+    @remote_function(must_handle_array=True)
+    def get_x_position_flow_links(index=0):
+        returns (x=0.) # units deg or m, set late in define_methods
+
+    @remote_function(must_handle_array=True)
+    def get_y_position_flow_links(index=0):
+        returns (y=0.) # units deg or m, set late in define_methods
+
+
+
 class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
 
     def __init__(self, **options):
@@ -116,6 +146,26 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_getter('boundary_2d_nodes', 'get_x_position', names=axes_names[0:1])
         handler.add_getter('boundary_2d_nodes', 'get_y_position', names=axes_names[1:2])
         handler.add_getter('boundary_2d_nodes', 'get_water_level', names=["water_level"])
+
+        handler.define_grid('net_nodes',axes_names = axes_names, 
+                state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
+        handler.set_grid_range('net_nodes', 'get_net_nodes_range')
+        handler.add_getter('net_nodes', 'get_x_position_net_nodes', names=axes_names[0:1])
+        handler.add_getter('net_nodes', 'get_y_position_net_nodes', names=axes_names[1:2])
+
+        handler.define_grid('flow_links',axes_names = axes_names, 
+                state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
+        handler.set_grid_range('flow_links', 'get_internal_flow_links_range')
+        handler.add_getter('flow_links', 'get_x_position_flow_links', names=axes_names[0:1])
+        handler.add_getter('flow_links', 'get_y_position_flow_links', names=axes_names[1:2])
+
+        handler.define_grid('boundary_flow_links',axes_names = axes_names, 
+                state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
+        handler.set_grid_range('boundary_flow_links', 'get_boundary_flow_links_range')
+        handler.add_getter('boundary_flow_links', 'get_x_position_flow_links', names=axes_names[0:1])
+        handler.add_getter('boundary_flow_links', 'get_y_position_flow_links', names=axes_names[1:2])
+
+
 
     def commit_parameters(self):
         if self.channel.number_of_workers==1:

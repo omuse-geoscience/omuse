@@ -20,6 +20,10 @@ contains
     
     ret=initialize_index_map()
 
+    if(ret.NE.0) return
+
+    ret=initialize_link_map()
+
   end function
   
   function get_model_time(t_) result(ret)
@@ -115,6 +119,77 @@ contains
     double precision :: x(n)
     ret=get_water_level_(i,x,n)
   end function
+
+
+! for net nodes:
+
+  function get_net_nodes_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=1
+    imax=numk
+    ret=0
+  end function
+
+  function get_x_position_net_nodes(i, x, n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n,i_
+    double precision :: x(n)
+    do i_=1, n
+      x(i_)=xk(i(i_))
+    enddo    
+    ret=0
+  end function
+
+  function get_y_position_net_nodes(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    do i_=1, n
+      x(i_)=yk(i(i_))
+    enddo    
+    ret=0
+  end function
+
+! for flow links
+
+  function get_internal_flow_links_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=1
+    imax=lnxi
+    ret=0
+  end function
+
+  function get_boundary_flow_links_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=lnxi+1
+    imax=lnx
+    ret=0
+  end function
+
+  function get_x_position_flow_links(i, x, n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n,i_
+    double precision :: x(n)
+    do i_=1, n
+      x(i_)=xu(i(i_))
+    enddo    
+    ret=0
+  end function
+
+  function get_y_position_flow_links(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    do i_=1, n
+      x(i_)=yu(i(i_))
+    enddo    
+    ret=0
+  end function
+
+
 
 end module
 
