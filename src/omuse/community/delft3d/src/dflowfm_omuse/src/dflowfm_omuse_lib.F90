@@ -367,9 +367,13 @@ contains
 
     ret=0
     if(use_wind) then
-      if(jawind.EQ.1) ret=ret-1 ! not sure if we can handle this
-      jawind=1
+      if(jawind.NE.0) ret=ret-1 ! not sure if we can handle this
+      if(jarelativewind.NE.0) ret=ret-3
+      if(jawindstressgiven.NE.0) ret=ret-4
+      jawind=3
       if(.not.allocated(wx)) allocate(wx(lnx),wy(lnx))
+      wx=0.
+      wy=0.
     endif
     if(use_patm) then
       if(japatm.EQ.1) ret=ret-2
@@ -550,7 +554,6 @@ contains
     ret_=0
     if(allocated(patm)) then
       do i_=1,n
-        x(i_)=0
         i__=find_node(i(i_))
         if(i__.GT.0) then
           if(gid(i__).NE.i(i_)) ret=-1 
@@ -671,7 +674,6 @@ contains
     ret_=0
     if(allocated(wx)) then
       do i_=1,n
-        x(i_)=0
         i__=find_link(i(i_))
         if(i__.GT.0) then
           if(lgid(i__).NE.i(i_)) ret=-1 
@@ -696,11 +698,10 @@ contains
     ret_=0
     if(allocated(wy)) then
       do i_=1,n
-        x(i_)=0
         i__=find_link(i(i_))
         if(i__.GT.0) then
           if(lgid(i__).NE.i(i_)) ret=-1 
-          wx(i__)=x(i_)
+          wy(i__)=x(i_)
         endif
       enddo
     else
