@@ -1,7 +1,8 @@
 module dflowfm_omuse
 
-    character(len=256) :: input_configfile = "amuse.mdu"
+    character(len=256) :: input_configfile = "omuse.mdu"
 
+    logical :: use_wind=.FALSE., use_patm=.FALSE. 
 
 contains
 
@@ -13,7 +14,7 @@ contains
   function commit_parameters() result(ret)
     use dflowfm_omuse_lib
     integer :: ret
-  
+    
     ret=initialize_dflowfm(input_configfile)
 
     if(ret.NE.0) return
@@ -24,6 +25,10 @@ contains
 
     ret=initialize_link_map()
 
+    if(ret.NE.0) return
+
+    ret=initialize_interface_forcings( use_wind, use_patm)
+        
   end function
   
   function get_model_time(t_) result(ret)
@@ -44,11 +49,39 @@ contains
   
   end function
 
+  function get_use_wind(x) result(ret)
+    integer :: ret
+    logical :: x
+    x=use_wind
+    ret=0
+  end function
+
+  function set_use_wind(x) result(ret)
+    integer :: ret
+    logical :: x
+    use_wind=x
+    ret=0
+  end function
+
+  function get_use_patm(x) result(ret)
+    integer :: ret
+    logical :: x
+    x=use_patm
+    ret=0
+  end function
+
+  function set_use_patm(x) result(ret)
+    integer :: ret
+    logical :: x
+    use_patm=x
+    ret=0
+  end function
+
  ! Flow node numbering:
  ! 1:ndx2D, ndx2D+1:ndxi, ndxi+1:ndx1Db, ndx1Db:ndx
  ! ^ 2D int ^ 1D int      ^ 1D bnd       ^ 2D bnd ^ total
 
-  function get_2d_flow_nodes_range(imin,imax) result(ret)
+  function get_flow_nodes_range(imin,imax) result(ret)
     use dflowfm_omuse_lib
     integer :: ret,imin,imax
     imin=1
@@ -72,7 +105,7 @@ contains
     ret=0
   end function
 
-  function get_2d_boundary_nodes_range(imin,imax) result(ret)
+  function get_boundary_nodes_range(imin,imax) result(ret)
     use dflowfm_omuse_lib
     integer :: ret,imin,imax
     imin=ndx1Db+1
@@ -82,7 +115,15 @@ contains
 
 ! the following global indexing assumes no 1D nodes
 
-  function get_global_2d_flow_nodes_range(imin,imax) result(ret)
+  function get_global_flow_nodes_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=1
+    imax=ndx_glob
+    ret=0
+  end function
+
+  function get_global_internal_flow_nodes_range(imin,imax) result(ret)
     use dflowfm_omuse_lib
     integer :: ret,imin,imax
     imin=1
@@ -90,14 +131,13 @@ contains
     ret=0
   end function
 
-  function get_global_2d_boundary_nodes_range(imin,imax) result(ret)
+  function get_global_boundary_flow_nodes_range(imin,imax) result(ret)
     use dflowfm_omuse_lib
     integer :: ret,imin,imax
     imin=ndxi_glob+1
     imax=ndx_glob
     ret=0
   end function
-
 
   function get_x_position(i, x, n) result (ret)
     use dflowfm_omuse_lib
@@ -119,6 +159,35 @@ contains
     double precision :: x(n)
     ret=get_water_level_(i,x,n)
   end function
+
+  function get_ucx(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=get_ucx_(i,x,n)
+  end function
+
+  function get_ucy(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=get_ucy_(i,x,n)
+  end function
+
+  function get_patm(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=get_patm_(i,x,n)
+  end function
+
+  function set_patm(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=set_patm_(i,x,n)
+  end function
+
 
 
 ! for net nodes:
@@ -153,19 +222,27 @@ contains
 
 ! for flow links
 
-  function get_internal_flow_links_range(imin,imax) result(ret)
+  function get_global_flow_links_range(imin,imax) result(ret)
     use dflowfm_omuse_lib
     integer :: ret,imin,imax
     imin=1
-    imax=lnxi
+    imax=lnx_glob
     ret=0
   end function
-
-  function get_boundary_flow_links_range(imin,imax) result(ret)
+  
+  function get_global_internal_flow_links_range(imin,imax) result(ret)
     use dflowfm_omuse_lib
     integer :: ret,imin,imax
-    imin=lnxi+1
-    imax=lnx
+    imin=1
+    imax=lnxi_glob
+    ret=0
+  end function  
+
+  function get_global_boundary_flow_links_range(imin,imax) result(ret)
+    use dflowfm_omuse_lib
+    integer :: ret,imin,imax
+    imin=lnxi_glob+1
+    imax=lnx_glob
     ret=0
   end function
 
@@ -173,9 +250,7 @@ contains
     use dflowfm_omuse_lib
     integer :: ret,i(n),n,i_
     double precision :: x(n)
-    do i_=1, n
-      x(i_)=xu(i(i_))
-    enddo    
+    ret=get_x_position_flow_links_(i, x,n)
     ret=0
   end function
 
@@ -183,12 +258,41 @@ contains
     use dflowfm_omuse_lib
     integer :: ret,i(n),n
     double precision :: x(n)
-    do i_=1, n
-      x(i_)=yu(i(i_))
-    enddo    
+    ret=get_y_position_flow_links_(i, x,n)
     ret=0
   end function
 
+  function get_wx(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=get_wx_(i, x,n)
+    ret=0
+  end function
+
+  function get_wy(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=get_wy_(i, x,n)
+    ret=0
+  end function
+
+  function set_wx(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=set_wx_(i, x,n)
+    ret=0
+  end function
+
+  function set_wy(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=set_wy_(i, x,n)
+    ret=0
+  end function
 
 
 end module

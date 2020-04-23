@@ -40,6 +40,7 @@ module dflowfm_omuse_lib
   type(hash_type) :: lhash
   integer :: lnxi_loc, lnx_loc, lnxi_glob, lnx_glob ! not available in dflowfm !?
   integer, allocatable :: lgid(:) ! global id for local links only
+  integer, allocatable :: ldomain(:) ! domain of link
 
 contains
 
@@ -112,6 +113,13 @@ contains
          return
        endif
 
+       if(.NOT.allocated(idomain)) then
+         allocate(idomain(ndx))
+       else
+         ierr=-2 ! unexpectedly allocated
+         return
+       endif
+
        do i=1,ndx
          gid(i)=i
        enddo
@@ -119,6 +127,7 @@ contains
        ndxi_glob=ndxi
        ndx_loc=ndx
        ndx_glob=ndx
+       idomain=my_rank
        
      else
  
@@ -149,12 +158,16 @@ contains
      
   end function
 
-  function find_index(global_index) result(local_index)
-      integer :: local_index, global_index
-      
+  function find_node(global_index) result(local_index)
+      integer :: local_index, global_index      
       local_index=find(global_index, gid, hash)
-      
   end function 
+
+  function find_link(global_index) result(local_index)
+      integer :: local_index, global_index      
+      local_index=find(global_index, lgid, lhash)
+  end function 
+
 
   function initialize_link_map() result(ierr)
      integer :: ierr,i, j, l1,l2, jaghost, idmn
@@ -166,7 +179,7 @@ contains
        return
      endif
 
-     allocate(lgid(lnx))
+     allocate(lgid(lnx), ldomain(lnx))
 
      if(jampi.EQ.0) then
        do i=1,lnx
@@ -176,10 +189,12 @@ contains
        lnxi_glob=lnxi
        lnx_loc=lnx
        lnx_glob=lnx
+       ldomain=my_rank
        
      else
  
        lgid=0
+       ldomain=-1
 
        lnxi_loc=0
 !~        lnx_loc=0
@@ -218,10 +233,11 @@ contains
        do i=1,lnxi
          l1=ln(1,i)
          l2=ln(2,i)
-         call link_ghostdata(my_rank,idomain(l1),idomain(l2), jaghost, idmn) 
+         call link_ghostdata(my_rank,idomain(l1),idomain(l2), jaghost, idmn)         
          if(jaghost.EQ.0.AND.idmn.EQ.my_rank) then
              lnxi_loc=lnxi_loc+1
              lgid(i)=1
+             ldomain(i)=my_rank
          endif           
        enddo
        lnx_loc=lnxi_loc
@@ -232,6 +248,7 @@ contains
          if(jaghost.EQ.0.AND.idmn.EQ.my_rank) then
              lnx_loc=lnx_loc+1
              lgid(i)=1
+             ldomain(i)=my_rank
          endif           
        enddo
 
@@ -268,7 +285,6 @@ contains
 
 
   end function
-
 
   function initialize_dflowfm(config_file) result(ret)    
      character(len=*) :: config_file
@@ -344,7 +360,26 @@ contains
 !~      print*, numk
      
   end function 
-  
+
+  function initialize_interface_forcings(use_wind, use_patm) result(ret)
+    logical :: use_wind, use_patm
+    integer :: ret
+
+    ret=0
+    if(use_wind) then
+      if(jawind.EQ.1) ret=ret-1 ! not sure if we can handle this
+      jawind=1
+      if(.not.allocated(wx)) allocate(wx(lnx),wy(lnx))
+    endif
+    if(use_patm) then
+      if(japatm.EQ.1) ret=ret-2
+      japatm=1
+      if(.not.allocated(patm)) allocate(patm(ndx))
+      patm=PavBnd
+    endif
+
+  end function
+
   function evolve_model(tend) result(ret)
 !~      use messagehandling
      double precision, intent(in) :: tend
@@ -379,16 +414,18 @@ contains
     ret_=0
     do i_=1,n
       x(i_)=0
-      i__=find_index(i(i_))
+      i__=find_node(i(i_))
       if(i__.GT.0) then
         if(gid(i__).NE.i(i_)) ret=-1 
         if(idomain(i__).EQ.my_rank) x(i_)=xz(i__)
       endif
     enddo
 #ifdef HAVE_MPI
-    call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
-    call reduce_int_sum(ret, ret_)
-    ret=ret_
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
 #endif
   end function
 
@@ -399,16 +436,18 @@ contains
     ret_=0
     do i_=1,n
       x(i_)=0
-      i__=find_index(i(i_))
+      i__=find_node(i(i_))
       if(i__.GT.0) then
         if(gid(i__).NE.i(i_)) ret=-1 
         if(idomain(i__).EQ.my_rank) x(i_)=yz(i__)
       endif
     enddo
 #ifdef HAVE_MPI
-    call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
-    call reduce_int_sum(ret, ret_)
-    ret=ret_
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
 #endif
   end function
 
@@ -419,17 +458,261 @@ contains
     ret_=0
     do i_=1,n
       x(i_)=0
-      i__=find_index(i(i_))
+      i__=find_node(i(i_))
       if(i__.GT.0) then
         if(gid(i__).NE.i(i_)) ret=-1 
         if(idomain(i__).EQ.my_rank) x(i_)=s1(i__)
       endif
     enddo
 #ifdef HAVE_MPI
-    call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
-    call reduce_int_sum(ret, ret_)
-    ret=ret_
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
 #endif
   end function
+
+  function get_ucx_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    do i_=1,n
+      x(i_)=0
+      i__=find_node(i(i_))
+      if(i__.GT.0) then
+        if(gid(i__).NE.i(i_)) ret=-1 
+        if(idomain(i__).EQ.my_rank) x(i_)=ucx(i__)
+      endif
+    enddo
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function get_ucy_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    do i_=1,n
+      x(i_)=0
+      i__=find_node(i(i_))
+      if(i__.GT.0) then
+        if(gid(i__).NE.i(i_)) ret=-1 
+        if(idomain(i__).EQ.my_rank) x(i_)=ucy(i__)
+      endif
+    enddo
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function get_patm_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(patm)) then
+      do i_=1,n
+        x(i_)=0
+        i__=find_node(i(i_))
+        if(i__.GT.0) then
+          if(gid(i__).NE.i(i_)) ret=-1 
+          if(idomain(i__).EQ.my_rank) x(i_)=patm(i__)
+        endif
+      enddo
+    else
+      ret=-2
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function set_patm_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(patm)) then
+      do i_=1,n
+        x(i_)=0
+        i__=find_node(i(i_))
+        if(i__.GT.0) then
+          if(gid(i__).NE.i(i_)) ret=-1 
+          patm(i__)=x(i_)
+        endif
+      enddo
+    else
+      ret=-2
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function get_x_position_flow_links_(i, x, n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    do i_=1,n
+      x(i_)=0
+      i__=find_link(i(i_))
+      if(i__.GT.0) then
+        if(lgid(i__).NE.i(i_)) ret=-1 
+        if(ldomain(i__).EQ.my_rank) x(i_)=xu(i__)
+      endif
+    enddo
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function get_y_position_flow_links_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    do i_=1,n
+      x(i_)=0
+      i__=find_link(i(i_))
+      if(i__.GT.0) then
+        if(lgid(i__).NE.i(i_)) ret=-1 
+        if(ldomain(i__).EQ.my_rank) x(i_)=yu(i__)
+      endif
+    enddo
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function get_wx_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(wx)) then
+      do i_=1,n
+        x(i_)=0
+        i__=find_link(i(i_))
+        if(i__.GT.0) then
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          if(ldomain(i__).EQ.my_rank) x(i_)=wx(i__)
+        endif
+      enddo
+    else
+      ret=-2
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function get_wy_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(wy)) then
+      do i_=1,n
+        x(i_)=0
+        i__=find_link(i(i_))
+        if(i__.GT.0) then
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          if(ldomain(i__).EQ.my_rank) x(i_)=wy(i__)
+        endif
+      enddo
+    else
+      ret=-2
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function set_wx_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(wx)) then
+      do i_=1,n
+        x(i_)=0
+        i__=find_link(i(i_))
+        if(i__.GT.0) then
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          wx(i__)=x(i_)
+        endif
+      enddo
+    else
+      ret=-2
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function set_wy_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(wy)) then
+      do i_=1,n
+        x(i_)=0
+        i__=find_link(i(i_))
+        if(i__.GT.0) then
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          wx(i__)=x(i_)
+        endif
+      enddo
+    else
+      ret=-2
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
 
 end module
