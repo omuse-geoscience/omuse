@@ -1,1 +1,1 @@
-This package installs OMUSE
+This package installs all available OMUSE packages.
