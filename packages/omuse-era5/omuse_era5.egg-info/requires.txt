@@ -1,2 +1,0 @@
-omuse-framework>=1.2.0
-cdsapi
