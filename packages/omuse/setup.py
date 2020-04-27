@@ -12,7 +12,7 @@ install_requires = [
     'omuse-framework>=%s' % main_version,
     'omuse-qgmodel>=%s' % main_version
 ]
-description = 'The Oceanographic Multi-purpose Software Environment'
+description = 'The Oceanographic Multi-purpose Software Environment: a package for multi-physics and multi-scale earth science simulations. '
 with open("README.md", "r") as fh:
     long_description = fh.read()
 long_description_content_type = "text/markdown"
