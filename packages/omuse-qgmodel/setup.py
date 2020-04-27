@@ -19,7 +19,7 @@ url = 'https://github.com/omuse-geoscience/omuse'
 install_requires = [
     'omuse-framework>=%s' % main_version,
 ]
-description = 'The Astrophysical Multipurpose Software Environment - qgmodel'
+description = 'The Oceanographic Multi-purpose Software Environment - qgmodel'
 with open("README.md", "r") as fh:
     long_description = fh.read()
 long_description_content_type = "text/markdown"
