@@ -24,14 +24,14 @@ from omuse.community.adcirc.write_grid import adcirc_grid_writer, adcirc_paramet
 class TestAdcircInterface(TestWithMPI):
 
     def test1(self):
-        print "Test 1: start"
+        print("Test 1: start")
 
         instance = AdcircInterface(**default_options)
         instance.cleanup_code()
         instance.stop()
 
     def test2(self):
-        print "Test 2: rootdir"
+        print("Test 2: rootdir")
 
         instance = AdcircInterface(**default_options)
         instance.set_rootdir("data/test/2d")
@@ -41,7 +41,7 @@ class TestAdcircInterface(TestWithMPI):
         instance.stop()
 
     def test3(self):
-        print "Test 3: depth"
+        print("Test 3: depth")
 
         instance = AdcircInterface(**default_options)
         instance.set_rootdir("data/test/2d")
@@ -52,7 +52,7 @@ class TestAdcircInterface(TestWithMPI):
         instance.stop()
 
     def test4(self):
-        print "Test 4: sigma"
+        print("Test 4: sigma")
 
         instance = AdcircInterface(**default_options)
         instance.set_rootdir("data/test/3d")
@@ -73,7 +73,7 @@ class TestAdcircInterface(TestWithMPI):
 class TestAdcirc(TestWithMPI):
 
     def test1(self):
-        print "Test 1: rootdir"
+        print("Test 1: rootdir")
 
         instance = Adcirc(**default_options)
         instance.set_rootdir("data/test/2d")
@@ -83,7 +83,7 @@ class TestAdcirc(TestWithMPI):
         instance.stop()
 
     def test2(self):
-        print "Test 1: parameters"
+        print("Test 1: parameters")
 
         instance = Adcirc(**default_options)
         instance.initialize_code()
@@ -117,18 +117,18 @@ class TestAdcirc(TestWithMPI):
         self.assertEqual(len(instance.elements),96)
         self.assertEqual(len(instance.forcings),63)
         
-        self.assertEquals(instance.forcings.coriolis_f, (63*[0.0])| units.s**-1)
-        self.assertEquals(instance.forcings.tau_x, ([0.0])| units.Pa)
-        self.assertEquals(instance.forcings.tau_y, ([0.0])| units.Pa)
+        self.assertEqual(instance.forcings.coriolis_f, (63*[0.0])| units.s**-1)
+        self.assertEqual(instance.forcings.tau_x, ([0.0])| units.Pa)
+        self.assertEqual(instance.forcings.tau_y, ([0.0])| units.Pa)
 
         instance.forcings.coriolis_f=numpy.arange(63) | units.s**-1
-        self.assertEquals(instance.forcings.coriolis_f, range(63)| units.s**-1)
+        self.assertEqual(instance.forcings.coriolis_f, list(range(63))| units.s**-1)
         forcings=instance.forcings.empty_copy()
         forcings.tau_x=(numpy.arange(63)+123) | units.Pa
         forcings.tau_y=numpy.arange(63) | units.Pa
         forcings.new_channel_to(instance.forcings).copy_attributes(["tau_x","tau_y"])
-        self.assertEquals(instance.forcings.tau_x, range(123,123+63)| units.Pa)
-        self.assertEquals(instance.forcings.tau_y, range(63)| units.Pa)
+        self.assertEqual(instance.forcings.tau_x, list(range(123,123+63))| units.Pa)
+        self.assertEqual(instance.forcings.tau_y, list(range(63))| units.Pa)
 
         instance.cleanup_code()
         instance.stop()
@@ -197,14 +197,14 @@ class TestAdcirc(TestWithMPI):
         instance = Adcirc(**default_options)
         instance.set_rootdir("data/test/2d")
 
-        print instance.parameters
+        print(instance.parameters)
         instance.evolve_model( 1 | units.hour)
 
         self.assertEqual(instance.model_time, 21*174.656| units.s)
         
-        self.assertEquals(instance.nodes.status, u'wet')
+        self.assertEqual(instance.nodes.status, 'wet')
 
-        self.assertEquals(instance.elements.status, u'wet')
+        self.assertEqual(instance.elements.status, 'wet')
         
         instance.stop()
 
@@ -214,14 +214,14 @@ class TestAdcirc(TestWithMPI):
 
         instance.evolve_model( 1 | units.hour)
         self.assertEqual(instance.model_time, 21*174.656| units.s)
-        self.assertEquals(instance.nodes.status, u'wet')
-        self.assertEquals(instance.elements.status, u'wet')
+        self.assertEqual(instance.nodes.status, 'wet')
+        self.assertEqual(instance.elements.status, 'wet')
         
         instance.nodes[12].eta=0.21 | units.m
         self.assertEqual(instance.nodes[12].eta,0.21 | units.m)
 
-        instance.nodes[12].status=u'dry'
-        self.assertEqual(instance.nodes[12].status,u'dry')
+        instance.nodes[12].status='dry'
+        self.assertEqual(instance.nodes[12].status,'dry')
         self.assertEqual(instance.nodes[12].eta,-instance.nodes[12].depth)
 
         instance.nodes[11].deta_dt=0.1 | units.m/units.s
@@ -252,22 +252,22 @@ class TestAdcirc(TestWithMPI):
         self.assertEqual(len(instance.elements),96)
         self.assertEqual(len(instance.forcings),63)
         
-        self.assertEquals(instance.forcings.coriolis_f, (63*[0.0])| units.s**-1)
-        self.assertEquals(instance.forcings.tau_x, ([0.0])| units.Pa)
-        self.assertEquals(instance.forcings.tau_y, ([0.0])| units.Pa)
+        self.assertEqual(instance.forcings.coriolis_f, (63*[0.0])| units.s**-1)
+        self.assertEqual(instance.forcings.tau_x, ([0.0])| units.Pa)
+        self.assertEqual(instance.forcings.tau_y, ([0.0])| units.Pa)
         
-        self.assertEquals(instance.forcings.pressure, ref)
+        self.assertEqual(instance.forcings.pressure, ref)
 
         instance.forcings.coriolis_f=numpy.arange(63) | units.s**-1
-        self.assertEquals(instance.forcings.coriolis_f, range(63)| units.s**-1)
+        self.assertEqual(instance.forcings.coriolis_f, list(range(63))| units.s**-1)
         forcings=instance.forcings.empty_copy()
         forcings.tau_x=(numpy.arange(63)+123) | units.Pa
         forcings.tau_y=numpy.arange(63) | units.Pa
         forcings.pressure=(numpy.arange(63)+321.) | units.Pa
         forcings.new_channel_to(instance.forcings).copy_attributes(["pressure","tau_x","tau_y"])
-        self.assertAlmostEquals(instance.forcings.pressure, range(321,321+63)| units.Pa,10)
-        self.assertEquals(instance.forcings.tau_x, range(123,123+63)| units.Pa)
-        self.assertEquals(instance.forcings.tau_y, range(63)| units.Pa)
+        self.assertAlmostEqual(instance.forcings.pressure, list(range(321,321+63))| units.Pa,10)
+        self.assertEqual(instance.forcings.tau_x, list(range(123,123+63))| units.Pa)
+        self.assertEqual(instance.forcings.tau_y, list(range(63))| units.Pa)
 
         instance.stop()
 
@@ -320,7 +320,7 @@ class TestAdcircLong(TestWithMPI):
         code.parameters.use_predictor_corrector=param.parameters["DTDP"]<0
         code.parameters.use_interface_met_forcing=False
 
-        print code.parameters
+        print(code.parameters)
 
         tnow=code.model_time
         dt=code.parameters.timestep
@@ -388,7 +388,7 @@ class TestAdcircLong(TestWithMPI):
         code.parameters.use_predictor_corrector=param.parameters["DTDP"]<0
         code.parameters.use_interface_met_forcing=False
 
-        print code.parameters
+        print(code.parameters)
 
         tnow=code.model_time
         dt=code.parameters.timestep

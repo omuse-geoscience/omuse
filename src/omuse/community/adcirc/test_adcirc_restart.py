@@ -100,7 +100,7 @@ def run(tend=5. | units.day, state=None):
   
     state=code.nodes.copy(),code.elements.copy()
     state[0].collection_attributes.time=code.model_time
-    print "done at:", code.model_time.in_(units.day)
+    print("done at:", code.model_time.in_(units.day))
     
     code.stop()
     
@@ -127,14 +127,14 @@ class TestAdcircRestart(TestWithMPI):
         state,time_,eta61_,forcing_=run(tend=5. | units.day,state=state)
         t6=time.time()
         
-        print "timing:", t2-t1,t6-t5+t4-t3
+        print("timing:", t2-t1,t6-t5+t4-t3)
         
         stime.extend(time_)
         eta61.extend(eta61_)
         forcing.extend(forcing_)
 
-        print ref_eta61[-1]
-        print eta61[-1]
+        print(ref_eta61[-1])
+        print(eta61[-1])
 
         pyplot.plot(ref_time,ref_eta61,'r')
         pyplot.plot(ref_time,ref_forcing,'g:')
@@ -148,6 +148,6 @@ class TestAdcircRestart(TestWithMPI):
         self.assertTrue(abs(deta.min().number) < 1.e-10)
         self.assertTrue(abs(deta.max().number) < 1.e-10)
 
-        print deta.min(),deta.max()
+        print(deta.min(),deta.max())
 
-        raw_input()
+        input()

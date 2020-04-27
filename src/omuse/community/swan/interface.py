@@ -326,23 +326,31 @@ class SwanInterface(CodeInterface,
         forvars=d["forvar"]
         unit=d["unit"].reference_string()
         for getset in "sg":
+            args=[]
+            for v in pyvars:
+              args.append("  function.addParameter('"+v+"', dtype='d', direction=function."+("IN" if getset=="s" else "OUT")+", unit="+unit+")\n")
+            args=''.join(args)
             exec( "@legacy_function\n"
                   "def "+getset+"et_input_"+var+"_regular():\n"
                   "  function = LegacyFunctionSpecification()\n"
                   "  function.must_handle_array = True\n"
                   "  function.addParameter('i_index', dtype='i', direction=function.IN)\n"
                   "  function.addParameter('j_index', dtype='i', direction=function.IN)\n" +
-        ''.join([ "  function.addParameter('"+v+"', dtype='d', direction=function."+("IN" if getset=="s" else "OUT")+", unit="+unit+")\n" for v in pyvars] ) +
+                  args +
                   "  function.addParameter('ncells', dtype='i', direction=function.LENGTH)\n"
                   "  function.result_type = 'i'\n"
                   "  return function\n")
         for getset in "sg":
+            args=[]
+            for v in pyvars:
+              args.append("  function.addParameter('"+v+"', dtype='d', direction=function."+("IN" if getset=="s" else "OUT")+", unit="+unit+")\n")
+            args=''.join(args)
             exec( "@legacy_function\n"
                   "def "+getset+"et_input_"+var+"_unstructured():\n"
                   "  function = LegacyFunctionSpecification()\n"
                   "  function.must_handle_array = True\n"
                   "  function.addParameter('i_index', dtype='i', direction=function.IN)\n" +
-        ''.join([ "  function.addParameter('"+v+"', dtype='d', direction=function."+("IN" if getset=="s" else "OUT")+", unit="+unit+")\n" for v in pyvars] ) +
+                  args +
                   "  function.addParameter('ncells', dtype='i', direction=function.LENGTH)\n"
                   "  function.result_type = 'i'\n"
                   "  return function\n") 
