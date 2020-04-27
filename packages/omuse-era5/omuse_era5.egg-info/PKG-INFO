@@ -1,0 +1,28 @@
+Metadata-Version: 2.1
+Name: omuse-era5
+Version: 1.2.0
+Summary: The Oceanographic Multi-purpose Software Environment - ERA5 interface
+Home-page: https://github.com/omuse-geoscience/omuse
+Author: The AMUSE/ OMUSE team
+Author-email: info@amusecode.org
+License: Apache License 2.0
+Description: This package installs the ERA5 interface for OMUSE.
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: C
+Classifier: Programming Language :: C++
+Classifier: Programming Language :: Fortran
+Classifier: Topic :: Scientific/Engineering
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
