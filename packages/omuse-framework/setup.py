@@ -6,9 +6,10 @@ import support
 support.use("system")
 support.set_package_name("omuse")
 from support.setup_codes import setup_commands
+from support.version import version
+from support.classifiers import classifiers
 
 name = 'omuse-framework'
-version = "1.2.0"
 author = 'The Amuse/ Omuse Team'
 author_email = 'info@amusecode.org'
 license_ = "Apache License 2.0"
@@ -28,22 +29,6 @@ description = 'The Oceanographic Multi-purpose Software Environment: a package f
 with open("README.md", "r") as fh:
     long_description = fh.read()
 long_description_content_type = "text/markdown"
-classifiers = [
-    'Development Status :: 4 - Beta',
-    'Environment :: Console',
-    'Intended Audience :: End Users/Desktop',
-    'Intended Audience :: Developers',
-    'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: Apache Software License',
-    'Operating System :: MacOS :: MacOS X',
-    'Operating System :: POSIX',
-    'Programming Language :: Python :: 2.6',
-    'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: C',
-    'Programming Language :: C++',
-    'Programming Language :: Fortran',
-]
 
 extensions = []
 
