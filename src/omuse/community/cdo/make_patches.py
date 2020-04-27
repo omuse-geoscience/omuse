@@ -22,7 +22,7 @@ files = ["Makefile", "remap_scrip_io.c", "remap_conserv_scrip.c", "EOFs.c" ]
 
 def make_patches(filename):
     command = 'diff' + " -I [C/]" + ' -u ' + target_dir + filename + " " + source_dir + filename + ' > ' + patch_dir + filename + ".patch"
-    print command
+    print(command)
     os.system(command)
 
 def apply_patches(filename):
@@ -30,9 +30,9 @@ def apply_patches(filename):
     os.system(command)
 
 def print_usage():
-    print "Usage: make_patches.py [diff|patches]"
-    print "       option diff generates patch files and stores them in directory patch"
-    print "       option patch applies the patches to the code"
+    print("Usage: make_patches.py [diff|patches]")
+    print("       option diff generates patch files and stores them in directory patch")
+    print("       option patch applies the patches to the code")
 
 if __name__ == "__main__": 
     if len(sys.argv) != 2 or (len(sys.argv) == 2 and not (sys.argv[1] == "diff" or sys.argv[1] == "patch")):

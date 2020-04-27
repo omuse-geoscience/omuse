@@ -1,19 +1,29 @@
-# standard amuse configuration include
-# config.mk will be made after ./configure has run
-AMUSE_DIR ?= $(shell amusifier --get-amuse-dir)
--include $(AMUSE_DIR)/config.mk
+ifeq ($(origin AMUSE_DIR), undefined)
+  AMUSE_DIR := $(shell amusifier --get-amuse-dir)
+endif
+-include ${AMUSE_DIR}/config.mk
 
 MPIFC ?= mpif90
 
 #MPIFC = ifort -I/cm/shared/apps/mpich/ge/open64/64/3.1/include -L/cm/shared/apps/mpich/ge/open64/64/3.1/lib -lmpich 
 
-#LDFLAGS  += -lm $(MUSE_LD_FLAGS)
-# MUSE is probably a typo - guess its not needed
-# try without lm, ifort warns it  may supersede the Intel(R) math library and affect performance
+# NOTE on DALES versions
+# OMUSE previously relied on a fork of DALES containing additions necessary for interfacing with OMUSE.
+# These additions are part of the official DALES from version 4.3 on.
+# 
+# When using the previous fork of DALES, the following settings apply:
+# INCLUDEDIR = $(BUILDDIR)/src/ 
+#
+# DALES_GIT_DEFAULT_TAG ?= spifs_v1.0.0  # note: obsolete, does not work at the moment.
+# DALES_GIT_BRANCH ?= master
+# DALES_GIT_REPO ?= https://github.com/CloudResolvingClimateModeling/dales.git
+#
+# Also, when using the older fork, replace "make -j 4" by "make" in the "dales:" rule below,
+# to avoid a parallel build issue which was fixed in version 4.3 
 
 DALESDIR = dales-repo
 BUILDDIR = $(CURDIR)/dales-build
-INCLUDEDIR = $(BUILDDIR)/src
+INCLUDEDIR = $(BUILDDIR)/src/library_modules/
 
 CODE_LIB = $(BUILDDIR)/libdales.a
 
@@ -55,9 +65,9 @@ endif
 # DOWNLOAD_CODES=latest will (shallow) checkout latest revision only
 # DOWNLOAD_CODES=<anything else> will (shallow) checkout release tag spifs_v1.0.0
 
-DALES_GIT_DEFAULT_TAG ?= spifs_v1.0.0
-DALES_GIT_BRANCH ?= master
-DALES_GIT_REPO ?= https://github.com/CloudResolvingClimateModeling/dales.git
+DALES_GIT_DEFAULT_TAG ?= spifs_v1.0.0  # obsolete - move to 4.3 when released
+DALES_GIT_BRANCH ?= to4.3_Fredrik      # change to master when 4.3 is released
+DALES_GIT_REPO ?= https://github.com/dalesteam/dales.git
 GIT_CLONE_CMD = git clone -b $(DALES_GIT_DEFAULT_TAG) --single-branch --depth=1
 
 ifeq ($(DOWNLOAD_CODES), all)
@@ -74,7 +84,7 @@ update: $(DALESDIR)
 
 dales: $(DALESDIR)
 	mkdir -p $(BUILDDIR)
-	cd $(BUILDDIR); cmake ../$(DALESDIR) -DCMAKE_BUILD_TYPE=$(CMAKE_BLD); make; make install
+	cd $(BUILDDIR); cmake ../$(DALESDIR) -DCMAKE_BUILD_TYPE=$(CMAKE_BLD); make -j 4; make install
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py DalesInterface -o $@
