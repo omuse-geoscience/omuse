@@ -1,0 +1,17 @@
+include support/__init__.py
+include support/setup_codes.py
+include support/version.py
+include support/classifiers.py
+include pyproject.toml
+
+recursive-include src/omuse *
+recursive-exclude src *.pyc *.o *~ .pc ccache *.a
+
+recursive-exclude src/omuse/community *
+
+include src/omuse/community/__init__.py
+
+recursive-exclude src *.pyc *.o *~ .pc ccache *.a *.so *.mod
+recursive-exclude lib *.pyc *.o *~ ccache *.a *.so *.mod
+recursive-exclude support *.pyc *.o *~ ccache *.a
+
