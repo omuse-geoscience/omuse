@@ -25,7 +25,7 @@ install_requires = [
     'netCDF4>=1.4.0',
     'f90nml>=1.0.0'
 ]
-description = 'The Oceanographic Multi-purpose Software Environment: a package for multi-physics and multi-scale earth science simulations. '
+description = 'The Oceanographic Multi-purpose Software Environment: base framework '
 with open("README.md", "r") as fh:
     long_description = fh.read()
 long_description_content_type = "text/markdown"
