@@ -38,6 +38,10 @@ class DFlowFMInterface(CodeInterface):
         returns (use_wind=False)
 
     @remote_function
+    def get_use_waterlevel():
+        returns (use_waterevel=False)
+
+    @remote_function
     def set_use_patm(use_patm=False):
         returns ()
 
@@ -45,6 +49,9 @@ class DFlowFMInterface(CodeInterface):
     def set_use_wind(use_wind=False):
         returns ()
 
+    @remote_function
+    def set_use_waterlevel(use_waterlevel=False):
+        returns ()
     
     @remote_function
     def get_flow_nodes_range():
@@ -151,6 +158,10 @@ class DFlowFMInterface(CodeInterface):
         returns (wind_vy=0. | units.m/units.s) 
 
     @remote_function(must_handle_array=True)
+    def get_zbndz(index=0):
+        returns (water_level=0. | units.m) 
+
+    @remote_function(must_handle_array=True)
     def set_wx(index=0,wind_vx=0. | units.m/units.s):
         returns ()
 
@@ -158,6 +169,9 @@ class DFlowFMInterface(CodeInterface):
     def set_wy(index=0,wind_vy=0. | units.m/units.s):
         returns ()
 
+    @remote_function(must_handle_array=True)
+    def set_zbndz(index=0,water_level=0. | units.m):
+        returns ()
 
 
 class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
@@ -205,6 +219,14 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
             default_value = False
         )
 
+        handler.add_boolean_parameter(
+            "get_use_waterlevel", 
+            "set_use_waterlevel",
+            "use_interface_waterlevel_boundary", 
+            "set waterlevel boundaries through interface (True) or not (False) (still needs input ext describing boundaries)", 
+            default_value = False
+        )
+
     def define_grids(self, handler):
         if self._coordinates=="cartesian":
             axes_names=['x','y']
@@ -224,7 +246,7 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
 
         handler.define_grid('boundary_nodes',axes_names = axes_names, 
                 state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
-        handler.set_grid_range('boundary_nodes', 'get_global_boundary_nodes_range')
+        handler.set_grid_range('boundary_nodes', 'get_global_boundary_flow_nodes_range')
         handler.add_getter('boundary_nodes', 'get_x_position', names=axes_names[0:1])
         handler.add_getter('boundary_nodes', 'get_y_position', names=axes_names[1:2])
         handler.add_getter('boundary_nodes', 'get_water_level', names=["water_level"])
@@ -268,6 +290,14 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_getter('flow_links_forcing', 'get_wy', names=["wind_vy"])
         handler.add_setter('flow_links_forcing', 'set_wy', names=["wind_vy"])
 
+        handler.define_grid('waterlevel_boundary',axes_names = axes_names, 
+                state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
+        handler.set_grid_range('waterlevel_boundary', 'get_global_boundary_flow_links_range')
+        handler.add_getter('waterlevel_boundary', 'get_x_position_flow_links', names=axes_names[0:1])
+        handler.add_getter('waterlevel_boundary', 'get_y_position_flow_links', names=axes_names[1:2])
+        handler.add_getter('waterlevel_boundary', 'get_zbndz', names=["water_level"])
+        handler.add_setter('waterlevel_boundary', 'set_zbndz', names=["water_level"])
+
 
     def commit_parameters(self):
         if self.channel.number_of_workers==1:
@@ -310,7 +340,7 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_transition('INITIALIZED', 'PARAM', 'commit_parameters')
 
         for method in ["get_global_flow_nodes_range", "get_global_internal_flow_nodes_range",
-                       "get_global_boundary_nodes_range",
+                       "get_global_boundary_flow_nodes_range",
                         "evolve_model",
                       ]:
             handler.add_method('PARAM', method)

@@ -42,6 +42,10 @@ module dflowfm_omuse_lib
   integer, allocatable :: lgid(:) ! global id for local links only
   integer, allocatable :: ldomain(:) ! domain of link
 
+! we assume for the moment there is 1-1 correspondance with link boundaries 
+  type(hash_type) :: zbnd_hash
+  integer, allocatable :: zbnd_gid(:) ! global id for zbnd only
+
 contains
 
   ! this is mirrors get_global_numbers, except no exchange of ghost info
@@ -168,6 +172,10 @@ contains
       local_index=find(global_index, lgid, lhash)
   end function 
 
+  function find_zbnd(global_index) result(local_index)
+      integer :: local_index, global_index      
+      local_index=find(global_index, zbnd_gid, zbnd_hash)
+  end function 
 
   function initialize_link_map() result(ierr)
      integer :: ierr,i, j, l1,l2, jaghost, idmn
@@ -352,6 +360,13 @@ contains
      print*, my_rank, nump, ndx2d, ndxi, ndx1Db, ndx
      print*, my_rank, lnx1D, lnxi, lnx1D, lnx
 
+     print*, "boundary:"
+     print*, my_rank, nbndz
+     do i=1,nbndz
+       print*, xbndz(i),ybndz(i), xu(kbndz(3,i)),yu(kbndz(3,i))
+     enddo
+
+
 !~      print*, ndx2dr
 !~      print*, Nglobal_s, nump1d2d
 !~      print*, idomain(:5)
@@ -383,6 +398,23 @@ contains
     endif
 
   end function
+
+  function initialize_interface_boundaries(use_waterlevel) result(ret)
+    logical :: use_waterlevel
+    integer :: ret
+
+    ret=0
+
+    if(use_waterlevel) then
+      allocate(zbnd_gid(nbndz))
+    
+      zbnd_gid(:)=kbndz(3, 1:nbndz)
+       
+      call initHash(nbndz/2+1, nbndz, zbnd_gid, zbnd_hash)
+    endif
+
+  end function
+
 
   function evolve_model(tend) result(ret)
 !~      use messagehandling
@@ -706,6 +738,62 @@ contains
       enddo
     else
       ret=-2
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+! waterlevel boundaries
+
+  function get_zbndz_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__, ibnd
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(zbndz)) then
+      do i_=1,n
+        x(i_)=0
+        ibnd=find_zbnd(i(i_))
+        if(ibnd.GT.0) then
+          i__=kbndz(3, ibnd)
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          if(zbnd_gid(ibnd).NE.i(i_)) ret=-2 
+          if(ldomain(i__).EQ.my_rank) x(i_)=zbndz(ibnd)
+        endif
+      enddo
+    else
+      ret=-3
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      call reduce_int_sum(ret, ret_)
+      ret=ret_
+    endif
+#endif
+  end function
+
+  function set_zbndz_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__, ibnd
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(zbndz)) then
+      do i_=1,n
+        ibnd=find_zbnd(i(i_))
+        if(ibnd.GT.0) then
+          i__=kbndz(3, ibnd)
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          if(zbnd_gid(ibnd).NE.i(i_)) ret=-2 
+          zbndz(ibnd)=x(i_)
+        endif
+      enddo
+    else
+      ret=-3
     endif
 #ifdef HAVE_MPI
     if ( jampi.eq.1 ) then

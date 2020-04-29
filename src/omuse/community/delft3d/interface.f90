@@ -3,6 +3,7 @@ module dflowfm_omuse
     character(len=256) :: input_configfile = "omuse.mdu"
 
     logical :: use_wind=.FALSE., use_patm=.FALSE. 
+    logical :: use_waterlevel=.FALSE. 
 
 contains
 
@@ -28,6 +29,10 @@ contains
     if(ret.NE.0) return
 
     ret=initialize_interface_forcings( use_wind, use_patm)
+    
+    if(ret.NE.0) return
+
+    ret=initialize_interface_boundaries(use_waterlevel)    
         
   end function
   
@@ -76,6 +81,21 @@ contains
     use_patm=x
     ret=0
   end function
+
+  function get_use_waterlevel(x) result(ret)
+    integer :: ret
+    logical :: x
+    x=use_waterlevel
+    ret=0
+  end function
+
+  function set_use_waterlevel(x) result(ret)
+    integer :: ret
+    logical :: x
+    use_waterlevel=x
+    ret=0
+  end function
+
 
  ! Flow node numbering:
  ! 1:ndx2D, ndx2D+1:ndxi, ndxi+1:ndx1Db, ndx1Db:ndx
@@ -294,6 +314,23 @@ contains
     ret=0
   end function
 
+! waterlevel boundaries
+
+  function get_zbndz(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=get_zbndz_(i, x,n)
+    ret=0
+  end function
+
+  function set_zbndz(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=set_zbndz_(i, x,n)
+    ret=0
+  end function
 
 end module
 
