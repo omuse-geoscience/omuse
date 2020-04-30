@@ -173,6 +173,18 @@ class DFlowFMInterface(CodeInterface):
     def set_zbndz(index=0,water_level=0. | units.m):
         returns ()
 
+    @remote_function(must_handle_array=True)
+    def get_is_waterlevel_bnd(index=0):
+        returns (is_waterlevel_bnd="b") 
+
+    @remote_function(must_handle_array=True)
+    def get_xbndz(index=0):
+        returns (xbndz=0. ) 
+
+    @remote_function(must_handle_array=True)
+    def get_ybndz(index=0):
+        returns (ybndz=0. ) 
+
 
 class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
 
@@ -290,14 +302,17 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_getter('flow_links_forcing', 'get_wy', names=["wind_vy"])
         handler.add_setter('flow_links_forcing', 'set_wy', names=["wind_vy"])
 
-        handler.define_grid('waterlevel_boundary',axes_names = axes_names, 
+        handler.define_grid('boundary_links_forcing',axes_names = axes_names, 
                 state_guard="before_new_set_instance", grid_class=datamodel.UnstructuredGrid)
-        handler.set_grid_range('waterlevel_boundary', 'get_global_boundary_flow_links_range')
-        handler.add_getter('waterlevel_boundary', 'get_x_position_flow_links', names=axes_names[0:1])
-        handler.add_getter('waterlevel_boundary', 'get_y_position_flow_links', names=axes_names[1:2])
-        handler.add_getter('waterlevel_boundary', 'get_zbndz', names=["water_level"])
-        handler.add_setter('waterlevel_boundary', 'set_zbndz', names=["water_level"])
-
+        handler.set_grid_range('boundary_links_forcing', 'get_global_boundary_flow_links_range')
+        handler.add_getter('boundary_links_forcing', 'get_x_position_flow_links', names=axes_names[0:1])
+        handler.add_getter('boundary_links_forcing', 'get_y_position_flow_links', names=axes_names[1:2])
+        handler.add_getter('boundary_links_forcing', 'get_zbndz', names=["water_level"])
+        handler.add_setter('boundary_links_forcing', 'set_zbndz', names=["water_level"])
+# adhoc attribute to know if a boundary point is waterlevel boundary
+        handler.add_getter('boundary_links_forcing', 'get_is_waterlevel_bnd', names=["is_waterlevel_bnd"])
+        handler.add_getter('boundary_links_forcing', 'get_xbndz', names=["xbndz"])
+        handler.add_getter('boundary_links_forcing', 'get_ybndz', names=["ybndz"])
 
     def commit_parameters(self):
         if self.channel.number_of_workers==1:

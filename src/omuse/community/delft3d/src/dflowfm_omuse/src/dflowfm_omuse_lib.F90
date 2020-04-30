@@ -362,9 +362,6 @@ contains
 
      print*, "boundary:"
      print*, my_rank, nbndz
-     do i=1,nbndz
-       print*, xbndz(i),ybndz(i), xu(kbndz(3,i)),yu(kbndz(3,i))
-     enddo
 
 
 !~      print*, ndx2dr
@@ -407,8 +404,8 @@ contains
 
     if(use_waterlevel) then
       allocate(zbnd_gid(nbndz))
-    
-      zbnd_gid(:)=kbndz(3, 1:nbndz)
+        
+      zbnd_gid(:)=lgid(kbndz(3, 1:nbndz))
        
       call initHash(nbndz/2+1, nbndz, zbnd_gid, zbnd_hash)
     endif
@@ -766,13 +763,14 @@ contains
         endif
       enddo
     else
-      ret=-3
+      x(1:n)=0
     endif
 #ifdef HAVE_MPI
     if ( jampi.eq.1 ) then
-      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
       call reduce_int_sum(ret, ret_)
-      ret=ret_
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      if(ret.NE.0) ret=-10
+      ret=ret+ret_
     endif
 #endif
   end function
@@ -792,13 +790,98 @@ contains
           zbndz(ibnd)=x(i_)
         endif
       enddo
-    else
-      ret=-3
     endif
 #ifdef HAVE_MPI
     if ( jampi.eq.1 ) then
       call reduce_int_sum(ret, ret_)
       ret=ret_
+    endif
+#endif
+  end function
+
+  function get_is_waterlevel_bnd_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__, ibnd
+    integer :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(zbndz)) then
+      do i_=1,n
+        x(i_)=0
+        ibnd=find_zbnd(i(i_))
+        if(ibnd.GT.0) then
+          i__=kbndz(3, ibnd)
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          if(zbnd_gid(ibnd).NE.i(i_)) ret=-2 
+          if(ldomain(i__).EQ.my_rank) x(i_)=1
+        endif
+      enddo
+    else
+      x(1:n)=0
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call reduce_int_sum(ret, ret_)
+      call mpi_allreduce(mpi_in_place,x,n,mpi_integer,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      if(ret.NE.0) ret=-10
+      ret=ret+ret_
+    endif
+#endif
+  end function
+
+  function get_xbndz_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__, ibnd
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(zbndz)) then
+      do i_=1,n
+        x(i_)=0
+        ibnd=find_zbnd(i(i_))
+        if(ibnd.GT.0) then
+          i__=kbndz(3, ibnd)
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          if(zbnd_gid(ibnd).NE.i(i_)) ret=-2 
+          if(ldomain(i__).EQ.my_rank) x(i_)=xbndz(ibnd)
+        endif
+      enddo
+    else
+      x(1:n)=0
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call reduce_int_sum(ret, ret_)
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      if(ret.NE.0) ret=-10
+      ret=ret+ret_
+    endif
+#endif
+  end function
+
+  function get_ybndz_(i, x,n) result (ret)
+    integer :: ret_,ret,i(n),n,i_, i__, ibnd
+    double precision :: x(n)
+    ret=0
+    ret_=0
+    if(allocated(zbndz)) then
+      do i_=1,n
+        x(i_)=0
+        ibnd=find_zbnd(i(i_))
+        if(ibnd.GT.0) then
+          i__=kbndz(3, ibnd)
+          if(lgid(i__).NE.i(i_)) ret=-1 
+          if(zbnd_gid(ibnd).NE.i(i_)) ret=-2 
+          if(ldomain(i__).EQ.my_rank) x(i_)=ybndz(ibnd)
+        endif
+      enddo
+    else
+      x(1:n)=0
+    endif
+#ifdef HAVE_MPI
+    if ( jampi.eq.1 ) then
+      call reduce_int_sum(ret, ret_)
+      call mpi_allreduce(mpi_in_place,x,n,mpi_double_precision,mpi_sum,DFM_COMM_DFMWORLD,ret)
+      if(ret.NE.0) ret=-10
+      ret=ret+ret_
     endif
 #endif
   end function

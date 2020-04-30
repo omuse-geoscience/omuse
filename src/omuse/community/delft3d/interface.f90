@@ -332,5 +332,32 @@ contains
     ret=0
   end function
 
+  function get_is_waterlevel_bnd(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    logical :: x(n)
+    integer :: x_(n)
+    ret=get_is_waterlevel_bnd_(i, x_,n)
+    where(x_.EQ.1) x=.TRUE.
+    ret=0
+  end function
+
+  function get_xbndz(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=get_xbndz_(i, x,n)
+    ret=0
+  end function
+
+  function get_ybndz(i, x,n) result (ret)
+    use dflowfm_omuse_lib
+    integer :: ret,i(n),n
+    double precision :: x(n)
+    ret=get_ybndz_(i, x,n)
+    ret=0
+  end function
+
+
 end module
 
