@@ -7,6 +7,8 @@ from omuse.units import units
 from omuse.units import quantities
 from amuse.datamodel import new_cartesian_grid
 
+from amuse.support.literature import LiteratureReferencesMixIn
+
 from . import era5
 
 from netCDF4 import Dataset
@@ -44,7 +46,10 @@ _era5_units_to_omuse={
                        "J kg**-1" : units.J/units.kg,
                        }
 
-class ERA5(object):
+class ERA5(LiteratureReferencesMixIn):
+    """
+        .. [#] Copernicus Climate Change Service (C3S) (2017): ERA5: Fifth generation of ECMWF atmospheric reanalyses of the global climate . Copernicus Climate Change Service Climate Data Store (CDS)
+    """
 
     def __init__(self, maxcache=None, cachedir="./__era5_cache", 
                  start_datetime=datetime.datetime(1979,1,2), variables=[], 
@@ -68,6 +73,8 @@ class ERA5(object):
         self.grid=self.generate_initial_grid()
 
         self.update_grid()
+        
+        super(ERA5, self).__init__()
 
     def generate_initial_grid(self):
         lsm=self.get_dataset("land_sea_mask", 
