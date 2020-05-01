@@ -8,9 +8,12 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib import pyplot
 
-e=ERA5(variables=["2m_temperature", "total_precipitation"], nwse_boundingbox=[70, -15, 40, 15]| units.deg, grid_resolution=1.0 | units.deg)
+e=ERA5(variables=["2m_temperature", "total_precipitation"], nwse_boundingbox=[70, -15, 40, 15]| units.deg, 
+       grid_resolution=1.0 | units.deg, invariate_variables=["land_sea_mask", "orography"])
 
 print(e.grid) # note grid has prepended the names with _ (because long names are not valid python var names)
+
+input()
 
 f=pyplot.figure()
 pyplot.ion()
