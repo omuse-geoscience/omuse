@@ -1,35 +1,31 @@
-import time
+# todo:
+# test all units are defined
+# test all shortnames are defined
+# test instantiation
+# test basic functionality
+
+import os
+import sys
+import numpy
 
 from omuse.units import units
 
-from omuse.community.era5.interface import era5cached
+from amuse.test.amusetest import TestWithMPI
 
-import matplotlib
-matplotlib.use("TkAgg")
-from matplotlib import pyplot
+from omuse.community.era5 import era5
+from omuse.community.era5.interface import ERA5, _era5_units_to_omuse
 
-e=era5cached(variables=["2m_temperature", "total_precipitation"], nwse_boundingbox=[70, -15, 40, 15]| units.deg)
+import datetime
 
-print(e.grid) # note grid has prepended the names with _ (because long names are not valid python var names)
+class testera5(TestWithMPI):
+    def test0(self):
+        """ test single level units"""
+        for field in era5.SLVARS:
+            ustring=era5.UNITS[field]
+            if ustring not in _era5_units_to_omuse:
+                print("%s unit unknown"%ustring)
 
-f=pyplot.figure()
-pyplot.ion()
-pyplot.show()
-
-#~ pyplot.imshow(e.grid.land_sea_mask)
-
-dt=1. | units.hour
-tend=28. | units.day
-
-
-while e.model_time < tend:
-    print("tnow:",e.model_time)
-    e.evolve_model(e.model_time+dt)
-    t2=e.grid._2m_temperature
-        
-    pyplot.clf()
-    pyplot.imshow(t2.value_in(units.K),vmin=260,vmax=288)
-    f.canvas.flush_events()
-
-    #~ input()
-    time.sleep(1/20.)
+class TestERA5(TestWithMPI):
+    
+    def test0(self):
+        instance=ERA5()
