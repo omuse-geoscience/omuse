@@ -53,7 +53,8 @@ class ERA5(LiteratureReferencesMixIn):
 
     def __init__(self, maxcache=None, cachedir="./__era5_cache", 
                  start_datetime=datetime.datetime(1979,1,2), variables=[], 
-                 grid_resolution=None, nwse_boundingbox=None):
+                 grid_resolution=None, nwse_boundingbox=None,
+                 invariate_variables=["land_sea_mask"]):
         self.maxcache=maxcache
         if not os.path.exists(cachedir):
             os.mkdir(cachedir)
@@ -70,6 +71,8 @@ class ERA5(LiteratureReferencesMixIn):
 
         self.grid_resolution=grid_resolution
         
+        self.invariate_variables=invariate_variables
+        
         self.grid=self.generate_initial_grid()
 
         self.update_grid()
@@ -77,22 +80,30 @@ class ERA5(LiteratureReferencesMixIn):
         super(ERA5, self).__init__()
 
     def generate_initial_grid(self):
-        lsm=self.get_dataset("land_sea_mask", 
-                             nwse_boundingbox=self.nwse_boundingbox,
-                             grid_resolution=self.grid_resolution)
-        
-        lat=lsm["latitude"][:]
-        lon=lsm["longitude"][:]
-        
-        dx=lat[1]-lat[0]
-        dy=lat[1]-lat[0]
-        
-        assert dx==dy
-        
-        shortname=era5.SHORTNAME["land_sea_mask"]
-        grid=new_cartesian_grid( lsm[shortname][0,:,:].shape, dx | units.deg, 
-                                       offset=[lat[0],lon[0]]|units.deg, axes_names=["lat","lon"])
-        grid.land_sea_mask=lsm[shortname][0,:,:]
+        grid=None
+        for variable in self.invariate_variables:
+            data=self.get_dataset(variable, 
+                                 nwse_boundingbox=self.nwse_boundingbox,
+                                 grid_resolution=self.grid_resolution)
+
+            shortname=self._get_shortname(data,variable)
+
+            if grid is None:
+
+                lat=data["latitude"][:]
+                lon=data["longitude"][:]
+                
+                dx=lat[1]-lat[0]
+                dy=lat[1]-lat[0]
+                
+                assert dx==dy
+                
+                grid=new_cartesian_grid( data[shortname][0,:,:].shape, dx | units.deg, 
+                                               offset=[lat[0],lon[0]]|units.deg, axes_names=["lat","lon"])
+
+            value=data[shortname][0,:,:] | _era5_units_to_omuse[era5.UNITS[variable]]
+
+            setattr(grid, variable, value)
 
         return grid
 
@@ -104,15 +115,8 @@ class ERA5(LiteratureReferencesMixIn):
     def update_grid(self):
         for v in self.variables:
             self.update_variable(v)
-            
-    def update_variable(self, var):
-      
-        time=self.start_datetime+datetime.timedelta(days=self.tnow.value_in(units.day))
-      
-        dataset=self.get_dataset(var, time=time, download_timespan=self.download_timespan,
-                                  nwse_boundingbox=self.nwse_boundingbox,
-                                  grid_resolution=self.grid_resolution)
 
+    def _get_shortname(self, dataset, var):
         # the netcdf hortname do not match the CDS website documentation
         # little code to extract variable shortname 
 
@@ -127,6 +131,17 @@ class ERA5(LiteratureReferencesMixIn):
             shortname=netcdf_keys[0]
             print('new shortname for "{0}" : "{1}"'.format(var, shortname))
             era5.SHORTNAME[var]=shortname
+        return shortname
+      
+    def update_variable(self, var):
+      
+        time=self.start_datetime+datetime.timedelta(days=self.tnow.value_in(units.day))
+      
+        dataset=self.get_dataset(var, time=time, download_timespan=self.download_timespan,
+                                  nwse_boundingbox=self.nwse_boundingbox,
+                                  grid_resolution=self.grid_resolution)
+
+        shortname=self._get_shortname(dataset, var)
       
         if self.download_timespan=="day":
             value=dataset[shortname][time.hour,...]
