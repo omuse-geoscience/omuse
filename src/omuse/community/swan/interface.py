@@ -178,9 +178,9 @@ class SwanInterface(CodeInterface,
                       LiteratureReferencesMixIn):
     """
     
-    SWAN - 
+    SWAN - Simulating WAves Nearshore
 
-    .. [#] swanmodel.sf.net
+    .. [#] The SWAN model and documentation can be found at https://swanmodel.sourceforge.net/
     
     """
     use_modules=['StoppingConditions','swan_interface']
