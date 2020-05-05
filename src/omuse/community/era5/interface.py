@@ -88,20 +88,22 @@ class ERA5(LiteratureReferencesMixIn):
 
             shortname=self._get_shortname(data,variable)
 
+
+            lat=data["latitude"][:]
+            lon=data["longitude"][:]
+            
+            dx=lon[1]-lon[0]
+            dy=lat[1]-lat[0]
+            
+            assert lon[1]>lon[0]                
+            assert lat[1]<lat[0]                
+            assert dx==-dy
+                
             if grid is None:
-
-                lat=data["latitude"][:]
-                lon=data["longitude"][:]
-                
-                dx=lat[1]-lat[0]
-                dy=lat[1]-lat[0]
-                
-                assert dx==dy
-                
                 grid=new_cartesian_grid( data[shortname][0,:,:].shape, dx | units.deg, 
-                                               offset=[lat[0],lon[0]]|units.deg, axes_names=["lat","lon"])
+                                               offset=[lat[-1],lon[0]]|units.deg, axes_names=["lat","lon"])
 
-            value=data[shortname][0,:,:] | _era5_units_to_omuse[era5.UNITS[variable]]
+            value=data[shortname][0,::-1,:] | _era5_units_to_omuse[era5.UNITS[variable]]
 
             setattr(grid, variable, value)
 
@@ -144,9 +146,9 @@ class ERA5(LiteratureReferencesMixIn):
         shortname=self._get_shortname(dataset, var)
       
         if self.download_timespan=="day":
-            value=dataset[shortname][time.hour,...]
+            value=dataset[shortname][time.hour,::-1, ...]
         else:
-            value=dataset[shortname][0,...]
+            value=dataset[shortname][0,::-1, ...]
 
         value=value | _era5_units_to_omuse[era5.UNITS[var]]
 
