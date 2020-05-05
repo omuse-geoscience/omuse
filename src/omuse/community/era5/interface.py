@@ -100,8 +100,10 @@ class ERA5(LiteratureReferencesMixIn):
             assert dx==-dy
                 
             if grid is None:
-                grid=new_cartesian_grid( data[shortname][0,:,:].shape, dx | units.deg, 
-                                               offset=[lat[-1],lon[0]]|units.deg, axes_names=["lat","lon"])
+                grid=new_cartesian_grid(data[shortname][0,:,:].shape, 
+                                        dx | units.deg, 
+                                        offset=([lat[-1]-dx/2,lon[0]-dx/2]|units.deg),
+                                        axes_names=["lat","lon"])
 
             value=data[shortname][0,::-1,:] | _era5_units_to_omuse[era5.UNITS[variable]]
 
