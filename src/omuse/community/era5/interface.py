@@ -49,6 +49,7 @@ _era5_units_to_omuse={
 class ERA5(LiteratureReferencesMixIn):
     """
         .. [#] Copernicus Climate Change Service (C3S) (2017): ERA5: Fifth generation of ECMWF atmospheric reanalyses of the global climate . Copernicus Climate Change Service Climate Data Store (CDS)
+        .. [#] Hersbach, H. et al., 2020: The ERA5 Reanalysis. Quart. J. Roy. Meteorol. Soc., doi:10.1002/qj.3803
     """
 
     def __init__(self, maxcache=None, cachedir="./__era5_cache", 
