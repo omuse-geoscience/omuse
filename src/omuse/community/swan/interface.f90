@@ -627,6 +627,7 @@ function set_grid_position_unstructured(i,x,y,n) result(ret)
     xcugrd(i(m))=x(m)
     ycugrd(i(m))=y(m)
   enddo
+  if(LXOFFS) ret=-2
 end function  
 
 function set_grid_lonlat_unstructured(i,x,y,n) result(ret)
@@ -649,6 +650,10 @@ function get_grid_position_unstructured(i,x,y,n) result(ret)
     x(m)=xcugrd(i(m))
     y(m)=ycugrd(i(m))
   enddo
+  if(LXOFFS) then
+    x=x+XOFFS
+    y=y+YOFFS
+  endif
 end function
 
 function get_grid_lonlat_unstructured(i,x,y,n) result(ret)
