@@ -1,8 +1,8 @@
 # OMUSE #
 
 OMUSE stands for Oceanographic MUltipurpose Software Environment. It is a 
-package to conduct numerical experiments in Oceanography and Climate 
-Science.
+package to conduct numerical experiments in oceanography and other Earth 
+sciences.
 
 ### What is this repository for? ###
 
@@ -12,10 +12,11 @@ This repository contains the source tree for OMUSE.
 
 Easiest way is to use a pip developer install:
 
+- setup a python environment, e.g. using virtualenv,
 - (optional) first do a develop install of [AMUSE](http://www.amusecode.org), 
 - Set the environment variable `DOWNLOAD_CODES` to `latest`.
 - then do `pip install -e .` from the root of the package
-- Then type `python setyp.py build_codes --inplace` to build the codes. 
+- Then type `python setup.py build_codes --inplace` to build the codes. 
 - The file `build.log` will report errors in the build process.
 
 The community codes of OMUSE can be build manually by going into ea:
@@ -35,6 +36,10 @@ packages:
  + matplotlib basemap
  + netCDF and netCDF for fortran and the python bindings
  + GRIB_API
+
+### Documentation ###
+
+Documentation can be found [here](https://omuse.readthedocs.io). In addition the base  [AMUSE documentation](https://amuse.readthedocs.io) can be consulted.
 
 ### Reporting issues ###
 

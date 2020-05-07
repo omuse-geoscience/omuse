@@ -180,3 +180,68 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('grid', 'get_u', names=["u_velocity"])
         handler.add_getter('grid', 'get_v', names=["v_velocity"])
         handler.add_getter('grid', 'get_w', names=["w_velocity"])
+
+    def _generate_parameter_setter_getters(self, paramSet, sublist, paramName, paramType):
+        # define getter (closure or partial..)
+        def getter():
+          return getattr(self, "get_"+paramType+"_parameter")(paramSet, "?".join(sublist+[paramName]))
+        # define setter 
+        def setter(val):
+          return getattr(self, "set_"+paramType+"_parameter")(paramSet, "?".join(sublist+[paramName]), val)
+        return getter,setter
+
+
+    def define_parameter_set(self, handler, paramSet, sublist=[]):
+        paramCount = self.get_num_parameters(paramSet, "?".join(sublist))
+        
+        allowed_types=["bool", "string", "double", "int"]
+        
+        for j in range(0, paramCount):
+            paramName = self.get_parameter_name(paramSet, "?".join(sublist) , j)
+            paramType = self.get_parameter_type(paramSet, "?".join(sublist + [paramName]))
+            if paramType=="ParameterList":
+                self.define_parameter_set(handler,paramSet, sublist + [paramName])
+            else:
+                if paramType=="char":
+                    # not handled yet?
+                    continue
+                if paramType not in allowed_types:
+                    raise Exception("encountered unknown parameter type")
+                # normalized parameter name , set name
+                longname="__".join([paramSet] + sublist + [paramName])
+                longname=longname.replace(" ", "_")
+                parameter_set_name="__".join([paramSet] + sublist)
+              
+                getter,setter=self._generate_parameter_setter_getters(paramSet, sublist, paramName, paramType)
+
+                # name of getter
+                name_of_getter="get_"+longname                
+                # name of setter
+                name_of_setter="set_"+longname
+
+                # add getter to interface
+                setattr(self, name_of_getter, getter)
+                # add setter to interface
+                setattr(self, name_of_setter, setter)
+
+                # get default
+                default=getattr(self, "get_default_"+paramType+"_parameter")(paramSet, "?".join(sublist+[paramName]))
+                # define parameter
+                handler.add_method_parameter(
+                  name_of_getter,
+                  name_of_setter,
+                  paramName.replace(" ","_"),
+                  "generated parameter",
+                  default_value = default,
+                  parameter_set=parameter_set_name.replace(" ", "_")
+               )
+ 
+
+    def define_parameters(self, handler):
+        
+        paramSetCount = self.get_num_parameter_sets()
+
+        for i in range(0, paramSetCount):
+            paramSet = self.get_parameter_set_name(i)
+
+            self.define_parameter_set(handler,paramSet)

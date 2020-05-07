@@ -1,0 +1,3 @@
+[build-system]
+requires = [ "omuse-framework>=1.2.0", "omuse-qgmodel>=1.2.0"]
+

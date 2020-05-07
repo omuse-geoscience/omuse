@@ -67,7 +67,7 @@ endif
 
 DALES_GIT_DEFAULT_TAG ?= spifs_v1.0.0  # obsolete - move to 4.3 when released
 DALES_GIT_BRANCH ?= to4.3_Fredrik      # change to master when 4.3 is released
-DALES_GIT_REPO ?= https://github.com/https://github.com/dalesteam/dales.git
+DALES_GIT_REPO ?= https://github.com/dalesteam/dales.git
 GIT_CLONE_CMD = git clone -b $(DALES_GIT_DEFAULT_TAG) --single-branch --depth=1
 
 ifeq ($(DOWNLOAD_CODES), all)
