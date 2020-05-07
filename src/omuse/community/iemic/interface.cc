@@ -1,4 +1,8 @@
 #include <Epetra_Comm.h>
+#ifdef HAVE_MPI
+#include "Epetra_MpiComm.h"
+#endif
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 
