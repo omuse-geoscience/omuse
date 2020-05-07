@@ -659,6 +659,12 @@ class Dales(CommonCode, CodeWithNamelistParameters):
 
         self.parameters_DOMAIN.kmax = len(self.initial_profile_grid.z)
         print("Setting kmax to", self.parameters_DOMAIN.kmax)
+
+    def read_namelist_parameters(self, namelist):
+        CodeWithNamelistParameters.read_namelist_parameters(self,namelist, add_missing_parameters=True)
+        handler=self.get_handler("PARAMETER")     
+        CodeWithNamelistParameters.define_parameters(self,handler)
+        
             
     def set_z_axis(self, z, interpolator=None):
         assert numpy.all(numpy.diff(z.value_in(units.m)) > 0)

@@ -4,7 +4,17 @@ from amuse.units import units
 
 from amuse.datamodel import Grid
 
-class adcirc_file_reader(file):
+class adcirc_file_reader(object):
+  def __init__(self, *args, **kwargs):
+    self.f=open(*args, **kwargs)
+  def __enter__(self):
+    return self
+  def close(self):
+    self.f.close()
+  def __exit__(self, *args):
+    self.f.close()
+  def readline(self):
+    return self.f.readline()
   def read_string(self,n=80):
     return self.readline()[:n]
   def read_int(self,n=1):
@@ -412,17 +422,17 @@ def get_edges(elements):
 if __name__=="__main__":
     a=adcirc_grid_reader()
     a.read_grid()
-    nodes,elements,boundary=a.get_sets()
+    nodes,elements,elev_boundary, boundary=a.get_sets()
     assign_neighbours(nodes,elements)
     edges=get_edges(elements)
     
-    print nodes[1].neighbours
-    print 
-    print elements
-    print
-    print boundary
+    print(nodes[1].neighbours)
+    print() 
+    print(elements)
+    print()
+    print(boundary)
     
     a=adcirc_parameter_reader()
     a.read_parameters()
-    print a.parameters
+    print(a.parameters)
     

@@ -1,5 +1,5 @@
-FC ?= ifort
-MPIFC ?= mpif90
+FC ?= gfortran
+MPIFC ?= $(FC)
 
 .PHONY: patch apply_patch apply_reverse_patch config code objects
 
