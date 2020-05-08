@@ -9,7 +9,7 @@ from support.setup_codes import setup_commands
 from support.version import version
 from support.classifiers import classifiers
 
-name = 'omuse'
+name = 'omuse-framework'
 author = 'The Amuse/ Omuse Team'
 author_email = 'info@amusecode.org'
 license_ = "Apache License 2.0"
@@ -25,7 +25,7 @@ install_requires = [
     'netCDF4>=1.4.0',
     'f90nml>=1.0.0'
 ]
-description = 'The Oceanographic Multi-purpose Software Environment: a package for multi-physics and multi-scale earth science simulations.'
+description = 'The Oceanographic Multi-purpose Software Environment: base framework '
 with open("README.md", "r") as fh:
     long_description = fh.read()
 long_description_content_type = "text/markdown"
@@ -34,7 +34,7 @@ extensions = []
 
 all_data_files = []
 
-packages = find_packages('src')
+packages = find_packages('src', exclude=["omuse.community.*"])
 
 package_data = {
 }
@@ -53,6 +53,9 @@ setup(
     long_description=long_description,
     long_description_content_type=long_description_content_type,
     install_requires=install_requires,
+    #~ extras_require = {
+        #~ "MPI" : ["mpi4py>=1.1.0"]
+    #~ },
     cmdclass=mapping_from_command_name_to_command_class,
     ext_modules=extensions,
     package_dir = {'': 'src'},
