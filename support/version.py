@@ -1,6 +1,6 @@
 major_version = 1
 minor_version = 2
-micro_version = 4
+micro_version = 7
 patch_version = ""
 post_version = ""
 version = "%i.%i.%i" % (major_version, minor_version, micro_version)
