@@ -152,6 +152,19 @@ int32_t step()
     return -1;
 }
 
+int32_t run_continuation()
+{
+    try {
+        return continuation->run();
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
 int32_t cleanup_code()
 {
     continuation = Teuchos::null;
