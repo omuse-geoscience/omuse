@@ -141,9 +141,15 @@ int32_t test_grid(char *fileName)
 
 int32_t step()
 {
-    int status = continuation->run();
+    try {
+        return continuation->step();
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
 
-    return status;
+    return -1;
 }
 
 int32_t cleanup_code()
