@@ -31,6 +31,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
+    def run_continuation():
+        returns ()
+
+    @remote_function
     def cleanup_code():
         returns ()
 
