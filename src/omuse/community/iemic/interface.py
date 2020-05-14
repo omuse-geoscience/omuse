@@ -206,7 +206,7 @@ class iemic(InCodeComponentImplementation):
                     raise Exception("encountered unknown parameter type")
                 # normalized parameter name , set name
                 longname="__".join([paramSet] + sublist + [paramName])
-                longname=longname.replace(" ", "_")
+                longname=longname.replace(" ", "_").replace("-","_")
                 parameter_set_name="__".join([paramSet] + sublist)
               
                 getter,setter=self._generate_parameter_setter_getters(paramSet, sublist, paramName, paramType)
@@ -227,10 +227,10 @@ class iemic(InCodeComponentImplementation):
                 handler.add_method_parameter(
                   name_of_getter,
                   name_of_setter,
-                  paramName.replace(" ","_"),
+                  paramName.replace(" ","_").replace("-","_"),
                   "generated parameter",
                   default_value = default,
-                  parameter_set=parameter_set_name.replace(" ", "_")
+                  parameter_set=parameter_set_name.replace(" ", "_").replace("-","_")
                )
  
 
