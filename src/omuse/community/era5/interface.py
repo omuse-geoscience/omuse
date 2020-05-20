@@ -108,7 +108,7 @@ class ERA5(LiteratureReferencesMixIn):
                   dlon=360
                 else:
                   dlon=self.nwse_boundingbox[3]-self.nwse_boundingbox[1]
-                assert dlon.value_in(units.deg) == dx*(self.shape[1]+1)
+                assert dlon.value_in(units.deg) == dx*(self.shape[1])
                 self.shape=(self.shape[0],self.shape[1]+1)
                 
             if grid is None:
