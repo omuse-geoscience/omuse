@@ -56,14 +56,21 @@ class ERA5(LiteratureReferencesMixIn):
     def __init__(self, maxcache=None, cachedir="./__era5_cache", 
                  start_datetime=datetime.datetime(1979,1,2), variables=[], 
                  grid_resolution=None, nwse_boundingbox=None,
-                 invariate_variables=["land_sea_mask"], extra_lon=False):
+                 invariate_variables=["land_sea_mask"]):
         self.maxcache=maxcache
         if not os.path.exists(cachedir):
             os.mkdir(cachedir)
         self.cachedir=cachedir
         self.download_timespan="day"
+
+        extra_lon=False
+        if nwse_boundingbox is None or \
+           nwse_boundingbox[3]-nwse_boundingbox[1]==360 | units.deg:
+             extra_lon=True
+
         self.nwse_boundingbox=nwse_boundingbox
         self.extra_lon=extra_lon
+ 
 
         self.variables=variables
         self.start_datetime=start_datetime
