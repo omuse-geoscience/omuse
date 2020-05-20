@@ -191,7 +191,7 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
     def __init__(self, **options):
         self._ini_file=options.get("ini_file","")
         CodeWithIniFileParameters.__init__(self, options.get("parameters", dict()) ) 
-        self._coordinates="cartesian"
+        self._coordinates=options.get("coordinates", "cartesian") # should be automatic
         InCodeComponentImplementation.__init__(self,  DFlowFMInterface(**options), **options)
         if self._ini_file:
             self.parameters.ini_file=self._ini_file
@@ -313,6 +313,20 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_getter('boundary_links_forcing', 'get_is_waterlevel_bnd', names=["is_waterlevel_bnd"])
         handler.add_getter('boundary_links_forcing', 'get_xbndz', names=["xbndz"])
         handler.add_getter('boundary_links_forcing', 'get_ybndz', names=["ybndz"])
+
+    def define_methods(self, handler):
+        if self._coordinates=="spherical":
+          handler.add_method( "get_x_position", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
+          handler.add_method( "get_y_position", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
+          handler.add_method( "get_x_position_flow_links", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
+          handler.add_method( "get_y_position_flow_links", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
+        elif self._coordinates=="cartesian":
+          handler.add_method( "get_x_position", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
+          handler.add_method( "get_y_position", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
+          handler.add_method( "get_x_position_flow_links", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
+          handler.add_method( "get_y_position_flow_links", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
+        else:
+          raise Exception("unknown coordinates")
 
     def commit_parameters(self):
         if self.channel.number_of_workers==1:

@@ -424,10 +424,9 @@ contains
      ! The time loop seems to be located in unstruc->flow
      ! It is important that we can simulate up to a time set from the outside
      ! We might have to set time_user or dt_user
-     
+     ierr=0
      dt=tend-time1
-  
-     call flow_run_sometimesteps(dt, ierr)
+     if(dt.GT.0) call flow_run_sometimesteps(dt, ierr)
   
      ret = ierr
   end function 
