@@ -165,7 +165,7 @@ class iemic(InCodeComponentImplementation):
         
         for state in ["PARAM"]:
             for method in ["get_u", "get_v", "get_w", "get_p", "get_t", "get_s",
-                "get_nrange", "get_mrange", "get_lrange","step"]:
+                "get_nrange", "get_mrange", "get_lrange","step", "run_continuation"]:
                 handler.add_method(state, method)
               
     def _grid_range(self):
