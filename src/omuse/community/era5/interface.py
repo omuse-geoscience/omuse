@@ -49,7 +49,8 @@ _era5_units_to_omuse={
 class ERA5(LiteratureReferencesMixIn):
     """
         .. [#] Copernicus Climate Change Service (C3S) (2017): ERA5: Fifth generation of ECMWF atmospheric reanalyses of the global climate . Copernicus Climate Change Service Climate Data Store (CDS)
-        .. [#] Hersbach, H. et al., 2020: The ERA5 Reanalysis. Quart. J. Roy. Meteorol. Soc., doi:10.1002/qj.3803
+        .. [#] Hersbach, H. et al., 2020: The ERA5 Reanalysis. Quart. J. Roy. Meteorol. Soc., doi: 10.1002/qj.3803
+        .. [#] Pelupessy, F.I., Chertova, M., van den Oord, G., van Werkhoven, B., 2020, EGU General Assembly, doi: 10.5194/egusphere-egu2020-18011
     """
 
     def __init__(self, maxcache=None, cachedir="./__era5_cache", 
@@ -61,7 +62,15 @@ class ERA5(LiteratureReferencesMixIn):
             os.mkdir(cachedir)
         self.cachedir=cachedir
         self.download_timespan="day"
+
+        extra_lon=False
+        if nwse_boundingbox is None or \
+           nwse_boundingbox[3]-nwse_boundingbox[1]==360 | units.deg:
+             extra_lon=True
+
         self.nwse_boundingbox=nwse_boundingbox
+        self.extra_lon=extra_lon
+ 
 
         self.variables=variables
         self.start_datetime=start_datetime
@@ -100,15 +109,29 @@ class ERA5(LiteratureReferencesMixIn):
             assert lat[1]<lat[0]                
             assert dx==-dy
                 
+            self.shape=data[shortname][0,:,:].shape
+            if self.extra_lon:
+                if self.nwse_boundingbox is None:
+                  dlon=360
+                else:
+                  dlon=self.nwse_boundingbox[3]-self.nwse_boundingbox[1]
+                assert dlon.value_in(units.deg) == dx*(self.shape[1])
+                self.shape=(self.shape[0],self.shape[1]+1)
+                
             if grid is None:
-                grid=new_cartesian_grid(data[shortname][0,:,:].shape, 
+                grid=new_cartesian_grid(self.shape, 
                                         dx | units.deg, 
                                         offset=([lat[-1]-dx/2,lon[0]-dx/2]|units.deg),
                                         axes_names=["lat","lon"])
-
-            value=data[shortname][0,::-1,:] | _era5_units_to_omuse[era5.UNITS[variable]]
-
-            setattr(grid, variable, value)
+ 
+            value=numpy.zeros(self.shape)
+            if self.extra_lon:
+                value[:,:self.shape[1]-1]=data[shortname][0,::-1,:]
+                value[:,-1]=data[shortname][0,::-1,0]
+            else:
+                value=data[shortname][0,::-1,:]
+            
+            setattr(grid, variable, value | _era5_units_to_omuse[era5.UNITS[variable]])
 
         return grid
 
@@ -149,13 +172,20 @@ class ERA5(LiteratureReferencesMixIn):
         shortname=self._get_shortname(dataset, var)
       
         if self.download_timespan=="day":
-            value=dataset[shortname][time.hour,::-1, ...]
+            _value=dataset[shortname][time.hour, ...]
         else:
-            value=dataset[shortname][0,::-1, ...]
+            _value=dataset[shortname][0, ...]
 
-        value=value | _era5_units_to_omuse[era5.UNITS[var]]
+        assert len(_value.shape)==len(self.shape)
 
-        setattr(self.grid, "_"+var, value)
+        value=numpy.zeros(self.shape)
+        if self.extra_lon:
+            value[:,:self.shape[1]-1]=_value[::-1,:]
+            value[:,-1]=_value[::-1,0]
+        else:
+            value=_value[::-1,:]          
+            
+        setattr(self.grid, "_"+var, value | _era5_units_to_omuse[era5.UNITS[var]])
 
 
     @property
