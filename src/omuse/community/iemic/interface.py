@@ -31,6 +31,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
+    def run_continuation():
+        returns ()
+
+    @remote_function
     def cleanup_code():
         returns ()
 
@@ -164,7 +168,7 @@ class iemic(InCodeComponentImplementation):
         
         for state in ["PARAM"]:
             for method in ["get_u", "get_v", "get_w", "get_p", "get_t", "get_s",
-                "get_nrange", "get_mrange", "get_lrange","step"]:
+                "get_nrange", "get_mrange", "get_lrange","step", "run_continuation"]:
                 handler.add_method(state, method)
               
     def _grid_range(self):
@@ -209,7 +213,7 @@ class iemic(InCodeComponentImplementation):
                     raise Exception("encountered unknown parameter type")
                 # normalized parameter name , set name
                 longname="__".join([paramSet] + sublist + [paramName])
-                longname=longname.replace(" ", "_")
+                longname=longname.replace(" ", "_").replace("-","_")
                 parameter_set_name="__".join([paramSet] + sublist)
               
                 getter,setter=self._generate_parameter_setter_getters(paramSet, sublist, paramName, paramType)
@@ -230,10 +234,10 @@ class iemic(InCodeComponentImplementation):
                 handler.add_method_parameter(
                   name_of_getter,
                   name_of_setter,
-                  paramName.replace(" ","_"),
+                  paramName.replace(" ","_").replace("-","_"),
                   "generated parameter",
                   default_value = default,
-                  parameter_set=parameter_set_name.replace(" ", "_")
+                  parameter_set=parameter_set_name.replace(" ", "_").replace("-","_")
                )
  
 
