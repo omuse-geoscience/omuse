@@ -59,7 +59,9 @@ class conservative_spherical_remapper(object):
 
         return source_copy, target_copy, channel3
 
-    def forward_mapping(self, attributes):
+    def forward_mapping(self, attributes, target_names=None):
+        if target_names is not None:
+          raise Exception("to be implemented")
 
         element_attributes = attributes
         node_attributes = []

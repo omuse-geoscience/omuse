@@ -10,6 +10,7 @@ int32_t recommit_parameters();
 int32_t initialize_code();
 int32_t test_grid(char* logFile);
 int32_t step();
+int32_t run_continuation();
 int32_t cleanup_code();
 
 int32_t get_u(int *i, int *j, int *k, double *var, int n);
