@@ -6,7 +6,7 @@ from amuse.datamodel import CartesianGrid
 
 from omuse.units import units
 
-
+from remotestatevector import RemoteStateVector
 
 class iemicInterface(CodeInterface,CommonCodeInterface):
     include_headers = ['worker_code.h']
@@ -157,6 +157,27 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def get_default_string_parameter(set_name="", param_name=""):
         returns(value="")
 
+    @remote_function(can_handle_array=True)
+    def _new_state():
+        returns(index=0)
+    
+    @remote_function
+    def _remove_state(index=0):
+        returns()
+
+    @remote_function
+    def _get_rhs(src=0, target=0):
+        returns()
+
+    @remote_function
+    def _solve(src=0, target=0):
+        returns()
+
+    @remote_function
+    def _jacobian(src=0):
+        returns()
+        
+
 class iemic(InCodeComponentImplementation):
     def __init__(self, **options):
         InCodeComponentImplementation.__init__(self,  iemicInterface(**options), **options)
@@ -168,7 +189,7 @@ class iemic(InCodeComponentImplementation):
         
         for state in ["PARAM"]:
             for method in ["get_u", "get_v", "get_w", "get_p", "get_t", "get_s",
-                "get_nrange", "get_mrange", "get_lrange","step", "run_continuation"]:
+                "get_nrange", "get_mrange", "get_lrange","step", "run_continuation", "_new_state"]:
                 handler.add_method(state, method)
               
     def _grid_range(self):
@@ -184,6 +205,7 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('grid', 'get_u', names=["u_velocity"])
         handler.add_getter('grid', 'get_v', names=["v_velocity"])
         handler.add_getter('grid', 'get_w', names=["w_velocity"])
+
 
     def _generate_parameter_setter_getters(self, paramSet, sublist, paramName, paramType):
         # define getter (closure or partial..)
@@ -249,3 +271,19 @@ class iemic(InCodeComponentImplementation):
             paramSet = self.get_parameter_set_name(i)
 
             self.define_parameter_set(handler,paramSet)
+
+    def new_state(self):
+        return RemoteStateVector(self)
+
+    def get_rhs(self, state):
+        result=self.new_state()
+        self._get_rhs(state._id, result._id)
+        return result
+
+    def solve(self, state):
+        result=self.new_state()
+        self._solve(state, result)
+        return result
+        
+    def jacobian(self, state):
+        self._jacobian(state._id)

@@ -10,9 +10,10 @@
 #include "Continuation.H"
 #include "Utils.H"
 
+#include <cstdint>
 #include <map>
 
-#include "interface.hpp"
+//#include "interface.hpp"
 #include "paramset.hpp"
 
 namespace
@@ -39,43 +40,9 @@ std::ofstream devNull("/dev/null");
 
 std::string resultString = "";
 
+int state_count=0;
 map<int, RCP<Epetra_Vector>> states;
 map<int, RCP<Epetra_Vector>> matrices;
-
-int32_t new_state(int *id)
-{
-    if( states.size()>RAND_MAX/2 ) return -1;
-    *id=std::rand();
-    while(states.count(*id)) *id=std::rand();
-    RCP<Epetra_Vector> v = rcp(new Epetra_Vector(ocean->getState()->Map(), true));
-    states[*id]=v;
-    return 0;
-}
-
-int32_t remove_state(int id)
-{
-  if(states.erase(id))
-  {
-      return 0;
-  } else
-  {
-      return -1;
-  }
-}
-
-int32_t copy_state(int src, int target)
-{
-  if(! states.count(src) || ! states.count(target)) return -1;
-  *states[target]=*states[src];
-  return 0;
-}
-
-int32_t set_rhs(int target)
-{
-  if(! states.count(target)) return -1;
-  *states[target]=*ocean->getRHS();
-  return 0;
-}
 
 int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
 {
@@ -98,6 +65,87 @@ int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
     return 0;
 }
 }
+
+int32_t _new_state(int *id)
+{
+    if( states.size()>INT_MAX/2 ) return -1;
+    *id=state_count;
+    while(states.count(*id)) *id=state_count++;
+    RCP<Epetra_Vector> v = rcp(new Epetra_Vector(ocean->getState()->Map(), true));
+    states[*id]=v;
+    return 0;
+}
+
+int32_t _remove_state(int id)
+{
+  if(states.erase(id))
+  {
+      return 0;
+  } else
+  {
+      return -1;
+  }
+}
+
+int32_t _copy_state(int src, int target)
+{
+  if(! states.count(src) || ! states.count(target)) return -1;
+  *states[target]=*states[src];
+  return 0;
+}
+
+int32_t _set_model_state(int src)
+{
+  if(! states.count(src)) return -1;
+  ocean->getState('V')=states[src];
+  return 0;
+}
+
+int32_t _get_rhs(int src, int target)
+{
+  if(! states.count(src) || ! states.count(target)) return -1;
+  RCP<Epetra_Vector> org=ocean->getState('V');
+  ocean->getState('V')=states[src];
+  *states[target]=*ocean->getRHS();
+  ocean->getState('V')=org;
+  return 0;
+}
+
+int32_t _add_state(int src1, int src2)
+{
+  if(! states.count(src1) || ! states.count(src2)) return -1;
+  states[src1]->Update(1.0, *states[src2], 1.0);
+  return 0;
+}
+
+int32_t _mul_state(int src, double x)
+{
+  if(states.count(src)) return -1;
+  states[src]->Scale(x);
+  return 0;
+}
+
+int32_t _get_state_norm(int state, double *val)
+{ 
+  *val=Utils::norm(states[state]);
+  return 0; 
+}
+
+int32_t _solve(int rhs, int target)
+{ 
+  ocean->solve(states[rhs]);
+  states[target]=ocean->getSolution('C');
+  return 0; 
+}
+
+int32_t _jacobian(int src)
+{ 
+  ocean->getState('V')=states[src];
+  ocean->computeJacobian();
+  return 0; 
+}
+
+
 
 int32_t initialize()
 {
@@ -123,7 +171,6 @@ int32_t commit_parameters()
         ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").get()));
         ocean->setPar("Combined Forcing", 0.0);
         ocean->getState('V')->PutScalar(0.0);
-        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").get()));
 
     //~ auto grid = ocean->getGlobalGrid();
     //~ auto grid=ocean->getDomain()->GetGlobalGrid();
@@ -139,6 +186,23 @@ int32_t commit_parameters()
 
     return -1;
 }
+
+int32_t commit_continuation_parameters()
+{
+    using ContinuationType = Continuation<RCP<Ocean>>;
+
+    try {
+        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").get()));
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
 
 int32_t recommit_parameters()
 { return 1; }
@@ -578,6 +642,8 @@ int32_t get_state_norm(double *val)
   *val=Utils::norm(ocean->getState('V'));
   return 0; 
 }
+
+
 
 // norm rhs (cont)
 // parameter (cont)
