@@ -19,8 +19,10 @@ def newton(interface, x0, tol=1.e-7, maxit=1000):
       dx = -1*interface.solve(fval)
 
       x = x + dx
-
-      if dx.norm() < tol
+ 
+      dxnorm=dx.norm()
+      print("norm:", dxnorm)
+      if dxnorm < tol:
         break
         
     return x
@@ -60,11 +62,11 @@ class iemicStateTests(TestWithMPI):
                 
         x0=instance.new_state()
         
-        sol=newton(interface, x0, tol)
+        sol=newton(instance, x0)
         
         instance.cleanup_code()
         instance.stop()
 
                 
 if __name__=="__main__":
-    iemicStateTests().test1()
+    iemicStateTests().test3()
