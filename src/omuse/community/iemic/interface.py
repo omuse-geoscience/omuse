@@ -102,8 +102,14 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def set_bool_parameter(set_name="", param_name="", value=False):
         returns()
 
+    @remote_function
     def get_state_norm():
         returns(norm=0.)
+
+    @remote_function
+    def _get_state_norm(src=0):
+        returns(norm=0.)
+
 
     @remote_function
     def get_default_bool_parameter(set_name="", param_name=""):
@@ -166,7 +172,19 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns()
 
     @remote_function
+    def _mul_state(src=0, fac=0.):
+        returns()
+
+    @remote_function
+    def _add_state(s1=0, s2=0):
+        returns()
+
+    @remote_function
     def _get_rhs(src=0, target=0):
+        returns()
+
+    @remote_function
+    def _copy_state(src=0, target=0):
         returns()
 
     @remote_function
@@ -275,14 +293,14 @@ class iemic(InCodeComponentImplementation):
     def new_state(self):
         return RemoteStateVector(self)
 
-    def get_rhs(self, state):
+    def rhs(self, state):
         result=self.new_state()
         self._get_rhs(state._id, result._id)
         return result
 
     def solve(self, state):
         result=self.new_state()
-        self._solve(state, result)
+        self._solve(state._id, result._id)
         return result
         
     def jacobian(self, state):

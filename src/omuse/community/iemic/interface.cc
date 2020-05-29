@@ -120,19 +120,21 @@ int32_t _add_state(int src1, int src2)
 
 int32_t _mul_state(int src, double x)
 {
-  if(states.count(src)) return -1;
+  if(! states.count(src)) return -1;
   states[src]->Scale(x);
   return 0;
 }
 
 int32_t _get_state_norm(int state, double *val)
 { 
+  if(! states.count(state)) return -1;
   *val=Utils::norm(states[state]);
   return 0; 
 }
 
 int32_t _solve(int rhs, int target)
 { 
+  if(! states.count(rhs) || ! states.count(target)) return -1;
   ocean->solve(states[rhs]);
   states[target]=ocean->getSolution('C');
   return 0; 
@@ -140,6 +142,7 @@ int32_t _solve(int rhs, int target)
 
 int32_t _jacobian(int src)
 { 
+  if(! states.count(src)) return -1;
   ocean->getState('V')=states[src];
   ocean->computeJacobian();
   return 0; 
