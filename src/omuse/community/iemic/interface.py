@@ -23,6 +23,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
+    def commit_continuation_parameters():
+        returns ()
+
+    @remote_function
     def test_grid(logFile="s"):
         returns ()
 
@@ -204,12 +208,17 @@ class iemic(InCodeComponentImplementation):
         handler.set_initial_state('UNINITIALIZED')
         handler.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize')
         handler.add_transition('INITIALIZED', 'PARAM', 'commit_parameters')
+        handler.add_transition('PARAM', 'PARAMC', 'commit_continuation_parameters')
         
-        for state in ["PARAM"]:
+        for state in ["PARAM", "PARAMC"]:
             for method in ["get_u", "get_v", "get_w", "get_p", "get_t", "get_s",
-                "get_nrange", "get_mrange", "get_lrange","step", "run_continuation", "_new_state"]:
+                "get_nrange", "get_mrange", "get_lrange", "_new_state"]:
                 handler.add_method(state, method)
-              
+
+        for state in ["PARAMC"]:
+            for method in ["step", "run_continuation"]:
+                handler.add_method(state, method)
+
     def _grid_range(self):
         return self.get_nrange()+self.get_mrange()+self.get_lrange()
     

@@ -172,7 +172,6 @@ int32_t commit_parameters()
 
     try {
         ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").get()));
-        ocean->setPar("Combined Forcing", 0.0);
         ocean->getState('V')->PutScalar(0.0);
 
     //~ auto grid = ocean->getGlobalGrid();
