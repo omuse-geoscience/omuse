@@ -526,6 +526,7 @@ class POP(CommonCode):
 
         #~ object.add_method('INITIALIZED', 'get_ts_option')
         object.add_method('INITIALIZED', 'set_ts_option')
+        object.add_method('INITIALIZED', 'set_dz')
         #~ object.add_method('INITIALIZED', 'get_ts_file')
         object.add_method('INITIALIZED', 'set_ts_file')
         #~ object.add_method('INITIALIZED', 'get_ts_file_format')
@@ -577,6 +578,7 @@ class POP(CommonCode):
         object.add_transition('RUN','EDIT_FORCINGS','before_set_parameter')
 
         for state in ["RUN","EDIT"]:
+            object.add_method(state, 'get_dz')
             object.add_method(state, 'get_node_coriolis_f')
             object.add_method(state, 'get_node_wind_stress')
             object.add_method(state, 'get_node_position')
@@ -626,10 +628,10 @@ class POP(CommonCode):
 
     def commit_parameters(self):
         self.set_nprocs(self.nprocs)
-        if self.parameters.topography_option=='amuse':
+        if self.parameters.vert_grid_option=='amuse':
             kmax=self.get_number_of_vertical_levels()
-            if len(self.parameters.vertical_layer_thicknesses==kmax):
-                self.set_dz(self.parameters.vertical_layer_thicknesses)
+            if len(self.parameters.vertical_layer_thicknesses)==kmax:
+              self.set_dz(range(1,kmax+1),self.parameters.vertical_layer_thicknesses)
             else:
                 raise Exception("length of parameter vertical_layer_thicknesses needs to be {0}".format(kmax))
         self.overridden().commit_parameters()
@@ -744,7 +746,7 @@ class POP(CommonCode):
             "get_vert_grid_option",
             "set_vert_grid_option",
             "vert_grid_option",
-            "Option for vertical grid should be either \'internal\' or \'file\'",
+            "Option for vertical grid should be either \'internal\', \'amuse\' or \'file\'",
             default_value = 'internal'
         )
         object.add_method_parameter(

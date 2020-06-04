@@ -38,6 +38,8 @@ src/omuse/community/dales/dales-build/*
 src/omuse/community/oifs/oifs40r1/*
 src/omuse/community/qgcm/build_*
 src/omuse/community/qgcm/src/q-gcm/
+src/omuse/community/iemic/src/jdqzpp/
+src/omuse/community/iemic/src/i-emic/
 syntax: glob
 src/omuse/ext/eddy_tracker/**.png
 src/omuse/community/pop/*.dat
@@ -45,6 +47,10 @@ src/omuse/community/dales/dales-repo/*
 src/omuse/community/oifs/oifslib/*
 src/omuse/community/oifs/oifs-repo/*
 src/omuse/community/spifs/*
+src/omuse/community/iemic/iemic_worker*
+src/omuse/community/iemic/worker_code.*
+src/omuse/community/iemic/src/
+.pytest_cache/
 # Default ignored files
 src/omuse/community/dales/.idea/workspace.xml
 src/omuse.egg-info/
