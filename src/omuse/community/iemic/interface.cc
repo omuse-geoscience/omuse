@@ -128,7 +128,7 @@ int32_t _mul_state(int src, double x)
 int32_t _get_state_norm(int state, double *val)
 { 
   if(! states.count(state)) return -1;
-  *val=Utils::norm(states[state]);
+  *val=norm(states[state]);
   return 0; 
 }
 
@@ -641,7 +641,7 @@ get_default_string_parameter(char *param_set_name, char *param_name, char **resu
 
 int32_t get_state_norm(double *val)
 { 
-  *val=Utils::norm(ocean->getState('V'));
+  *val=norm(ocean->getState('V'));
   return 0; 
 }
 
