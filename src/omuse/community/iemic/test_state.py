@@ -52,7 +52,7 @@ class iemicStateTests(TestWithMPI):
         
         del state
         
-        self.assertEqual(instance.new_state()._id, 1)
+        self.assertEqual(instance.new_state()._id, 0)
         
         instance.cleanup_code()
         instance.stop()
@@ -63,6 +63,16 @@ class iemicStateTests(TestWithMPI):
         x0=instance.new_state()
         
         sol=newton(instance, x0)
+        
+        instance.cleanup_code()
+        instance.stop()
+
+    def test4(self):
+        instance = iemic(**kwargs)
+                
+        x=instance.new_state()
+        
+        x=x/2.
         
         instance.cleanup_code()
         instance.stop()
