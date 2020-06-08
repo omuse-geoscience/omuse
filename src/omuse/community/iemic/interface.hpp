@@ -6,6 +6,7 @@
 int32_t initialize();
 
 int32_t commit_parameters();
+int32_t commit_continuation_parameters();
 int32_t recommit_parameters();
 int32_t initialize_code();
 int32_t test_grid(char* logFile);

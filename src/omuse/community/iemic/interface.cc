@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <map>
 
-//#include "interface.hpp"
+#include "interface.hpp"
 #include "paramset.hpp"
 
 namespace
