@@ -126,26 +126,26 @@ int32_t _mul_state(int src, double x)
 }
 
 int32_t _get_state_norm(int state, double *val)
-{ 
+{
   if(! states.count(state)) return -1;
   *val=norm(states[state]);
-  return 0; 
+  return 0;
 }
 
 int32_t _solve(int rhs, int target)
-{ 
+{
   if(! states.count(rhs) || ! states.count(target)) return -1;
   ocean->solve(states[rhs]);
   states[target]=ocean->getSolution('C');
-  return 0; 
+  return 0;
 }
 
 int32_t _jacobian(int src)
-{ 
+{
   if(! states.count(src)) return -1;
   ocean->getState('V')=states[src];
   ocean->computeJacobian();
-  return 0; 
+  return 0;
 }
 
 
@@ -168,16 +168,9 @@ int32_t initialize()
 
 int32_t commit_parameters()
 {
-    using ContinuationType = Continuation<RCP<Ocean>>;
-
     try {
         ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").get()));
         ocean->getState('V')->PutScalar(0.0);
-
-    //~ auto grid = ocean->getGlobalGrid();
-    //~ auto grid=ocean->getDomain()->GetGlobalGrid();
-    
-    //~ std::cout<<(-4000.)*(*grid)[2][15]<<std::endl;    
 
         return 0;
     } catch (const std::exception& exc) {
@@ -640,9 +633,9 @@ get_default_string_parameter(char *param_set_name, char *param_name, char **resu
 }
 
 int32_t get_state_norm(double *val)
-{ 
+{
   *val=norm(ocean->getState('V'));
-  return 0; 
+  return 0;
 }
 
 

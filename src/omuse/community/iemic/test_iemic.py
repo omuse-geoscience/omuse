@@ -183,12 +183,11 @@ class iemicInterfaceTests(TestWithMPI):
         instance.stop()
 
 class iemicTests(TestWithMPI):
-  
     def test1(self):
-        instance = iemic(redirection="none")
-                
-        sets=instance.parameter_set_names()
-        
+        instance = iemic()
+
+        sets = instance.parameter_set_names()
+
         for name in sets:
           print("parameter set: {0}".format(name))
           print(getattr(instance,name))
