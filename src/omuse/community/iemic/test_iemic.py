@@ -23,10 +23,7 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.initialize_code()
         self.assertEqual(err,0)
 
-        err = instance.step()
-        self.assertEqual(err,0)
-
-        err = instance.run_continuation()
+        err = instance.step_continuation()
         self.assertEqual(err,0)
 
         err = instance.cleanup_code()

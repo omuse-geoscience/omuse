@@ -31,11 +31,7 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
-    def step():
-        returns ()
-
-    @remote_function
-    def run_continuation():
+    def step_continuation():
         returns ()
 
     @remote_function

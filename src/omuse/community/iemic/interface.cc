@@ -243,20 +243,7 @@ int32_t test_grid(char *fileName)
     return result;
 }
 
-int32_t step()
-{
-    try {
-        return continuation->step();
-    } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
-    } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
-    }
-
-    return -1;
-}
-
-int32_t run_continuation()
+int32_t step_continuation()
 {
     try {
         return continuation->run();
