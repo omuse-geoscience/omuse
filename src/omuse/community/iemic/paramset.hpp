@@ -20,6 +20,9 @@ class ParamSet
     Teuchos::ParameterList& get();
     void reset();
 
+    void load_from_file(const std::string&);
+    void save_to_file(const std::string&);
+
     int get_num_params(const std::string&);
     std::string get_param_name(const std::string& param_name, int i);
     std::string get_param_type(const std::string& param_name);

@@ -185,6 +185,22 @@ class iemicInterfaceTests(TestWithMPI):
 
         instance.stop()
 
+    def test4(self):
+        instance = iemicInterface()
+        err = instance.initialize()
+        self.assertEqual(err,0)
+
+        err = instance.save_xml_parameters("ocean", "test.xml")
+        self.assertEqual(err,0)
+
+        err = instance.load_xml_parameters("ocean", "test.xml")
+        self.assertEqual(err,0)
+
+        err = instance.cleanup_code()
+        self.assertEqual(err,0)
+
+        instance.stop()
+
 class iemicTests(TestWithMPI):
     def test1(self):
         instance = iemic()

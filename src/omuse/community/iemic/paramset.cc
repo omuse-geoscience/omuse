@@ -1,4 +1,6 @@
 #include <exception>
+#include <Teuchos_ParameterList.hpp>
+#include <Teuchos_XMLParameterListHelpers.hpp>
 #include "paramset.hpp"
 
 namespace
@@ -22,6 +24,18 @@ split_name(const std::string& param_name)
     return name_parts;
 }
 }
+
+void
+ParamSet::load_from_file(const std::string& path)
+{
+    auto loadedParams = getParametersFromXmlFile(path);
+    loadedParams->validateParameters(defaultInitParams);
+    parameters.setParameters(*loadedParams);
+}
+
+void
+ParamSet::save_to_file(const std::string& path)
+{ writeParameterListToXmlFile(parameters, path); }
 
 Teuchos::ParameterList&
 ParamSet::get()

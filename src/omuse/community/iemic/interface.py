@@ -38,6 +38,14 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def cleanup_code():
         returns ()
 
+    @remote_function
+    def load_xml_parameters(set_name="", path=""):
+        returns ()
+
+    @remote_function
+    def save_xml_parameters(set_name="", path=""):
+        returns ()
+
     @remote_function(must_handle_array=True)
     def get_u(i=0, j=0, k=0):
         returns (var=0.)

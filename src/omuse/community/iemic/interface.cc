@@ -264,6 +264,37 @@ int32_t cleanup_code()
     return 0;
 }
 
+int32_t
+load_xml_parameters(char *param_set_name, char *path)
+{
+    try {
+        auto& paramSet = parameter_sets.at(param_set_name);
+        paramSet.load_from_file(path);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t save_xml_parameters(char *param_set_name, char *path)
+{
+    try {
+        auto& paramSet = parameter_sets.at(param_set_name);
+        paramSet.save_to_file(path);
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
 int32_t get_u(int *i, int *j, int *k, double *var, int n)
 { return get_param(Parameter::u, i, j, k, var, n); }
 
