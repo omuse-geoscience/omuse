@@ -74,6 +74,8 @@ class iemicStateTests(TestWithMPI):
         
         x=x/2.
         
+        print(x[:,:,:].u_velocity)
+        
         instance.cleanup_code()
         instance.stop()
 

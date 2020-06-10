@@ -70,6 +70,32 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def get_s(i=0, j=0, k=0):
         returns (var=0.)
 
+    @remote_function(must_handle_array=True)
+    def get_u_(i=0, j=0, k=0, sindex=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_v_(i=0, j=0, k=0,sindex=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_w_(i=0, j=0, k=0,sindex=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_p_(i=0, j=0, k=0,sindex=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_t_(i=0, j=0, k=0,sindex=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def get_s_(i=0, j=0, k=0,sindex=0):
+        returns (var=0.)
+
+
+
     @remote_function
     def get_nrange():
         returns(nmin=0,nmax=0)
@@ -223,7 +249,7 @@ class iemic(InCodeComponentImplementation):
             for method in ["step", "run_continuation"]:
                 handler.add_method(state, method)
 
-    def _grid_range(self):
+    def _grid_range(self, **kwargs):
         return self.get_nrange()+self.get_mrange()+self.get_lrange()
     
     def define_grids(self, handler):
@@ -236,6 +262,15 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('grid', 'get_u', names=["u_velocity"])
         handler.add_getter('grid', 'get_v', names=["v_velocity"])
         handler.add_getter('grid', 'get_w', names=["w_velocity"])
+
+    def _specify_grid(self, definition, index=0):
+        #~ handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
+        definition.set_grid_range('_grid_range')
+        #~ handler.add_getter('grid', 'get_grid_position', names=["lon", "lat"])
+        definition.add_getter( 'get_u_', names=["u_velocity"])
+        definition.add_getter( 'get_v_', names=["v_velocity"])
+        definition.add_getter( 'get_w_', names=["w_velocity"])
+        definition.define_extra_keywords({'sindex':index})
 
 
     def _generate_parameter_setter_getters(self, paramSet, sublist, paramName, paramType):
@@ -318,3 +353,6 @@ class iemic(InCodeComponentImplementation):
         
     def jacobian(self, state):
         self._jacobian(state._id)
+
+    def get_grid(self, state):
+        return self._create_new_grid(self._specify_grid, index=state._id)

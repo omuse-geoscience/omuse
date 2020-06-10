@@ -44,7 +44,7 @@ int state_count=0;
 map<int, RCP<Epetra_Vector>> states;
 map<int, RCP<Epetra_Vector>> matrices;
 
-int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
+int32_t get_param(RCP<Epetra_Vector> state, Parameter param, int *i, int *j, int *k, double *var, int n)
 {
     auto paramCount = static_cast<size_t>(Parameter::count);
     auto N = ocean->getNdim();
@@ -52,7 +52,7 @@ int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
     auto L = ocean->getLdim();
     auto paramOffset = static_cast<unsigned char>(param);
 
-    auto gvec = AllGather(*ocean->state_);
+    auto gvec = AllGather(*state);
     auto vec = gvec->operator()(0);
 
     for (int x = 0; x < n; x++) {
@@ -296,22 +296,42 @@ int32_t save_xml_parameters(char *param_set_name, char *path)
 }
 
 int32_t get_u(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::u, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::u, i, j, k, var, n); }
 
 int32_t get_v(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::v, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::v, i, j, k, var, n); }
 
 int32_t get_w(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::w, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::w, i, j, k, var, n); }
 
 int32_t get_p(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::p, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::p, i, j, k, var, n); }
 
 int32_t get_t(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::t, i, j, k, var, n); }
+{ return get_param(ocean->state_,Parameter::t, i, j, k, var, n); }
 
 int32_t get_s(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::s, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::s, i, j, k, var, n); }
+
+// variants for any state
+int32_t get_u_(int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::u, i, j, k, var, n); }
+
+int32_t get_v_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::v, i, j, k, var, n); }
+
+int32_t get_w_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::w, i, j, k, var, n); }
+
+int32_t get_p_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::p, i, j, k, var, n); }
+
+int32_t get_t_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex],Parameter::t, i, j, k, var, n); }
+
+int32_t get_s_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::s, i, j, k, var, n); }
+
 
 int32_t get_nrange(int *_min, int *_max)
 {
