@@ -22,8 +22,11 @@ else
 CODELIB=$(IEMICLIBPATH)/libiemic.so
 
 # explicitly locate parallel hdf5
-LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi/lib64 -lhdf5
+#~ LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi2/lib64 -lhdf5
+LDFLAGS +=HDF5_LIBS
 endif
+
+export LDFLAGS
 
 LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -ljdqz_tools -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
 
@@ -87,7 +90,7 @@ iemic_worker: worker_code.o $(OBJS) $(CODELIB)
 	$(MPICXX) $(LDFLAGS) -Wl,-rpath $(IEMICLIBPATH) $^ -o $@ $(LIBS)
 
 %.o: %.cc $(CODELIB) src/opt/include/Config.mk
-	$(CXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
+	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
 
 worker_code.o: worker_code.h
 interface.o: interface.hpp
