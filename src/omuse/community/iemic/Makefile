@@ -23,7 +23,7 @@ CODELIB=$(IEMICLIBPATH)/libiemic.so
 
 # explicitly locate parallel hdf5
 #~ LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi2/lib64 -lhdf5
-LDFLAGS +=HDF5_LIBS
+LDFLAGS += $(HDF5_LIBS)
 endif
 
 export LDFLAGS
