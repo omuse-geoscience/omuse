@@ -51,7 +51,7 @@ endif
 
 src/jdqzpp/build/: | src/jdqzpp/
 	mkdir -p $@
-	cd $@; cmake .. -DCMAKE_INSTALL_RPATH="$(realpath src)/opt/" -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/"
+	cd $@; cmake .. -DCMAKE_INSTALL_RPATH="$(realpath src)/opt/lib" -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/"
 
 src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake: | src/jdqzpp/build/
 	cd $|; make install
@@ -66,7 +66,7 @@ endif
 
 src/i-emic/build/: src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake | src/i-emic/
 	mkdir -p $@
-	cd $@; cmake ..  -DCMAKE_INSTALL_RPATH="$(realpath src)/opt/" -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/" \
+	cd $@; cmake ..  -DCMAKE_INSTALL_RPATH="$(realpath src)/opt/lib" -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/" \
 	    -DJDQZPP_DIR="$(realpath src)/opt/lib/cmake/JDQZPP/"
 
 $(CODELIB) src/opt/include/Config.mk: | src/i-emic/build/
