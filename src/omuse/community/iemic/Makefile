@@ -87,7 +87,7 @@ worker_code.h: interface.py
 	$(CODE_GENERATOR) --type=H interface.py iemicInterface -o $@
 
 iemic_worker: worker_code.o $(OBJS) $(CODELIB)
-	$(MPICXX) $(LDFLAGS) -Wl,-rpath $(IEMICLIBPATH) $^ -o $@ $(LIBS)
+	$(MPICXX) -Wl,-rpath $(IEMICLIBPATH) $^ -o $@ $(LDFLAGS) $(LIBS)
 
 %.o: %.cc $(CODELIB) src/opt/include/Config.mk
 	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
