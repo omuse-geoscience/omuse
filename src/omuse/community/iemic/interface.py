@@ -246,7 +246,7 @@ class iemic(InCodeComponentImplementation):
                 handler.add_method(state, method)
 
         for state in ["PARAMC"]:
-            for method in ["step", "run_continuation"]:
+            for method in ["step", "step_continuation"]:
                 handler.add_method(state, method)
 
     def _grid_range(self, **kwargs):
