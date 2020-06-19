@@ -206,6 +206,13 @@ int32_t _jacobian(int src)
   return 0;
 }
 
+int32_t _get_psi_m(int src, double *psi_min, double *psi_max)
+{
+  if(! states.count(src)) return -1;
+  _set_model_state(src);
+  ocean->getPsiM(*psi_min, *psi_max);
+  return 0;
+}
 
 
 int32_t initialize()

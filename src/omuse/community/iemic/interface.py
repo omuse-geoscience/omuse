@@ -264,10 +264,13 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def _jacobian(src=0):
         returns()
 
+    @remote_function
+    def _get_psi_m(src=0):
+        returns(psi_min=0.0, psi_max=0.0)
 
 class iemic(InCodeComponentImplementation):
     def __init__(self, **options):
-        InCodeComponentImplementation.__init__(self,  iemicInterface(**options), **options)
+        InCodeComponentImplementation.__init__(self, iemicInterface(**options), **options)
 
     def define_state(self, handler):
         ocean_sub_states = ["PARAM", "UPDATED"]
@@ -425,6 +428,9 @@ class iemic(InCodeComponentImplementation):
 
     def jacobian(self, state):
         self._jacobian(state._id)
+
+    def get_psi_m(self, state):
+        return self._get_psi_m(state._id)
 
     def get_grid(self, state):
         return self._create_new_grid(self._specify_grid, index=state._id)
