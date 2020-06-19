@@ -32,5 +32,9 @@ class RemoteStateVector(object):
         new = self.copy()
         self.interface._update_state(new._id, other._id, 1.0)
         return new
+    def __sub__(self, other):
+        new = self.copy()
+        self.interface._update_state(new._id, other._id, -1.0)
+        return new
     def __getitem__(self, index):
         return self.grid[index]
