@@ -28,8 +28,8 @@ enum class Parameter : unsigned char
 #pragma GCC diagnostic ignored "-Wglobal-constructors"
 #pragma GCC diagnostic ignored "-Wexit-time-destructors"
 std::map<std::string, ParamSet> parameter_sets = {
-    { "ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) },
-    { "continuation", ParamSet("OMUSE Continuation Parameters", ParamSet::tag<Continuation<RCP<Ocean>>>()) }
+    { "Ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) },
+    { "Continuation", ParamSet("OMUSE Continuation Parameters", ParamSet::tag<Continuation<RCP<Ocean>>>()) }
 };
 
 RCP<Epetra_Comm> comm;
@@ -221,7 +221,7 @@ int32_t initialize()
 int32_t commit_parameters()
 {
     try {
-        ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").commit()));
+        ocean = rcp(new Ocean(comm, parameter_sets.at("Ocean").commit()));
         ocean->getState('V')->PutScalar(0.0);
 
         return 0;
@@ -239,7 +239,7 @@ int32_t commit_continuation_parameters()
     using ContinuationType = Continuation<RCP<Ocean>>;
 
     try {
-        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").commit()));
+        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("Continuation").commit()));
         return 0;
     } catch (const std::exception& exc) {
         logStream << exc.what() << std::endl;
@@ -253,7 +253,7 @@ int32_t commit_continuation_parameters()
 
 int32_t recommit_parameters()
 {
-    auto& ocean_params = parameter_sets.at("ocean");
+    auto& ocean_params = parameter_sets.at("Ocean");
     try {
         ocean->setParameters(ocean_params.updates());
         ocean_params.update_committed_parameters(ocean->getParameters());
@@ -270,7 +270,7 @@ int32_t recommit_parameters()
 
 int32_t recommit_continuation_parameters()
 {
-    auto& continuation_params = parameter_sets.at("continuation");
+    auto& continuation_params = parameter_sets.at("Continuation");
     try {
         continuation->setParameters(continuation_params.updates());
         continuation_params.update_committed_parameters(continuation->getParameters());

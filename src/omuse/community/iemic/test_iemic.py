@@ -15,7 +15,7 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.commit_parameters()
         self.assertEqual(err,0)
 
-        err = instance._set_double_parameter("continuation", "destination 0", 1.0)
+        err = instance._set_double_parameter("Continuation", "destination 0", 1.0)
         self.assertEqual(err,0)
 
         err = instance.commit_continuation_parameters()
@@ -40,7 +40,7 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.commit_parameters()
         self.assertEqual(err,0)
 
-        err = instance._set_double_parameter("continuation", "destination 0", 1.0)
+        err = instance._set_double_parameter("Continuation", "destination 0", 1.0)
         self.assertEqual(err,0)
 
         err = instance.commit_continuation_parameters()
@@ -191,10 +191,10 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.initialize()
         self.assertEqual(err,0)
 
-        err = instance.save_xml_parameters("ocean", "test.xml")
+        err = instance.save_xml_parameters("Ocean", "test.xml")
         self.assertEqual(err,0)
 
-        err = instance._load_xml_parameters("ocean", "test.xml")
+        err = instance._load_xml_parameters("Ocean", "test.xml")
         self.assertEqual(err,0)
 
         err = instance.cleanup_code()
@@ -210,13 +210,13 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.commit_parameters()
         self.assertEqual(err,0)
 
-        err = instance._set_double_parameter("ocean", "THCM->Global Bound xmin", 5.0)
+        err = instance._set_double_parameter("Ocean", "THCM->Global Bound xmin", 5.0)
         self.assertEqual(err,-1)
 
         err = instance.recommit_parameters()
         self.assertEqual(err,0)
 
-        err = instance._set_double_parameter("ocean", "THCM->Starting Parameters->SPL1", 5.0)
+        err = instance._set_double_parameter("Ocean", "THCM->Starting Parameters->SPL1", 5.0)
         self.assertEqual(err,0)
 
         err = instance.recommit_parameters()
@@ -255,7 +255,7 @@ class iemicTests(TestWithMPI):
 
         for param_set_name in instance.parameter_set_names():
             params = getattr(instance, param_set_name)
-            isOcean = param_set_name.startswith("ocean")
+            isOcean = param_set_name.startswith("Ocean")
             for param in params.iter_parameters():
                 try:
                     param.set_value(param.get_value())
@@ -277,14 +277,14 @@ class iemicTests(TestWithMPI):
         instance = iemic()
 
         instance.commit_parameters()
-        instance.set_parameter("continuation->destination 0", 1.0)
+        instance.set_parameter("Continuation->destination 0", 1.0)
         instance.commit_continuation_parameters()
         self.assertEqual(instance.get_name_of_current_state(),
                         "OCEAN-PARAM-CONTINUATION-PARAM")
 
         for param_set_name in instance.parameter_set_names():
             params = getattr(instance, param_set_name)
-            isOcean = param_set_name.startswith("ocean")
+            isOcean = param_set_name.startswith("Ocean")
             for param in params.iter_parameters():
                 try:
                     param.set_value(param.get_value())
@@ -331,7 +331,7 @@ class iemicTests(TestWithMPI):
             self.assertEqual(instance.get_name_of_current_state(),
                              "OCEAN-PARAM-CONTINUATION-NOPARAM")
 
-            instance.set_parameter("ocean->THCM->Starting Parameters->SPL1", 2000.0)
+            instance.set_parameter("Ocean->THCM->Starting Parameters->SPL1", 2000.0)
             self.assertEqual(instance.get_name_of_current_state(),
                              "OCEAN-UPDATED-CONTINUATION-NOPARAM")
 
@@ -351,7 +351,7 @@ class iemicTests(TestWithMPI):
         for method_name, args in continuation_methods.items():
             instance = iemic()
 
-            instance.continuation.destination_0 = 1.0
+            instance.Continuation.destination_0 = 1.0
             self.assertEqual(instance.get_name_of_current_state(), "INITIALIZED")
 
             getattr(instance, method_name)(*args)
@@ -375,7 +375,7 @@ class iemicTests(TestWithMPI):
         ]
 
         for method_name in state_methods:
-            instance.set_parameter("ocean->THCM->Starting Parameters->SPL1", 2000.0)
+            instance.set_parameter("Ocean->THCM->Starting Parameters->SPL1", 2000.0)
             self.assertEqual(instance.get_name_of_current_state(),
                              "OCEAN-UPDATED-CONTINUATION-NOPARAM")
 
