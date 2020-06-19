@@ -169,7 +169,7 @@ int32_t initialize()
 int32_t commit_parameters()
 {
     try {
-        ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").get()));
+        ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").commit()));
         ocean->getState('V')->PutScalar(0.0);
 
         return 0;
@@ -187,7 +187,7 @@ int32_t commit_continuation_parameters()
     using ContinuationType = Continuation<RCP<Ocean>>;
 
     try {
-        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").get()));
+        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").commit()));
         return 0;
     } catch (const std::exception& exc) {
         std::cout << exc.what() << std::endl;

@@ -38,8 +38,11 @@ ParamSet::save_to_file(const std::string& path)
 { writeParameterListToXmlFile(parameters, path); }
 
 Teuchos::ParameterList&
-ParamSet::get()
-{ return parameters; }
+ParamSet::commit()
+{
+    committed = true;
+    return parameters;
+}
 
 void
 ParamSet::reset()

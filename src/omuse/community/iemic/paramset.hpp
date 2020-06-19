@@ -13,11 +13,12 @@ class ParamSet
 
     template<class T>
     ParamSet(std::string name, tag<T>)
-    : parameters(name)
+    : committed(false)
+    , parameters(name)
     , defaultInitParams(T::getDefaultInitParameters())
     { parameters = defaultInitParams; }
 
-    Teuchos::ParameterList& get();
+    Teuchos::ParameterList& commit();
     void reset();
 
     void load_from_file(const std::string&);
@@ -74,6 +75,7 @@ class ParamSet
 
     static void throw_param_mismatch(const std::string& param_name);
 
+    bool committed;
     Teuchos::ParameterList parameters;
     const Teuchos::ParameterList defaultInitParams;
 
