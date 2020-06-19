@@ -229,7 +229,7 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns()
 
     @remote_function
-    def _add_state(s1=0, s2=0):
+    def _update_state(s1=0, s2=0, scal=1.0):
         returns()
 
     @remote_function

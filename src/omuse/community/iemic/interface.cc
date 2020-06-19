@@ -139,10 +139,10 @@ int32_t _get_rhs(int src, int target)
   return 0;
 }
 
-int32_t _add_state(int src1, int src2)
+int32_t _update_state(int src1, int src2, double scal)
 {
   if(! states.count(src1) || ! states.count(src2)) return -1;
-  states[src1]->Update(1.0, *states[src2], 1.0);
+  states[src1]->Update(1.0, *states[src2], scal);
   return 0;
 }
 

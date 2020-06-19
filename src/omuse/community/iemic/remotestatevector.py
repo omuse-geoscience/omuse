@@ -29,8 +29,8 @@ class RemoteStateVector(object):
     def __truediv__(self, other):
         return self.__mul__(1./other)
     def __add__(self, other):
-        new=self.copy()
-        self.interface._add_state(new._id, other._id)
+        new = self.copy()
+        self.interface._update_state(new._id, other._id, 1.0)
         return new
     def __getitem__(self, index):
         return self.grid[index]
