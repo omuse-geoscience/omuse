@@ -9,22 +9,19 @@ from amuse.datamodel import Particle, Particles
 kwargs=dict()
 
 def newton(interface, x0, tol=1.e-7, maxit=1000):
-
     x = x0
-
-    k=0
-    while k<maxit:
+    for k in range(maxit):
       fval = interface.rhs(x)
       interface.jacobian(x)
-      dx = -1*interface.solve(fval)
+      dx = -interface.solve(fval)
 
       x = x + dx
  
-      dxnorm=dx.norm()
+      dxnorm = dx.norm()
       print("norm:", dxnorm)
       if dxnorm < tol:
         break
-        
+
     return x
 
 class iemicStateTests(TestWithMPI):
