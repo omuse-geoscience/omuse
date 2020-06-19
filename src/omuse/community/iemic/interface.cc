@@ -160,6 +160,13 @@ int32_t _get_state_norm(int state, double *val)
   return 0;
 }
 
+int32_t _dot(int src1, int src2, double *val)
+{
+  if(! states.count(src1) || ! states.count(src2)) return -1;
+  *val = dot(states[src1], states[src2]);
+  return 0;
+}
+
 int32_t _solve(int rhs, int target)
 {
   if(! states.count(rhs) || ! states.count(target)) return -1;

@@ -233,6 +233,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns()
 
     @remote_function
+    def _dot(s1=0, s2=0):
+        returns(val=0.)
+
+    @remote_function
     def _get_rhs(src=0, target=0):
         returns()
 

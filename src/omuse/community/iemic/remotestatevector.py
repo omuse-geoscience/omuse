@@ -13,6 +13,8 @@ class RemoteStateVector(object):
         return new
     def norm(self):
         return self.interface._get_state_norm(self._id)
+    def dot(self, other):
+        return self.interface._dot(self._id, other._id)
     def __del__(self):
         try:
           self.interface._remove_state(self._id)
