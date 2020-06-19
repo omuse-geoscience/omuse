@@ -92,5 +92,6 @@ iemic_worker: worker_code.o $(OBJS) $(CODELIB)
 %.o: %.cc $(CODELIB) src/opt/include/Config.mk
 	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
 
+paramset.o: paramset.hpp
 worker_code.o: worker_code.h
-interface.o: interface.hpp
+interface.o: interface.hpp paramset.hpp
