@@ -195,7 +195,7 @@ int32_t _solve(int rhs, int target)
 int32_t _jacobian(int src)
 {
   if(! states.count(src)) return -1;
-  ocean->getState('V')=states[src];
+  _set_model_state(src);
   ocean->computeJacobian();
   return 0;
 }
