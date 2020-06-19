@@ -142,10 +142,9 @@ int32_t _set_model_state(int src)
 int32_t _get_rhs(int src, int target)
 {
   if(! states.count(src) || ! states.count(target)) return -1;
-  RCP<Epetra_Vector> org=ocean->getState('V');
-  ocean->getState('V')=states[src];
-  *states[target]=*ocean->getRHS();
-  ocean->getState('V')=org;
+  _set_model_state(src);
+  ocean->computeRHS();
+  *states[target] = *ocean->getRHS('V');
   return 0;
 }
 
