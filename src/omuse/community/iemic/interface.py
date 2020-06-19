@@ -237,6 +237,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns(val=0.)
 
     @remote_function
+    def _length(src=0):
+        returns(val=0)
+
+    @remote_function
     def _get_rhs(src=0, target=0):
         returns()
 

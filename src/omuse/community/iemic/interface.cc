@@ -167,6 +167,13 @@ int32_t _dot(int src1, int src2, double *val)
   return 0;
 }
 
+int32_t _length(int state, int *val)
+{
+  if(! states.count(state)) return -1;
+  *val = states[state]->GlobalLength();
+  return 0;
+}
+
 int32_t _solve(int rhs, int target)
 {
   if(! states.count(rhs) || ! states.count(target)) return -1;
