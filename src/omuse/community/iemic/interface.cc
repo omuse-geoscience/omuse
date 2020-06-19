@@ -151,7 +151,7 @@ int32_t _get_rhs(int src, int target)
 int32_t _update_state(int src1, int src2, double scal)
 {
   if(! states.count(src1) || ! states.count(src2)) return -1;
-  states[src1]->Update(1.0, *states[src2], scal);
+  states[src1]->Update(scal, *states[src2], 1.0);
   return 0;
 }
 
