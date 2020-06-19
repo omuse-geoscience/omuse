@@ -132,6 +132,13 @@ int32_t _to_str(int src, char **out)
   return 0;
 }
 
+int32_t _get_model_state(int target)
+{
+  if(! states.count(target)) return -1;
+  *states[target]=*ocean->getState('V');
+  return 0;
+}
+
 int32_t _set_model_state(int src)
 {
   if(! states.count(src)) return -1;

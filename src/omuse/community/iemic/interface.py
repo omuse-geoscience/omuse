@@ -221,6 +221,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns(index=0)
 
     @remote_function
+    def _get_model_state(target=0):
+        returns()
+
+    @remote_function
     def _remove_state(index=0):
         returns()
     
@@ -403,6 +407,11 @@ class iemic(InCodeComponentImplementation):
 
     def new_state(self):
         return RemoteStateVector(self)
+
+    def get_state(self):
+        result = self.new_state()
+        self._get_model_state(result._id)
+        return result
 
     def rhs(self, state):
         result=self.new_state()
