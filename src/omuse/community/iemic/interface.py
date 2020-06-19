@@ -23,7 +23,15 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
+    def recommit_parameters():
+        returns ()
+
+    @remote_function
     def commit_continuation_parameters():
+        returns ()
+
+    @remote_function
+    def recommit_continuation_parameters():
         returns ()
 
     @remote_function

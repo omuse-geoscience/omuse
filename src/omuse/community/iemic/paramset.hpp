@@ -22,6 +22,7 @@ class ParamSet
 
     Teuchos::ParameterList& commit();
     Teuchos::ParameterList& updates();
+    void update_committed_parameters(Teuchos::ParameterList params);
     void reset();
 
     void load_from_file(const std::string&);

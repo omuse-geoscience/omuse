@@ -200,7 +200,38 @@ int32_t commit_continuation_parameters()
 
 
 int32_t recommit_parameters()
-{ return 1; }
+{
+    auto& ocean_params = parameter_sets.at("ocean");
+    try {
+        ocean->setParameters(ocean_params.updates());
+        ocean_params.update_committed_parameters(ocean->getParameters());
+
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t recommit_continuation_parameters()
+{
+    auto& continuation_params = parameter_sets.at("continuation");
+    try {
+        continuation->setParameters(continuation_params.updates());
+        continuation_params.update_committed_parameters(continuation->getParameters());
+
+        return 0;
+    } catch (const std::exception& exc) {
+        std::cout << exc.what() << std::endl;
+    } catch (...) {
+        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
 
 int32_t initialize_code()
 { return 0; }

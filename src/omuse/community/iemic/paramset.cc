@@ -49,6 +49,14 @@ ParamSet::updates()
 { return committed ? updatedParams : parameters; }
 
 void
+ParamSet::update_committed_parameters(Teuchos::ParameterList params)
+{
+    params.validateParameters(defaultInitParams);
+    parameters.setParameters(params);
+    updatedParams.setParameters(Teuchos::ParameterList());
+}
+
+void
 ParamSet::reset()
 { parameters = defaultInitParams; }
 
