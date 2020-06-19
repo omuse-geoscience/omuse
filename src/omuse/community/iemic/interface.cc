@@ -187,7 +187,7 @@ int32_t _solve(int rhs, int target)
 {
   if(! states.count(rhs) || ! states.count(target)) return -1;
   ocean->solve(states[rhs]);
-  states[target]=ocean->getSolution('C');
+  *states[target]=*ocean->getSolution('V');
   return 0;
 }
 
