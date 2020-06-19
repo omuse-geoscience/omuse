@@ -135,7 +135,7 @@ int32_t _to_str(int src, char **out)
 int32_t _set_model_state(int src)
 {
   if(! states.count(src)) return -1;
-  ocean->getState('V')=states[src];
+  *ocean->getState('V') = *states[src];
   return 0;
 }
 
