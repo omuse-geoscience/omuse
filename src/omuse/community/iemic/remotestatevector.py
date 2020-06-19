@@ -46,3 +46,5 @@ class RemoteStateVector(object):
         return new
     def __getitem__(self, index):
         return self.grid[index]
+    def __str__(self):
+        return self.interface._to_str(self._id)

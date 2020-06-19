@@ -223,6 +223,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     @remote_function
     def _remove_state(index=0):
         returns()
+    
+    @remote_function
+    def _to_str(src=0):
+        returns(out="")
 
     @remote_function
     def _mul_state(src=0, fac=0.):

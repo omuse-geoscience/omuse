@@ -122,6 +122,16 @@ int32_t _copy_state(int src, int target)
   return 0;
 }
 
+int32_t _to_str(int src, char **out)
+{
+  if(! states.count(src)) return -1;
+  std::ostringstream ss;
+  states[src]->Print(ss);
+  resultString = ss.str();
+  *out = const_cast<char*>(resultString.c_str());
+  return 0;
+}
+
 int32_t _set_model_state(int src)
 {
   if(! states.count(src)) return -1;
