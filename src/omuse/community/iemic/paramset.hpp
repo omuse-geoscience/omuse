@@ -47,11 +47,22 @@ class ParamSet
     void
     set_param_value(const std::string& param_name, T result)
     {
-        auto& param = get_param_entry(param_name);
+        Teuchos::ParameterEntry param;
+
+        if (committed) {
+            try {
+                param = get_param_entry(param_name, settableParams);
+            } catch (const Teuchos::Exceptions::InvalidParameterName& exc) {
+                throw_param_unsettable(param_name);
+            }
+        } else {
+            param = get_param_entry(param_name, parameters);
+        }
 
         if (!param.isType<T>()) throw_param_mismatch(param_name);
 
         param.setValue(result);
+        set_param_entry(param_name, param);
     }
 
     template<typename T>
@@ -69,15 +80,19 @@ class ParamSet
     Teuchos::ParameterEntry&
     get_param_entry(const std::string& param_name);
 
+    void
+    set_param_entry(std::string param_name, Teuchos::ParameterEntry);
+
     static Teuchos::ParameterEntry&
     get_param_entry
-    (const std::string& param_name, Teuchos::ParameterList& list);
+    (std::string param_name, Teuchos::ParameterList& list);
 
     static const Teuchos::ParameterEntry&
     get_param_entry
-    (const std::string& param_name, const Teuchos::ParameterList& list);
+    (std::string param_name, const Teuchos::ParameterList& list);
 
     static void throw_param_mismatch(const std::string& param_name);
+    static void throw_param_unsettable(const std::string& param_name);
 
     bool committed;
     Teuchos::ParameterList parameters;
