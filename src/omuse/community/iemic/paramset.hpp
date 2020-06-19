@@ -15,10 +15,13 @@ class ParamSet
     ParamSet(std::string name, tag<T>)
     : committed(false)
     , parameters(name)
+    , updatedParams(name)
     , defaultInitParams(T::getDefaultInitParameters())
+    , settableParams(T::getDefaultParameters())
     { parameters = defaultInitParams; }
 
     Teuchos::ParameterList& commit();
+    Teuchos::ParameterList& updates();
     void reset();
 
     void load_from_file(const std::string&);
@@ -77,7 +80,9 @@ class ParamSet
 
     bool committed;
     Teuchos::ParameterList parameters;
+    Teuchos::ParameterList updatedParams;
     const Teuchos::ParameterList defaultInitParams;
+    const Teuchos::ParameterList settableParams;
 
     static const std::map<std::type_index, std::string> types;
 };
