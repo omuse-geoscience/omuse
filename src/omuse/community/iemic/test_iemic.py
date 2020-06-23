@@ -201,6 +201,29 @@ class iemicInterfaceTests(TestWithMPI):
 
         instance.stop()
 
+    def test5(self):
+        instance = iemicInterface()
+        err = instance.initialize()
+        self.assertEqual(err,0)
+
+        err = instance.commit_parameters()
+        self.assertEqual(err,0)
+
+        err = instance.set_double_parameter("ocean", "THCM?Global Bound xmin", 5.0)
+        self.assertEqual(err,-1)
+
+        err = instance.recommit_parameters()
+        self.assertEqual(err,0)
+
+        err = instance.set_double_parameter("ocean", "THCM?Starting Parameters?SPL1", 5.0)
+        self.assertEqual(err,0)
+
+        err = instance.recommit_parameters()
+        self.assertEqual(err,0)
+
+        instance.cleanup_code()
+        instance.stop()
+
 class iemicTests(TestWithMPI):
     def test1(self):
         instance = iemic()
