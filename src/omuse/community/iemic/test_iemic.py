@@ -14,7 +14,7 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.commit_parameters()
         self.assertEqual(err,0)
 
-        err = instance.set_double_parameter("continuation?destination 0", 1.0)
+        err = instance.set_double_parameter("continuation->destination 0", 1.0)
         self.assertEqual(err,0)
 
         err = instance.commit_continuation_parameters()
@@ -39,7 +39,7 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.commit_parameters()
         self.assertEqual(err,0)
 
-        err = instance.set_double_parameter("continuation?destination 0", 1.0)
+        err = instance.set_double_parameter("continuation->destination 0", 1.0)
         self.assertEqual(err,0)
 
         err = instance.commit_continuation_parameters()
@@ -76,7 +76,7 @@ class iemicInterfaceTests(TestWithMPI):
 
     def paramHelper(self, instance, paramSet, n, sublist, param):
         print("!!>> |{0}|, |{1}|, |{2}|".format(paramSet, sublist,sublist+param)) 
-        paramType, err = instance.get_parameter_type(paramSet + "?" + sublist + param)
+        paramType, err = instance.get_parameter_type(paramSet + "->" + sublist + param)
         self.assertEqual(err,0)
 
         if paramType == "unknown":
@@ -85,7 +85,7 @@ class iemicInterfaceTests(TestWithMPI):
         print(("    " * n) + param + ": " + paramType, end=' ')
 
         param = sublist + param
-        complete_name = paramSet + "?" + param
+        complete_name = paramSet + "->" + param
 
         if paramType == "ParameterList":
             subParamCount, err = instance.get_num_parameters(paramSet, param)
@@ -96,7 +96,7 @@ class iemicInterfaceTests(TestWithMPI):
             for i in range(0, subParamCount):
                 subParamName, err = instance.get_parameter_name(paramSet, param, i)
                 self.assertEqual(err,0)
-                self.paramHelper(instance, paramSet, n+1, param + "?", subParamName)
+                self.paramHelper(instance, paramSet, n+1, param + "->", subParamName)
 
         elif paramType == "bool":
             val, err = instance.get_bool_parameter(complete_name)
@@ -210,13 +210,13 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.commit_parameters()
         self.assertEqual(err,0)
 
-        err = instance.set_double_parameter("ocean?THCM?Global Bound xmin", 5.0)
+        err = instance.set_double_parameter("ocean->THCM->Global Bound xmin", 5.0)
         self.assertEqual(err,-1)
 
         err = instance.recommit_parameters()
         self.assertEqual(err,0)
 
-        err = instance.set_double_parameter("ocean?THCM?Starting Parameters?SPL1", 5.0)
+        err = instance.set_double_parameter("ocean->THCM->Starting Parameters->SPL1", 5.0)
         self.assertEqual(err,0)
 
         err = instance.recommit_parameters()
