@@ -133,16 +133,28 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns(name="")
 
     @remote_function
-    def get_parameter_type(set_name="", param_name=""):
+    def _get_parameter_type(set_name="", param_name=""):
         returns(name="")
 
-    @remote_function
-    def get_bool_parameter(set_name="", param_name=""):
-        returns(value=False)
+    def get_parameter_type(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_parameter_type(set_name, param_name)
 
     @remote_function
-    def set_bool_parameter(set_name="", param_name="", value=False):
+    def _get_bool_parameter(set_name="", param_name=""):
+        returns(value=False)
+
+    def get_bool_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_bool_parameter(set_name, param_name)
+
+    @remote_function
+    def _set_bool_parameter(set_name="", param_name="", value=False):
         returns()
+
+    def set_bool_parameter(self, param_name, val):
+        set_name, param_name = param_name.split("->", 1)
+        return self._set_bool_parameter(set_name, param_name, val)
 
     @remote_function
     def get_state_norm():
@@ -152,10 +164,13 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def _get_state_norm(src=0):
         returns(norm=0.)
 
-
     @remote_function
-    def get_default_bool_parameter(set_name="", param_name=""):
+    def _get_default_bool_parameter(set_name="", param_name=""):
         returns(value=False)
+
+    def get_default_bool_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_default_bool_parameter(set_name, param_name)
 
     #@remote_function
     #def get_char_parameter(set_name="", param_name=""):
@@ -170,40 +185,77 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     #    returns(value='c')
 
     @remote_function
-    def get_double_parameter(set_name="", param_name=""):
+    def _get_double_parameter(set_name="", param_name=""):
         returns(value=0.)
 
-    @remote_function
-    def set_double_parameter(set_name="", param_name="", value=0.):
-        returns()
+    def get_double_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_double_parameter(set_name, param_name)
 
     @remote_function
-    def get_default_double_parameter(set_name="", param_name=""):
+    def _set_double_parameter(set_name="", param_name="", value=0.):
+        returns()
+
+    def set_double_parameter(self, param_name, val):
+        set_name, param_name = param_name.split("->", 1)
+        return self._set_double_parameter(set_name, param_name, val)
+
+    @remote_function
+    def _get_default_double_parameter(set_name="", param_name=""):
         returns(value=0.)
 
+    def get_default_double_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_default_double_parameter(set_name, param_name)
+
     @remote_function
-    def get_int_parameter(set_name="", param_name=""):
+    def _get_int_parameter(set_name="", param_name=""):
         returns(value=0)
 
-    @remote_function
-    def set_int_parameter(set_name="", param_name="", value=0):
-        returns()
+    def get_int_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_int_parameter(set_name, param_name)
 
     @remote_function
-    def get_default_int_parameter(set_name="", param_name=""):
+    def _set_int_parameter(set_name="", param_name="", value=0):
+        returns()
+
+    def set_int_parameter(self, param_name, val):
+        set_name, param_name = param_name.split("->", 1)
+        return self._set_int_parameter(set_name, param_name, val)
+
+    @remote_function
+    def _get_default_int_parameter(set_name="", param_name=""):
         returns(value=0)
 
-    @remote_function
-    def get_string_parameter(set_name="", param_name=""):
-        returns(value="")
+    def get_default_int_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_default_int_parameter(set_name, param_name)
 
     @remote_function
-    def set_string_parameter(set_name="", param_name="", value=""):
+    def _get_string_parameter(set_name="", param_name=""):
+        returns(value="")
+
+    def get_string_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        print(set_name, param_name)
+        return self._get_string_parameter(set_name, param_name)
+
+    @remote_function
+    def _set_string_parameter(set_name="", param_name="", value=""):
         returns()
 
+    def set_string_parameter(self, param_name, val):
+        set_name, param_name = param_name.split("->", 1)
+        return self._set_string_parameter(set_name, param_name, val)
+
     @remote_function
-    def get_default_string_parameter(set_name="", param_name=""):
+    def _get_default_string_parameter(set_name="", param_name=""):
         returns(value="")
+
+    def get_default_string_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_default_string_parameter(set_name, param_name)
 
     @remote_function(can_handle_array=True)
     def _new_state():
@@ -236,7 +288,7 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     @remote_function
     def _jacobian(src=0):
         returns()
-        
+
 
 class iemic(InCodeComponentImplementation):
     def __init__(self, **options):
@@ -247,7 +299,7 @@ class iemic(InCodeComponentImplementation):
         handler.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize')
         handler.add_transition('INITIALIZED', 'PARAM', 'commit_parameters')
         handler.add_transition('PARAM', 'PARAMC', 'commit_continuation_parameters')
-        
+
         for state in ["PARAM", "PARAMC"]:
             for method in ["get_u", "get_v", "get_w", "get_p", "get_t", "get_s",
                 "get_nrange", "get_mrange", "get_lrange", "_new_state"]:
@@ -259,10 +311,10 @@ class iemic(InCodeComponentImplementation):
 
     def _grid_range(self, **kwargs):
         return self.get_nrange()+self.get_mrange()+self.get_lrange()
-    
+
     def define_grids(self, handler):
         #~ code_generator.generate_grid_definitions(object)
-        
+
         # ocean dynamic variables p-grid: po, dpo_dt, vorticity
         handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
         handler.set_grid_range('grid', '_grid_range')
@@ -284,21 +336,21 @@ class iemic(InCodeComponentImplementation):
     def _generate_parameter_setter_getters(self, paramSet, sublist, paramName, paramType):
         # define getter (closure or partial..)
         def getter():
-          return getattr(self, "get_"+paramType+"_parameter")(paramSet, "?".join(sublist+[paramName]))
-        # define setter 
+          return getattr(self, "_get_"+paramType+"_parameter")(paramSet, "->".join(sublist+[paramName]))
+        # define setter
         def setter(val):
-          return getattr(self, "set_"+paramType+"_parameter")(paramSet, "?".join(sublist+[paramName]), val)
+          return getattr(self, "_set_"+paramType+"_parameter")(paramSet, "->".join(sublist+[paramName]), val)
         return getter,setter
 
 
     def define_parameter_set(self, handler, paramSet, sublist=[]):
-        paramCount = self.get_num_parameters(paramSet, "?".join(sublist))
-        
+        paramCount = self.get_num_parameters(paramSet, "->".join(sublist))
+
         allowed_types=["bool", "string", "double", "int"]
-        
+
         for j in range(0, paramCount):
-            paramName = self.get_parameter_name(paramSet, "?".join(sublist) , j)
-            paramType = self.get_parameter_type(paramSet, "?".join(sublist + [paramName]))
+            paramName = self.get_parameter_name(paramSet, "->".join(sublist) , j)
+            paramType = self._get_parameter_type(paramSet, "->".join(sublist + [paramName]))
             if paramType=="ParameterList":
                 self.define_parameter_set(handler,paramSet, sublist + [paramName])
             else:
@@ -311,13 +363,13 @@ class iemic(InCodeComponentImplementation):
                 longname="__".join([paramSet] + sublist + [paramName])
                 longname=longname.replace(" ", "_").replace("-","_")
                 parameter_set_name="__".join([paramSet] + sublist)
-              
+
                 getter,setter=self._generate_parameter_setter_getters(paramSet, sublist, paramName, paramType)
 
                 # name of getter
-                name_of_getter="get_"+longname                
+                name_of_getter="_get_"+longname
                 # name of setter
-                name_of_setter="set_"+longname
+                name_of_setter="_set_"+longname
 
                 # add getter to interface
                 setattr(self, name_of_getter, getter)
@@ -325,7 +377,7 @@ class iemic(InCodeComponentImplementation):
                 setattr(self, name_of_setter, setter)
 
                 # get default
-                default=getattr(self, "get_default_"+paramType+"_parameter")(paramSet, "?".join(sublist+[paramName]))
+                default=getattr(self, "_get_default_"+paramType+"_parameter")(paramSet, "->".join(sublist+[paramName]))
                 # define parameter
                 handler.add_method_parameter(
                   name_of_getter,
@@ -335,10 +387,9 @@ class iemic(InCodeComponentImplementation):
                   default_value = default,
                   parameter_set=parameter_set_name.replace(" ", "_").replace("-","_")
                )
- 
+
 
     def define_parameters(self, handler):
-        
         paramSetCount = self.get_num_parameter_sets()
 
         for i in range(0, paramSetCount):
@@ -358,7 +409,7 @@ class iemic(InCodeComponentImplementation):
         result=self.new_state()
         self._solve(state._id, result._id)
         return result
-        
+
     def jacobian(self, state):
         self._jacobian(state._id)
 

@@ -444,7 +444,7 @@ get_parameter_name(char *param_set_name, char *param_name, int i, char **name)
     return -1;
 }
 
-int32_t get_parameter_type(char *param_set_name, char *param_name, char **name)
+int32_t _get_parameter_type(char *param_set_name, char *param_name, char **name)
 {
     try {
         resultString = parameter_sets.at(param_set_name).get_param_type(param_name);
@@ -460,7 +460,7 @@ int32_t get_parameter_type(char *param_set_name, char *param_name, char **name)
 }
 
 int32_t
-get_bool_parameter(char *param_set_name, char *param_name, bool *result)
+_get_bool_parameter(char *param_set_name, char *param_name, bool *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -476,7 +476,7 @@ get_bool_parameter(char *param_set_name, char *param_name, bool *result)
 }
 
 int32_t
-set_bool_parameter(char *param_set_name, char *param_name, bool val)
+_set_bool_parameter(char *param_set_name, char *param_name, bool val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -492,7 +492,7 @@ set_bool_parameter(char *param_set_name, char *param_name, bool val)
 }
 
 int32_t
-get_default_bool_parameter(char *param_set_name, char *param_name, bool *result)
+_get_default_bool_parameter(char *param_set_name, char *param_name, bool *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -508,7 +508,7 @@ get_default_bool_parameter(char *param_set_name, char *param_name, bool *result)
 }
 
 int32_t
-get_char_parameter(char *param_set_name, char *param_name, char *result)
+_get_char_parameter(char *param_set_name, char *param_name, char *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -524,7 +524,7 @@ get_char_parameter(char *param_set_name, char *param_name, char *result)
 }
 
 int32_t
-set_char_parameter(char *param_set_name, char *param_name, char val)
+_set_char_parameter(char *param_set_name, char *param_name, char val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -540,7 +540,7 @@ set_char_parameter(char *param_set_name, char *param_name, char val)
 }
 
 int32_t
-get_default_char_parameter(char *param_set_name, char *param_name, char *result)
+_get_default_char_parameter(char *param_set_name, char *param_name, char *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -556,7 +556,7 @@ get_default_char_parameter(char *param_set_name, char *param_name, char *result)
 }
 
 int32_t
-get_double_parameter(char *param_set_name, char *param_name, double *result)
+_get_double_parameter(char *param_set_name, char *param_name, double *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -572,7 +572,7 @@ get_double_parameter(char *param_set_name, char *param_name, double *result)
 }
 
 int32_t
-set_double_parameter(char *param_set_name, char *param_name, double val)
+_set_double_parameter(char *param_set_name, char *param_name, double val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -588,7 +588,7 @@ set_double_parameter(char *param_set_name, char *param_name, double val)
 }
 
 int32_t
-get_default_double_parameter(char *param_set_name, char *param_name, double *result)
+_get_default_double_parameter(char *param_set_name, char *param_name, double *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -604,7 +604,7 @@ get_default_double_parameter(char *param_set_name, char *param_name, double *res
 }
 
 int32_t
-get_int_parameter(char *param_set_name, char *param_name, int *result)
+_get_int_parameter(char *param_set_name, char *param_name, int *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -620,7 +620,7 @@ get_int_parameter(char *param_set_name, char *param_name, int *result)
 }
 
 int32_t
-set_int_parameter(char *param_set_name, char *param_name, int val)
+_set_int_parameter(char *param_set_name, char *param_name, int val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -636,7 +636,7 @@ set_int_parameter(char *param_set_name, char *param_name, int val)
 }
 
 int32_t
-get_default_int_parameter(char *param_set_name, char *param_name, int *result)
+_get_default_int_parameter(char *param_set_name, char *param_name, int *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -652,7 +652,7 @@ get_default_int_parameter(char *param_set_name, char *param_name, int *result)
 }
 
 int32_t
-get_string_parameter(char *param_set_name, char *param_name, char **result)
+_get_string_parameter(char *param_set_name, char *param_name, char **result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -669,7 +669,7 @@ get_string_parameter(char *param_set_name, char *param_name, char **result)
 }
 
 int32_t
-set_string_parameter(char *param_set_name, char *param_name, char *val)
+_set_string_parameter(char *param_set_name, char *param_name, char *val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -685,7 +685,7 @@ set_string_parameter(char *param_set_name, char *param_name, char *val)
 }
 
 int32_t
-get_default_string_parameter(char *param_set_name, char *param_name, char **result)
+_get_default_string_parameter(char *param_set_name, char *param_name, char **result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);

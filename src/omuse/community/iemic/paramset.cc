@@ -10,7 +10,7 @@ using namespace Teuchos;
 std::vector<std::string>
 split_name(const std::string& param_name)
 {
-    std::string delimiter = "?";
+    std::string delimiter = "->";
     std::string name(param_name);
     std::vector<std::string> name_parts;
 
