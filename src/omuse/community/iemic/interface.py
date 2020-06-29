@@ -136,25 +136,13 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def _get_parameter_type(set_name="", param_name=""):
         returns(name="")
 
-    def get_parameter_type(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_parameter_type(set_name, param_name)
-
     @remote_function
     def _get_bool_parameter(set_name="", param_name=""):
         returns(value=False)
 
-    def get_bool_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_bool_parameter(set_name, param_name)
-
     @remote_function
     def _set_bool_parameter(set_name="", param_name="", value=False):
         returns()
-
-    def set_bool_parameter(self, param_name, val):
-        set_name, param_name = param_name.split("->", 1)
-        return self._set_bool_parameter(set_name, param_name, val)
 
     @remote_function
     def get_state_norm():
@@ -167,10 +155,6 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     @remote_function
     def _get_default_bool_parameter(set_name="", param_name=""):
         returns(value=False)
-
-    def get_default_bool_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_default_bool_parameter(set_name, param_name)
 
     #@remote_function
     #def get_char_parameter(set_name="", param_name=""):
@@ -188,74 +172,37 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def _get_double_parameter(set_name="", param_name=""):
         returns(value=0.)
 
-    def get_double_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_double_parameter(set_name, param_name)
-
     @remote_function
     def _set_double_parameter(set_name="", param_name="", value=0.):
         returns()
-
-    def set_double_parameter(self, param_name, val):
-        set_name, param_name = param_name.split("->", 1)
-        return self._set_double_parameter(set_name, param_name, val)
 
     @remote_function
     def _get_default_double_parameter(set_name="", param_name=""):
         returns(value=0.)
 
-    def get_default_double_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_default_double_parameter(set_name, param_name)
-
     @remote_function
     def _get_int_parameter(set_name="", param_name=""):
         returns(value=0)
-
-    def get_int_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_int_parameter(set_name, param_name)
 
     @remote_function
     def _set_int_parameter(set_name="", param_name="", value=0):
         returns()
 
-    def set_int_parameter(self, param_name, val):
-        set_name, param_name = param_name.split("->", 1)
-        return self._set_int_parameter(set_name, param_name, val)
-
     @remote_function
     def _get_default_int_parameter(set_name="", param_name=""):
         returns(value=0)
-
-    def get_default_int_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_default_int_parameter(set_name, param_name)
 
     @remote_function
     def _get_string_parameter(set_name="", param_name=""):
         returns(value="")
 
-    def get_string_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        print(set_name, param_name)
-        return self._get_string_parameter(set_name, param_name)
-
     @remote_function
     def _set_string_parameter(set_name="", param_name="", value=""):
         returns()
 
-    def set_string_parameter(self, param_name, val):
-        set_name, param_name = param_name.split("->", 1)
-        return self._set_string_parameter(set_name, param_name, val)
-
     @remote_function
     def _get_default_string_parameter(set_name="", param_name=""):
         returns(value="")
-
-    def get_default_string_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_default_string_parameter(set_name, param_name)
 
     @remote_function(can_handle_array=True)
     def _new_state():
@@ -415,3 +362,56 @@ class iemic(InCodeComponentImplementation):
 
     def get_grid(self, state):
         return self._create_new_grid(self._specify_grid, index=state._id)
+
+    def get_parameter_type(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_parameter_type(set_name, param_name)
+
+    def get_bool_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_bool_parameter(set_name, param_name)
+
+    def set_bool_parameter(self, param_name, val):
+        set_name, param_name = param_name.split("->", 1)
+        return self._set_bool_parameter(set_name, param_name, val)
+
+    def get_default_bool_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_default_bool_parameter(set_name, param_name)
+
+    def get_double_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_double_parameter(set_name, param_name)
+
+    def set_double_parameter(self, param_name, val):
+        set_name, param_name = param_name.split("->", 1)
+        return self._set_double_parameter(set_name, param_name, val)
+
+    def get_default_double_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_default_double_parameter(set_name, param_name)
+
+    def get_int_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_int_parameter(set_name, param_name)
+
+    def set_int_parameter(self, param_name, val):
+        set_name, param_name = param_name.split("->", 1)
+        return self._set_int_parameter(set_name, param_name, val)
+
+    def get_default_int_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_default_int_parameter(set_name, param_name)
+
+    def get_string_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        print(set_name, param_name)
+        return self._get_string_parameter(set_name, param_name)
+
+    def set_string_parameter(self, param_name, val):
+        set_name, param_name = param_name.split("->", 1)
+        return self._set_string_parameter(set_name, param_name, val)
+
+    def get_default_string_parameter(self, param_name):
+        set_name, param_name = param_name.split("->", 1)
+        return self._get_default_string_parameter(set_name, param_name)
