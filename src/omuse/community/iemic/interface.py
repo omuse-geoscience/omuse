@@ -251,7 +251,7 @@ class iemic(InCodeComponentImplementation):
         handler.add_transition('UPDATED', 'RECOMMIT', 'recommit_parameters')
         handler.add_transition('RECOMMIT', 'PARAMC', 'recommit_continuation_parameters')
 
-        for state in ["PARAM", "PARAMC", "UPDATED", "RECOMMIT"]:
+        for state in ["PARAM", "PARAMC", "RECOMMIT"]:
             for method in ["get_u", "get_v", "get_w", "get_p", "get_t", "get_s",
                 "get_nrange", "get_mrange", "get_lrange", "_new_state"]:
                 handler.add_method(state, method)
