@@ -11,16 +11,16 @@ kwargs=dict()
 def newton(interface, x0, tol=1.e-7, maxit=1000):
     x = x0
     for k in range(maxit):
-      fval = interface.rhs(x)
-      interface.jacobian(x)
-      dx = -interface.solve(fval)
+        fval = interface.rhs(x)
+        interface.jacobian(x)
+        dx = -interface.solve(fval)
 
-      x = x + dx
- 
-      dxnorm = dx.norm()
-      print("norm:", dxnorm)
-      if dxnorm < tol:
-        break
+        x = x + dx
+
+        dxnorm = dx.norm()
+        if dxnorm < tol:
+            print('Newton converged in %d steps with norm %e' % (k, dxnorm))
+            break
 
     return x
 
@@ -98,8 +98,9 @@ def newtoncorrector(interface, par, ds, x, x0, l, l0, tol):
         x = x + dx
         l = l + dl
 
-        if dx.norm() < tol:
-            print('Newton corrector converged in %d steps' % k)
+        dxnorm = dx.norm()
+        if dxnorm < tol:
+            print('Newton corrector converged in %d steps with norm %e' % (k, dxnorm))
             return (x, l)
 
     print('No convergence achieved by Newton corrector')
