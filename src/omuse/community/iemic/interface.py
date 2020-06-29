@@ -246,8 +246,12 @@ class iemic(InCodeComponentImplementation):
         handler.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize')
         handler.add_transition('INITIALIZED', 'PARAM', 'commit_parameters')
         handler.add_transition('PARAM', 'PARAMC', 'commit_continuation_parameters')
+        handler.add_transition('PARAM', 'UPDATED', 'before_set_parameter')
+        handler.add_transition('PARAMC', 'UPDATED', 'before_set_parameter')
+        handler.add_transition('UPDATED', 'RECOMMIT', 'recommit_parameters')
+        handler.add_transition('RECOMMIT', 'PARAMC', 'recommit_continuation_parameters')
 
-        for state in ["PARAM", "PARAMC"]:
+        for state in ["PARAM", "PARAMC", "UPDATED", "RECOMMIT"]:
             for method in ["get_u", "get_v", "get_w", "get_p", "get_t", "get_s",
                 "get_nrange", "get_mrange", "get_lrange", "_new_state"]:
                 handler.add_method(state, method)

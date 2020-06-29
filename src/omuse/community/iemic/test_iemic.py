@@ -1,5 +1,6 @@
 from math import isnan
 from amuse.test.amusetest import TestWithMPI
+from amuse.support.exceptions import AmuseException
 
 from omuse.community.iemic.interface import iemicInterface
 from omuse.community.iemic.interface import iemic
@@ -234,6 +235,25 @@ class iemicTests(TestWithMPI):
           print("parameter set: {0}".format(name))
           print(getattr(instance,name))
           print()
+
+        instance.cleanup_code()
+        instance.stop()
+
+    def test2(self):
+        instance = iemic()
+
+        instance.set_double_parameter("continuation->destination 0", 1.0)
+        instance.commit_continuation_parameters()
+        try:
+            instance.set_double_parameter("ocean->THCM->Global Bound xmin", 5.0)
+            self.assertTrue(False)
+        except AmuseException:
+            pass
+        except:
+            self.assertTrue(False)
+
+        instance.set_double_parameter("ocean->THCM->Starting Parameters->SPL1", 1999.0)
+        instance.step_continuation()
 
         instance.cleanup_code()
         instance.stop()
