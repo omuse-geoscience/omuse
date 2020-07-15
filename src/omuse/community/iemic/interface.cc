@@ -36,6 +36,8 @@ RCP<Epetra_Comm> comm;
 RCP<Ocean> ocean;
 RCP<Continuation<RCP<Ocean>>> continuation;
 std::ofstream devNull("/dev/null");
+std::ofstream logStream("/dev/null");
+std::ofstream outStream("/dev/stdout");
 #pragma GCC diagnostic pop
 
 std::string resultString = "";
@@ -64,6 +66,32 @@ int32_t get_param(RCP<Epetra_Vector> state, Parameter param, int *i, int *j, int
     }
     return 0;
 }
+}
+
+int32_t set_log_file(char *filepath)
+{
+    try {
+        std::ofstream logFile(filepath);
+        logStream.swap(logFile);
+        return 0;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t set_output_file(char *filepath)
+{
+    try {
+        std::ofstream newOutFile(filepath);
+        outStream.swap(newOutFile);
+        return 0;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
 }
 
 int32_t _new_state(int *id)
@@ -154,13 +182,13 @@ int32_t initialize()
 {
     try {
         comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
-        outFile = rcpFromRef(std::cout);
+        outFile = rcpFromRef(outStream);
         cdataFile = rcpFromRef(devNull);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -174,9 +202,9 @@ int32_t commit_parameters()
 
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -190,9 +218,9 @@ int32_t commit_continuation_parameters()
         continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").commit()));
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -208,9 +236,9 @@ int32_t recommit_parameters()
 
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -225,9 +253,9 @@ int32_t recommit_continuation_parameters()
 
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -279,9 +307,9 @@ int32_t step_continuation()
     try {
         return continuation->run();
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -303,9 +331,9 @@ load_xml_parameters(char *param_set_name, char *path)
         paramSet.load_from_file(path);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -318,9 +346,9 @@ int32_t save_xml_parameters(char *param_set_name, char *path)
         paramSet.save_to_file(path);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -405,9 +433,9 @@ int32_t get_parameter_set_name(int i, char **name)
 
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -419,9 +447,9 @@ int32_t get_num_parameters(char *param_set_name, char *param_name, int *_num)
         *_num = parameter_sets.at(param_set_name).get_num_params(param_name);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -436,9 +464,9 @@ get_parameter_name(char *param_set_name, char *param_name, int i, char **name)
         *name = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -451,9 +479,9 @@ int32_t _get_parameter_type(char *param_set_name, char *param_name, char **name)
         *name = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -467,9 +495,9 @@ _get_bool_parameter(char *param_set_name, char *param_name, bool *result)
         paramset.get_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -483,9 +511,9 @@ _set_bool_parameter(char *param_set_name, char *param_name, bool val)
         paramset.set_param_value(param_name, val);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -499,9 +527,9 @@ _get_default_bool_parameter(char *param_set_name, char *param_name, bool *result
         paramset.get_default_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -515,9 +543,9 @@ _get_char_parameter(char *param_set_name, char *param_name, char *result)
         paramset.get_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -531,9 +559,9 @@ _set_char_parameter(char *param_set_name, char *param_name, char val)
         paramset.set_param_value(param_name, val);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -547,9 +575,9 @@ _get_default_char_parameter(char *param_set_name, char *param_name, char *result
         paramset.get_default_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -563,9 +591,9 @@ _get_double_parameter(char *param_set_name, char *param_name, double *result)
         paramset.get_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -579,9 +607,9 @@ _set_double_parameter(char *param_set_name, char *param_name, double val)
         paramset.set_param_value(param_name, val);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -595,9 +623,9 @@ _get_default_double_parameter(char *param_set_name, char *param_name, double *re
         paramset.get_default_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -611,9 +639,9 @@ _get_int_parameter(char *param_set_name, char *param_name, int *result)
         paramset.get_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -627,9 +655,9 @@ _set_int_parameter(char *param_set_name, char *param_name, int val)
         paramset.set_param_value(param_name, val);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -643,9 +671,9 @@ _get_default_int_parameter(char *param_set_name, char *param_name, int *result)
         paramset.get_default_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -660,9 +688,9 @@ _get_string_parameter(char *param_set_name, char *param_name, char **result)
         *result = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -676,9 +704,9 @@ _set_string_parameter(char *param_set_name, char *param_name, char *val)
         paramset.set_param_value(param_name, std::string(val));
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -693,9 +721,9 @@ _get_default_string_parameter(char *param_set_name, char *param_name, char **res
         *result = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;

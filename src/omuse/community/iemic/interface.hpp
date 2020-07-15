@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+int32_t set_log_file(char *log_file);
+int32_t set_output_file(char *log_file);
 int32_t initialize();
 
 int32_t commit_parameters();

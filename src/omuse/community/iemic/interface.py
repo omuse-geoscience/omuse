@@ -15,6 +15,14 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         CodeInterface.__init__(self, name_of_the_worker="iemic_worker", **keyword_arguments)
 
     @remote_function
+    def set_log_file(logFile="s"):
+        returns ()
+
+    @remote_function
+    def set_output_file(outFile="s"):
+        returns ()
+
+    @remote_function
     def initialize():
         returns ()
 
