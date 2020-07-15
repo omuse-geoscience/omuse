@@ -240,21 +240,155 @@ class iemicTests(TestWithMPI):
         instance.stop()
 
     def test2(self):
+        "Test whether all ocean parameters cause the expected state transitions."
+
+        instance = iemic()
+
+        for param_set_name in instance.parameter_set_names():
+            params = getattr(instance, param_set_name)
+            for param in params.iter_parameters():
+                param.set_value(param.get_value())
+
+        instance.commit_parameters()
+        self.assertEqual(instance.get_name_of_current_state(),
+                        "OCEAN-PARAM-CONTINUATION-NOPARAM")
+
+        for param_set_name in instance.parameter_set_names():
+            params = getattr(instance, param_set_name)
+            isOcean = param_set_name.startswith("ocean")
+            for param in params.iter_parameters():
+                try:
+                    param.set_value(param.get_value())
+                    if isOcean:
+                        self.assertEqual(instance.get_name_of_current_state(),
+                                        "OCEAN-UPDATED-CONTINUATION-NOPARAM")
+
+                        instance.recommit_parameters()
+                        self.assertEqual(instance.get_name_of_current_state(),
+                                        "OCEAN-PARAM-CONTINUATION-NOPARAM")
+                except AmuseException as e:
+                    self.assertTrue(isOcean)
+
+        instance.cleanup_code()
+        instance.stop()
+
+    def test3(self):
+        "Test whether all parameters cause the expected state transitions."
         instance = iemic()
 
         instance.commit_parameters()
         instance.set_parameter("continuation->destination 0", 1.0)
         instance.commit_continuation_parameters()
-        try:
-            instance.set_parameter("ocean->THCM->Global Bound xmin", 5.0)
-            self.assertTrue(False)
-        except AmuseException:
-            pass
-        except:
-            self.assertTrue(False)
+        self.assertEqual(instance.get_name_of_current_state(),
+                        "OCEAN-PARAM-CONTINUATION-PARAM")
 
-        instance.set_parameter("ocean->THCM->Starting Parameters->SPL1", 1999.0)
-        instance.step_continuation()
+        for param_set_name in instance.parameter_set_names():
+            params = getattr(instance, param_set_name)
+            isOcean = param_set_name.startswith("ocean")
+            for param in params.iter_parameters():
+                try:
+                    param.set_value(param.get_value())
+                    if isOcean:
+                        self.assertEqual(instance.get_name_of_current_state(),
+                                        "OCEAN-UPDATED-CONTINUATION-PARAM")
+
+                        instance.recommit_parameters()
+                        self.assertEqual(instance.get_name_of_current_state(),
+                                        "OCEAN-PARAM-CONTINUATION-PARAM")
+                    else:
+                        self.assertEqual(instance.get_name_of_current_state(),
+                                        "OCEAN-PARAM-CONTINUATION-UPDATED")
+
+                        instance.recommit_continuation_parameters()
+                        self.assertEqual(instance.get_name_of_current_state(),
+                                        "OCEAN-PARAM-CONTINUATION-PARAM")
+                except AmuseException as e:
+                    pass
+
+        instance.cleanup_code()
+        instance.stop()
+
+    def test4(self):
+        "Test whether ocean methods trigger state transitions properly."
+        simple_methods = {
+            "get_u" : (0, 0, 0),
+            "get_v" : (0, 0, 0),
+            "get_w" : (0, 0, 0),
+            "get_p" : (0, 0, 0),
+            "get_t" : (0, 0, 0),
+            "get_s" : (0, 0, 0),
+            "get_nrange" : (),
+            "get_mrange" : (),
+            "get_lrange" : ()
+        }
+
+        for method_name, args in simple_methods.items():
+            instance = iemic()
+            self.assertEqual(instance.get_name_of_current_state(),
+                             "UNINITIALIZED")
+
+            getattr(instance, method_name)(*args)
+            self.assertEqual(instance.get_name_of_current_state(),
+                             "OCEAN-PARAM-CONTINUATION-NOPARAM")
+
+            instance.set_parameter("ocean->THCM->Starting Parameters->SPL1", 2000.0)
+            self.assertEqual(instance.get_name_of_current_state(),
+                             "OCEAN-UPDATED-CONTINUATION-NOPARAM")
+
+            getattr(instance, method_name)(*args)
+            self.assertEqual(instance.get_name_of_current_state(),
+                             "OCEAN-PARAM-CONTINUATION-NOPARAM")
+
+            instance.cleanup_code()
+            instance.stop()
+
+    def test5(self):
+        "Test whether continuation methods trigger state transitions properly."
+        continuation_methods = {
+            "step_continuation" : ()
+        }
+
+        for method_name, args in continuation_methods.items():
+            instance = iemic()
+
+            instance.continuation.destination_0 = 1.0
+            self.assertEqual(instance.get_name_of_current_state(), "INITIALIZED")
+
+            getattr(instance, method_name)(*args)
+            self.assertEqual(instance.get_name_of_current_state(),
+                             "OCEAN-PARAM-CONTINUATION-PARAM")
+
+            instance.cleanup_code()
+            instance.stop()
+
+    def test6(self):
+        "Test whether state vector operations trigger state transitions properly."
+        instance = iemic()
+        instance.commit_parameters()
+        self.assertEqual(instance.get_name_of_current_state(),
+                         "OCEAN-PARAM-CONTINUATION-NOPARAM")
+
+        state_methods = [
+            "rhs",
+            "solve",
+            "jacobian",
+        ]
+
+        for method_name in state_methods:
+            instance.set_parameter("ocean->THCM->Starting Parameters->SPL1", 2000.0)
+            self.assertEqual(instance.get_name_of_current_state(),
+                             "OCEAN-UPDATED-CONTINUATION-NOPARAM")
+
+            state = instance.new_state()
+            self.assertEqual(instance.get_name_of_current_state(),
+                             "OCEAN-PARAM-CONTINUATION-NOPARAM")
+
+
+            getattr(instance, method_name)(state)
+            self.assertEqual(instance.get_name_of_current_state(),
+                             "OCEAN-PARAM-CONTINUATION-NOPARAM")
+
+            del state
 
         instance.cleanup_code()
         instance.stop()
