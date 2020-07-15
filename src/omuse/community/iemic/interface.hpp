@@ -16,7 +16,7 @@ int32_t test_grid(char* logFile);
 int32_t step_continuation();
 int32_t cleanup_code();
 
-int32_t load_xml_parameters(char *param_set_name, char *path);
+int32_t _load_xml_parameters(char *param_set_name, char *path);
 int32_t save_xml_parameters(char *param_set_name, char *path);
 
 int32_t get_u(int *i, int *j, int *k, double *var, int n);

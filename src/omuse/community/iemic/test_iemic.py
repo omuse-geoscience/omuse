@@ -194,7 +194,7 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.save_xml_parameters("ocean", "test.xml")
         self.assertEqual(err,0)
 
-        err = instance.load_xml_parameters("ocean", "test.xml")
+        err = instance._load_xml_parameters("ocean", "test.xml")
         self.assertEqual(err,0)
 
         err = instance.cleanup_code()
@@ -242,17 +242,18 @@ class iemicTests(TestWithMPI):
     def test2(self):
         instance = iemic()
 
-        instance.set_double_parameter("continuation->destination 0", 1.0)
+        instance.commit_parameters()
+        instance.set_parameter("continuation->destination 0", 1.0)
         instance.commit_continuation_parameters()
         try:
-            instance.set_double_parameter("ocean->THCM->Global Bound xmin", 5.0)
+            instance.set_parameter("ocean->THCM->Global Bound xmin", 5.0)
             self.assertTrue(False)
         except AmuseException:
             pass
         except:
             self.assertTrue(False)
 
-        instance.set_double_parameter("ocean->THCM->Starting Parameters->SPL1", 1999.0)
+        instance.set_parameter("ocean->THCM->Starting Parameters->SPL1", 1999.0)
         instance.step_continuation()
 
         instance.cleanup_code()

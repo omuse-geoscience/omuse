@@ -14,6 +14,12 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def __init__(self, **keyword_arguments):
         CodeInterface.__init__(self, name_of_the_worker="iemic_worker", **keyword_arguments)
 
+    def set_ocean_transition(self):
+        pass
+
+    def set_continuation_transition(self):
+        pass
+
     @remote_function
     def set_log_file(logFile="s"):
         returns ()
@@ -55,7 +61,7 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function
-    def load_xml_parameters(set_name="", path=""):
+    def _load_xml_parameters(set_name="", path=""):
         returns ()
 
     @remote_function
@@ -109,8 +115,6 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     @remote_function(must_handle_array=True)
     def get_s_(i=0, j=0, k=0,sindex=0):
         returns (var=0.)
-
-
 
     @remote_function
     def get_nrange():
@@ -215,7 +219,7 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     @remote_function(can_handle_array=True)
     def _new_state():
         returns(index=0)
-    
+
     @remote_function
     def _remove_state(index=0):
         returns()
@@ -250,23 +254,55 @@ class iemic(InCodeComponentImplementation):
         InCodeComponentImplementation.__init__(self,  iemicInterface(**options), **options)
 
     def define_state(self, handler):
+        ocean_sub_states = ["PARAM", "UPDATED"]
+        continuation_sub_states = ocean_sub_states + ["NOPARAM"]
+
         handler.set_initial_state('UNINITIALIZED')
         handler.add_transition('UNINITIALIZED', 'INITIALIZED', 'initialize')
-        handler.add_transition('INITIALIZED', 'PARAM', 'commit_parameters')
-        handler.add_transition('PARAM', 'PARAMC', 'commit_continuation_parameters')
-        handler.add_transition('PARAM', 'UPDATED', 'before_set_parameter')
-        handler.add_transition('PARAMC', 'UPDATED', 'before_set_parameter')
-        handler.add_transition('UPDATED', 'RECOMMIT', 'recommit_parameters')
-        handler.add_transition('RECOMMIT', 'PARAMC', 'recommit_continuation_parameters')
+        handler.add_transition('INITIALIZED', 'OCEAN-PARAM-CONTINUATION-NOPARAM',
+                                'commit_parameters')
 
-        for state in ["PARAM", "PARAMC", "RECOMMIT"]:
-            for method in ["get_u", "get_v", "get_w", "get_p", "get_t", "get_s",
-                "get_nrange", "get_mrange", "get_lrange", "_new_state"]:
-                handler.add_method(state, method)
+        handler.add_transition('INITIALIZED', 'INITIALIZED', 'set_ocean_transition')
+        handler.add_transition('INITIALIZED', 'INITIALIZED', 'set_continuation_transition')
 
-        for state in ["PARAMC"]:
-            for method in ["step", "step_continuation"]:
-                handler.add_method(state, method)
+        for sub_state in ocean_sub_states:
+            handler.add_transition('OCEAN-' + sub_state + '-CONTINUATION-NOPARAM',
+                                   'OCEAN-' + sub_state + '-CONTINUATION-PARAM',
+                                   'commit_continuation_parameters')
+
+            handler.add_transition('OCEAN-' + sub_state + '-CONTINUATION-PARAM',
+                                   'OCEAN-' + sub_state + '-CONTINUATION-UPDATED',
+                                    'set_continuation_transition')
+
+            handler.add_transition('OCEAN-' + sub_state + '-CONTINUATION-NOPARAM',
+                                   'OCEAN-' + sub_state + '-CONTINUATION-NOPARAM',
+                                    'set_continuation_transition')
+
+            handler.add_transition('OCEAN-' + sub_state + '-CONTINUATION-UPDATED',
+                                   'OCEAN-' + sub_state + '-CONTINUATION-PARAM',
+                                   'recommit_continuation_parameters')
+
+        for sub_state in continuation_sub_states:
+            handler.add_transition('OCEAN-PARAM-CONTINUATION-' + sub_state,
+                                   'OCEAN-UPDATED-CONTINUATION-' + sub_state,
+                                   'set_ocean_transition')
+
+            handler.add_transition('OCEAN-UPDATED-CONTINUATION-' + sub_state,
+                                   'OCEAN-PARAM-CONTINUATION-' + sub_state,
+                                    'recommit_parameters')
+
+        ocean_methods = [
+            "get_u", "get_v", "get_w", "get_p", "get_t", "get_s", "get_nrange",
+            "get_mrange", "get_lrange", "_new_state", "_get_rhs", "_solve",
+            "_jacobian", "_set_model_state", "get_state_norm"
+        ]
+
+        for sub_state in continuation_sub_states:
+            for method in ocean_methods:
+                handler.add_method('OCEAN-PARAM-CONTINUATION-' + sub_state, method)
+
+        handler.add_method('OCEAN-PARAM-CONTINUATION-PARAM',
+                           'step_continuation')
 
     def _grid_range(self, **kwargs):
         return self.get_nrange()+self.get_mrange()+self.get_lrange()
@@ -298,7 +334,7 @@ class iemic(InCodeComponentImplementation):
           return getattr(self, "_get_"+paramType+"_parameter")(paramSet, "->".join(sublist+[paramName]))
         # define setter
         def setter(val):
-          return getattr(self, "_set_"+paramType+"_parameter")(paramSet, "->".join(sublist+[paramName]), val)
+          return getattr(self, "set_"+paramType+"_parameter")(paramSet, "->".join(sublist+[paramName]), val)
         return getter,setter
 
 
@@ -328,7 +364,7 @@ class iemic(InCodeComponentImplementation):
                 # name of getter
                 name_of_getter="_get_"+longname
                 # name of setter
-                name_of_setter="_set_"+longname
+                name_of_setter="set_"+longname
 
                 # add getter to interface
                 setattr(self, name_of_getter, getter)
@@ -379,51 +415,42 @@ class iemic(InCodeComponentImplementation):
         set_name, param_name = param_name.split("->", 1)
         return self._get_parameter_type(set_name, param_name)
 
-    def get_bool_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_bool_parameter(set_name, param_name)
+    def get_parameter(self, name):
+        type = self.get_parameter_type(name)
+        set_name, param_name = name.split("->", 1)
+        return getattr(self, 'get_' + type + '_parameter')(set_name, param_name)
 
-    def set_bool_parameter(self, param_name, val):
-        set_name, param_name = param_name.split("->", 1)
-        return self._set_bool_parameter(set_name, param_name, val)
+    def get_default_parameter(self, name, value):
+        type = self.get_parameter_type(name)
+        set_name, param_name = name.split("->", 1)
+        return getattr(self, 'get_default_' + type + '_parameter')(set_name, param_name, value)
 
-    def get_default_bool_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_default_bool_parameter(set_name, param_name)
+    def set_parameter(self, name, value):
+        type_ = self.get_parameter_type(name)
+        set_name, param_name = name.split("->", 1)
+        getattr(self, 'set_' + type_ + '_parameter')(set_name, param_name, value)
 
-    def get_double_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_double_parameter(set_name, param_name)
+    def set_bool_parameter(self, set_name="", param_name="", value=False):
+        result = self._set_bool_parameter(set_name, param_name, value)
+        getattr(self, "set_" + set_name.lower() + "_transition")()
+        return result
 
-    def set_double_parameter(self, param_name, val):
-        set_name, param_name = param_name.split("->", 1)
-        return self._set_double_parameter(set_name, param_name, val)
+    def set_double_parameter(self, set_name="", param_name="", value=0.):
+        result = self._set_double_parameter(set_name, param_name, value)
+        getattr(self, "set_" + set_name.lower() + "_transition")()
+        return result
 
-    def get_default_double_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_default_double_parameter(set_name, param_name)
+    def set_int_parameter(self, set_name="", param_name="", value=0):
+        result = self._set_int_parameter(set_name, param_name, value)
+        getattr(self, "set_" + set_name.lower() + "_transition")()
+        return result
 
-    def get_int_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_int_parameter(set_name, param_name)
+    def set_string_parameter(self, set_name="", param_name="", value=""):
+        result =  self._set_string_parameter(set_name, param_name, value)
+        getattr(self, "set_" + set_name.lower() + "_transition")()
+        return result
 
-    def set_int_parameter(self, param_name, val):
-        set_name, param_name = param_name.split("->", 1)
-        return self._set_int_parameter(set_name, param_name, val)
-
-    def get_default_int_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_default_int_parameter(set_name, param_name)
-
-    def get_string_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        print(set_name, param_name)
-        return self._get_string_parameter(set_name, param_name)
-
-    def set_string_parameter(self, param_name, val):
-        set_name, param_name = param_name.split("->", 1)
-        return self._set_string_parameter(set_name, param_name, val)
-
-    def get_default_string_parameter(self, param_name):
-        set_name, param_name = param_name.split("->", 1)
-        return self._get_default_string_parameter(set_name, param_name)
+    def load_xml_parameters(set_name="", path=""):
+        result =  self._load_xml_parameters(set_name, path)
+        getattr(self, "set_" + set_name.lower() + "_transition")()
+        return result

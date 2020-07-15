@@ -324,7 +324,7 @@ int32_t cleanup_code()
 }
 
 int32_t
-load_xml_parameters(char *param_set_name, char *path)
+_load_xml_parameters(char *param_set_name, char *path)
 {
     try {
         auto& paramSet = parameter_sets.at(param_set_name);
