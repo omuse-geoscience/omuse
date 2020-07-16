@@ -411,6 +411,28 @@ class iemic(InCodeComponentImplementation):
     def get_grid(self, state):
         return self._create_new_grid(self._specify_grid, index=state._id)
 
+    def parameterset_parameters(self, paramSet, sublist=[]):
+        paramCount = self.get_num_parameters(paramSet, "->".join(sublist))
+
+        for j in range(0, paramCount):
+            paramName = self.get_parameter_name(paramSet, "->".join(sublist) , j)
+            paramComponents = sublist + [paramName]
+            paramType = self._get_parameter_type(paramSet, "->".join(paramComponents))
+            if paramType=="ParameterList":
+                for param in self.parameterset_parameters(paramSet, paramComponents):
+                    yield param
+            else:
+                yield "->".join([paramSet] + paramComponents)
+
+    def parameter_names(self):
+        paramSetCount = self.get_num_parameter_sets()
+
+        for i in range(0, paramSetCount):
+            paramSet = self.get_parameter_set_name(i)
+
+            for param in self.parameterset_parameters(paramSet):
+                yield param
+
     def get_parameter_type(self, param_name):
         set_name, param_name = param_name.split("->", 1)
         return self._get_parameter_type(set_name, param_name)
