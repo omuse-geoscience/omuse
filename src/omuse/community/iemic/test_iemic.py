@@ -392,3 +392,15 @@ class iemicTests(TestWithMPI):
 
         instance.cleanup_code()
         instance.stop()
+
+    def test7(self):
+        "Test whether parameter getters and setters work correctly"
+        instance = iemic()
+
+        for param_name in instance.parameter_names():
+            instance.get_parameter(param_name)
+            default = instance.get_default_parameter(param_name)
+            instance.set_parameter(param_name, default)
+
+        instance.cleanup_code()
+        instance.stop()
