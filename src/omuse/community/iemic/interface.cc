@@ -536,11 +536,15 @@ _get_default_bool_parameter(char *param_set_name, char *param_name, bool *result
 }
 
 int32_t
-_get_char_parameter(char *param_set_name, char *param_name, char *result)
+_get_char_parameter(char *param_set_name, char *param_name, char **result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
-        paramset.get_param_value(param_name, *result);
+        char paramValue;
+        paramset.get_param_value(param_name, paramValue);
+        resultString.clear();
+        resultString.push_back(paramValue);
+        *result = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
         logStream << exc.what() << std::endl;
@@ -552,11 +556,11 @@ _get_char_parameter(char *param_set_name, char *param_name, char *result)
 }
 
 int32_t
-_set_char_parameter(char *param_set_name, char *param_name, char val)
+_set_char_parameter(char *param_set_name, char *param_name, char *val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
-        paramset.set_param_value(param_name, val);
+        paramset.set_param_value(param_name, *val);
         return 0;
     } catch (const std::exception& exc) {
         logStream << exc.what() << std::endl;
@@ -568,11 +572,15 @@ _set_char_parameter(char *param_set_name, char *param_name, char val)
 }
 
 int32_t
-_get_default_char_parameter(char *param_set_name, char *param_name, char *result)
+_get_default_char_parameter(char *param_set_name, char *param_name, char **result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
-        paramset.get_default_param_value(param_name, *result);
+        char paramValue;
+        paramset.get_default_param_value(param_name, paramValue);
+        resultString.clear();
+        resultString.push_back(paramValue);
+        *result = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
         logStream << exc.what() << std::endl;

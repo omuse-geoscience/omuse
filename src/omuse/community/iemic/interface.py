@@ -169,20 +169,16 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns(norm=0.)
 
     @remote_function
-    def _get_default_bool_parameter(set_name="", param_name=""):
-        returns(value=False)
+    def _get_char_parameter(set_name="", param_name=""):
+        returns(value='c')
 
-    #@remote_function
-    #def get_char_parameter(set_name="", param_name=""):
-    #    returns(value='c')
+    @remote_function
+    def _set_char_parameter(set_name="", param_name="", value='c'):
+        returns()
 
-    #@remote_function
-    #def set_char_parameter(set_name="", param_name="", value='c'):
-    #    returns()
-
-    #@remote_function
-    #def get_default_char_parameter(set_name="", param_name=""):
-    #    returns(value='c')
+    @remote_function
+    def _get_default_char_parameter(set_name="", param_name=""):
+        returns(value='c')
 
     @remote_function
     def _get_double_parameter(set_name="", param_name=""):
@@ -345,7 +341,7 @@ class iemic(InCodeComponentImplementation):
     def define_parameter_set(self, handler, paramSet, sublist=[]):
         paramCount = self.get_num_parameters(paramSet, "->".join(sublist))
 
-        allowed_types=["bool", "string", "double", "int"]
+        allowed_types=["bool", "char", "string", "double", "int"]
 
         for j in range(0, paramCount):
             paramName = self.get_parameter_name(paramSet, "->".join(sublist) , j)
@@ -353,9 +349,6 @@ class iemic(InCodeComponentImplementation):
             if paramType=="ParameterList":
                 self.define_parameter_set(handler,paramSet, sublist + [paramName])
             else:
-                if paramType=="char":
-                    # not handled yet?
-                    continue
                 if paramType not in allowed_types:
                     raise Exception("encountered unknown parameter type")
                 # normalized parameter name , set name
@@ -458,6 +451,14 @@ class iemic(InCodeComponentImplementation):
 
     def set_bool_parameter(self, set_name="", param_name="", value=False):
         result = self._set_bool_parameter(set_name, param_name, value)
+        getattr(self, "set_" + set_name.lower() + "_transition")()
+        return result
+
+    def set_char_parameter(self, set_name="", param_name="", value='V'):
+        if len(value) != 1:
+            raise Exception("char parameter must have length 1")
+
+        result = self._set_char_parameter(set_name, param_name, value)
         getattr(self, "set_" + set_name.lower() + "_transition")()
         return result
 
