@@ -157,6 +157,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns()
 
     @remote_function
+    def _get_default_bool_parameter(set_name="", param_name=""):
+        returns(value=False)
+
+    @remote_function
     def get_state_norm():
         returns(norm=0.)
 
@@ -440,12 +444,12 @@ class iemic(InCodeComponentImplementation):
     def get_parameter(self, name):
         type = self.get_parameter_type(name)
         set_name, param_name = name.split("->", 1)
-        return getattr(self, 'get_' + type + '_parameter')(set_name, param_name)
+        return getattr(self, '_get_' + type + '_parameter')(set_name, param_name)
 
-    def get_default_parameter(self, name, value):
+    def get_default_parameter(self, name):
         type = self.get_parameter_type(name)
         set_name, param_name = name.split("->", 1)
-        return getattr(self, 'get_default_' + type + '_parameter')(set_name, param_name, value)
+        return getattr(self, '_get_default_' + type + '_parameter')(set_name, param_name)
 
     def set_parameter(self, name, value):
         type_ = self.get_parameter_type(name)
