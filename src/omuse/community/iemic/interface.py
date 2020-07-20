@@ -221,16 +221,32 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns(index=0)
 
     @remote_function
+    def _get_model_state(target=0):
+        returns()
+
+    @remote_function
     def _remove_state(index=0):
         returns()
+    
+    @remote_function
+    def _to_str(src=0):
+        returns(out="")
 
     @remote_function
     def _mul_state(src=0, fac=0.):
         returns()
 
     @remote_function
-    def _add_state(s1=0, s2=0):
+    def _update_state(s1=0, s2=0, scal=1.0):
         returns()
+
+    @remote_function
+    def _dot(s1=0, s2=0):
+        returns(val=0.)
+
+    @remote_function
+    def _length(src=0):
+        returns(val=0)
 
     @remote_function
     def _get_rhs(src=0, target=0):
@@ -248,10 +264,13 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def _jacobian(src=0):
         returns()
 
+    @remote_function
+    def _get_psi_m(src=0):
+        returns(psi_min=0.0, psi_max=0.0)
 
 class iemic(InCodeComponentImplementation):
     def __init__(self, **options):
-        InCodeComponentImplementation.__init__(self,  iemicInterface(**options), **options)
+        InCodeComponentImplementation.__init__(self, iemicInterface(**options), **options)
 
     def define_state(self, handler):
         ocean_sub_states = ["PARAM", "UPDATED"]
@@ -392,6 +411,11 @@ class iemic(InCodeComponentImplementation):
     def new_state(self):
         return RemoteStateVector(self)
 
+    def get_state(self):
+        result = self.new_state()
+        self._get_model_state(result._id)
+        return result
+
     def rhs(self, state):
         result=self.new_state()
         self._get_rhs(state._id, result._id)
@@ -404,6 +428,9 @@ class iemic(InCodeComponentImplementation):
 
     def jacobian(self, state):
         self._jacobian(state._id)
+
+    def get_psi_m(self, state):
+        return self._get_psi_m(state._id)
 
     def get_grid(self, state):
         return self._create_new_grid(self._specify_grid, index=state._id)

@@ -28,8 +28,8 @@ enum class Parameter : unsigned char
 #pragma GCC diagnostic ignored "-Wglobal-constructors"
 #pragma GCC diagnostic ignored "-Wexit-time-destructors"
 std::map<std::string, ParamSet> parameter_sets = {
-    { "ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) },
-    { "continuation", ParamSet("OMUSE Continuation Parameters", ParamSet::tag<Continuation<RCP<Ocean>>>()) }
+    { "Ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) },
+    { "Continuation", ParamSet("OMUSE Continuation Parameters", ParamSet::tag<Continuation<RCP<Ocean>>>()) }
 };
 
 RCP<Epetra_Comm> comm;
@@ -122,27 +122,43 @@ int32_t _copy_state(int src, int target)
   return 0;
 }
 
+int32_t _to_str(int src, char **out)
+{
+  if(! states.count(src)) return -1;
+  std::ostringstream ss;
+  states[src]->Print(ss);
+  resultString = ss.str();
+  *out = const_cast<char*>(resultString.c_str());
+  return 0;
+}
+
+int32_t _get_model_state(int target)
+{
+  if(! states.count(target)) return -1;
+  *states[target]=*ocean->getState('V');
+  return 0;
+}
+
 int32_t _set_model_state(int src)
 {
   if(! states.count(src)) return -1;
-  ocean->getState('V')=states[src];
+  *ocean->getState('V') = *states[src];
   return 0;
 }
 
 int32_t _get_rhs(int src, int target)
 {
   if(! states.count(src) || ! states.count(target)) return -1;
-  RCP<Epetra_Vector> org=ocean->getState('V');
-  ocean->getState('V')=states[src];
-  *states[target]=*ocean->getRHS();
-  ocean->getState('V')=org;
+  _set_model_state(src);
+  ocean->computeRHS();
+  *states[target] = *ocean->getRHS('V');
   return 0;
 }
 
-int32_t _add_state(int src1, int src2)
+int32_t _update_state(int src1, int src2, double scal)
 {
   if(! states.count(src1) || ! states.count(src2)) return -1;
-  states[src1]->Update(1.0, *states[src2], 1.0);
+  states[src1]->Update(scal, *states[src2], 1.0);
   return 0;
 }
 
@@ -160,22 +176,43 @@ int32_t _get_state_norm(int state, double *val)
   return 0;
 }
 
+int32_t _dot(int src1, int src2, double *val)
+{
+  if(! states.count(src1) || ! states.count(src2)) return -1;
+  *val = dot(states[src1], states[src2]);
+  return 0;
+}
+
+int32_t _length(int state, int *val)
+{
+  if(! states.count(state)) return -1;
+  *val = states[state]->GlobalLength();
+  return 0;
+}
+
 int32_t _solve(int rhs, int target)
 {
   if(! states.count(rhs) || ! states.count(target)) return -1;
   ocean->solve(states[rhs]);
-  states[target]=ocean->getSolution('C');
+  *states[target]=*ocean->getSolution('V');
   return 0;
 }
 
 int32_t _jacobian(int src)
 {
   if(! states.count(src)) return -1;
-  ocean->getState('V')=states[src];
+  _set_model_state(src);
   ocean->computeJacobian();
   return 0;
 }
 
+int32_t _get_psi_m(int src, double *psi_min, double *psi_max)
+{
+  if(! states.count(src)) return -1;
+  _set_model_state(src);
+  ocean->getPsiM(*psi_min, *psi_max);
+  return 0;
+}
 
 
 int32_t initialize()
@@ -197,7 +234,7 @@ int32_t initialize()
 int32_t commit_parameters()
 {
     try {
-        ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").commit()));
+        ocean = rcp(new Ocean(comm, parameter_sets.at("Ocean").commit()));
         ocean->getState('V')->PutScalar(0.0);
 
         return 0;
@@ -215,7 +252,7 @@ int32_t commit_continuation_parameters()
     using ContinuationType = Continuation<RCP<Ocean>>;
 
     try {
-        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").commit()));
+        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("Continuation").commit()));
         return 0;
     } catch (const std::exception& exc) {
         logStream << exc.what() << std::endl;
@@ -229,7 +266,7 @@ int32_t commit_continuation_parameters()
 
 int32_t recommit_parameters()
 {
-    auto& ocean_params = parameter_sets.at("ocean");
+    auto& ocean_params = parameter_sets.at("Ocean");
     try {
         ocean->setParameters(ocean_params.updates());
         ocean_params.update_committed_parameters(ocean->getParameters());
@@ -246,7 +283,7 @@ int32_t recommit_parameters()
 
 int32_t recommit_continuation_parameters()
 {
-    auto& continuation_params = parameter_sets.at("continuation");
+    auto& continuation_params = parameter_sets.at("Continuation");
     try {
         continuation->setParameters(continuation_params.updates());
         continuation_params.update_committed_parameters(continuation->getParameters());
