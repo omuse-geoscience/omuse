@@ -243,5 +243,8 @@ class iemicStateTests(TestWithMPI):
         self.assertAlmostEqual(psi_min1, -psi_max2, 4);
         self.assertAlmostEqual(psi_max1, -psi_min2, 4);
 
+        instance.cleanup_code()
+        instance.stop()
+
 if __name__=="__main__":
     iemicStateTests().test5()
