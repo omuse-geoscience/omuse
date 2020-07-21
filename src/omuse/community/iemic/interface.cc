@@ -354,6 +354,8 @@ int32_t step_continuation()
 
 int32_t cleanup_code()
 {
+    states.clear();
+    matrices.clear();
     continuation = Teuchos::null;
     ocean = Teuchos::null;
     comm = Teuchos::null;
