@@ -372,6 +372,7 @@ class iemicTests(TestWithMPI):
             "rhs",
             "solve",
             "jacobian",
+            "get_psi_m",
         ]
 
         for method_name in state_methods:
@@ -389,6 +390,8 @@ class iemicTests(TestWithMPI):
                              "OCEAN-PARAM-CONTINUATION-NOPARAM")
 
             del state
+
+        instance.get_state()
 
         instance.cleanup_code()
         instance.stop()

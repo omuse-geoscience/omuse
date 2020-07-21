@@ -313,7 +313,8 @@ class iemic(InCodeComponentImplementation):
         ocean_methods = [
             "get_u", "get_v", "get_w", "get_p", "get_t", "get_s", "get_nrange",
             "get_mrange", "get_lrange", "_new_state", "_get_rhs", "_solve",
-            "_jacobian", "_set_model_state", "get_state_norm"
+            "_jacobian", "_set_model_state", "get_state_norm",
+            "_get_model_state", "_get_psi_m"
         ]
 
         for sub_state in continuation_sub_states:
