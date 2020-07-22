@@ -231,6 +231,36 @@ class iemicInterfaceTests(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
+def with_instance_methods(methods):
+    "Decorate a test to be repeated with multiple methods."
+
+    def store_methods_with_fun(func):
+        func.methods = methods
+        return func
+
+    return store_methods_with_fun
+
+def expand(cls):
+    "Expand all the methods of a class decorated with 'with_instance_methods'."
+
+    def add_method(method, subname, *args):
+        name = "test_" + method.__name__ + "_" + subname
+        def test_fun(self):
+            return method(self, subname, args)
+
+        test_fun.__name__ = name
+        test_fun.__doc__ = method.__doc__ + " " + subname
+        setattr(cls, name, test_fun)
+
+    for class_method_name in dir(cls):
+        class_method = getattr(cls, class_method_name)
+
+        if hasattr(class_method, "methods"):
+            for method_name, args in class_method.methods.items():
+                add_method(class_method, method_name, *args)
+    return cls
+
+@expand
 class iemicTests(TestWithMPI):
     _multiprocess_can_split_ = True
 
