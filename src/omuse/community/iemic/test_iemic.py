@@ -234,7 +234,7 @@ class iemicInterfaceTests(TestWithMPI):
 class iemicTests(TestWithMPI):
     _multiprocess_can_split_ = True
 
-    def test1(self):
+    def test_param_sets(self):
         "Test high level interface parameter sets."
         instance = iemic()
 
@@ -248,7 +248,7 @@ class iemicTests(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
-    def test2(self):
+    def test_state_transition(self):
         "Test whether all ocean parameters cause the expected state transitions."
 
         instance = iemic()
@@ -281,7 +281,7 @@ class iemicTests(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
-    def test3(self):
+    def test_param_state_transitions(self):
         "Test whether all parameters cause the expected state transitions."
         instance = iemic()
 
@@ -317,7 +317,7 @@ class iemicTests(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
-    def test4(self):
+    def test_ocean_state_transitions(self):
         "Test whether ocean methods trigger state transitions properly."
         simple_methods = {
             "get_u" : (0, 0, 0),
@@ -351,7 +351,7 @@ class iemicTests(TestWithMPI):
             instance.cleanup_code()
             instance.stop()
 
-    def test5(self):
+    def test_continuation_state_transitions(self):
         "Test whether continuation methods trigger state transitions properly."
         continuation_methods = {
             "step_continuation" : ()
@@ -370,7 +370,7 @@ class iemicTests(TestWithMPI):
             instance.cleanup_code()
             instance.stop()
 
-    def test6(self):
+    def test_state_vectors_state_transitions(self):
         "Test whether state vector operations trigger state transitions properly."
         instance = iemic()
         instance.commit_parameters()
@@ -405,7 +405,7 @@ class iemicTests(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
-    def test7(self):
+    def test_param_getters_setters(self):
         "Test whether parameter getters and setters work correctly"
         instance = iemic()
 
