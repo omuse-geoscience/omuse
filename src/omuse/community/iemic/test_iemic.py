@@ -6,6 +6,7 @@ from omuse.community.iemic.interface import iemicInterface
 from omuse.community.iemic.interface import iemic
 
 class iemicInterfaceTests(TestWithMPI):
+    _multiprocess_can_split_ = True
 
     def test1(self):
         instance = iemicInterface()
@@ -226,6 +227,8 @@ class iemicInterfaceTests(TestWithMPI):
         instance.stop()
 
 class iemicTests(TestWithMPI):
+    _multiprocess_can_split_ = True
+
     def test1(self):
         instance = iemic()
 

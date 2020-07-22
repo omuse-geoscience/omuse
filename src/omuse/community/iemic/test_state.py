@@ -169,6 +169,8 @@ def continuation(interface, x0, par_name, target, ds, maxit):
     return x
 
 class iemicStateTests(TestWithMPI):
+    _multiprocess_can_split_ = True
+
     def test1(self):
         instance = iemic(**kwargs)
 
