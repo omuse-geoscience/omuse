@@ -9,6 +9,7 @@ class iemicInterfaceTests(TestWithMPI):
     _multiprocess_can_split_ = True
 
     def test1(self):
+        "Test full initialisation and continuation"
         instance = iemicInterface()
         err = instance.initialize()
         self.assertEqual(err,0)
@@ -34,6 +35,7 @@ class iemicInterfaceTests(TestWithMPI):
         instance.stop()
 
     def test2(self):
+        "Test grid accessor functions"
         instance = iemicInterface()
         err = instance.initialize()
         self.assertEqual(err,0)
@@ -160,6 +162,7 @@ class iemicInterfaceTests(TestWithMPI):
             assert 0, "unknow type!"
 
     def test3(self):
+        "Test parameter querying functions"
         instance = iemicInterface()
         err = instance.initialize()
         self.assertEqual(err,0)
@@ -188,6 +191,7 @@ class iemicInterfaceTests(TestWithMPI):
         instance.stop()
 
     def test4(self):
+        "Test saving and loading parameters to/from XML files."
         instance = iemicInterface()
         err = instance.initialize()
         self.assertEqual(err,0)
@@ -204,6 +208,7 @@ class iemicInterfaceTests(TestWithMPI):
         instance.stop()
 
     def test5(self):
+        "Test recommitting parameters."
         instance = iemicInterface()
         err = instance.initialize()
         self.assertEqual(err,0)
@@ -230,6 +235,7 @@ class iemicTests(TestWithMPI):
     _multiprocess_can_split_ = True
 
     def test1(self):
+        "Test high level interface parameter sets."
         instance = iemic()
 
         sets = instance.parameter_set_names()
