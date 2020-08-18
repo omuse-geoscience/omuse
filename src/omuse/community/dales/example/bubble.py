@@ -54,7 +54,7 @@ for t,ax in zip(times, axes.flatten()):
     print('Evolving to', t)
     d.evolve_model(t)
     im = ax.imshow(d.fields[16,:,:].THL.value_in(units.K).transpose(), 
-              extent=extent, origin='bottom', vmin=292.5, vmax=292.75)
+              extent=extent, origin='lower', vmin=292.5, vmax=292.75)
     ax.text(.1, .1, str(t.in_(units.minute)),
              color='w', transform=ax.transAxes)
 plt.show()
