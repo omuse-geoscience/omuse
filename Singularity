@@ -7,7 +7,7 @@
 # To build the image:
 # sudo singularity build omuse.img Singularity
 #
-# For debugging: generate a driectory tree named "sandbox" instead of an image file,
+# For debugging: generate a directory tree named "sandbox" instead of an image file,
 # and don't remove it even if the build fails.
 # sudo singularity build --no-cleanup -s sandbox Singularity
 # The build log from compiling DALES or other OMUSE codes can then be seen at
