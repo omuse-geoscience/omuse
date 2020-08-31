@@ -99,7 +99,7 @@ python3 -m pip install moviepy f90nml numpy scipy matplotlib nose h5py docutils 
 python3 -m pip install jupyter ipykernel
 mkdir /opt/notebooks
 
-export DOWNLOAD_CODES=latest
+export DOWNLOAD_CODES=1
 
 # work-around for DALES for finding netCDF, for Fedora and CentOS
 # where nf-config is broken and does not report the module path correctly
