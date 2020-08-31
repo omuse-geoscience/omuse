@@ -1,0 +1,14 @@
+Index: engines_gpl/dflowfm/packages/dflowfm_kernel/src/unstruc.F90
+===================================================================
+--- engines_gpl/dflowfm/packages/dflowfm_kernel/src/unstruc.F90	(revision 64866)
++++ engines_gpl/dflowfm/packages/dflowfm_kernel/src/unstruc.F90	(working copy)
+@@ -14710,7 +14710,8 @@
+ 
+    success = .true.
+ 
+-   if (allocated(patm)) then
++   ! omuse interface uses japatm=2
++   if (allocated(patm).and.japatm.EQ.1) then
+       ! To prevent any pressure jumps at the boundary, set (initial) patm in interior to PavBnd.
+       ! May of course be overridden later by spatially varying patm values.
+       patm = PavBnd

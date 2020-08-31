@@ -389,7 +389,7 @@ contains
     endif
     if(use_patm) then
       if(japatm.EQ.1) ret=ret-2
-      japatm=1
+      japatm=2
       if(.not.allocated(patm)) allocate(patm(ndx))
       patm=PavBnd
     endif
