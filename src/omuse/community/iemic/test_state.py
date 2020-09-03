@@ -168,6 +168,37 @@ def continuation(interface, x0, par_name, target, ds, maxit):
 
     return x
 
+def newton_time_stepper(interface, x0, theta, dt, tol=1.e-7, maxit=1000):
+    x = x0
+    b0 = interface.rhs(x)
+    sigma = -1 / (theta * dt)
+    for k in range(maxit):
+        # J - 1 / (theta * dt) * M
+        interface.jacobian_with_mass_matrix(x, sigma)
+        # M * u_n + dt * theta * F(u_(n+1)) + dt * (1 - theta) * F(u_n) - M * u_(n+1) = 0
+        fval = interface.apply_mass_matrix(x0 - x) + dt * theta * interface.rhs(x) + dt * (1 - theta) * b0
+        dx = -interface.solve(fval / (theta * dt))
+
+        x = x + dx
+
+        dxnorm = dx.norm()
+        if dxnorm < tol:
+            print('Newton converged in %d steps with norm %e' % (k, dxnorm))
+            break
+
+    return x
+
+def time_stepper(interface, x0, theta, dt, tmax):
+    x = x0
+    t = 0
+    while t < tmax:
+        x = newton_time_stepper(interface, x, theta, dt)
+        t += dt
+
+        print("t=%f:" % t, interface.rhs(x).norm())
+
+    return x
+
 class iemicStateTests(TestWithMPI):
     _multiprocess_can_split_ = True
 
@@ -225,25 +256,62 @@ class iemicStateTests(TestWithMPI):
     def test5(self):
         instance = iemic(**kwargs)
 
+        # Setup a simplified 2D AMOC problem
         setup_2dmoc(instance)
 
+        # Converge to an initial steady state
         x = instance.get_state()
         x = newton(instance, x, 1e-10)
 
+        # Check that we can perform a continuation in multiple parameters
         x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->Combined Forcing', 1, 0.1, 500)
         x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->CMPR', -0.2, -0.5, 500)
         x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->Salinity Forcing', 0.02, 0.5, 500)
         x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->CMPR', 0, 0.5, 500)
         x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->Salinity Forcing', 0.04, 0.5, 500)
         psi_min1, psi_max1 = instance.get_psi_m(x)
-        self.assertAlmostEqual(psi_max1, 14.7, 1);
-        self.assertAlmostEqual(psi_min1, 0);
+        self.assertAlmostEqual(psi_max1, 14.7, 1)
+        self.assertAlmostEqual(psi_min1, 0)
 
         x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->Salinity Forcing', 0.03, -0.5, 500)
-        x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->Salinity Forcing', 0.04, -0.5, 500)
+        x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->Salinity Forcing', 0.035, -0.5, 500)
+        psi_min3, psi_max3 = instance.get_psi_m(x)
+        x3 = x
+
+        x = continuation(instance, x, 'Ocean->THCM->Starting Parameters->Salinity Forcing', 0.04, 0.5, 500)
         psi_min2, psi_max2 = instance.get_psi_m(x)
-        self.assertAlmostEqual(psi_min1, -psi_max2, 4);
-        self.assertAlmostEqual(psi_max1, -psi_min2, 4);
+        self.assertAlmostEqual(psi_min1, -psi_max2, 4)
+        self.assertAlmostEqual(psi_max1, -psi_min2, 4)
+
+        b = instance.rhs(x)
+        self.assertAlmostEqual(b.norm(), 0, 3)
+
+        instance.set_parameter('Ocean->THCM->Starting Parameters->Salinity Forcing', 0.035)
+
+        b = instance.rhs(x)
+        self.assertGreaterEqual(b.norm(), 0.01)
+        self.assertGreaterEqual(x.norm(), 0.1)
+
+        # Check that the time stepper converges to the same steady state,
+        # but not in a single time step
+        x = time_stepper(instance, x, 0.5, 1, 1)
+
+        b = instance.rhs(x)
+        self.assertGreaterEqual(b.norm(), 0.01)
+        self.assertGreaterEqual(x.norm(), 0.1)
+
+        x = time_stepper(instance, x, 0.5, 30, 3000)
+
+        b = instance.rhs(x)
+        self.assertAlmostEqual(b.norm(), 0, 3)
+        self.assertGreaterEqual(x.norm(), 0.1)
+
+        psi_min4, psi_max4 = instance.get_psi_m(x)
+        self.assertAlmostEqual(psi_min3, psi_min4, 3)
+        self.assertAlmostEqual(psi_max3, psi_max4, 3)
+
+        x3 -= x
+        self.assertAlmostEqual(x3.norm(), 0, 1)
 
         instance.cleanup_code()
         instance.stop()

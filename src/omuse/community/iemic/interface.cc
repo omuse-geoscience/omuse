@@ -206,6 +206,48 @@ int32_t _jacobian(int src)
   return 0;
 }
 
+int32_t _jacobian_with_mass_matrix(int src, double sigma)
+{
+  if(! states.count(src)) return -1;
+  _set_model_state(src);
+  ocean->computeJacobian();
+
+  if (sigma == 0.0)
+      return 0;
+
+  int ret = 0;
+
+  ocean->computeMassMat();
+  Teuchos::RCP<const Epetra_Vector> diagB = ocean->getMassMat('V');
+
+  // Get the number of local elements in the matrix
+  int numMyElements = ocean->getJacobian()->Map().NumMyElements();
+
+  // Get a list of the global element IDs owned by the calling proc
+  int *myGlobalElements = ocean->getJacobian()->Map().MyGlobalElements();
+
+  // Add to the Jacobian the values B[i] on the diagonal.
+  // The result is J + sigma * B.
+  double value;
+  for (int i = 0; i != numMyElements; ++i)
+  {
+      value = sigma * (*diagB)[i];
+      ret = ocean->getJacobian()->SumIntoGlobalValues(
+          myGlobalElements[i], 1,
+          &value, myGlobalElements + i);
+  }
+  if (!ret)
+    ret = ocean->getJacobian()->FillComplete();
+  return ret;
+}
+
+int32_t _apply_mass_matrix(int rhs, int target)
+{
+  if(! states.count(rhs) || ! states.count(target)) return -1;
+  ocean->applyMassMat(*states[rhs], *states[target]);
+  return 0;
+}
+
 int32_t _get_psi_m(int src, double *psi_min, double *psi_max)
 {
   if(! states.count(src)) return -1;
