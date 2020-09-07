@@ -265,6 +265,14 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns()
 
     @remote_function
+    def _jacobian_with_mass_matrix(src=0, sigma=0.0):
+        returns()
+
+    @remote_function
+    def _apply_mass_matrix(src=0, target=0):
+        returns()
+
+    @remote_function
     def _get_psi_m(src=0):
         returns(psi_min=0.0, psi_max=0.0)
 
@@ -313,7 +321,8 @@ class iemic(InCodeComponentImplementation):
         ocean_methods = [
             "get_u", "get_v", "get_w", "get_p", "get_t", "get_s", "get_nrange",
             "get_mrange", "get_lrange", "_new_state", "_get_rhs", "_solve",
-            "_jacobian", "_set_model_state", "get_state_norm",
+            "_jacobian", "_jacobian_with_mass_matrix", "_apply_mass_matrix",
+            "_set_model_state", "get_state_norm",
             "_get_model_state", "_get_psi_m"
         ]
 
@@ -429,6 +438,14 @@ class iemic(InCodeComponentImplementation):
 
     def jacobian(self, state):
         self._jacobian(state._id)
+
+    def jacobian_with_mass_matrix(self, state, sigma):
+        self._jacobian_with_mass_matrix(state._id, sigma)
+
+    def apply_mass_matrix(self, state):
+        result=self.new_state()
+        self._apply_mass_matrix(state._id, result._id)
+        return result
 
     def get_psi_m(self, state):
         return self._get_psi_m(state._id)
