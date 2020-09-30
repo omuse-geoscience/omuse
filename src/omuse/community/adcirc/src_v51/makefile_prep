@@ -29,13 +29,12 @@ $(ADCIRC_SRC):
 
 #needs access to OMUSE private repos
 download:
-	hg clone ssh://hg@bitbucket.org/omuse/adcirc_$(ADCIRC_VERSION) adcirc_src
+	git clone git@github.com:omuse-geoscience/adcirc-$(ADCIRC_VERSION) adcirc_src
 
-update: adcirc_src/.hg
+update: adcirc_src/.git
 	cd adcirc_src
-	hg pull
-	hg up
+	git pull
 
-adcirc_src/.hg:
+adcirc_src/.git:
 	@echo "** update needs a version controlled adcirc_src **"
 	exit 1

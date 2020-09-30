@@ -36,7 +36,7 @@ In the singularity command above, the --contain option disables mounting your ho
 
 Finally, it is also possible to launch a shell inside the container::
 
-    singularity shell --contain omuse.img
+    singularity shell --contain -B run:/run/user omuse.img
 
 to execute your python code with all OMUSE dependencies findable. We advise to use the --contain option whenever you
-have OMUSE installed on your host system in $HOME/.local 
+have OMUSE installed on your host system in $HOME/.local .

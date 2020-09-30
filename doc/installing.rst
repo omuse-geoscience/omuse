@@ -23,7 +23,7 @@ Get the OMUSE source code, install its Python dependencies and set up a developm
     git clone https://github.com/omuse-geoscience/omuse/
     cd omuse/
     pip install -e .
-    export DOWNLOAD_CODES=latest
+    export DOWNLOAD_CODES=1
 
 Build codes, select the ones needed::
   
@@ -46,3 +46,15 @@ Install Jupyter in the virtual environment, and make the virtual environment's P
 
 Alternatively, see :ref:`Singularity-section` for instructions for setting up and using a Singularity container with
 OMUSE and Jupyter.
+
+
+Code versions
+-------------
+
+For DALES, there are additional options controlling which version of the code is used:
+setting `DOWNLOAD_CODES=1` performs a shallow checkout of a single tag, while `DOWNLOAD_CODES="all"`
+clones the whole DALES git repository, which is useful for development.
+The environment variable `DALES_GIT_TAG` can be used to control which
+branch or version tag to check out.
+By default the variable points to a version tag in the DALES repository, which is tested to
+work with the current OMUSE. 
