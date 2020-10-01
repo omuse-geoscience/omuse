@@ -14,8 +14,7 @@ MPIFC ?= mpif90
 # When using the previous fork of DALES, the following settings apply:
 # INCLUDEDIR = $(BUILDDIR)/src/ 
 #
-# DALES_GIT_DEFAULT_TAG ?= spifs_v1.0.0  # note: obsolete, does not work at the moment.
-# DALES_GIT_BRANCH ?= master
+# DALES_GIT_TAG ?= master
 # DALES_GIT_REPO ?= https://github.com/CloudResolvingClimateModeling/dales.git
 #
 # Also, when using the older fork, replace "make -j 4" by "make" in the "dales:" rule below,
@@ -61,20 +60,16 @@ ifeq ($(DEBUG), yes)
     CMAKE_BLD = Debug
 endif
 
-# DOWNLOAD_CODES=all will checkout entire repo with ssh, intended for developers of the components.
-# DOWNLOAD_CODES=latest will (shallow) checkout latest revision only
-# DOWNLOAD_CODES=<anything else> will (shallow) checkout release tag spifs_v1.0.0
+# DOWNLOAD_CODES=all will clone the entire repo and check out $DALES_GIT_TAG, intended for developers of the components.
+# DOWNLOAD_CODES=<anything else> will (shallow) checkout $DALES_GIT_TAG.
+#   $DALES_GIT_TAG defaults to the release tag "4.3-rc.1"
 
-DALES_GIT_DEFAULT_TAG ?= spifs_v1.0.0  # obsolete - move to 4.3 when released
-DALES_GIT_BRANCH ?= to4.3_Fredrik      # change to master when 4.3 is released
+DALES_GIT_TAG ?= 4.3-rc.1
 DALES_GIT_REPO ?= https://github.com/dalesteam/dales.git
-GIT_CLONE_CMD = git clone -b $(DALES_GIT_DEFAULT_TAG) --single-branch --depth=1
+GIT_CLONE_CMD = git clone -b $(DALES_GIT_TAG) --single-branch --depth=1
 
 ifeq ($(DOWNLOAD_CODES), all)
-    GIT_CLONE_CMD = git clone -b $(DALES_GIT_BRANCH)
-endif
-ifeq ($(DOWNLOAD_CODES), latest)
-    GIT_CLONE_CMD = git clone --depth=1 -b $(DALES_GIT_BRANCH)
+    GIT_CLONE_CMD = git clone -b $(DALES_GIT_TAG)
 endif
 
 all: dales dales_worker test/run_dales data
