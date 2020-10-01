@@ -2,6 +2,7 @@ import datetime
 import itertools
 
 import numpy
+import sys
 
 from amuse.units import trigo
 from omuse.units import units
@@ -16,13 +17,15 @@ except ImportError:
 # Best Track/Objective Aid/Wind Radii Format 
 # http://www.nrlmry.navy.mil/atcf_web/docs/database/new/abrdeck.html
 
-fields=["BASIN","CY","YYYYMMDDHH","TECHNUM/MIN","TECH","TAU","LatN/S","LonE/W", 
+fields_ATCF=["BASIN","CY","YYYYMMDDHH","TECHNUM/MIN","TECH","TAU","LatN/S","LonE/W", 
         "VMAX","MSLP","TY","RAD","WINDCODE","RAD1","RAD2","RAD3","RAD4","RADP",
         "RRP","MRD","GUSTS","EYE","SUBREGION","MAXSEAS","INITIALS","DIR","SPEED",
         "STORMNAME","DEPTH","SEAS","SEASCODE","SEAS1","SEAS2","SEAS3","SEAS4",
         "USERDEFINED","userdata"]
+fields_STORM=["YY","MM","INDEX","HH","BASIN","LatN/S","LonE/W","MSLP","VMAX",
+        "MRD","CAT","LNDF","DIST"] 
 
-fields_description={
+fields_ATCF_description={
 "BASIN" : "basin, e.g. WP, IO, SH, CP, EP, AL, SL",
 "CY" : "annual cyclone number: 1 through 99",
 "YYYYMMDDHH" : "Warning Date-Time-Group: 0000010100 through 9999123123. (note, 4 digit year)",
@@ -102,13 +105,31 @@ QQQ - quadrant (NNQ, NEQ, EEQ, SEQ, SSQ, SWQ, WWQ, NWQ)""",
 "userdata" : "user data section as indicated by USERDEFINED parameter."
 }
 
+fields_STORM_description={
+"YY" : "year, starts at 0.00",
+"MM" : "month",
+"INDEX" : "TC number, for every year starts at 0",
+"HH" : "timestep, 1 hourly for historical cyclones, 3 hours for synthetic database, for every TC starts at 0",
+"BASIN" : "basin ID, 0 = EP, 1 = NA, 2 = NI, 3 = SI, 4 = SP, 5 = WP",
+"LatN/S" : "latitude, position of the eye",
+"LonE/W" : "longitude, position if the eye. Ranges from 0-360°, with prime meridian at Greenwich",
+"MSLP" : "minimum pressure, hPa",
+"VMAX" : "maximum wind speed, m/s",
+"MRD" : "radius to maximum winds, km",
+"CAT" : "TC category, on the Saffir-Simpson scale",
+"LNDF" : "landfall: 0 = no landfall, 1 = landfall",
+"DIST" : "distance to land, km"
+}
+#LNDF - landfall
+#DIST - distance to land
+#change fields description to 2 different
+
 class ATCF_format_reader(object):
     """
     class to extract information from file in the
     
     Best Track/Objective Aid/Wind Radii Format 
     http://www.nrlmry.navy.mil/atcf_web/docs/database/new/abrdeck.html
-
     r=ATCF_format_reader(filename)
     """
     def __init__(self,filename="fort.22"):
@@ -127,7 +148,7 @@ class ATCF_format_reader(object):
         for line in lines:
           l=line[:-1].split(',')
           item=dict()
-          for x,y in zip_longest(fields,l[:len(fields)], fillvalue=""):
+          for x,y in zip_longest(fields_ATCF,l[:len(fields_ATCF)], fillvalue=""):
               item[x]=y
           data.append(item)
         self.data=data
@@ -181,10 +202,87 @@ class ATCF_format_reader(object):
         last=dat["YYYYMMDDHH"]
       return data
 
+class STORM_format_reader(object):
+    """
+    class to extract information from file in the
+    STORM IBTrACS dataset
+    https://doi.org/10.1038/s41597-020-0381-2
+
+    r=STORM_format_reader(filename)
+    """
+    def __init__(self,filename="fort.22"):
+        self.filename=filename
+        self.data=None
+        
+    def read(self):
+        """
+        read data (store on data attribute)
+        """
+        f=open(self.filename,"r")
+        lines=f.readlines()
+        f.close()
+        
+        data=[]
+        for line in lines:
+          l=line[:-1].split(',')
+          item=dict()
+          for x,y in zip_longest(fields_STORM,l[:len(fields_STORM)], fillvalue=""):
+              item[x]=y
+          data.append(item)
+        self.data=data
+    def parse_lon(self,s):
+      return (0. if s=="" else float(s)) | units.deg
+    def parse_lat(self,s):
+      return (0. if s=="" else float(s)) | units.deg
+    def parse_mrd(self,s):
+      return (0. if s=="" else float(s))  | units.km
+    def parse_vmax(self,s):
+      return (0. if s=="" else float(s))  | units.m/units.s
+    def parse_mslp(self,s):
+      return (0. if s=="" else float(s))  | units.mbar
+    def parse_data(self):
+      """
+      parse data and return storm track
+      (list of dicts with properties at different times)
+      """
+      last=""
+      data=[]
+      for dat in self.data:
+        #Adjustment of the year must be done for any new TC 
+        dd = (float(dat["HH"])//24.0) # add *3 for synthetic cyclones
+        hh = float(dat["HH"]) - dd * 24.0
+        dd = int(dd) + 1 
+        mm = int(float(dat["MM"]))
+        yy = 2000 + int(float(dat["YY"]))
+        t_int=str(yy)+" "+str(mm)+" "+str(dd)+" "+str(int(hh))
+        t=datetime.datetime.strptime(t_int,"%Y %m %d %H")
+
+        lon=self.parse_lon(dat["LonE/W"])
+        lat=self.parse_lat(dat["LatN/S"])
+        mrd=self.parse_mrd(dat["MRD"])
+        vmax=self.parse_vmax(dat["VMAX"])
+        mslp=self.parse_mslp(dat["MSLP"])  
+        #RRP parameter does not exists in storm database, set to spiderweb radius
+        rrp=750. | units.km
+        
+        if rrp.number == 0.:
+          rrp=data[-1]["rrp"]
+        if mrd.number == 0.:
+          mrd=data[-1]["mrd"]
+        if vmax.number == 0.:
+          vmax=data[-1]["vmax"]
+        if mslp.number == 0.:
+          mslp=data[-1]["mslp"]
+        
+        data.append(dict(time=t,lon=lon,lat=lat,rrp=rrp,vmax=vmax,mslp=mslp,mrd=mrd))
+
+        #last=t
+      return data
+
 class HollandHurricane(object):
     """
     this class implements the Holland 1980 analytic wind and pressure
-    profile. It can be initialized from a file in ATCF format or from 
+    profile. It can be initialized from a file in ATCF or STORM database format or from 
     a track, which is to be provided as list of dicts with the 
     time, lon, lat, rrp (radius to last closed pressure contour), 
     vmax (maximum wind speed), mslp (maximum sea level pressure), 
@@ -197,29 +295,40 @@ class HollandHurricane(object):
     ambient_pressure=1013. | units.mbar
     air_density=1.15 | units.kg/units.m**3
     
-    def __init__(self,nodes,file_or_track="fort.22"):
+    def __init__(self,nodes,actf_file=None,storm_file=None,track=None):
         if nodes:
             self.nodes=nodes.copy()
         else:
             self.nodes=None
-        if isinstance(file_or_track,str):
-            self.initialize_from_file(file_or_track)
-        elif isinstance(file_or_track, list):
-            self.initialize_from_track(file_or_track)
+        if actf_file is not None:
+            self.initialize_from_actf(actf_file)
+        elif storm_file is not None:
+            self.initialize_from_storm(storm_file)
+        elif track is not None:
+            self.initialize_from_track(track)
         else:
             raise Exception("provide filename or storm track")
         self.evolve_model(0. | units.s)
-    def initialize_from_file(self,filename="fort.22"):
+
+    def initialize_from_actf(self,filename):
         r=ATCF_format_reader(filename=filename)
         r.read()
         track=r.parse_data()
         self.initialize_from_track(track)
+
+    def initialize_from_storm(self,filename):
+        r=STORM_format_reader(filename=filename)
+        r.read()
+        track=r.parse_data()
+        self.initialize_from_track(track)
+
     def initialize_from_track(self,track):
         self.add_translation_velocity(track)
         self.track=track
         t0=track[0]["time"]
         self.ndata=len(track)
         self.times=[(x["time"]-t0).total_seconds() for x in track] | units.s
+
     def add_translation_velocity(self,track):
         n=len(track)
         for i in range(n):
@@ -259,7 +368,6 @@ class HollandHurricane(object):
         if not self.nodes:
             return
         lat,lon,mslp,vmax,mrd,rrp,vx,vy=self.interpolate_track(tend)
-        
         central_pressure_deficit=self.ambient_pressure-mslp
         if central_pressure_deficit < 100| units.Pa:
             central_pressure_deficit=100. | units.Pa
@@ -275,13 +383,12 @@ class HollandHurricane(object):
         
         coriolis_f=constants.coriolis_frequency(lat)
         r=spherical_geometry.distance(lat,lon,self.nodes.lat,self.nodes.lon, R=1.| units.Rearth)
-        
         a=numpy.where(r.number==0.)
         r[a]=mrd*constants.eps
         
         theta=trigo.arctan2(trigo.in_rad(self.nodes.lat-lat),trigo.in_rad(self.nodes.lon-lon))
         self.nodes.pressure=mslp+central_pressure_deficit*numpy.exp(-(mrd/r)**B)
-        
+
         v=((mrd/r)**B*numpy.exp(1-(mrd/r)**B)*vmax**2+r**2*coriolis_f**2/4)**0.5-r*coriolis_f/2
         
         v_trans_x=v/vmax*vx
