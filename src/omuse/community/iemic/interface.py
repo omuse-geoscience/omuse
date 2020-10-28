@@ -7,12 +7,15 @@ from amuse.datamodel import CartesianGrid
 from omuse.units import units
 
 from remotestatevector import RemoteStateVector
+from implicit_utils import time_stepper
 
 class iemicInterface(CodeInterface,CommonCodeInterface):
     include_headers = ['worker_code.h']
 
     def __init__(self, **keyword_arguments):
         CodeInterface.__init__(self, name_of_the_worker="iemic_worker", **keyword_arguments)
+
+        self._model_time=0
 
     def set_ocean_transition(self):
         pass
@@ -225,6 +228,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns()
 
     @remote_function
+    def _set_model_state(src=0):
+        returns()
+
+    @remote_function
     def _remove_state(index=0):
         returns()
     
@@ -371,7 +378,7 @@ class iemic(InCodeComponentImplementation):
         paramCount = self.get_num_parameters(paramSet, "->".join(sublist))
 
         allowed_types=["bool", "char", "string", "double", "int"]
-
+        
         for j in range(0, paramCount):
             paramName = self.get_parameter_name(paramSet, "->".join(sublist) , j)
             paramType = self._get_parameter_type(paramSet, "->".join(sublist + [paramName]))
@@ -407,7 +414,15 @@ class iemic(InCodeComponentImplementation):
                   "generated parameter",
                   default_value = default,
                   parameter_set=parameter_set_name.replace(" ", "_").replace("-","_")
-               )
+                )
+                #define also in parameters for flat access 
+                handler.add_method_parameter(
+                  name_of_getter,
+                  name_of_setter,
+                  longname,
+                  "generated parameter",
+                  default_value = default,
+                )
 
 
     def define_parameters(self, handler):
@@ -417,6 +432,9 @@ class iemic(InCodeComponentImplementation):
             paramSet = self.get_parameter_set_name(i)
 
             self.define_parameter_set(handler,paramSet)
+            
+        handler.add_interface_parameter( "timestepping_theta", "timestepping theta parameter [0-1]", 0.5)
+        handler.add_interface_parameter( "timestepping_dt", "timestep for timestepper", 1.)
 
     def new_state(self):
         return RemoteStateVector(self)
@@ -425,6 +443,9 @@ class iemic(InCodeComponentImplementation):
         result = self.new_state()
         self._get_model_state(result._id)
         return result
+
+    def set_state(self, state):
+        self._set_model_state(state._id)
 
     def rhs(self, state):
         result=self.new_state()
@@ -526,3 +547,14 @@ class iemic(InCodeComponentImplementation):
         result =  self._load_xml_parameters(set_name, path)
         getattr(self, "set_" + set_name.lower() + "_transition")()
         return result
+
+    def evolve_model(self,tend):
+        x=self.get_state()
+        t=0
+        tmax=tend-self._model_time
+        theta=self.parameters.timestepping_theta
+        dt=self.parameters.timestepping_dt
+        dt=min(dt, tmax)
+        xnew=time_stepper(self, x, theta, dt, tmax)
+        self.set_state(xnew)
+        self._model_time=tmax
