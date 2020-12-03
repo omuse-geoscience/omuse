@@ -36,7 +36,7 @@ RCP<Epetra_Comm> comm;
 RCP<Ocean> ocean;
 RCP<Continuation<RCP<Ocean>>> continuation;
 std::ofstream devNull("/dev/null");
-std::ofstream logStream("/dev/null");
+std::ofstream logStream("/dev/stdout");
 std::ofstream outStream("/dev/stdout");
 #pragma GCC diagnostic pop
 
