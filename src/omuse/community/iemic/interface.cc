@@ -8,6 +8,7 @@
 
 #include "Ocean.H"
 #include "Continuation.H"
+#include "TRIOS_Domain.H"
 #include "Utils.H"
 
 #include <cstdint>
@@ -824,6 +825,13 @@ int32_t get_state_norm(double *val)
   return 0;
 }
 
+int32_t get_real_pos(int xIn, int yIn, int zIn, double *xOut, double *yOut, double *zOut)
+{
+    *xOut = ocean->getDomain()->GetGlobalGrid().getXposCenter(xIn);
+    *yOut = ocean->getDomain()->GetGlobalGrid().getYposCenter(yIn);
+    *zOut = ocean->getDomain()->GetGlobalGrid().getZposCenter(zIn);
+    return 0;
+}
 
 
 // norm rhs (cont)

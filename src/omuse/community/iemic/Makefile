@@ -28,7 +28,7 @@ endif
 
 export LDFLAGS
 
-LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -ljdqz_tools -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
+LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
 
 OBJS = interface.o paramset.o
 
