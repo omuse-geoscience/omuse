@@ -324,6 +324,7 @@ class iemicTests(TestWithMPI):
         for param_set_name in instance.parameter_set_names():
             params = getattr(instance, param_set_name)
             isOcean = param_set_name.startswith("Ocean")
+            isContinuation = param_set_name.startswith("Continuation")
             for param in params.iter_parameters():
                 try:
                     param.set_value(param.get_value())
@@ -334,7 +335,7 @@ class iemicTests(TestWithMPI):
                         instance.recommit_parameters()
                         self.assertEqual(instance.get_name_of_current_state(),
                                         "OCEAN-PARAM-CONTINUATION-PARAM")
-                    else:
+                    elif isContinuation:
                         self.assertEqual(instance.get_name_of_current_state(),
                                         "OCEAN-PARAM-CONTINUATION-UPDATED")
 
