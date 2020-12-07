@@ -294,8 +294,9 @@ class iemicTests(TestWithMPI):
 
         for param_set_name in instance.parameter_set_names():
             params = getattr(instance, param_set_name)
-            isOcean = param_set_name.startswith("Ocean")
             for param in params.iter_parameters():
+                isOcean = (param_set_name.startswith("Ocean")
+                            or param.definition.name.startswith("Ocean"))
                 try:
                     param.set_value(param.get_value())
                     if isOcean:
