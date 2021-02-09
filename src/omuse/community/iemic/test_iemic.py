@@ -4,6 +4,7 @@ from amuse.support.exceptions import AmuseException
 
 from omuse.community.iemic.interface import iemicInterface
 from omuse.community.iemic.interface import iemic
+import numpy
 
 class iemicInterfaceTests(TestWithMPI):
     _multiprocess_can_split_ = True
@@ -439,6 +440,33 @@ class iemicTests(TestWithMPI):
             instance.get_parameter(param_name)
             default = instance.get_default_parameter(param_name)
             instance.set_parameter(param_name, default)
+
+        instance.cleanup_code()
+        instance.stop()
+
+    def test_landmask(self):
+        "Test landmask access"
+        instance = iemic()
+
+        instance.set_parameter("Ocean->THCM->Global Grid-Size n", 8)
+        instance.set_parameter("Ocean->THCM->Global Grid-Size m", 8)
+        instance.set_parameter("Ocean->THCM->Global Grid-Size l", 4)
+        instance.set_parameter("Ocean->THCM->Read Land Mask", True)
+        instance.set_parameter("Ocean->THCM->Land Mask", "mask_natl8")
+        instance.set_parameter("Continuation->destination 0", 1.0)
+
+        reference_result = numpy.array(
+           [[1,1,0,0,0,0,1,1],
+            [1,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,1],
+            [0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0],
+            [0,0,0,1,1,0,0,0],
+            [1,1,1,1,1,1,0,0]])
+
+        result = instance.get_surface_mask()
+        self.assertTrue((reference_result == result).all())
 
         instance.cleanup_code()
         instance.stop()

@@ -436,6 +436,34 @@ int32_t save_xml_parameters(char *param_set_name, char *path)
     return -1;
 }
 
+int32_t get_land_mask(int *n, int *m, int *l, int *var, int count)
+{
+    try {
+        const auto& mask = ocean->getLandMask();
+
+        for (int i = 0; i < count; i++) {
+            int idx = n[i]
+                    + (mask.n * m[i])
+                    + (mask.n * mask.m * l[i]);
+
+            if (idx >= mask.global_borderless->size()) {
+                logStream << "Out of bounds access in land mask!" << std::endl;
+                return -1;
+            }
+
+            var[i] = mask.global_borderless->operator[](idx);
+        }
+
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
 int32_t get_u(int *i, int *j, int *k, double *var, int n)
 { return get_param(ocean->state_, Parameter::u, i, j, k, var, n); }
 

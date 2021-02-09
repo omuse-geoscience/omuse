@@ -72,6 +72,10 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns ()
 
     @remote_function(must_handle_array=True)
+    def get_land_mask(n=0, m=0, l=0):
+        returns (var=0)
+
+    @remote_function(must_handle_array=True)
     def get_u(i=0, j=0, k=0):
         returns (var=0.)
 
@@ -334,7 +338,8 @@ class iemic(InCodeComponentImplementation):
             "get_mrange", "get_lrange", "_new_state", "_get_rhs", "_solve",
             "_jacobian", "_jacobian_with_mass_matrix", "_apply_mass_matrix",
             "_set_model_state", "get_state_norm",
-            "_get_model_state", "_get_psi_m", "get_real_pos"
+            "_get_model_state", "_get_psi_m", "get_real_pos",
+            "get_land_mask"
         ]
 
         for sub_state in continuation_sub_states:
@@ -554,6 +559,15 @@ class iemic(InCodeComponentImplementation):
 
     def grid_pos_to_real_pos(self,coordinate):
         return self.get_real_pos(*coordinate)
+
+    def get_surface_mask(self):
+        n = self.get_parameter("Ocean->THCM->Global Grid-Size n")
+        m = self.get_parameter("Ocean->THCM->Global Grid-Size m")
+
+        indices = [(n,m,0) for m in range(0,8) for n in range(0,8)]
+        ns, ms, ls = zip(*indices)
+
+        return self.get_land_mask(list(ns), list(ms), list(ls)).reshape(n, m)
 
     def evolve_model(self,tend):
         x=self.get_state()
