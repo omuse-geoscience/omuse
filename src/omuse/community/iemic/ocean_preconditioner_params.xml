@@ -1,0 +1,754 @@
+<!-- **************************************** -->
+<!-- Standard ocean preconditioner parameters -->
+<!--                                          -->
+<!-- **************************************** -->
+
+<!-- Note that preconditioning of Chat can be more efficient by choosing -->
+<!-- a direct solver. For complex geometries, however, this would give   -->
+<!-- pivot errors, so this setup is the safest right now.                -->
+
+<ParameterList name="Block Preconditioner">              
+  <!-- Preconditioner scheme: currently allowed are                    -->
+  <!-- "ILU": involves the very expensive Schur-complement that        -->
+  <!--        can not currently be solved efficiently                  -->
+  <!-- "Gauss-Seidel": cheap but deteriorates quickly as forcing       -->
+  <!--                  increases                                      -->
+  <!-- "symmetric Gauss-Seidel": doesn't seem to give any improvement) -->
+  <!--                           but is not much more expensive either -->
+  <Parameter name="Scheme" type="string" value="Gauss-Seidel"/>
+  
+  <!-- use 0 starting guess for internal krylov solvers (like in THCM) -->
+  <Parameter name="Zero Initial Guess" type="bool" value="1"/>
+
+  <!-- Verbosity -->
+  <Parameter name="Verbosity" type="int" value="0"/>
+
+  <!-- Permutation                                                              -->
+  <!--     | Ap   0   0  BTS |      | Kuvp 0   0 Guv |      | Aw  0   0  Duv  | -->
+  <!-- 1 = | Guv Kuvp 0   0  |, 2 = | Duv  Aw  0  0  |, 3 = | Bw ATS  0  Buv  | -->
+  <!--     |  0  Duv  Aw  0  |      | Buv  Bw ATS 0  |      | 0  BTS Ap   0   | -->
+  <!--     | Buv  0   Bw ATS |      |  0   0  BTS Ap |      | 0   0  Guv Kuvp | -->
+  <Parameter name="Permutation" type="int" value="1"/>
+  
+  <!-- relaxation parameter for block-Gauss-Seidel preconditioner -->
+  <!-- currently it seems that 1.0 is a good choice               -->
+  <Parameter name="Relaxation: Damping Factor" type="double" value="1.0"/>
+
+  <!-- Parameters for the direct 'Ap' solve -->
+  <ParameterList name="Ap Solver">
+      <!-- S: solve the square part of Gw (ignoring surface P)  -->
+      <!-- F: solve the full Ap matrix                          -->
+      <Parameter name="Full or square" type="char" value="F"/>
+  </ParameterList>
+  
+  <!-- Parameters for the Krylov solver for the 'Auv' diagonal block       -->
+  <!-- This solver is used inside the 'Simple' preconditioner              -->
+  <ParameterList name="Auv Solver">
+    <!-- up to now only "AztecOO" or "None" (just apply precond once) -->
+    <Parameter name="Method" type="string" value="None"/>
+    <!-- maximum number of iterations permitted -->
+    <Parameter name="Max Num Iter" type="int" value="1"/>
+    <!-- (relative) convergence tolerance      -->
+    <Parameter name="Tolerance" type="double" value="1.0e-3"/>
+    <!-- options include "GMRES", "GMRESR", etc. -->
+    <Parameter name="Solver" type="string" value="GMRESR"/>
+    <!-- type of scaling for conv. criterion ("r0","no scaling", "rhs",...) -->
+    <Parameter name="Conv" type="string" value="r0"/>
+    <!-- print every k'th iteration (0 to keep silent) -->
+    <Parameter name="Output" type="int" value="1"/>
+    <!-- unless you reaaly want to use an Aztec preconditioner, choose "None"! -->
+    <Parameter name="Precond" type="string" value="None"/>
+    <!-- max size of Krylov space before restart -->
+    <Parameter name="KSpace" type="int" value="10"/>
+    <!-- type of orthogonalization (fairly irrelevant) -->
+    <Parameter name="Orthog" type="string" value="Classic"/>
+  </ParameterList><!-- } Auv Solver -->
+  
+  <!-- Parameters for the preconditioner for Auv                 -->
+  <!-- This preconditioner is used inside Simple                 -->
+  <ParameterList name="Auv Precond">
+    
+    <!-- supported values are "None", "Ifpack", "ML", "ParaSails" -->
+    <Parameter name="Method" type="string" value="ML"/>
+    
+    <!-- Ifpack parameters -->
+    
+    <!-- can be "ILU","ILUT","Amesos", "MRILU" (with dom-decomp)    -->
+    <!-- "Amesos/ILUT/... stand-alone" and some others              -->
+    <!-- (see file Ifpack.cpp)                                      -->
+    <!-- Only relevant if you chose "Ifpack" above.                 -->
+    <Parameter name="Ifpack Method" type="string" value="MRILU"/>
+    
+    <!-- if you chose Amesos above, select the direct solver here:  -->
+    <!-- "Amesos_Klu" is always available                           -->
+    <!-- "Amesos_Mumps" is available on Aster at least              -->
+    <!--                note: Amesos_Mumps fails for non-contiguous -->
+    <!--                maps, which renders it useless for us (as   -->
+    <!-- of Trilinos release 7.0.5) --> 
+    <Parameter name="amesos: solver type" type="string" value="Amesos_Klu"/>
+    
+    <!-- used by Ifpack Additive Schwarz preconditioners: -->
+    <Parameter name="Ifpack Overlap Level" type="int" value="2"/>
+    
+    <!-- Set parameters for the Method chosen above -->
+    
+    <!-- some parameters for the Ifpack Additive Schwarz preconditioner -->
+    <!-- (this is the parallelization strategy unless you choose a      -->
+    <!-- 'stand-alone' method)                                          -->
+    <Parameter name="schwarz: compute condest" type="bool" value="0"/>
+    <Parameter name="schwarz: filter singletons" type="bool" value="0"/>
+    <Parameter name="schwarz: combine mode" type="string" value="Average"/>
+    
+    <!-- for ILUT and ILU -->
+    <Parameter name="fact: relax value" type="double" value="0.0"/>
+    <Parameter name="fact: absolute threshold" type="double" value="0.0"/>
+    <Parameter name="fact: relative threshold" type="double" value="1.0"/>
+    
+    <!-- parameters for ILUT: -->
+    <Parameter name="fact: drop tolerance" type="double" value="1.0e-12"/>
+    <Parameter name="fact: ilut level-of-fill" type="double" value="3.0"/>
+    
+
+    <!-- parameters for ILU: -->
+    <Parameter name="fact: level-of-fill" type="int" value="3"/>
+    
+    <!-- Parameters for the Ifpack/MRILU solver -->
+    <ParameterList name="MRILU">
+
+      <!-- block size (number of equations) -->
+      <Parameter name="blocksize" type="int" value="2"/>
+      <!--  Apply Reverse Cuthill-McKee ordering of the original matrix. -->
+      <Parameter name="cutmck" type="int" value="0"/>
+      <!-- Scale rows of input matrix, so that for the scaled matrix A_sc: -->
+      <!--   .TRUE.:  Row sums of absolute values of elements are equal 1: -->
+      <!--            A(i :: SUM(j :: ABS(A_sc(i,j))) = 1)                 -->
+      <!--   .FALSE.: Maximum of abolute values of the elements of A_sc is -->
+      <!--            in the range [1,2)  and all diagonal elements are    -->
+      <!--            non-negative:                                        -->
+      <!--                  1 <= MAX(i,j :: ABS(A_sc(i,j))) < 2  AND       -->
+	  <!--   A(i :: A_sc(i,i) >= 0)                                        -->
+	  <Parameter name="scarow" type="int" value="1"/>
+	  <!-- Use exact elimination in the original linear system             -->
+	  <!-- to reduce the size of the system to be solved with an           -->
+	  <!-- iterative method.                                               -->  
+	  <Parameter name="xactelm" type="int" value="1"/>
+	  <!-- Compute Lump Sum Once                                           -->
+	  <!--        .TRUE.:  Compute Lump Space for the 1st Schur-           -->
+	  <!--                 complement only.                                -->
+	  <!--        .FALSE.: Compute Lump Space for each new computed        -->
+	  <!--                  Schur-complement.                              -->
+	  <Parameter name="clsonce" type="int" value="0"/>
+	  <!-- New Lump Space Factor:                                          -->
+	  <!--          The new lump space used                                -->
+	  <!--           >= NLSFctr * Lump space from new Schur-complement.    -->
+	  <!--          Only used when  .NOT. CLSOnce.                         -->
+	  <!--         0 <= NLSFctr <= 1                                       -->
+	  <Parameter name="nlsfctr" type="double" value="0.1"/>
+	  <!-- Drop tolerance for the lumping strategy:                        -->
+	  <!--            Lumpspace = Epsw / MAX(ABS(inv(diag(Schur-compl.)))) -->
+	  <!--            0 <= EpsW                                            -->
+	  <Parameter name="epsw" type="double" value="1.0e-4"/>
+	  <!-- Element Factor times the free Lump Space gives                  -->
+	  <!--         maximum value of an element that may be lumped.         -->
+	  <!--         0 <= aElmFctr <= 1.0D0                                  -->
+	  <Parameter name="elmfctr" type="double" value="0.2"/>
+	  <!-- Apply Gustafsson modification's type of lumping on              -->
+	  <!--               the (block-)diagonal submatrices.                 -->  
+	  <Parameter name="gusmod" type="int" value="1"/>
+	  <Parameter name="gusfctr" type="double" value="1.0"/>
+	  <!-- Reduction Factor for the Lump Space from the Schur-             -->
+	  <!--                  complement:                                    -->
+	  <!--            Free Lump Space = RedFctr * Lump Space Schur-compl.  -->
+	  <!--            0 <= aRedFctr <= 1.0D0                               -->  
+	  <Parameter name="redfctr" type="double" value="0.8"/>
+	  <!-- Schur Tolerance: the non-zero off-diagonal elements             -->
+	  <!--            of the newly computed Schur-complement to be stored  -->
+	  <!--            should be greater than 'SchTol'.                     -->
+	  <!--            0 <= aSchTol                                         -->  
+	  <Parameter name="schtol" type="double" value="0.0"/>
+	  <!-- Block density limit for the last partitioned block.             -->
+	  <!--            The density of the last constructed Schur-complement -->
+	  <!--            should be less than 'DensLim' in order to become the -->
+	  <!--            last block of the Multi Level Preconditioner.        -->  
+	  <Parameter name="denslim" type="double" value="0.3"/>
+	  <!-- Global fraction limit for the last partitioned block.           -->
+	  <!--            The ratio of the order of the last constructed       -->
+	  <!--           Schur-complement and the order of the original matrix -->
+	  <!--           should be less than 'GlobFrac' in order to become the -->
+	  <!--           last block of the Multi Level Preconditioner.        -->
+	  <Parameter name="globfrac" type="double" value="0.1"/>
+	  <!-- Local fraction limit for the last partitioned block.            -->
+	  <!--            The ratio of the order of the last eliminated (left  -->
+	  <!--            upper) block and the order of the last constructed   -->
+	  <!--            Schur-complement should be less than 'LocFrac' in    -->
+	  <!--            order to become the last block of the Multi Level    -->
+	  <!--            Preconditioner.                                      -->  
+	  <Parameter name="locfrac" type="double" value="0.1"/>
+	  <!-- Limit for a Sparse last block.                                  -->
+	  <!--           If the density of the last block is at most           -->
+	  <!--           'SparsLim' the representation of the last block       -->
+	  <!--           and an Incomplete LDU factorization is made of this   -->
+	  <!--           block.  If the density of the last block is greater   -->
+	  <!--           than 'SparsLim' the representation of the last block  -->
+	  <!--           is changed to a full matrix and a LU factorization is -->
+	  <!--            made.                                                -->  
+	  <Parameter name="sparslim" type="double" value="0.666"/>
+	  <!-- Type of ILU factorisation of sparse last block                  -->
+	  <!--            of Multi Level Preconditioner:                       -->
+	  <!--            0 = (M)ILU0                                          -->
+	  <!--            1 = (M)ILU1  Level of fill = 1                       -->
+	  <!--            2 = (M)ILU2  Level of fill = 2                       -->  
+	  <!--            ...                                                  -->
+	  <!--            9 = (M)ILUT                                          -->  
+	  <Parameter name="ilutype" type="int" value="9"/>
+	  <!-- Drop Tolerance for the Incomplete LDU factorization             -->
+	  <!--            of the last block.  Setting  aDropTol = 0  produces  -->
+	  <!--            the complete LDU factorization.                      -->
+	  <!--            0<=DropTol.                                          -->  
+	  <Parameter name="droptol" type="double" value="1.0e-4"/>
+	  <!-- Compensation Factor for the diagonal in the Incomplete          -->
+	  <!--            LDU factorization of the last block.  The sum of the -->
+	  <!--            discarded (dropped) elements in a row of L and DU,   -->
+	  <!--            multiplied by 'CompFctr', are added to the diagonal  -->
+	  <!--            element of D.                                        -->
+	  <!--            0<=CompFctr<=1.                                      -->
+	  <!--            Used only if  DropTol > 0                            -->  
+	  <Parameter name="compfct" type="double" value="1.0"/>
+	  <!-- Change Pivot Tolerance for a non-diagonal pivot                 -->
+	  <!--            element in the Incomplete LDU factorization of the   -->
+	  <!--            last block.                                          -->
+	  <!--            Two columns 'i' and 'j' in row 'i' of the matrix DU  -->
+	  <!--            are permuted when:                                   -->
+	  <!--               ABS(DU(i,j)) * aCPivTol > ABS(DU(i,i))            -->  
+	  <Parameter name="cpivtol" type="double" value="0.875"/>
+	  <!--  Tolerance to determine the singularity of factor U,            -->
+	  <!--           in LU-factorisation of last block.                    -->
+	  <!--              "U is singular" <==>                               -->
+	  <!--              MIN(i::ABS(U(i,i))) <= LUTol * MAX(i::ABS(U(i,i))) -->  
+	  <Parameter name="lutol" type="double" value="1.0e-10"/>
+	  <!-- Singular U factor allowed in LU-factorisation of last           -->
+	  <!--            block. Only in last diagonal element of U!           -->
+	  <Parameter name="singlu" type="int" value="0"/>
+	  <Parameter name="Output Level" type="int" value="5"/> 
+	  
+	  <ParameterList name="visualization">
+		<!-- Visualise the original matrix A (possibly scaled) -->
+		<Parameter name="visasc" type="int" value="0"/>
+		<!--Visualise the first 'avisNSC' Schur-complement matrices -->
+		<Parameter name="visnsc" type="int" value="0"/>
+		<!--Visualise the last Schur-complement.-->
+		<Parameter name="vislsc" type="int" value="0"/>
+		<!--Visualize the Incomplete LDU factorization of the -->
+		<!--               last Schur-complement.             -->
+		<Parameter name="visildu" type="int" value="0"/> 
+		<!--Visualise the first 'visnro' reordered matrices. -->
+		<Parameter name="visnro" type="int" value="0"/>
+	  </ParameterList> 
+    </ParameterList><!-- end of MRILU -->
+
+    <!-- ParaSails parameters -->
+
+    <!-- number of levels k: use the pattern of A^(k+1) for the inverse -->
+    <Parameter name="ParaSails: Number of Levels" type="int" value="2"/>
+    
+    <!-- threshold: During Pattern setup, entries A(i,j!=i) of magnitude -->
+    <!-- larger than thresh*|A(i,i)| are kept in the pattern             -->
+    <!-- if thresh<0, |thresh| is used as a target value for the fill-in,-->
+	<!-- i.e. for thresh=-0.5 the SpaI will have roughly 50% of the nnz  -->
+	<!-- of the matrix                                                   -->
+	<Parameter name="ParaSails: Threshold" type="double" value="0.01"/>
+
+	<!-- load-balancing threshold, 0 means no load balancing, -->
+	<!-- 1.0 means perfect load balancing.                    -->
+	<!-- load balancing is important during the computation   -->
+	<!-- of numerical values when the SpaI is comparatively   -->
+	<!-- dense                                                -->
+	<Parameter name="ParaSails: Load Balancing Beta" 
+		       type="double" value="0.9"/>
+	
+	<!-- print output on pattern setup -->
+	<Parameter name="ParaSails: Print Stats (Pattern)" type="bool" value="1"/>
+
+	<!-- Filter: post-construction drop tolerance. This makes applying the -->
+	<!-- preconditioner cheaper                                            -->
+	<!-- a negative value again specifies a target value for the fill-in   -->
+	<Parameter name="ParaSails: Filter" type="double" value="1.0e-3"/>
+
+	<!-- print output on spai values -->
+	<Parameter name="ParaSails: Print Stats (Values)" type="bool" value="1"/>
+	
+	
+	<!-- ML parameters {-->
+
+	<!-- perform cheap test of Multigrid cycle -->
+	<Parameter name="ML: Analyze Cycle" type="bool" value="0"/>
+
+	<!-- this can be used to dump all the matrices into files -->
+	<Parameter name="ML: Dump Matrices" type="bool" value="0"/>
+
+	<!-- MultiLevel parameters (choice "ML" above) -->
+	<ParameterList name="ML">
+	  <!-- note: ML has changed a lot in 8.0, that's why some params are not -->
+	  <!-- documented yet                                                    -->
+	  <Parameter name="ML debug mode" type="bool" value="0"/>
+	  <Parameter name="ML output" type="int" value="0"/>
+	  <Parameter name="ML validate parameter list" type="bool" value="1"/>
+
+	  <!-- number of unknowns per node -->
+	  <Parameter name="PDE equations" type="int" value="2"/>
+	  <Parameter name="default values" type="string" value="DD-ML"/>
+	  <Parameter name="aggregation: aux: enable" type="bool" value="0"/>
+	  <Parameter name="aggregation: aux: max levels" type="int" value="10"/>
+	  <Parameter name="aggregation: aux: threshold" type="double" value="0.0"/>
+	  <Parameter name="aggregation: block scaling" type="bool" value="0"/>
+	  <!-- damping factor for smoothed aggregation (default is 4/3) -->
+	  <Parameter name="aggregation: damping factor" type="double" value="1.3333"/>
+	  <!-- don't coarsen in 'weak directions', i.e. drop weak couplings during coarsening -->
+	  <Parameter name="aggregation: threshold" type="double" value="1.0e-10"/>
+	  <!-- type of aggregation strategy                                     -->
+	  <!-- "Uncoupled": cheap to construct                                  -->
+	  <!-- "MIS": more expensive, generally gives better hierarchy          -->
+	  <!-- "Uncoupled-MIS": compromise, Uncoupled on fine levels and MIS on -->
+	  <!--                  coarser ones (default)                          -->
+	  <!-- "METIS": potentially better, but I haven't played around with it -->
+	  <Parameter name="aggregation: type" type="string" value="METIS"/>
+
+	  <!-- haven't looked at the details of the algorithm -->
+	  
+	  <!-- the other aggregation options are only for (Par)METIS and Zoltan: -->
+	  <!--Parameter name="aggregation: nodes per aggregate" type="int" value="2"/-->
+	  
+	  <!-- How to determine null vectors. These are vital when -->
+	  <!-- building the transfer operators                     -->
+	  <!-- "default vectors", "enriched" (not working in r7.0) -->
+	  <!-- "pre-computed" (not supported by our code yet       -->
+	  <Parameter name="null space: type" type="string" value="default vectors"/>
+	  
+	  <Parameter name="eigen-analysis: type" type="string" value="Anorm"/>
+	  <Parameter name="coarse: max size" type="int" value="1024"/> 
+	  <Parameter name="coarse: type" type="string" value="Amesos-KLU"/>
+	  <!-- this only refers to the way the levels are numbered and has no practical effect -->
+	  <Parameter name="increasing or decreasing" type="string" value="increasing"/>
+	  <!-- fewer levels generally give better scalability -->
+	  <Parameter name="max levels" type="int" value="3"/>
+	  <Parameter name="cycle applications" type="int" value="1"/>
+	  <!-- maximum verbosity is 10, output is always sent to stdout  -->
+	  <Parameter name="output" type="int" value="0"/>
+	  <!-- "MGV","MGW","full-MGV" -->
+	  <Parameter name="prec type" type="string" value="MGV"/> <!--pending-->
+	  <Parameter name="print unused" type="int" value="-2"/>
+	  <!-- this factor is used for relaxation smoothers like Jacobi and GS -->
+	  <Parameter name="smoother: damping factor" type="double" value="1.0"/>
+	  <Parameter name="smoother: pre or post" type="string" value="both"/>
+	  <Parameter name="smoother: sweeps" type="int" value="1"/>
+	  
+	  <!-- "Aztec", "Gauss-Seidel", "Block Gauss-Seidel", "MLS"-->
+	  <!-- "Chebyshev", "self", "IFPACK" etc                   -->
+	  <Parameter name="smoother: type" type="string" value="Aztec"/>
+	  
+	  <!-- if you chose "Aztec" above, only the Aztec preconditioner will be -->
+	  <!-- applied unless you set this to 1:                                 -->
+	  <Parameter name="smoother: Aztec as solver" type="bool" value="0"/>
+	  
+	  <!-- parameters for Aztec smoother { -->
+	  <ParameterList name="smoother: aztec list">
+        <Parameter name="Max_Iter" type="int" value="1"/>
+        <Parameter name="Tol" type="double" value="1.0e-10"/>
+        <Parameter name="Solver" type="string" value="GMRESR"/>
+        <Parameter name="Conv" type="string" value="r0"/>
+        <Parameter name="Scaling" type="string" value="None"/>
+        <Parameter name="Overlap" type="int" value="0"/>
+        <Parameter name="Precond" type="string" value="dom_decomp"/>
+        <Parameter name="Subdomain_Solve" type="string" value="ilut"/>
+        <Parameter name="ILUT_Fill" type="double" value="1.0"/>
+        <Parameter name="Drop" type="double" value="1.0e-2"/>
+        <Parameter name="KSpace" type="int" value="10"/>
+        <Parameter name="Orthog" type="string" value="Classic"/>
+        <Parameter name="Output" type="int" value="0"/>
+	  </ParameterList><!--}-->
+	  
+	  <!-- settings for the "IFPACK" smoothers -->
+	  <Parameter name="smoother: ifpack overlap" type="int" value="0"/>
+	  <Parameter name="smoother: ifpack type" type="string" value="MRILU"/>
+
+	  <!-- { -->
+	  <ParameterList name="smoother: ifpack list">
+        <Parameter name="partitioner: type" type="string" value="user"/>
+        <Parameter name="schwarz: compute condest" type="bool" value="0"/>
+        <Parameter name="schwarz: filter singletons" type="bool" value="0"/>
+        <Parameter name="schwarz: combine mode" type="string" value="Average"/>
+        <!--Parameter name="partitioner: local parts" type="int" value="2"/-->
+        <Parameter name="relaxation: type" type="string" value="symmetric Gauss-Seidel"/>
+        <Parameter name="relaxation: sweeps" type="int" value="1"/>
+        <Parameter name="relaxation: damping factor" type="double" value="1.0"/>
+        <Parameter name="relaxation: zero starting solution" type="bool" value="0"/>
+        <Parameter name="fact: level-of-fill" type="int" value="3"/>
+        <Parameter name="fact: ilut level-of-fill" type="double" value="3.0"/>
+        <Parameter name="fact: drop tolerance" type="double" value="1.0e-10"/>
+        <!-- Parameters for the Ifpack/MRILU solver -->
+        <ParameterList name="MRILU">
+          <Parameter name="blocksize" type="int" value="1"/>
+          <Parameter name="cutmck" type="int" value="0"/>
+          <Parameter name="scarow" type="int" value="1"/>
+          <Parameter name="xactelm" type="int" value="1"/>
+          <Parameter name="clsonce" type="int" value="0"/>
+          <Parameter name="nlsfctr" type="double" value="0.1"/>
+          <Parameter name="epsw" type="double" value="1.0e-4"/>
+          <Parameter name="elmfctr" type="double" value="0.2"/>
+          <Parameter name="gusmod" type="int" value="0"/>
+          <Parameter name="gusfctr" type="double" value="1.0"/>
+          <Parameter name="redfctr" type="double" value="0.8"/>
+          <Parameter name="schtol" type="double" value="0.0"/>
+          <Parameter name="denslim" type="double" value="0.3"/>
+          <Parameter name="globfrac" type="double" value="0.1"/>
+          <Parameter name="locfrac" type="double" value="1.0"/>
+          <Parameter name="sparslim" type="double" value="0.666"/>
+          <Parameter name="ilutype" type="int" value="9"/>
+          <Parameter name="droptol" type="double" value="1.0e-4"/>
+          <Parameter name="compfct" type="double" value="1.0"/>
+          <Parameter name="cpivtol" type="double" value="0.875"/>
+          <Parameter name="lutol" type="double" value="1.0e-10"/>
+          <Parameter name="singlu" type="int" value="0"/>
+          <Parameter name="Output Level" type="int" value="0"/> 
+	      
+          <ParameterList name="visualization">
+			<Parameter name="visasc" type="int" value="0"/>
+			<Parameter name="visnsc" type="int" value="0"/>
+			<Parameter name="vislsc" type="int" value="0"/>
+			<Parameter name="visildu" type="int" value="0"/> 
+			<Parameter name="visnro" type="int" value="0"/>
+          </ParameterList> 
+        </ParameterList><!-- end of MRILU -->
+	  </ParameterList> <!-- } smoother: ifpack list" -->
+	</ParameterList> <!-- } ML -->
+  </ParameterList><!-- } Auv Precond -->
+
+  <!-- Solver parameters for the saddlepoint problem { -->
+  <ParameterList name="Saddlepoint Solver">
+    <Parameter name="Method" type="string" value="AztecOO"/>
+    <Parameter name="Max Num Iter" type="int" value="10"/>
+    <Parameter name="Tolerance" type="double" value="1.0e-4"/>
+    <Parameter name="Solver" type="string" value="GMRESR"/>
+    <Parameter name="Conv" type="string" value="r0"/>
+    <Parameter name="Output" type="int" value="1"/>
+    <Parameter name="Scaling" type="string" value="None"/>
+    <!-- don't touch this one, it's irrelevant -->
+    <Parameter name="Precond" type="string" value="None"/>
+    <Parameter name="KSpace" type="int" value="10"/>
+    <Parameter name="Orthog" type="string" value="Classic"/>
+  </ParameterList><!-- } Saddlepoint Solver -->
+
+
+  <!-- Parameters for the modified Simple-type preconditioner for the -->
+  <!-- Saddlepoint problem. {                                         -->
+  <ParameterList name="Saddlepoint Preconditioner">
+    
+    <!-- mode of operation for the Simple preconditioner.                    -->
+    <!-- "SI": Simple "SL": SimpleL (transposed) "SR": symmetrized = SimpleR -->
+    <Parameter name="Scheme" type="string" value="SR"/>
+
+    <!-- fix Chat's diagonal if it is singular -->
+    <Parameter name="Fix singular Chat" type="bool" value="false"/>
+
+    <!-- Tolerance for Chat fix -->
+    <Parameter name="Fix Chat tolerance" type="double" value="1e2"/>
+
+	<!-- Print indices where Chat's diagonal is zero -->
+    <Parameter name="Print zero diagonal indices" type="bool" value="false"/>	
+    
+    <!-- scale the Chat solve -->
+    <Parameter name="Scale Chat" type="bool" value="false"/>
+
+    <!-- fix A11's diagonal if it is singular -->
+    <Parameter name="Fix singular A11" type="bool" value="false"/>
+
+    <!-- enable repartitioning for Chat (requires Zoltan/Isorropia) -->
+    <Parameter name="Repartition Chat" type="bool" value="0"/>
+
+    <!-- define the method for approximating the inverse of Auv. {-->
+    <ParameterList name="Approximate Inverse">
+      
+      <!-- can only be "Block Diagonal" (2x2 block-diagonal) or -->
+      <!-- "ParaSails" (if it is installed)                     -->
+      <Parameter name="Method" type="string" value="Block Diagonal"/>
+
+      <Parameter name="ParaSails: Number of Levels" type="int" value="1"/>
+      
+      <Parameter name="ParaSails: Threshold" type="double" value="0.01"/>
+
+      <Parameter name="ParaSails: Load Balancing Beta" 
+                 type="double" value="0.9"/>
+      
+      <Parameter name="ParaSails: Print Stats (Pattern)" type="bool" value="0"/>
+
+      <Parameter name="ParaSails: Filter" type="double" value="1.0e-3"/>
+
+      <Parameter name="ParaSails: Print Stats (Values)" type="bool" value="0"/>
+      
+    </ParameterList><!-- } Simple: Sparse Approximate Inverse -->
+
+    <!-- Solver for Schur-complement inside Simple: { -->
+    <ParameterList name="Chat Solver">
+      <!-- can be "AztecOO" or "None" -->
+      <Parameter name="Method" type="string" value="AztecOO"/>
+      <Parameter name="Max Num Iter" type="int" value="400"/>
+      <Parameter name="Tol" type="double" value="1.0e-3"/>
+      <Parameter name="Solver" type="string" value="GMRESR"/>
+      <Parameter name="Conv" type="string" value="r0"/>
+      <Parameter name="Scaling" type="string" value="None"/>
+      <Parameter name="Overlap" type="int" value="1"/>
+      <Parameter name="Precond" type="string" value="dom_decomp"/>
+      <Parameter name="Poly_Ord" type="int" value="4"/>
+      <Parameter name="Subdomain_Solve" type="string" value="ilut"/>
+      <Parameter name="Graph_Fill" type="double" value="1.0"/>
+      <Parameter name="ILUT_Fill" type="double" value="1.0"/>
+      <Parameter name="Drop" type="double" value="1.0e-8"/>
+      <Parameter name="KSpace" type="int" value="100"/>
+      <Parameter name="Orthog" type="string" value="Classic"/>
+      <Parameter name="Output" type="int" value="0"/>
+    </ParameterList><!-- } Grad-Div Solver -->
+
+    <!-- Parameters for the preconditioner for \hat{C}                      -->
+    <!-- (Schur-complement in Spp Simple precond)                           -->
+    <!-- for comments see the "Auv Precond" list above {                    -->
+    <ParameterList name="Chat Precond">
+      
+      <Parameter name="Method" type="string" value="None"/>
+      <!-- Ifpack -->
+      
+      <Parameter name="Ifpack Method" type="string" value="ILU"/>
+      <Parameter name="amesos: solver type" type="string" value="Amesos_Superlu"/>
+      <Parameter name="Ifpack Overlap Level" type="int" value="0"/>
+
+      <!-- Parameters for the Ifpack/MRILU solver { -->
+      <ParameterList name="MRILU">
+
+        <Parameter name="blocksize" type="int" value="1"/>
+        <Parameter name="cutmck" type="int" value="0"/>
+        <Parameter name="scarow" type="int" value="1"/>
+        <Parameter name="xactelm" type="int" value="1"/>
+        <Parameter name="clsonce" type="int" value="0"/>
+        <Parameter name="nlsfctr" type="double" value="0.1"/>
+        <Parameter name="epsw" type="double" value="1.0e-4"/>
+        <Parameter name="elmfctr" type="double" value="0.2"/>
+        <Parameter name="gusmod" type="int" value="1"/>
+        <Parameter name="gusfctr" type="double" value="1.0"/>
+        <Parameter name="redfctr" type="double" value="0.8"/>
+        <Parameter name="schtol" type="double" value="0.0"/>
+        <Parameter name="denslim" type="double" value="0.1"/>
+        <Parameter name="globfrac" type="double" value="0.0"/>
+        <Parameter name="locfrac" type="double" value="0.1"/>
+        <Parameter name="sparslim" type="double" value="0.666"/>
+        <Parameter name="ilutype" type="int" value="9"/>
+        <Parameter name="droptol" type="double" value="1.0e-7"/>
+        <Parameter name="compfct" type="double" value="1.0"/>
+        <Parameter name="cpivtol" type="double" value="0.875"/>
+        <Parameter name="lutol" type="double" value="1.0e-10"/>
+        <Parameter name="singlu" type="int" value="1"/>
+        <Parameter name="Output Level" type="int" value="5"/> 
+        <ParameterList name="visualization">
+          <Parameter name="visasc" type="int" value="0"/>
+          <Parameter name="visnsc" type="int" value="0"/>
+          <Parameter name="vislsc" type="int" value="0"/>
+          <Parameter name="visildu" type="int" value="0"/> 
+          <Parameter name="visnro" type="int" value="0"/>
+        </ParameterList> 
+      </ParameterList><!-- } end of MRILU -->                
+    </ParameterList><!-- } Simple: Chat Precond -->
+  </ParameterList><!-- } Saddlepoint Preconditioner -->
+
+  <!-- solve for variables rho/mu instead of T/S -->
+  <Parameter name="ATS: rho/mu Transform" type="bool" value="1"/>
+
+  <!-- Parameters for the Krylov solver for ATS { -->
+  <ParameterList name="ATS Solver">
+	<Parameter name="Method" type="string" value="AztecOO"/>
+    <Parameter name="Max Num Iter" type="int" value="15"/>
+    <Parameter name="Tolerance" type="double" value="1.0e-3"/>
+    <Parameter name="Solver" type="string" value="GMRESR"/>
+    <Parameter name="Conv" type="string" value="r0"/>
+    <Parameter name="Output" type="int" value="1"/>
+    <Parameter name="Scaling" type="string" value="None"/> <!--indifferent -->
+    <!-- don't touch this one, it's irrelevant -->
+    <Parameter name="Precond" type="string" value="None"/>
+    <Parameter name="KSpace" type="int" value="20"/>
+    <Parameter name="Orthog" type="string" value="Classic"/>
+  </ParameterList><!-- } ATS Solver -->
+  
+  <!-- Parameters for the preconditioner for ATS (also used for rho-mu system) { -->
+  <ParameterList name="ATS Precond">
+    
+    <!-- for comments see "Auv Precond" list above -->
+    
+    <Parameter name="Method" type="string" value="ML"/>
+    <Parameter name="Analyze Preconditioned Spectrum" type="bool" value="0"/>
+
+    <!-- Ifpack -->
+    
+    <Parameter name="Ifpack Method" type="string" value="MRILU"/>
+    <Parameter name="Ifpack Overlap Level" type="int" value="2"/>
+
+    <Parameter name="amesos: solver type" type="string" value="Amesos_Klu"/>
+    
+    <Parameter name="schwarz: compute condest" type="bool" value="0"/>
+    <Parameter name="schwarz: filter singletons" type="bool" value="0"/>
+    <Parameter name="schwarz: combine mode" type="string" value="Average"/>
+    <Parameter name="fact: ilut level-of-fill" type="double" value="3.0"/>
+    <Parameter name="fact: drop tolerance" type="double" value="1.0e-8"/>
+    
+    <Parameter name="fact: level-of-fill" type="int" value="5"/>
+
+    <!-- Parameters for the Ifpack/MRILU solver { -->
+    <ParameterList name="MRILU">
+
+      <Parameter name="blocksize" type="int" value="2"/>
+      <Parameter name="cutmck" type="int" value="0"/>
+      <Parameter name="scarow" type="int" value="1"/>
+      <Parameter name="xactelm" type="int" value="1"/>
+      <Parameter name="clsonce" type="int" value="1"/>
+      <Parameter name="nlsfctr" type="double" value="0.1"/>
+      <Parameter name="epsw" type="double" value="0.1"/>
+      <Parameter name="elmfctr" type="double" value="0.2"/>
+      <Parameter name="gusmod" type="int" value="0"/>
+      <Parameter name="gusfctr" type="double" value="0.0"/>
+      <Parameter name="redfctr" type="double" value="2.0"/>
+      <Parameter name="schtol" type="double" value="1.0e-6"/>
+      <Parameter name="denslim" type="double" value="0.9"/>
+      <Parameter name="globfrac" type="double" value="0.02"/>
+      <Parameter name="locfrac" type="double" value="0.0"/>
+      <Parameter name="sparslim" type="double" value="0.95"/>
+      <Parameter name="ilutype" type="int" value="9"/>
+      <Parameter name="droptol" type="double" value="1.0e-5"/>
+      <Parameter name="compfct" type="double" value="0.0"/>
+      <Parameter name="cpivtol" type="double" value="0.875"/>
+      <Parameter name="lutol" type="double" value="1.0e-10"/>
+      <Parameter name="singlu" type="int" value="1"/>
+      <Parameter name="Output Level" type="int" value="0"/> 
+      
+      <ParameterList name="visualization">
+        <Parameter name="visasc" type="int" value="0"/>
+        <Parameter name="visnsc" type="int" value="0"/>
+        <Parameter name="vislsc" type="int" value="0"/>
+        <Parameter name="visildu" type="int" value="0"/> 
+        <Parameter name="visnro" type="int" value="0"/>
+      </ParameterList> 
+    </ParameterList><!-- } end of MRILU -->
+
+    <!-- ML {-->
+    <Parameter name="ML: Analyze Cycle" type="bool" value="0"/> <!-- indifferent -->
+    <Parameter name="ML: Dump Matrices" type="bool" value="0"/>
+    
+    <ParameterList name="ML">
+      <Parameter name="ML validate parameter list" type="bool" value="0"/>
+      <Parameter name="PDE equations" type="int" value="2"/>
+      <Parameter name="default values" type="string" value="DD-ML"/> <!-- indifferent -->
+      <Parameter name="ML debug mode" type="bool" value="0"/>
+      <Parameter name="ML output" type="int" value="0"/>
+      <Parameter name="aggregation: damping factor" type="double" value="1.333"/>
+      <Parameter name="aggregation: threshold" type="double" value="1.0e-10"/> <!-- indifferent-->
+      <Parameter name="aggregation: type" type="string" value="METIS"/> <!-- METIS is preferred -->
+
+	  <!-- The combination of the following parameters gave the bad scaling in ATS -->
+      <!-- <parameter name="aggregation: local aggregates" type="int" value="64"/> --> <!-- pending -->
+      <!-- <Parameter name="aggregation: smoothing sweeps" type="int" value="1"/> -->  <!-- pending -->
+
+      <Parameter name="eigen-analysis: type" type="string" value="Anorm"/>
+      <Parameter name="coarse: max size" type="int" value="8192"/> 
+      <Parameter name="coarse: type" type="string" value="Amesos-KLU"/>
+      <Parameter name="increasing or decreasing" type="string" value="increasing"/>
+      <Parameter name="max levels" type="int" value="3"/> <!-- indifferent -->
+      <Parameter name="cycle applications" type="int" value="1"/>
+      <Parameter name="prec type" type="string" value="full-MGV"/>
+      <Parameter name="print unused" type="int" value="-2"/>
+      <Parameter name="smoother: damping factor" type="double" value="1.0"/> <!--indifferent-->
+      <Parameter name="smoother: pre or post" type="string" value="both"/>
+      <Parameter name="smoother: sweeps" type="int" value="1"/>
+      <Parameter name="smoother: type" type="string" value="IFPACK"/>
+      <!--
+          <Parameter name="smoother: type (level 0)" type="string" value="IFPACK"/>
+          <Parameter name="smoother: type (level 1)" type="string" value="do-nothing"/>
+	  -->                
+      <Parameter name="smoother: Aztec as solver" type="bool" value="0"/>
+      
+      <Parameter name="repartition: enable" type="int" value="0"/>
+      <Parameter name="repartition: partitioner" type="string" value="Zoltan"/>
+      <Parameter name="repartition: Zoltan dimensions" type="int" value="3"/>
+      
+      <Parameter name="viz: enable" type="bool" value="0"/>
+      <Parameter name="viz: output format" type="string" value="xyz"/>
+      <Parameter name="viz: print starting solution" type="bool" value="1"/>
+
+      <!-- { -->
+	  <ParameterList name="smoother: aztec list">
+        <Parameter name="Max_Iter" type="int" value="1"/>
+        <Parameter name="Tol" type="double" value="1.0e-10"/>
+        <Parameter name="Solver" type="string" value="GMRESR"/>
+        <Parameter name="Conv" type="string" value="r0"/>
+        <Parameter name="Scaling" type="string" value="None"/>
+        <Parameter name="Overlap" type="int" value="0"/>
+        <Parameter name="Precond" type="string" value="dom_decomp"/>
+        <Parameter name="Subdomain_Solve" type="string" value="ilut"/>
+        <Parameter name="ILUT_Fill" type="double" value="1.0"/>
+        <Parameter name="Drop" type="double" value="1.0e-2"/>
+        <Parameter name="KSpace" type="int" value="10"/>
+        <Parameter name="Orthog" type="string" value="Classic"/>
+        <Parameter name="Output" type="int" value="0"/>
+	  </ParameterList><!--}-->
+
+      <Parameter name="smoother: ifpack overlap" type="int" value="0"/>
+      <Parameter name="smoother: ifpack type" type="string" value="MRILU"/>
+      <!--Parameter name="smoother: ifpack type" type="string" 
+		  value="block relaxation (Amesos)"/-->
+      
+      <!-- { -->
+      <ParameterList name="smoother: ifpack list">
+        <Parameter name="partitioner: type" type="string" value="user"/>
+        <Parameter name="schwarz: compute condest" type="bool" value="0"/>
+        <Parameter name="schwarz: filter singletons" type="bool" value="0"/>
+        <Parameter name="schwarz: combine mode" type="string" value="Average"/>
+        <!--Parameter name="partitioner: local parts" type="int" value="1"/-->
+        <Parameter name="relaxation: type" type="string" value="symmetric Gauss-Seidel"/> <!--AWAITING JUDGMENT-->
+        <Parameter name="relaxation: sweeps" type="int" value="1"/>
+        <Parameter name="relaxation: damping factor" type="double" value="1.0"/>
+        <Parameter name="relaxation: zero starting solution" type="bool" value="0"/> 
+        <Parameter name="fact: level-of-fill" type="int" value="3"/>
+        <Parameter name="fact: ilut level-of-fill" type="double" value="3.0"/>
+        <Parameter name="fact: drop tolerance" type="double" value="1.0e-10"/>
+        <!-- Parameters for the Ifpack/MRILU solver { -->
+        <ParameterList name="MRILU">
+          <Parameter name="blocksize" type="int" value="2"/>
+          <Parameter name="cutmck" type="int" value="0"/>
+          <Parameter name="scarow" type="int" value="1"/>
+          <Parameter name="xactelm" type="int" value="1"/>
+          <Parameter name="clsonce" type="int" value="1"/>
+          <Parameter name="nlsfctr" type="double" value="0.1"/>
+          <Parameter name="epsw" type="double" value="0.1"/>
+          <Parameter name="elmfctr" type="double" value="0.25"/>
+          <Parameter name="gusmod" type="int" value="0"/>
+          <Parameter name="gusfctr" type="double" value="0.0"/>
+          <Parameter name="redfctr" type="double" value="2.0"/>
+          <Parameter name="schtol" type="double" value="1.0e-6"/>
+          <Parameter name="denslim" type="double" value="0.9"/>
+          <Parameter name="globfrac" type="double" value="0.05"/>
+          <Parameter name="locfrac" type="double" value="0.0"/>
+          <Parameter name="sparslim" type="double" value="0.95"/>
+          <Parameter name="ilutype" type="int" value="9"/>
+          <Parameter name="droptol" type="double" value="1.0e-5"/>
+          <Parameter name="compfct" type="double" value="0.0"/>
+          <Parameter name="cpivtol" type="double" value="0.875"/>
+          <Parameter name="lutol" type="double" value="1.0e-10"/>
+          <Parameter name="singlu" type="int" value="1"/>
+          <Parameter name="Output Level" type="int" value="0"/> 
+
+          <ParameterList name="visualization">
+            <Parameter name="visasc" type="int" value="0"/>
+            <Parameter name="visnsc" type="int" value="0"/>
+            <Parameter name="vislsc" type="int" value="0"/>
+            <Parameter name="visildu" type="int" value="0"/> 
+            <Parameter name="visnro" type="int" value="0"/>
+          </ParameterList> 
+        </ParameterList><!-- } end of MRILU -->
+      </ParameterList> <!-- } smoother: ifpack list" -->
+	</ParameterList> <!-- } ML -->
+  </ParameterList><!-- } ATS Precond -->
+</ParameterList><!-- } Block Precond -->
