@@ -22,10 +22,13 @@ else
 CODELIB=$(IEMICLIBPATH)/libiemic.so
 
 # explicitly locate parallel hdf5
-LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi/lib64 -lhdf5
+#~ LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi2/lib64 -lhdf5
+LDFLAGS += $(HDF5_LIBS)
 endif
 
-LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -ljdqz_tools -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
+export LDFLAGS
+
+LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
 
 OBJS = interface.o paramset.o
 
@@ -48,7 +51,7 @@ endif
 
 src/jdqzpp/build/: | src/jdqzpp/
 	mkdir -p $@
-	cd $@; cmake .. -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/"
+	cd $@; cmake .. -DCMAKE_INSTALL_RPATH="$(realpath src)/opt/lib" -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/"
 
 src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake: | src/jdqzpp/build/
 	cd $|; make install
@@ -63,7 +66,7 @@ endif
 
 src/i-emic/build/: src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake | src/i-emic/
 	mkdir -p $@
-	cd $@; cmake .. -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/" \
+	cd $@; cmake ..  -DCMAKE_INSTALL_RPATH="$(realpath src)/opt/lib" -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/" \
 	    -DJDQZPP_DIR="$(realpath src)/opt/lib/cmake/JDQZPP/"
 
 $(CODELIB) src/opt/include/Config.mk: | src/i-emic/build/
@@ -84,10 +87,11 @@ worker_code.h: interface.py
 	$(CODE_GENERATOR) --type=H interface.py iemicInterface -o $@
 
 iemic_worker: worker_code.o $(OBJS) $(CODELIB)
-	$(MPICXX) $(LDFLAGS) -Wl,-rpath $(IEMICLIBPATH) $^ -o $@ $(LIBS)
+	$(MPICXX) -Wl,-rpath $(IEMICLIBPATH) $^ -o $@ $(LDFLAGS) $(LIBS)
 
 %.o: %.cc $(CODELIB) src/opt/include/Config.mk
-	$(CXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
+	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
 
+paramset.o: paramset.hpp
 worker_code.o: worker_code.h
-interface.o: interface.hpp
+interface.o: interface.hpp paramset.hpp
