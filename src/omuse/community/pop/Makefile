@@ -5,15 +5,13 @@ endif
 .NOTPARALLEL:
 
 export PYTHONPATH := $(PYTHONPATH):$(AMUSE_DIR)/src:$(AMUSE_DIR)/test
-MPIFC ?= mpif90
-
-#MPIFC = ifort -I/cm/shared/apps/mpich/ge/open64/64/3.1/include -L/cm/shared/apps/mpich/ge/open64/64/3.1/lib -lmpich 
+MPIFC ?= mpifort #/usr/local/bin/mpif90
 
 TARGETS := $(patsubst src_%, pop_worker_%, ${shell ls -d src_*})
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
-FCFLAGS+=-fconvert=swap
-POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -fconvert=swap -fimplicit-none -fbounds-check
+FCFLAGS+=-fconvert=swap -fallow-argument-mismatch
+POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -fallow-argument-mismatch -fconvert=swap -fimplicit-none -fbounds-check
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
@@ -32,7 +30,7 @@ FS_FLAGS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
 CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 
 POPREPO=https://github.com/nlesc-smcm/eSalsa-POP
-POPREPOBRANCH=master
+POPREPOBRANCH=spinup_benchmark
 
 
 .PHONY: all download src_%/lib
