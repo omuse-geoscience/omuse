@@ -17,9 +17,11 @@ IEMICLIBPATH=$(realpath src/opt/lib)
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME),Darwin)
-CODELIB=$(IEMICLIBPATH)/libiemic.dylib
+CODELIB:=$(IEMICLIBPATH)/libiemic.dylib
+WORKER_RPATH:=@executable_path
 else
 CODELIB=$(IEMICLIBPATH)/libiemic.so
+WORKER_RPATH:=$$ORIGIN
 
 # explicitly locate parallel hdf5
 #~ LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi2/lib64 -lhdf5
@@ -87,7 +89,7 @@ worker_code.h: interface.py
 	$(CODE_GENERATOR) --type=H interface.py iemicInterface -o $@
 
 iemic_worker: worker_code.o $(OBJS) $(CODELIB)
-	$(MPICXX) -Wl,-rpath $(IEMICLIBPATH) $^ -o $@ $(LDFLAGS) $(LIBS)
+	$(MPICXX) -Wl,-rpath,'$(WORKER_RPATH)/src/opt/lib/' $^ -o $@ $(LDFLAGS) $(LIBS)
 
 %.o: %.cc $(CODELIB) src/opt/include/Config.mk
 	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
