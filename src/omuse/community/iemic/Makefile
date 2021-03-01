@@ -12,27 +12,20 @@ CODE_GENERATOR:=amusifier
 MPICXX   ?= mpicxx
 
 CFLAGS   += -Wall -g
-
-IEMICLIBPATH=$(realpath src/opt/lib)
+LIBS:=iemic coupledmodel globaldefs utils ifpack_mrilu mrilucpp
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME),Darwin)
-CODELIB:=$(IEMICLIBPATH)/libiemic.dylib
+LIBEXT:=dylib
 WORKER_RPATH:=@executable_path
 else
-CODELIB=$(IEMICLIBPATH)/libiemic.so
+LIBEXT=so
 WORKER_RPATH:=$$ORIGIN
 
 # explicitly locate parallel hdf5
-#~ LDFLAGS  += -L/usr/lib64/mpi/gcc/openmpi2/lib64 -lhdf5
 LDFLAGS += $(HDF5_LIBS)
-endif
-
 export LDFLAGS
-
-LIBS += -L$(IEMICLIBPATH) -liemic -lcoupledmodel -lutils -lglobaldefs -lifpack_mrilu -lmrilucpp
-
-OBJS = interface.o paramset.o
+endif
 
 all: iemic_worker
 
@@ -41,6 +34,9 @@ update: | src/jdqzpp/ src/i-emic/
 	cd src/i-emic; git pull
 
 src/:
+	mkdir -p $@
+
+data/:
 	mkdir -p $@
 
 src/jdqzpp/: | src/
@@ -71,11 +67,12 @@ src/i-emic/build/: src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake | src/i-emic/
 	cd $@; cmake ..  -DCMAKE_INSTALL_RPATH="$(realpath src)/opt/lib" -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/" \
 	    -DJDQZPP_DIR="$(realpath src)/opt/lib/cmake/JDQZPP/"
 
-$(CODELIB) src/opt/include/Config.mk: | src/i-emic/build/
+IEMICLIBS:=$(LIBS:%=src/opt/lib/lib%.$(LIBEXT))
+$(IEMICLIBS) src/opt/include/Config.mk: | src/i-emic/build/
 	cd $|; make install
 
 clean:
-	$(RM) -rf __pycache__
+	$(RM) -rf __pycache__ data
 	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h
 	$(RM) -f *~ iemic_worker worker_code.cc
 
@@ -88,8 +85,11 @@ worker_code.cc: interface.py
 worker_code.h: interface.py
 	$(CODE_GENERATOR) --type=H interface.py iemicInterface -o $@
 
-iemic_worker: worker_code.o $(OBJS) $(CODELIB)
-	$(MPICXX) -Wl,-rpath,'$(WORKER_RPATH)/src/opt/lib/' $^ -o $@ $(LDFLAGS) $(LIBS)
+iemic_worker: worker_code.o interface.o paramset.o $(LIBS:%=data/lib%.$(LIBEXT))
+	$(MPICXX) -Wl,-rpath,'$(WORKER_RPATH)/data/' $(filter %.o,$^) -o $@ $(LDFLAGS) -Ldata/ $(LIBS:%=-l%)
+
+data/lib%.$(LIBEXT): src/opt/lib/lib%.$(LIBEXT) | data/
+	cp $< $@
 
 %.o: %.cc $(CODELIB) src/opt/include/Config.mk
 	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
