@@ -61,5 +61,5 @@ ifeq ($(UNAMES),Darwin)
 
 endif
 
-F90 := gfortran -g -O2 -fdefault-real-8
+F90 := gfortran -g -O2 -fdefault-real-8  -fallow-argument-mismatch
 CPP := gfortran -cpp
