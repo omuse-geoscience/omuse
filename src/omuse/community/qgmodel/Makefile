@@ -7,7 +7,7 @@ MPIFC ?= mpif90
 FORTRAN=$(FC)
 
 ifneq (,$(findstring gfortran, $(notdir $(FORTRAN))))
-FISHPACK_FLAGS = -fdefault-real-8 
+FISHPACK_FLAGS = -fdefault-real-8  -fallow-argument-mismatch
 export FISHPACK_FLAGS
 LDFLAGS  += -L./src/fishpack4.1/lib/ -lfishpack
 FCFLAGS += -fno-automatic
