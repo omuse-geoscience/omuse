@@ -73,7 +73,7 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
 
     @remote_function(must_handle_array=True)
     def get_land_mask(n=0, m=0, l=0):
-        returns (var=0)
+        returns (mask=0)
 
     @remote_function(must_handle_array=True)
     def get_u(i=0, j=0, k=0):
@@ -362,6 +362,8 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('grid', 'get_u', names=["u_velocity"])
         handler.add_getter('grid', 'get_v', names=["v_velocity"])
         handler.add_getter('grid', 'get_w', names=["w_velocity"])
+        handler.add_getter('grid', 'get_land_mask', names=["mask"])
+        
 
     def _specify_grid(self, definition, index=0):
         #~ handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
@@ -370,6 +372,8 @@ class iemic(InCodeComponentImplementation):
         definition.add_getter( 'get_u_', names=["u_velocity"])
         definition.add_getter( 'get_v_', names=["v_velocity"])
         definition.add_getter( 'get_w_', names=["w_velocity"])
+        definition.add_getter('grid', 'get_land_mask', names=["mask"])
+
         definition.define_extra_keywords({'sindex':index})
 
 
@@ -561,13 +565,7 @@ class iemic(InCodeComponentImplementation):
         return self.get_real_pos(*coordinate)
 
     def get_surface_mask(self):
-        n = self.get_parameter("Ocean->THCM->Global Grid-Size n")
-        m = self.get_parameter("Ocean->THCM->Global Grid-Size m")
-
-        indices = [(_n,_m,0) for _m in range(0,m) for _n in range(0,n)]
-        ns, ms, ls = zip(*indices)
-
-        return self.get_land_mask(list(ns), list(ms), list(ls)).reshape(n, m)
+        return self.grid[:,:,-1].mask
 
     def evolve_model(self,tend):
         x=self.get_state()

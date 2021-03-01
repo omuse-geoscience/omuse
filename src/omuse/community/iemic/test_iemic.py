@@ -463,7 +463,7 @@ class iemicTests(TestWithMPI):
             [0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0],
             [0,0,0,1,1,0,0,0],
-            [1,1,1,1,1,1,0,0]])
+            [1,1,1,1,1,1,0,0]]).T
 
         result = instance.get_surface_mask()
         self.assertTrue((reference_result == result).all())
