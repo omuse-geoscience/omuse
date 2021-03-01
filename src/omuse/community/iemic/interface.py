@@ -564,7 +564,7 @@ class iemic(InCodeComponentImplementation):
         n = self.get_parameter("Ocean->THCM->Global Grid-Size n")
         m = self.get_parameter("Ocean->THCM->Global Grid-Size m")
 
-        indices = [(n,m,0) for m in range(0,8) for n in range(0,8)]
+        indices = [(_n,_m,0) for _m in range(0,m) for _n in range(0,n)]
         ns, ms, ls = zip(*indices)
 
         return self.get_land_mask(list(ns), list(ms), list(ls)).reshape(n, m)
