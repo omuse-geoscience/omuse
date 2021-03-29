@@ -372,7 +372,7 @@ class iemic(InCodeComponentImplementation):
         definition.add_getter( 'get_u_', names=["u_velocity"])
         definition.add_getter( 'get_v_', names=["v_velocity"])
         definition.add_getter( 'get_w_', names=["w_velocity"])
-        definition.add_getter('grid', 'get_land_mask', names=["mask"])
+        definition.add_getter( 'get_land_mask', names=["mask"])
 
         definition.define_extra_keywords({'sindex':index})
 
