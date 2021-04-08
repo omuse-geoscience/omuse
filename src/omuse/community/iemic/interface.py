@@ -151,9 +151,9 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def get_parameter_name(set_name="", param_name="", i=0):
         returns(name="")
 
-    @remote_function
+    @remote_function(must_handle_array=True)
     def get_real_pos(xIn=0,yIn=0,zIn=0):
-        returns(xOut=0.0,yOut=0.0,zOut=0.0)
+        returns(xOut=0.0 | units.rad,yOut=0.0 | units.rad,zOut=0.0 | units.m)
 
     @remote_function
     def _get_parameter_type(set_name="", param_name=""):
@@ -358,7 +358,7 @@ class iemic(InCodeComponentImplementation):
         # ocean dynamic variables p-grid: po, dpo_dt, vorticity
         handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
         handler.set_grid_range('grid', '_grid_range')
-        #~ handler.add_getter('grid', 'get_grid_position', names=["lon", "lat"])
+        handler.add_getter('grid', 'get_real_pos', names=["lon", "lat", "z"])
         handler.add_getter('grid', 'get_u', names=["u_velocity"])
         handler.add_getter('grid', 'get_v', names=["v_velocity"])
         handler.add_getter('grid', 'get_w', names=["w_velocity"])
@@ -367,8 +367,9 @@ class iemic(InCodeComponentImplementation):
 
     def _specify_grid(self, definition, index=0):
         #~ handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
+        definition.axes_names=["lon", "lat"]
         definition.set_grid_range('_grid_range')
-        #~ handler.add_getter('grid', 'get_grid_position', names=["lon", "lat"])
+        definition.add_getter( 'get_real_pos', names=["lon", "lat", "z"])
         definition.add_getter( 'get_u_', names=["u_velocity"])
         definition.add_getter( 'get_v_', names=["v_velocity"])
         definition.add_getter( 'get_w_', names=["w_velocity"])
