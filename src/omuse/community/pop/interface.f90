@@ -1870,7 +1870,7 @@ function set_shf_data_type(type_) result (ret)
   ret=0
   if (type_ == 'file')then
     shf_data_type = type_
-  elseif(type_ == 'amuse') then
+  elseif(type_ == 'amuse' .or. type_ == 'analytic') then
     shf_data_type = type_
     shf_formulation = 'restoring' 
     shf_interp_freq = 'every-timestep'
@@ -1910,12 +1910,7 @@ function set_sfwf_data_type(type_) result (ret)
   ret=0
   if (type_ == 'file')then
     shf_data_type = type_
-  elseif(type_ == 'amuse') then
-    sfwf_data_type = type_
-    sfwf_formulation = 'restoring' 
-    sfwf_interp_freq = 'every-timestep'
-    sfwf_interp_type = 'linear'
-  elseif(type_ == 'analytic') then
+  elseif(type_ == 'amuse' .or. type_ == 'analytic') then
     sfwf_data_type = type_
     sfwf_formulation = 'restoring' 
     sfwf_interp_freq = 'every-timestep'
