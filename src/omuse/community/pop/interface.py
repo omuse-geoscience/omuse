@@ -97,12 +97,12 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     @remote_function(must_handle_array=True)
     def get_node_surface_state(i=0,j=0):
         returns (ssh=0. | units.cm, vx=0. | units.cm / units.s,     \
-                 vy=0. | units.cm / units.s, gradx=0.  | units.cm**2, \
-                 grady=0. | units.cm**2)
+                 vy=0. | units.cm / units.s, gradx=0.  | units.s**-1, \
+                 grady=0. | units.s**-1)
 
     @remote_function(must_handle_array=True)
     def set_node_surface_state(i=0,j=0, ssh=0. | units.cm, \
-                               gradx=0.  | units.cm**2, grady=0. | units.cm**2):
+                               gradx=0.  | units.s**-1, grady=0. | units.1**-1):
         returns ()
 
     @remote_function(must_handle_array=True)
