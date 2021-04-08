@@ -1875,8 +1875,6 @@ function set_shf_data_type(type_) result (ret)
     shf_formulation = 'restoring' 
     shf_interp_freq = 'every-timestep'
     shf_interp_type = 'linear'
-  elseif(type_ == 'amuse') then
-    shf_data_type = type_
   else
     ret=-1
   endif
