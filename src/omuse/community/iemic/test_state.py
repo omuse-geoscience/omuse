@@ -183,6 +183,19 @@ class iemicStateTests(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
+    def test7(self):
+        instance = iemic(redirection="none")
+        print(instance.parameters)
+
+        x = instance.get_state()
+        
+        lm=instance.get_surface_mask()
+        print(lm)
+        
+        instance.cleanup_code()
+        instance.stop()
+        
+
 
 if __name__=="__main__":
-    iemicStateTests().test6()
+    iemicStateTests().test7()

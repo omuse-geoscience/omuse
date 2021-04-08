@@ -1,0 +1,25 @@
+include support/__init__.py
+include support/setup_codes.py
+include support/version.py
+include support/classifiers.py
+include pyproject.toml
+
+recursive-include src *
+recursive-exclude src *.pyc *.o *~ .pc ccache *.a *.orig iemic_worker
+recursive-exclude src fort.* *.h5 *h5.bak worker_code.*
+recursive-exclude src/omuse/community/iemic/data *
+recursive-exclude src/omuse/community/iemic/src/opt *
+recursive-exclude src/omuse/community/iemic/src/i-emic/.git *
+recursive-exclude src/omuse/community/iemic/src/i-emic/.github *
+recursive-exclude src/omuse/community/iemic/src/i-emic/build *
+recursive-exclude src/omuse/community/iemic/src/i-emic/data *
+recursive-exclude src/omuse/community/iemic/src/i-emic/doc *
+recursive-exclude src/omuse/community/iemic/src/i-emic/legacy *
+recursive-exclude src/omuse/community/iemic/src/i-emic/matlab *
+recursive-exclude src/omuse/community/iemic/src/i-emic/notes *
+recursive-exclude src/omuse/community/iemic/src/i-emic/parameterfiles *
+recursive-exclude src/omuse/community/iemic/src/i-emic/run *
+recursive-exclude src/omuse/community/iemic/src/i-emic/scripts *
+recursive-exclude src/omuse/community/iemic/src/i-emic/test *
+recursive-exclude src/omuse/community/iemic/src/jdqzpp/.git *
+recursive-exclude src/omuse/community/iemic/src/jdqzpp/build *

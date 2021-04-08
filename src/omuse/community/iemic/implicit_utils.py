@@ -29,6 +29,8 @@ def newtoncorrector(interface, par, ds, x, x0, l, l0, tol):
     zeta = 1 / x.length()
     delta = 1e-6
 
+    print("ds, l, l0, tol:", ds, l, l0, tol)
+
     # Do the main iteration
     for k in range(maxit):
         # Set the parameter value and compute F (RHS of 2.2.9)
@@ -62,13 +64,14 @@ def newtoncorrector(interface, par, ds, x, x0, l, l0, tol):
         l = l + dl
 
         dxnorm = dx.norm()
+        print(k,dxnorm)
         if dxnorm < tol:
             print('Newton corrector converged in %d steps with norm %e' % (k, dxnorm))
             return (x, l)
 
-    print('No convergence achieved by Newton corrector')
+    raise Exception('No convergence achieved by Newton corrector')
 
-def continuation(interface, x0, par_name, target, ds, maxit):
+def continuation(interface, x0, par_name, target, ds, maxit, tol=1.e-4):
     x = x0
 
     # Get the initial tangent (2.2.5 - 2.2.7). 'l' is called mu in Erik's thesis.
@@ -86,7 +89,8 @@ def continuation(interface, x0, par_name, target, ds, maxit):
     # Scaling of the initial tangent (2.2.7)
     dl = 1
     zeta = 1 / x.length()
-    nrm = sqrt(zeta * dx.dot(dx) + dl**2)
+    nrm = sqrt( zeta*dx.dot(dx) + dl**2)
+    print("nrm, zeta:", nrm, zeta, dx.norm())
     dl = dl / nrm
     dx = dx / nrm
 
@@ -103,7 +107,7 @@ def continuation(interface, x0, par_name, target, ds, maxit):
         x = x0 + ds * dx0
 
         # Corrector (2.2.9 and onward)
-        x2, l2 = newtoncorrector(interface, par_name, ds, x, x0, l, l0, 1e-4)
+        x2, l2 = newtoncorrector(interface, par_name, ds, x, x0, l, l0, tol)
 
         print("%s:" % par_name, l2)
 
@@ -112,7 +116,7 @@ def continuation(interface, x0, par_name, target, ds, maxit):
             # use Newton to converge)
             l = target;
             interface.set_parameter(par_name, l);
-            x = newton(interface, x, 1e-4);
+            x = newton(interface, x, tol);
 
             return x
 
@@ -122,8 +126,8 @@ def continuation(interface, x0, par_name, target, ds, maxit):
         dx = x2 - x0
         x = x2
 
-        if abs(dl) < 1e-10:
-            return
+        if abs(dl) < 1e-16:
+            return x
 
         # Compute the tangent (2.2.4)
         dx0 = dx / ds
