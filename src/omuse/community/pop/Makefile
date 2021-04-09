@@ -30,7 +30,7 @@ FS_FLAGS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
 CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 
 POPREPO=https://github.com/nlesc-smcm/eSalsa-POP
-POPREPOBRANCH=spinup_benchmark
+POPREPOBRANCH=master
 
 
 .PHONY: all download src_%/lib
