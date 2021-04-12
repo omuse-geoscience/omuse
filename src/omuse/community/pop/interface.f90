@@ -111,7 +111,7 @@ function initialize_code() result(ret)
   allocate(KMT_G(nx_global,ny_global))
 
   if (errorCode /= POP_Success) then
-    ret=-1
+    ret=-2
   else
     ret=0
   endif
@@ -189,7 +189,7 @@ function commit_parameters() result(ret)
   call initialize_global_grid
 
   if (errorCode /= POP_Success) then
-    ret=-1
+    ret=-2
   endif
 end function
 
@@ -221,7 +221,11 @@ function evolve_model(tend) result(ret)
     if (check_KE(100.0_r8)) then
       call override_time_flag(fstop_now,value=.true.)
       call output_driver(errorCode)
-      call exit_POP(sigAbort,'ERROR: k.e. > 100 ')
+      if (my_task == master_task) then
+        write(6,*) 'aborting evolve because Ek > 100 '  
+        ret=-11
+        return
+      endif
     endif
 
     !-----------------------------------------------------------------------
@@ -236,7 +240,7 @@ function evolve_model(tend) result(ret)
   if (errorCode == POP_Success) then
     ret=0
   else
-    ret=-1
+    ret=-2
   endif
 end function
 

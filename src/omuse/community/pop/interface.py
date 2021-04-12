@@ -747,7 +747,10 @@ class POP(CommonCode):
         object.add_setter('elements3d', 'set_element3d_density', names = ('rho',))
 
 
-
+    def define_errorcodes(self, handler):
+        handler.add_errorcode(-1, "interface function returned -1, general error")
+        handler.add_errorcode(-2, "POP internal error")
+        handler.add_errorcode(-11, "evolve model aborted due to runaway kinetic energy, Ek>100")
 
     def define_parameters(self, object):
         object.add_method_parameter(
