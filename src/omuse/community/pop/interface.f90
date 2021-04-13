@@ -1970,6 +1970,12 @@ function get_ws_data_type(type_) result (ret)
   type_ = ws_data_type
   ret=0
 end function
+function set_ws_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: type_
+  ws_data_type=trim(type_)
+  ret=0
+end function
 function set_ws_monthly_file(filename) result (ret)
   integer :: ret
   character (char_len), intent(in) :: filename

@@ -472,7 +472,10 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns (filename='s')
     @remote_function
     def get_ws_data_type():
-        returns (type='s')
+        returns (type_='s')
+    @remote_function
+    def set_ws_data_type(type_='s'):
+        returns ()
     @remote_function
     def set_ws_monthly_file(filename='s'):
         returns ()
@@ -963,7 +966,7 @@ class POP(CommonCode):
         )
         object.add_method_parameter(
             "get_ws_data_type",
-            "",
+            "set_ws_data_type",
             "windstress_forcing",
             "Setting for surface wind stress forcing",
             default_value = 'none'
