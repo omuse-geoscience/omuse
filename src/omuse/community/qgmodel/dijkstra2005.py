@@ -31,7 +31,7 @@ def sample_run(Nx=128,Ny=128,Reynolds_number=50.,wind_sigma=1.,dtplot=24.| units
 
   U_dijkstra=1.6e-2 | units.m/units.s   # mentioned in paper
   U=(T/(beta0*rho0*H*L)) # actual derived from parameters
-  print "actual, target U:", U.in_(units.m/units.s), U_dijkstra
+  print("actual, target U:", U.in_(units.m/units.s), U_dijkstra)
     
   A_H=U*L/Reynolds_number
   
@@ -41,9 +41,9 @@ def sample_run(Nx=128,Ny=128,Reynolds_number=50.,wind_sigma=1.,dtplot=24.| units
   
   timescale=1/(beta0*L)
   
-  print "timescale:", timescale.in_(units.s)
-  print
-  print qg.parameters 
+  print("timescale:", timescale.in_(units.s))
+  print()
+  print(qg.parameters)
   raw_input()
 
   qg.commit_parameters()
@@ -63,8 +63,8 @@ def sample_run(Nx=128,Ny=128,Reynolds_number=50.,wind_sigma=1.,dtplot=24.| units
     qg.evolve_model(tend)
     psi=qg.grid.psi[:,:,0]
 
-    print qg.model_time.in_(units.day),(psi.max()/L).in_(units.km/units.hour), \
-      (psi.min()/L).in_(units.km/units.hour)
+    print(qg.model_time.in_(units.day),(psi.max()/L).in_(units.km/units.hour), \
+      (psi.min()/L).in_(units.km/units.hour))
   
     f.clf()
     
