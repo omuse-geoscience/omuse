@@ -10,10 +10,9 @@ from nose.tools import nottest
 default_options=dict(redirection="none", channel="sockets")
 
 class CDORemapperTests(TestWithMPI):
-    
     def test1(self):
         r = CDORemapper(**default_options)
-        print r
+        print(r)
         r.stop()
 
 
@@ -34,6 +33,3 @@ class CDORemapperTests(TestWithMPI):
         self.assertEquals(r.state_machine._current_state.name, 'RUN')
 
         r.stop()
-
-
-
