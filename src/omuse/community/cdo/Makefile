@@ -15,7 +15,7 @@ CODELIB = $(CODE)/src/.libs/libcdo.a $(CODE)/src/libcdo-cdolib.a
 
 CDILIB = $(CODE)/libcdi/src/.libs/libcdi.a
 
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
+CODE_GENERATOR:=amusifier
 
 all: remapper_worker
 
@@ -57,6 +57,12 @@ remapper_worker: worker_code.o $(CODELIB) $(OBJS)
 
 .cc.o: $<
 	$(MPICXX) $(CXXFLAGS) -c -o $@ $<
+
+%.o: %.cc
+	$(MPICXX) $(CXXFLAGS) -c -o $@ $<
+
+%.o: %.c
+	$(MPICC) $(CXXFLAGS) -c -o $@ $<
 
 src_original:
 	$(error copy the patched source to src_original first)

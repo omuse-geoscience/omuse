@@ -1,14 +1,11 @@
+all: lib/libfishpack.a testfishpack
 
-include make.inc
-
-all: libfishpack testfishpack
-
-libfishpack:
+lib/libfishpack.a:
 	mkdir -p ./lib
 	mkdir -p ./objs
 	( cd ./src; $(MAKE) clean; $(MAKE) )
 
-testfishpack:
+testfishpack: lib/libfishpack.a
 	( cd ./test; $(MAKE) clean; $(MAKE) )
 
 clean:
