@@ -1,0 +1,95 @@
+name: omuse-ci
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest ]
+        python: [ 3.8 ]
+        java: [ 1.8 ]
+        gfortran: [ gfortran-9, gfortran-10 ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Determine temp directory
+      id: get_temp
+      run: |
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          echo "::set-output name=TMPDIR::$TMPDIR"
+        else
+          echo "::set-output name=TMPDIR::/tmp/"
+        fi
+
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get install gfortran libopenblas-dev libhdf5-openmpi-dev libgsl0-dev cmake libfftw3-3 libfftw3-dev libmpfr6 libmpfr-dev libnetcdf-dev libnetcdff-dev
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install openmpi gcc
+        echo "OMPI_FC=${FC}" >> $GITHUB_ENV
+      env:
+        FC: ${{ matrix.gfortran }}
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install numpy scipy matplotlib docutils mpi4py pytest pytest-timeout
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Build sdists
+      run: |
+        cd packages
+        ./generate_packages.sh
+        cd ..
+        # Ignore the umbrella package for now
+        rm packages/dist/omuse-`python support/version.py`.tar.gz
+
+    - name: Install omuse-framework
+      run: |
+        pip install packages/dist/omuse-framework-`python support/version.py`.tar.gz
+        rm packages/dist/omuse-framework-`python support/version.py`.tar.gz
+      env:
+        FC: ${{ matrix.gfortran }}
+
+    - name: Install omuse packages
+      run: |
+        for pkg in packages/dist/*.tar.gz; do
+          PKG_NAME="${pkg#packages/dist/}"
+          PKG_NAME="${PKG_NAME%.tar.gz}"
+          echo "::group::${PKG_NAME}"
+          pip install --no-clean $pkg
+          rm -rf "${TEMP_DIR}"/pip-*/
+          echo "::endgroup::"
+        done
+      env:
+        DOWNLOAD_CODES: 1
+        TEMP_DIR: ${{ steps.get_temp.outputs.TMPDIR }}
+
+    - name: Archive pip failure output
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: build-logs
+        path: ${{ steps.get_temp.outputs.TMPDIR }}/pip-*/build.log
