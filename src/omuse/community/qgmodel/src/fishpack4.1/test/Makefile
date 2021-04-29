@@ -10,7 +10,7 @@ $(EXES) : $(SRC)
 
 %.exe : %.f
 	rm -f $@
-	$(FC) $< -o $@ -L../lib -l fishpack
+	$(FC) $(FCFLAGS) $< -o $@ -L../lib -l fishpack
 	./$@
 
 
