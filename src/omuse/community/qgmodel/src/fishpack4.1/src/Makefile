@@ -10,7 +10,7 @@ OBJS=$(addprefix ../objs/,$(OBJ))
 	$(AR) -rv $@ $? 
 
 ../objs/%.o : %.f
-	$(FC) -c $< -o $@
+	$(FC) $(FCFLAGS) -c $< -o $@
 
 clean:
 	rm -f ../lib/libfishpack.a $(OBJS)
