@@ -1,5 +1,6 @@
 MPIFC ?= mpif90
-FORTRAN= $(FC)
+FORTRAN=$(FC)
+FCFLAGS+=-std=legacy
 ifneq (,$(findstring gfortran, $(notdir $(FORTRAN))))
 FISHPACK_FLAGS += -fdefault-real-8 
 export FISHPACK_FLAGS
@@ -9,7 +10,7 @@ endif
 
 ifeq ($(findstring ifort, $(notdir $(FORTRAN))), ifort)
 # ifort flags
-LDFLAGS  += -lm -mkl 
+LDFLAGS  += -lm -mkl
 FCFLAGS += -mkl -I./include
 CODEOBJS = beta.o d_Poisson_2D_f.o  main.o  vis_bot.o  chi.o \
   jacobian.o vis_lat.o

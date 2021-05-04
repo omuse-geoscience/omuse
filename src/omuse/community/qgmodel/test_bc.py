@@ -50,7 +50,7 @@ def test1():
   psi2=interface_bc(tend)
     
   d=abs(psi2-psi1)
-  print d.max(),d.mean(),abs(psi1).max()
+  print(d.max(),d.mean(),abs(psi1).max())
   
   pyplot.ion()
   f=pyplot.figure(figsize=(12,4))
@@ -100,15 +100,15 @@ def semi_domain_test(tend=1. | units.hour,dt=3600. | units.s):
     q1.evolve_model(tnow+dt)
     q2.evolve_model(tnow+dt)
 
-#  print q1.grid[(Nx+1)/2,1,0].dpsi_dt
-#  print q2.boundaries("west")[0:2,0,0].x
+#  print(q1.grid[(Nx+1)/2,1,0].dpsi_dt)
+#  print(q2.boundaries("west")[0:2,0,0].x)
     if i%5==0:  
       psi1_complete=q1.grid.psi.number[:,:,0]
       psi1=q1.grid[:(Nx+1)/2,:,0].psi.number
       psi2=q2.grid[:,:,0].psi.number
     
       d=abs(psi2-psi1)
-      print d.max(),d.mean(),abs(psi1).max()
+      print(d.max(),d.mean(),abs(psi1).max())
         
       f.clf()
       f1=pyplot.subplot(131)
@@ -162,15 +162,15 @@ def semi_domain_test_interpolation(tend=1. | units.hour,dt=3600. | units.s):
     q1.evolve_model(tnow+dt)
     q2.evolve_model(tnow+dt)
 
-#  print q1.grid[(Nx+1)/2,1,0].dpsi_dt
-#  print q2.boundaries("west")[0:2,0,0].x
+#  print(q1.grid[(Nx+1)/2,1,0].dpsi_dt)
+#  print(q2.boundaries("west")[0:2,0,0].x)
     if i%5==0:  
       psi1_complete=q1.grid.psi.number[:,:,0]
       psi1=q1.grid[:(Nx+1)/2,:,0].psi.number
       psi2=q2.grid[:,:,0].psi.number
     
       d=abs(psi2-psi1)
-      print d.max(),d.mean(),abs(psi1).max()
+      print(d.max(),d.mean(),abs(psi1).max())
         
       f.clf()
       f1=pyplot.subplot(131)
@@ -226,15 +226,15 @@ def semi_domain_test_multires(tend=1. | units.hour,dt=3600. | units.s):
     q1.evolve_model(tnow+dt)
     q2.evolve_model(tnow+dt)
 
-#  print q1.grid[(Nx+1)/2,1,0].dpsi_dt
-#  print q2.boundaries("west")[0:2,0,0].x
+#  print(q1.grid[(Nx+1)/2,1,0].dpsi_dt)
+#  print(q2.boundaries("west")[0:2,0,0].x)
     if i%5==0:  
       psi1_complete=q1.grid.psi.number[:,:,0]
       psi1=q1.grid[:(Nx+1)/2,:,0].psi.number
       psi2=q2.grid[:,:,0].psi.number
     
 #      d=abs(psi2-psi1)
-#      print d.max(),d.mean(),abs(psi1).max()
+#      print(d.max(),d.mean(),abs(psi1).max())
         
       f.clf()
       f1=pyplot.subplot(131)
@@ -289,9 +289,9 @@ def test_evolve_w_plot(sysfac,tend=1. | units.hour,dt=3600. | units.s,dtplot=Non
     pyplot.draw()
     pyplot.savefig("test_bc.png")
     if i%100==25: 
-      print "wait"
+      print("wait")
       raw_input()
-  print "done"
+  print("done")
   raw_input()
 
 def no_refinement(dt=3600. | units.s): # east refers to direction of the boundary

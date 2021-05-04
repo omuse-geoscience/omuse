@@ -448,7 +448,7 @@ class TestQGmodel(TestWithMPI):
         Lx=instance.parameters.Lx/2
         instance.parameters.Lx=Lx
         instance2=QGmodel(redirection="none")
-        print instance.parameters.copy()
+        print(instance.parameters.copy())
         instance2.parameters.reset_from_memento(instance.parameters)
         self.assertEqual(instance2.parameters.Lx,Lx)
         instance.stop()

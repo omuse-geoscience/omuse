@@ -16,9 +16,9 @@ def low_level():
 
   q=QGmodelInterface(redirection="none")
   
-  print 1
+  print(1)
   q.initialize_code()
-  print 2
+  print(2)
   
   q.set_Lx(4.e6)
   q.set_Ly(4.e6)
@@ -27,14 +27,14 @@ def low_level():
   q.set_dt(1800)
   
   q.commit_parameters()
-  print 3
+  print(3)
   
   q.initialize_grid()
-  print 4
+  print(4)
   
   q.evolve_model(86400.)
-  print 5
-  print q.get_time()
+  print(5)
+  print(q.get_time())
   
   x,y=numpy.mgrid[0:400,0:400]
   
@@ -45,7 +45,7 @@ def low_level():
   
   psi=psi.reshape((400,400))
   
-  print psi.shape
+  print(psi.shape)
   pyplot.imshow(psi)
   
   pyplot.show()
@@ -76,7 +76,7 @@ def high_level():
 
   U_dijkstra=1.6e-2 | units.m/units.s
   U=(T/(beta0*rho0*H*L)) 
-  print "actual, target U:", U.in_(units.m/units.s), U_dijkstra
+  print("actual, target U:", U.in_(units.m/units.s), U_dijkstra)
   
   
   Reynolds_number=1.
@@ -87,8 +87,8 @@ def high_level():
   
   timescale=1/(beta0*L)
   
-  print "timescale:", timescale.in_(units.s)
-  print qg.parameters 
+  print("timescale:", timescale.in_(units.s))
+  print(qg.parameters)
 
   qg.commit_parameters()
   
@@ -106,7 +106,7 @@ def high_level():
     qg.evolve_model(tend)
     psi=qg.grid.psi[:,:,0]
 
-    print qg.model_time.in_(units.day),psi.max(),psi.min()
+    print(qg.model_time.in_(units.day),psi.max(),psi.min())
   
     pyplot.imshow(psi.transpose()/psi.max(),vmin=0,vmax=1,origin="lower")
 

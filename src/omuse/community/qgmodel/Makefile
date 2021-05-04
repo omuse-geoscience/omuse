@@ -7,7 +7,7 @@ MPIFC ?= mpif90
 FORTRAN=$(FC)
 
 ifneq (,$(findstring gfortran, $(notdir $(FORTRAN))))
-FISHPACK_FLAGS = -fdefault-real-8 
+FISHPACK_FLAGS = -fdefault-real-8
 export FISHPACK_FLAGS
 LDFLAGS  += -L./src/fishpack4.1/lib/ -lfishpack
 FCFLAGS += -fno-automatic
@@ -23,9 +23,9 @@ OBJS = interface.o
 
 CODELIB = src/libqgmodel.a
 
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
+CODE_GENERATOR:=amusifier
 
-all: qgmodel_worker 
+all: qgmodel_worker
 
 clean:
 	$(RM) -f *.so *.o *.pyc *.mod worker_code.cc worker_code.h 
