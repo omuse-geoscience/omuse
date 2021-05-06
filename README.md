@@ -40,10 +40,11 @@ packages:
 
 #### AMUSE developer install ####
 
-If you want to also have a developer install for AMUSE you should take care that you install the amuse-framework package:
+OMUSE depends on the "amuse-framework" package, and the instructions above will install this automatically from pypi. 
+If you want to also have a developer install (from the repository source) for AMUSE you should take care that you install the amuse-framework package:
 
 - clone the AMUSE [repository](https://github.com/amusecode/amuse): `git clone https://github.com/amusecode/amuse`
-- go into the amuse-framework package directory `cd amuse/packages/amuse-framework` directory
+- go into the amuse-framework package directory: `cd amuse/packages/amuse-framework`
 - do the developer install from here: `pip install -e .` 
 
 ### Documentation ###
