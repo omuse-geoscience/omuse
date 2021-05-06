@@ -13,7 +13,7 @@ This repository contains the source tree for OMUSE.
 Easiest way is to use a pip developer install:
 
 - setup a python environment, e.g. using virtualenv, and activate it.
-- (optional, see instructions below) first do a develop install of [AMUSE](http://www.amusecode.org), 
+- (optional, see instructions [below](https://github.com/omuse-geoscience/omuse/blob/master/README.md#amuse-developer-install)) first do a develop install of [AMUSE](http://www.amusecode.org), 
 - clone this repository: `git clone https://github.com/omuse-geoscience/omuse`,
 - go into the source directory `cd omuse` and set the environment variable `DOWNLOAD_CODES`, e.g. `export DOWNLOAD_CODES=latest`.
 - then do `pip install -e .` from the root of the package
