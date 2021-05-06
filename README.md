@@ -13,14 +13,14 @@ This repository contains the source tree for OMUSE.
 Easiest way is to use a pip developer install:
 
 - setup a python environment, e.g. using virtualenv, and activate it.
-- (optional, see instructions [below](https://github.com/omuse-geoscience/omuse/blob/master/README.md#amuse-developer-install)) first do a develop install of [AMUSE](http://www.amusecode.org), 
-- clone this repository: `git clone https://github.com/omuse-geoscience/omuse`,
+- optionally (see instructions [below](https://github.com/omuse-geoscience/omuse/blob/master/README.md#amuse-developer-install)) first do a develop install of [AMUSE](http://www.amusecode.org), 
+- clone the OMUSE repository: `git clone https://github.com/omuse-geoscience/omuse`,
 - go into the source directory `cd omuse` and set the environment variable `DOWNLOAD_CODES`, e.g. `export DOWNLOAD_CODES=latest`.
-- then do `pip install -e .` from the root of the package
-- Then type `python setup.py build_codes --inplace` to build the codes. 
-- The file `build.log` will report errors in the build process.
+- now, do `pip install -e .` from the root of the package
+- type `python setup.py build_codes --inplace` to build the codes. 
+- the file `build.log` will report any errors in the build process.
 
-The community codes of OMUSE can be build manually by going into ea:
+The community codes of OMUSE can be build manually by going into each directory:
 
  + src/omuse/community/adcirc
  + src/omuse/community/swan
