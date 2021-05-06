@@ -12,9 +12,10 @@ This repository contains the source tree for OMUSE.
 
 Easiest way is to use a pip developer install:
 
-- setup a python environment, e.g. using virtualenv,
-- (optional) first do a develop install of [AMUSE](http://www.amusecode.org), 
-- Set the environment variable `DOWNLOAD_CODES` to `latest`.
+- setup a python environment, e.g. using virtualenv, and activate it.
+- (optional, see instructions below) first do a develop install of [AMUSE](http://www.amusecode.org), 
+- clone this repository: `git clone https://github.com/omuse-geoscience/omuse`,
+- go into the source directory `cd omuse` and set the environment variable `DOWNLOAD_CODES`, e.g. `export DOWNLOAD_CODES=latest`.
 - then do `pip install -e .` from the root of the package
 - Then type `python setup.py build_codes --inplace` to build the codes. 
 - The file `build.log` will report errors in the build process.
@@ -36,6 +37,14 @@ packages:
  + matplotlib basemap
  + netCDF and netCDF for fortran and the python bindings
  + GRIB_API
+
+#### AMUSE developer install ####
+
+If you want to also have a developer install for AMUSE you should take care that you install the amuse-framework package:
+
+- clone the AMUSE [repository](https://github.com/amusecode/amuse): `git clone https://github.com/amusecode/amuse`
+- go into the amuse-framework package directory `cd amuse/packages/amuse-framework` directory
+- do the developer install from here: `pip install -e .` 
 
 ### Documentation ###
 
