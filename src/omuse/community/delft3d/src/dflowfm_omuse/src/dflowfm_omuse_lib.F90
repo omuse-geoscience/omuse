@@ -29,6 +29,11 @@ module dflowfm_omuse_lib
   use mpi
 #endif
 
+  USE M_GRID
+  USE M_BOAT
+  use unstruc_display, only: jareinitialize
+  use m_netw
+  
   use hashMod
 
   implicit none
@@ -294,12 +299,11 @@ contains
 
   end function
 
-  function initialize_dflowfm(config_file) result(ret)    
-     character(len=*) :: config_file
+  function initialize_dflowfm_core(init_petsc) result(ret)    
   
      ! Extra local variables
      integer :: inerr, ret  ! number of the initialisation error
-     logical :: mpi_initd
+     logical :: mpi_initd, init_petsc
   
   !~    integer(c_int), target, allocatable, save :: x(:,:)
   !~    type(c_ptr) :: xptr
@@ -341,6 +345,27 @@ contains
      call init_core()
   
      CALL INIDAT()
+
+     
+#ifdef HAVE_PETSC
+     if(init_petsc) call startpetsc()
+#endif
+
+     ! Just terminate if we get an error....
+     if (inerr > 0) ret=-1
+
+  end function
+
+
+  function initialize_dflowfm_config(config_file) result(ret)    
+     character(len=*) :: config_file
+  
+     ! Extra local variables
+     integer :: inerr, ret  ! number of the initialisation error  
+     integer :: i,j,k
+      
+     ret = 0 
+
      call api_loadmodel(config_file)
   
      !PETSC must be called AFTER reading the mdu file, so the icgsolver option is known to startpetsc 

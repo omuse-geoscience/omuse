@@ -16,7 +16,11 @@ contains
     use dflowfm_omuse_lib
     integer :: ret
     
-    ret=initialize_dflowfm(input_configfile)
+    ret=initialize_dflowfm_core(.FALSE.)
+
+    if(ret.NE.0) return
+    
+    ret=initialize_dflowfm_config(input_configfile)
 
     if(ret.NE.0) return
     

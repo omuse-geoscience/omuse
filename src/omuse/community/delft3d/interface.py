@@ -1,7 +1,9 @@
+from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.rfi.core import CodeInterface
 from amuse.support.interface import InCodeComponentImplementation
 from amuse.support.parameter_tools import CodeWithIniFileParameters
-from amuse.rfi.core import legacy_function,remote_function
+from amuse.rfi.core import legacy_function,remote_function,LegacyFunctionSpecification
+from amuse.rfi.tools.fortran_tools import FortranCodeGenerator
 from amuse import datamodel
 
 from omuse.units import units
@@ -374,3 +376,43 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
                       ]:
             handler.add_method('PARAM', method)
 
+
+
+partitioner_parameters={
+    "filename" : dict(short="fnam", dtype="string", default="omuse", description="filename", ptype="simple"),
+    "number_of_subdomains" : dict(short="md_Ndomains", dtype="int32", default=3, description="number of subdomains, Metis (>0) or polygon (0)", ptype="simple"),
+    "contiguous_domains" : dict(short="md_jacontiguous", dtype="int32", default=0, description="contiguous domains, Metis (1) or not (0)", ptype="simple"),
+    "intended_solver" : dict(short="md_icgsolver", dtype="int32", default=6, description="intended solver 6: PETSc (recommended), 7: parallel GS+CG", ptype="simple"),
+    "partition_method" : dict(short="md_pmethod", dtype="int32", default=0, description="Partition method, 0=recursive bisection, 1=K-way", ptype="simple"),
+    "dry_points_file" : dict(short="md_dryptsfile", dtype="string", default="none", description="optional dry points file", ptype="simple"),
+    "enclosure_file" : dict(short="md_encfile", dtype="string", default="none", description="optional enclosure file to clip outer parts from the grid .pol", ptype="simple"),
+    "generate_polygon_file" : dict(short="md_genpolygon", dtype="int32", default=0, description="make partition file (1) or not (0)", ptype="simple"),
+    }
+
+code_generator_partitioner=FortranCodeGenerator(partitioner_parameters)
+
+class PartitionerInterface(CommonCodeInterface, CodeInterface):
+
+    use_modules=["partitioner_omuse"]
+
+    def __init__(self, **keyword_arguments):
+        CodeInterface.__init__(self, name_of_the_worker="partitioner_worker", **keyword_arguments)
+
+    exec(code_generator_partitioner.generate_interface_functions())
+
+    @remote_function
+    def do_partition():
+      returns ()
+
+class Partitioner(CommonCode, InCodeComponentImplementation):
+
+    def __init__(self, **options):
+        InCodeComponentImplementation.__init__(self,  PartitionerInterface(**options), **options)
+
+    def define_parameters(self, handler):
+        code_generator_partitioner.generate_parameter_definitions(handler)
+
+    def define_state(self, handler):
+        CommonCode.define_state(self,handler)
+        handler.add_method("RUN", "do_partition")
+        handler.add_transition('INITIALIZED', 'RUN', 'commit_parameters')
