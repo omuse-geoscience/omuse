@@ -1,2 +1,2 @@
 [build-system]
-requires = [ "setuptools", "wheel", "amuse-framework" ]
+requires = [ "setuptools>=42.0.0", "setuptools_scm", "wheel", "amuse-framework" ]
