@@ -1,2 +1,5 @@
 [build-system]
-requires = [ "setuptools", "wheel", "amuse-framework" ]
+requires = [ "setuptools>=42.0.0", "setuptools_scm", "pip>=19.0.0", "wheel", "amuse-framework" ]
+
+[tool.setuptools_scm]
+write_to = "src/omuse/version.py"

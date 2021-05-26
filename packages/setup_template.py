@@ -1,30 +1,23 @@
+#!/usr/bin/env python3
 import sys
-import os
 
-from setuptools import setup, find_packages
+name = sys.argv[1]
+setupstring = '''#!/usr/bin/env python3
+from support.classifiers import classifiers
+from setuptools import setup
 import support
 support.use("system")
 support.set_package_name("omuse")
 from support.setup_codes import setup_commands
-from support.classifiers import classifiers
-
-name = 'omuse-framework'
-author = 'The Amuse/ Omuse Team'
+name = 'omuse-{name_lowercase}'
+author = 'The AMUSE/OMUSE team'
 author_email = 'info@amusecode.org'
 license_ = "Apache License 2.0"
 url = 'https://github.com/omuse-geoscience/omuse'
 install_requires = [
-    'wheel>=0.32',
-    'docutils>=0.6',
-    'numpy>=1.2.2',
-    'nose>=0.11.1',
-    'mpi4py>=1.1.0',
-    'h5py>=1.1.0',
-    'amuse-framework>=2021.3.1',
-    'netCDF4>=1.4.0',
-    'f90nml>=1.0.0'
+    'omuse-framework',
 ]
-description = 'The Oceanographic Multi-purpose Software Environment: base framework '
+description = 'The Oceanographic Multi-purpose Software Environment - {name}'
 with open("README.md", "r") as fh:
     long_description = fh.read()
 long_description_content_type = "text/markdown"
@@ -33,25 +26,26 @@ extensions = []
 
 all_data_files = []
 
-packages = find_packages('src', exclude=["omuse.community.*"])
+packages = [
+    'omuse.community.{name_lowercase}',
+]
+package_data = {{
+}}
 
-package_data = {
-}
-
-mapping_from_command_name_to_command_class=setup_commands()
+mapping_from_command_name_to_command_class = setup_commands()
 
 try:
-    from src.omuse.version import version
+    from src.omuse.community.{name_lowercase}.version import version
     use_scm_version = False
     setup_requires = []
 except ImportError:
     version = False
     setup_requires = ['setuptools_scm']
-    use_scm_version = {
+    use_scm_version = {{
         "root": "../..",
         "relative_to": __file__,
-        "write_to": "src/omuse/version.py",
-    }
+        "write_to": "src/omuse/community/{name_lowercase}/version.py",
+    }}
 
 setup(
     name=name,
@@ -66,13 +60,14 @@ setup(
     long_description=long_description,
     long_description_content_type=long_description_content_type,
     install_requires=install_requires,
-    #~ extras_require = {
-        #~ "MPI" : ["mpi4py>=1.1.0"]
-    #~ },
+    python_requires=">=3.5",
     cmdclass=mapping_from_command_name_to_command_class,
     ext_modules=extensions,
-    package_dir = {'': 'src'},
+    package_dir={{
+        'omuse.community.{name_lowercase}': 'src/omuse/community/{name_lowercase}',
+    }},
     packages=packages,
     package_data=package_data,
     data_files=all_data_files,
-)
+)'''
+print(setupstring.format(name=name, name_lowercase=name.lower()))
