@@ -48,3 +48,6 @@ class RemoteStateVector(object):
         return self.grid[index]
     def __str__(self):
         return self.interface._to_str(self._id)
+    @property
+    def size(self):
+        return self.interface._length(self._id)

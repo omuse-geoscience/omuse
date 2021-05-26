@@ -466,7 +466,15 @@ class iemic(InCodeComponentImplementation):
         self._get_rhs(state._id, result._id)
         return result
 
-    def solve(self, state):
+    def solve(self, *arg):
+        if len(arg)==2:
+            jac, state=arg
+            if jac is not None:
+                raise Exception("solve only supports internal interface jacobian with jac=None")
+        elif len(arg)==1:
+            state=arg[0]
+        else:
+            raise Exception("unsupported solve")
         result=self.new_state()
         self._solve(state._id, result._id)
         return result
