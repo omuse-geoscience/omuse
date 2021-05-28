@@ -1,3 +1,2 @@
 [build-system]
-requires = [ "setuptools", "wheel", "omuse-framework" ]
-
+requires = [ "setuptools>=42.0.0", "wheel", "omuse-framework" ]
