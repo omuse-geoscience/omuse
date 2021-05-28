@@ -6,7 +6,6 @@ import support
 support.use("system")
 support.set_package_name("omuse")
 from support.setup_codes import setup_commands
-from support.version import version
 from support.classifiers import classifiers
 
 name = 'omuse-framework'
@@ -21,7 +20,7 @@ install_requires = [
     'nose>=0.11.1',
     'mpi4py>=1.1.0',
     'h5py>=1.1.0',
-    'amuse-framework>=13.1.0',
+    'amuse-framework>=2021.3.1',
     'netCDF4>=1.4.0',
     'f90nml>=1.0.0'
 ]
@@ -41,9 +40,23 @@ package_data = {
 
 mapping_from_command_name_to_command_class=setup_commands()
 
+try:
+    from src.omuse.version import version
+    use_scm_version = False
+    setup_requires = []
+except ImportError:
+    version = False
+    setup_requires = ['setuptools_scm']
+    use_scm_version = {
+        "root": "../..",
+        "relative_to": __file__,
+        "write_to": "src/omuse/version.py",
+    }
+
 setup(
     name=name,
-    version=version,
+    use_scm_version=use_scm_version,
+    setup_requires=setup_requires,
     classifiers=classifiers,
     url=url,
     author_email=author_email,
