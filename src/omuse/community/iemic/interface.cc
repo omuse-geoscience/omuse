@@ -8,12 +8,13 @@
 
 #include "Ocean.H"
 #include "Continuation.H"
+#include "TRIOS_Domain.H"
 #include "Utils.H"
 
 #include <cstdint>
 #include <map>
 
-//#include "interface.hpp"
+#include "interface.hpp"
 #include "paramset.hpp"
 
 namespace
@@ -28,14 +29,16 @@ enum class Parameter : unsigned char
 #pragma GCC diagnostic ignored "-Wglobal-constructors"
 #pragma GCC diagnostic ignored "-Wexit-time-destructors"
 std::map<std::string, ParamSet> parameter_sets = {
-    { "ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) },
-    { "continuation", ParamSet("OMUSE Continuation Parameters", ParamSet::tag<Continuation<RCP<Ocean>>>()) }
+    { "Ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) },
+    { "Continuation", ParamSet("OMUSE Continuation Parameters", ParamSet::tag<Continuation<RCP<Ocean>>>()) }
 };
 
 RCP<Epetra_Comm> comm;
 RCP<Ocean> ocean;
 RCP<Continuation<RCP<Ocean>>> continuation;
 std::ofstream devNull("/dev/null");
+std::ofstream logStream("/dev/stdout");
+std::ofstream outStream("/dev/stdout");
 #pragma GCC diagnostic pop
 
 std::string resultString = "";
@@ -44,7 +47,7 @@ int state_count=0;
 map<int, RCP<Epetra_Vector>> states;
 map<int, RCP<Epetra_Vector>> matrices;
 
-int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
+int32_t get_param(RCP<Epetra_Vector> state, Parameter param, int *i, int *j, int *k, double *var, int n)
 {
     auto paramCount = static_cast<size_t>(Parameter::count);
     auto N = ocean->getNdim();
@@ -52,7 +55,7 @@ int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
     auto L = ocean->getLdim();
     auto paramOffset = static_cast<unsigned char>(param);
 
-    auto gvec = AllGather(*ocean->state_);
+    auto gvec = AllGather(*state);
     auto vec = gvec->operator()(0);
 
     for (int x = 0; x < n; x++) {
@@ -64,6 +67,32 @@ int32_t get_param(Parameter param, int *i, int *j, int *k, double *var, int n)
     }
     return 0;
 }
+}
+
+int32_t set_log_file(char *filepath)
+{
+    try {
+        std::ofstream logFile(filepath);
+        logStream.swap(logFile);
+        return 0;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t set_output_file(char *filepath)
+{
+    try {
+        std::ofstream newOutFile(filepath);
+        outStream.swap(newOutFile);
+        return 0;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
 }
 
 int32_t _new_state(int *id)
@@ -94,27 +123,43 @@ int32_t _copy_state(int src, int target)
   return 0;
 }
 
+int32_t _to_str(int src, char **out)
+{
+  if(! states.count(src)) return -1;
+  std::ostringstream ss;
+  states[src]->Print(ss);
+  resultString = ss.str();
+  *out = const_cast<char*>(resultString.c_str());
+  return 0;
+}
+
+int32_t _get_model_state(int target)
+{
+  if(! states.count(target)) return -1;
+  *states[target]=*ocean->getState('V');
+  return 0;
+}
+
 int32_t _set_model_state(int src)
 {
   if(! states.count(src)) return -1;
-  ocean->getState('V')=states[src];
+  *ocean->getState('V') = *states[src];
   return 0;
 }
 
 int32_t _get_rhs(int src, int target)
 {
   if(! states.count(src) || ! states.count(target)) return -1;
-  RCP<Epetra_Vector> org=ocean->getState('V');
-  ocean->getState('V')=states[src];
-  *states[target]=*ocean->getRHS();
-  ocean->getState('V')=org;
+  _set_model_state(src);
+  ocean->computeRHS();
+  *states[target] = *ocean->getRHS('V');
   return 0;
 }
 
-int32_t _add_state(int src1, int src2)
+int32_t _update_state(int src1, int src2, double scal)
 {
   if(! states.count(src1) || ! states.count(src2)) return -1;
-  states[src1]->Update(1.0, *states[src2], 1.0);
+  states[src1]->Update(scal, *states[src2], 1.0);
   return 0;
 }
 
@@ -126,41 +171,104 @@ int32_t _mul_state(int src, double x)
 }
 
 int32_t _get_state_norm(int state, double *val)
-{ 
+{
   if(! states.count(state)) return -1;
-  *val=Utils::norm(states[state]);
-  return 0; 
+  *val=norm(states[state]);
+  return 0;
+}
+
+int32_t _dot(int src1, int src2, double *val)
+{
+  if(! states.count(src1) || ! states.count(src2)) return -1;
+  *val = dot(states[src1], states[src2]);
+  return 0;
+}
+
+int32_t _length(int state, int *val)
+{
+  if(! states.count(state)) return -1;
+  *val = states[state]->GlobalLength();
+  return 0;
 }
 
 int32_t _solve(int rhs, int target)
-{ 
+{
   if(! states.count(rhs) || ! states.count(target)) return -1;
   ocean->solve(states[rhs]);
-  states[target]=ocean->getSolution('C');
-  return 0; 
+  *states[target]=*ocean->getSolution('V');
+  return 0;
 }
 
 int32_t _jacobian(int src)
-{ 
+{
   if(! states.count(src)) return -1;
-  ocean->getState('V')=states[src];
+  _set_model_state(src);
   ocean->computeJacobian();
-  return 0; 
+  return 0;
 }
 
+int32_t _jacobian_with_mass_matrix(int src, double sigma)
+{
+  if(! states.count(src)) return -1;
+  _set_model_state(src);
+  ocean->computeJacobian();
+
+  if (sigma == 0.0)
+      return 0;
+
+  int ret = 0;
+
+  ocean->computeMassMat();
+  Teuchos::RCP<const Epetra_Vector> diagB = ocean->getMassMat('V');
+
+  // Get the number of local elements in the matrix
+  int numMyElements = ocean->getJacobian()->Map().NumMyElements();
+
+  // Get a list of the global element IDs owned by the calling proc
+  int *myGlobalElements = ocean->getJacobian()->Map().MyGlobalElements();
+
+  // Add to the Jacobian the values B[i] on the diagonal.
+  // The result is J + sigma * B.
+  double value;
+  for (int i = 0; i != numMyElements; ++i)
+  {
+      value = sigma * (*diagB)[i];
+      ret = ocean->getJacobian()->SumIntoGlobalValues(
+          myGlobalElements[i], 1,
+          &value, myGlobalElements + i);
+  }
+  if (!ret)
+    ret = ocean->getJacobian()->FillComplete();
+  return ret;
+}
+
+int32_t _apply_mass_matrix(int rhs, int target)
+{
+  if(! states.count(rhs) || ! states.count(target)) return -1;
+  ocean->applyMassMat(*states[rhs], *states[target]);
+  return 0;
+}
+
+int32_t _get_psi_m(int src, double *psi_min, double *psi_max)
+{
+  if(! states.count(src)) return -1;
+  _set_model_state(src);
+  ocean->getPsiM(*psi_min, *psi_max);
+  return 0;
+}
 
 
 int32_t initialize()
 {
     try {
         comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
-        outFile = rcpFromRef(std::cout);
+        outFile = rcpFromRef(outStream);
         cdataFile = rcpFromRef(devNull);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -168,23 +276,15 @@ int32_t initialize()
 
 int32_t commit_parameters()
 {
-    using ContinuationType = Continuation<RCP<Ocean>>;
-
     try {
-        ocean = rcp(new Ocean(comm, parameter_sets.at("ocean").get()));
-        ocean->setPar("Combined Forcing", 0.0);
+        ocean = rcp(new Ocean(comm, parameter_sets.at("Ocean").commit()));
         ocean->getState('V')->PutScalar(0.0);
-
-    //~ auto grid = ocean->getGlobalGrid();
-    //~ auto grid=ocean->getDomain()->GetGlobalGrid();
-    
-    //~ std::cout<<(-4000.)*(*grid)[2][15]<<std::endl;    
 
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -195,12 +295,12 @@ int32_t commit_continuation_parameters()
     using ContinuationType = Continuation<RCP<Ocean>>;
 
     try {
-        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("continuation").get()));
+        continuation = rcp(new ContinuationType(ocean, parameter_sets.at("Continuation").commit()));
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -208,7 +308,38 @@ int32_t commit_continuation_parameters()
 
 
 int32_t recommit_parameters()
-{ return 1; }
+{
+    auto& ocean_params = parameter_sets.at("Ocean");
+    try {
+        ocean->setParameters(ocean_params.updates());
+        ocean_params.update_committed_parameters(ocean->getParameters());
+
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t recommit_continuation_parameters()
+{
+    auto& continuation_params = parameter_sets.at("Continuation");
+    try {
+        continuation->setParameters(continuation_params.updates());
+        continuation_params.update_committed_parameters(continuation->getParameters());
+
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
 
 int32_t initialize_code()
 { return 0; }
@@ -251,27 +382,14 @@ int32_t test_grid(char *fileName)
     return result;
 }
 
-int32_t step()
-{
-    try {
-        return continuation->step();
-    } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
-    } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
-    }
-
-    return -1;
-}
-
-int32_t run_continuation()
+int32_t step_continuation()
 {
     try {
         return continuation->run();
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -279,29 +397,110 @@ int32_t run_continuation()
 
 int32_t cleanup_code()
 {
+    states.clear();
+    matrices.clear();
     continuation = Teuchos::null;
     ocean = Teuchos::null;
     comm = Teuchos::null;
     return 0;
 }
 
+int32_t
+_load_xml_parameters(char *param_set_name, char *path)
+{
+    try {
+        auto& paramSet = parameter_sets.at(param_set_name);
+        paramSet.load_from_file(path);
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t save_xml_parameters(char *param_set_name, char *path)
+{
+    try {
+        auto& paramSet = parameter_sets.at(param_set_name);
+        paramSet.save_to_file(path);
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t get_land_mask(int *n, int *m, int *l, int *var, int count)
+{
+    try {
+        const auto& mask = ocean->getLandMask();
+
+        for (int i = 0; i < count; i++) {
+            int idx = n[i]
+                    + (mask.n * m[i])
+                    + (mask.n * mask.m * l[i]);
+
+            if (idx >= mask.global_borderless->size()) {
+                logStream << "Out of bounds access in land mask!" << std::endl;
+                return -1;
+            }
+
+            var[i] = mask.global_borderless->operator[](idx);
+        }
+
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
 int32_t get_u(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::u, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::u, i, j, k, var, n); }
 
 int32_t get_v(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::v, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::v, i, j, k, var, n); }
 
 int32_t get_w(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::w, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::w, i, j, k, var, n); }
 
 int32_t get_p(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::p, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::p, i, j, k, var, n); }
 
 int32_t get_t(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::t, i, j, k, var, n); }
+{ return get_param(ocean->state_,Parameter::t, i, j, k, var, n); }
 
 int32_t get_s(int *i, int *j, int *k, double *var, int n)
-{ return get_param(Parameter::s, i, j, k, var, n); }
+{ return get_param(ocean->state_, Parameter::s, i, j, k, var, n); }
+
+// variants for any state
+int32_t get_u_(int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::u, i, j, k, var, n); }
+
+int32_t get_v_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::v, i, j, k, var, n); }
+
+int32_t get_w_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::w, i, j, k, var, n); }
+
+int32_t get_p_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::p, i, j, k, var, n); }
+
+int32_t get_t_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex],Parameter::t, i, j, k, var, n); }
+
+int32_t get_s_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return get_param(states[*sindex], Parameter::s, i, j, k, var, n); }
+
 
 int32_t get_nrange(int *_min, int *_max)
 {
@@ -344,9 +543,9 @@ int32_t get_parameter_set_name(int i, char **name)
 
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -358,9 +557,9 @@ int32_t get_num_parameters(char *param_set_name, char *param_name, int *_num)
         *_num = parameter_sets.at(param_set_name).get_num_params(param_name);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
@@ -375,223 +574,231 @@ get_parameter_name(char *param_set_name, char *param_name, int i, char **name)
         *name = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
-int32_t get_parameter_type(char *param_set_name, char *param_name, char **name)
+int32_t _get_parameter_type(char *param_set_name, char *param_name, char **name)
 {
     try {
         resultString = parameter_sets.at(param_set_name).get_param_type(param_name);
         *name = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-get_bool_parameter(char *param_set_name, char *param_name, bool *result)
+_get_bool_parameter(char *param_set_name, char *param_name, bool *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.get_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-set_bool_parameter(char *param_set_name, char *param_name, bool val)
+_set_bool_parameter(char *param_set_name, char *param_name, bool val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.set_param_value(param_name, val);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-get_default_bool_parameter(char *param_set_name, char *param_name, bool *result)
+_get_default_bool_parameter(char *param_set_name, char *param_name, bool *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.get_default_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-get_char_parameter(char *param_set_name, char *param_name, char *result)
+_get_char_parameter(char *param_set_name, char *param_name, char **result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        char paramValue;
+        paramset.get_param_value(param_name, paramValue);
+        resultString.clear();
+        resultString.push_back(paramValue);
+        *result = const_cast<char*>(resultString.c_str());
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+_set_char_parameter(char *param_set_name, char *param_name, char *val)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        paramset.set_param_value(param_name, *val);
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+_get_default_char_parameter(char *param_set_name, char *param_name, char **result)
+{
+    try {
+        auto& paramset = parameter_sets.at(param_set_name);
+        char paramValue;
+        paramset.get_default_param_value(param_name, paramValue);
+        resultString.clear();
+        resultString.push_back(paramValue);
+        *result = const_cast<char*>(resultString.c_str());
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t
+_get_double_parameter(char *param_set_name, char *param_name, double *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.get_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-set_char_parameter(char *param_set_name, char *param_name, char val)
+_set_double_parameter(char *param_set_name, char *param_name, double val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.set_param_value(param_name, val);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-get_default_char_parameter(char *param_set_name, char *param_name, char *result)
+_get_default_double_parameter(char *param_set_name, char *param_name, double *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.get_default_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-get_double_parameter(char *param_set_name, char *param_name, double *result)
+_get_int_parameter(char *param_set_name, char *param_name, int *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.get_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-set_double_parameter(char *param_set_name, char *param_name, double val)
+_set_int_parameter(char *param_set_name, char *param_name, int val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.set_param_value(param_name, val);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-get_default_double_parameter(char *param_set_name, char *param_name, double *result)
+_get_default_int_parameter(char *param_set_name, char *param_name, int *result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.get_default_param_value(param_name, *result);
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-get_int_parameter(char *param_set_name, char *param_name, int *result)
-{
-    try {
-        auto& paramset = parameter_sets.at(param_set_name);
-        paramset.get_param_value(param_name, *result);
-        return 0;
-    } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
-    } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
-    }
-
-    return -1;
-}
-
-int32_t
-set_int_parameter(char *param_set_name, char *param_name, int val)
-{
-    try {
-        auto& paramset = parameter_sets.at(param_set_name);
-        paramset.set_param_value(param_name, val);
-        return 0;
-    } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
-    } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
-    }
-
-    return -1;
-}
-
-int32_t
-get_default_int_parameter(char *param_set_name, char *param_name, int *result)
-{
-    try {
-        auto& paramset = parameter_sets.at(param_set_name);
-        paramset.get_default_param_value(param_name, *result);
-        return 0;
-    } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
-    } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
-    }
-
-    return -1;
-}
-
-int32_t
-get_string_parameter(char *param_set_name, char *param_name, char **result)
+_get_string_parameter(char *param_set_name, char *param_name, char **result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -599,32 +806,32 @@ get_string_parameter(char *param_set_name, char *param_name, char **result)
         *result = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-set_string_parameter(char *param_set_name, char *param_name, char *val)
+_set_string_parameter(char *param_set_name, char *param_name, char *val)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
         paramset.set_param_value(param_name, std::string(val));
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t
-get_default_string_parameter(char *param_set_name, char *param_name, char **result)
+_get_default_string_parameter(char *param_set_name, char *param_name, char **result)
 {
     try {
         auto& paramset = parameter_sets.at(param_set_name);
@@ -632,20 +839,29 @@ get_default_string_parameter(char *param_set_name, char *param_name, char **resu
         *result = const_cast<char*>(resultString.c_str());
         return 0;
     } catch (const std::exception& exc) {
-        std::cout << exc.what() << std::endl;
+        logStream << exc.what() << std::endl;
     } catch (...) {
-        std::cout << "Encountered unexpected C++ exception!" << std::endl;
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
     }
 
     return -1;
 }
 
 int32_t get_state_norm(double *val)
-{ 
-  *val=Utils::norm(ocean->getState('V'));
-  return 0; 
+{
+  *val=norm(ocean->getState('V'));
+  return 0;
 }
 
+int32_t get_real_pos(int *xIn, int *yIn, int *zIn, double *xOut, double *yOut, double *zOut, int count)
+{
+    for(int i = 0; i < count; i++){
+        xOut[i] = ocean->getDomain()->GetGlobalGrid().getXposCenter(xIn[i]);
+        yOut[i] = ocean->getDomain()->GetGlobalGrid().getYposCenter(yIn[i]);
+        zOut[i] = ocean->getDomain()->GetGlobalGrid().getZposCenter(zIn[i]);
+    }
+    return 0;
+}
 
 
 // norm rhs (cont)

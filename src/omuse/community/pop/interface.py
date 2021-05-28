@@ -96,11 +96,22 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     ##getters for node and element state
     @remote_function(must_handle_array=True)
     def get_node_surface_state(i=0,j=0):
-        returns (ssh=0. | units.cm, vx=0. | units.cm / units.s, vy=0. | units.cm / units.s)
+        returns (ssh=0. | units.cm, vx=0. | units.cm / units.s,     \
+                 vy=0. | units.cm / units.s, gradx=0.  | units.s**-1, \
+                 grady=0. | units.s**-1)
+
+    @remote_function(must_handle_array=True)
+    def set_node_surface_state(i=0,j=0, ssh=0. | units.cm, \
+                               gradx=0.  | units.s**-1, grady=0. | units.s**-1):
+        returns ()
 
     @remote_function(must_handle_array=True)
     def get_node_barotropic_vel(i=0,j=0):
         returns (vx_barotropic=0. | units.cm / units.s, vy_barotropic=0. | units.cm / units.s)
+
+    @remote_function(must_handle_array=True)
+    def set_node_barotropic_vel(i=0,j=0,vx_barotropic=0. | units.cm / units.s, vy_barotropic=0. | units.cm / units.s):
+        returns ()
 
     @remote_function(must_handle_array=True)
     def get_element_surface_state(i=0,j=0):
@@ -433,6 +444,9 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     #forcing options
     @remote_function
+    def set_shf_data_type(option='s'):
+        returns ()
+    @remote_function
     def get_shf_filename():
         returns (filename='s')
     @remote_function
@@ -440,6 +454,9 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns (type='s')
     @remote_function
     def set_shf_monthly_file(filename='s'):
+        returns ()
+    @remote_function
+    def set_sfwf_data_type(option='s'):
         returns ()
     @remote_function
     def get_sfwf_filename():
@@ -455,7 +472,10 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns (filename='s')
     @remote_function
     def get_ws_data_type():
-        returns (type='s')
+        returns (type_='s')
+    @remote_function
+    def set_ws_data_type(type_='s'):
+        returns ()
     @remote_function
     def set_ws_monthly_file(filename='s'):
         returns ()
@@ -520,7 +540,9 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'set_topography_option')
         object.add_method('INITIALIZED', 'set_topography_file')
 
+        object.add_method('INITIALIZED', 'set_shf_data_type')
         object.add_method('INITIALIZED', 'set_shf_monthly_file')
+        object.add_method('INITIALIZED', 'set_sfwf_data_type')
         object.add_method('INITIALIZED', 'set_sfwf_monthly_file')
         object.add_method('INITIALIZED', 'set_ws_monthly_file')
 
@@ -596,6 +618,8 @@ class POP(CommonCode):
             object.add_method(state, 'get_element3d_density')
 
         object.add_method('EDIT', 'set_node_coriolis_f')
+        object.add_method('EDIT', 'set_node_barotropic_vel')
+        object.add_method('EDIT', 'set_node_surface_state')
         object.add_method('EDIT', 'set_node3d_velocity_xvel')
         object.add_method('EDIT', 'set_node3d_velocity_yvel')
         object.add_method('EDIT', 'set_element3d_temperature')
@@ -683,8 +707,10 @@ class POP(CommonCode):
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
-        object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy'))
+        object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy','gradx','grady'))
         object.add_getter('nodes', 'get_node_barotropic_vel', names=('vx_barotropic','vy_barotropic'))
+        object.add_setter('nodes', 'set_node_surface_state', names=('ssh','gradx','grady'))
+        object.add_setter('nodes', 'set_node_barotropic_vel', names=('vx_barotropic','vy_barotropic'))
 
         object.define_grid('nodes3d')
         object.set_grid_range('nodes3d', 'get_firstlast_grid3d')
@@ -724,14 +750,17 @@ class POP(CommonCode):
         object.add_setter('elements3d', 'set_element3d_density', names = ('rho',))
 
 
-
+    def define_errorcodes(self, handler):
+        handler.add_errorcode(-1, "interface function returned -1, general error")
+        handler.add_errorcode(-2, "POP internal error")
+        handler.add_errorcode(-11, "evolve model aborted due to runaway kinetic energy, Ek>100")
 
     def define_parameters(self, object):
         object.add_method_parameter(
             "get_horiz_grid_option",
             "set_horiz_grid_option",
             "horiz_grid_option",
-            "Option for horizontal grid should be either \'internal\' or \'file\'",
+            "Option for horizontal grid should be either \'internal\', \'amuse\' or \'file\'",
             default_value = 'internal'
         )
         object.add_method_parameter(
@@ -921,21 +950,23 @@ class POP(CommonCode):
 
         object.add_method_parameter(
             "get_shf_data_type",
-            "",
+            "set_shf_data_type",
             "surface_heat_flux_forcing",
-            "Setting for surface heat flux",
+            "Option for surface heat flux should be either \'analytic\', \'amuse\' or \'file\'",
+            ##"Setting for surface heat flux",
             default_value = 'none'
         )
         object.add_method_parameter(
             "get_sfwf_data_type",
-            "",
+            "set_sfwf_data_type",
             "surface_freshwater_flux_forcing",
-            "Setting for surface freshwater flux forcing",
+            "Options for surface salinity flux should be either \'analytic\', \'amuse\' or \'file\'",
+            #"Setting for surface freshwater flux forcing",
             default_value = 'none'
         )
         object.add_method_parameter(
             "get_ws_data_type",
-            "",
+            "set_ws_data_type",
             "windstress_forcing",
             "Setting for surface wind stress forcing",
             default_value = 'none'

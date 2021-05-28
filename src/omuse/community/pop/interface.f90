@@ -22,15 +22,16 @@ module pop_interface
   use domain, only: distrb_clinic, nprocs_clinic, nprocs_tropic, clinic_distribution_type, &
          tropic_distribution_type, ew_boundary_type, ns_boundary_type
   use forcing_fields, only: SMF, SMFT, lsmft_avail, STF
-  use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, shf_interp_freq, shf_interp_type
+  use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, &
+                         shf_formulation, shf_interp_freq, shf_interp_type!, shf_restore_tau
   use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, ws_data_update, ws_interp_freq, ws_interp_type, &
       ws_interp_next, ws_interp_last, ws_interp_inc
-  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_interp_freq, sfwf_interp_type, fwf_imposed
+  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
   use operators, only: wcalc
-  use prognostic, only: TRACER, PSURF, UVEL, VVEL, UBTROP, VBTROP, RHO, curtime
+  use prognostic, only: TRACER, PSURF, PGUESS, GRADPX, GRADPY, UVEL, VVEL, UBTROP, VBTROP, RHO, curtime, oldtime, newtime
   use restart, only: restart_freq_opt, restart_freq, restart_outfile
   use tavg, only: tavg_freq_opt, tavg_freq, tavg_outfile
   use movie, only: movie_freq_opt, movie_freq, movie_outfile
@@ -39,6 +40,7 @@ module pop_interface
 !   use time_management, only: get_time_flag_id, check_time_flag, &
 !       nsteps_run, stdout, exit_pop, override_time_flag
   use step_mod, only: step
+  use state_mod, only: state
   use diagnostics, only: check_KE
   use output, only: output_driver
   use exit_mod, only: sigAbort, sigExit
@@ -105,10 +107,11 @@ function initialize_code() result(ret)
   call POP_Initialize0(errorCode)
 
 ! always allocate
+!do same for horizontal grid(allocate first, deallocate if not amuse)
   allocate(KMT_G(nx_global,ny_global))
 
   if (errorCode /= POP_Success) then
-    ret=-1
+    ret=-2
   else
     ret=0
   endif
@@ -131,6 +134,9 @@ function commit_parameters() result(ret)
   if(topography_opt.NE.'amuse') then
     deallocate(KMT_G) ! will be reallocated later
   endif
+  !if(horiz_grid_opt.EQ.'amuse') then
+  !  allocate (ULAT_G(nx_global, ny_global), &
+  !            ULON_G(nx_global, ny_global))
 
   call POP_Initialize(errorCode)
 
@@ -183,7 +189,7 @@ function commit_parameters() result(ret)
   call initialize_global_grid
 
   if (errorCode /= POP_Success) then
-    ret=-1
+    ret=-2
   endif
 end function
 
@@ -215,7 +221,11 @@ function evolve_model(tend) result(ret)
     if (check_KE(100.0_r8)) then
       call override_time_flag(fstop_now,value=.true.)
       call output_driver(errorCode)
-      call exit_POP(sigAbort,'ERROR: k.e. > 100 ')
+      if (my_task == master_task) then
+        write(6,*) 'aborting evolve because Ek > 100 '  
+        ret=-11
+        return
+      endif
     endif
 
     !-----------------------------------------------------------------------
@@ -230,7 +240,7 @@ function evolve_model(tend) result(ret)
   if (errorCode == POP_Success) then
     ret=0
   else
-    ret=-1
+    ret=-2
   endif
 end function
 
@@ -806,16 +816,37 @@ function get_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
 
   ret=0
 end function
-function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_, n) result (ret)
+function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(out) :: ssh_, uvel_, vvel_
+  real*8, dimension(n), intent(in) :: uvel_, vvel_
+
+  if (n < nx_global*ny_global) then
+    call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
+    call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
+    call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
+    call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
+  else
+    !call get_gather(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
+    !call get_gather(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
+  endif
+
+  ret=0
+end function
+function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_,gradx_,grady_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_, uvel_, vvel_, gradx_, grady_
 
   if (n < nx_global*ny_global) then
     call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+    call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
+    call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     ssh_ = ssh_ / grav
-
+    gradx_ = gradx_ / grav
+    grady_ = grady_ / grav
     call get_gridded_variable_vector(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gridded_variable_vector(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   else
@@ -823,6 +854,28 @@ function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_, n) result (ret)
     ssh_ = ssh_ / grav
     call get_gather(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gather(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
+  endif
+
+  ret=0
+end function
+function set_node_surface_state(g_i, g_j, ssh_, gradx_, grady_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(in) :: ssh_, gradx_, grady_
+
+  if (n < nx_global*ny_global) then
+    call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+    call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
+    call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
+    call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+    call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
+    call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
+    PSURF=PSURF*grav
+    GRADPX=GRADPX*grav
+    GRADPY=GRADPY*grav
+
+    PGUESS=PSURF(:,:,1,:)
   endif
 
   ret=0
@@ -1052,7 +1105,6 @@ function set_KMT(g_i,g_j, KMT_, n) result(ret)
   integer :: i,ret,n
   integer, dimension(n), intent(in) :: g_i, g_j
   integer, dimension(n), intent(in) :: KMT_
-
   do i=1,n
       KMT_G(g_i(i), g_j(i))=KMT_(i)
   enddo
@@ -1139,6 +1191,7 @@ function set_element3d_temperature(i, j, k, temp_, n) result (ret)
   real*8, dimension(n), intent(in) :: temp_
 
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
+  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,oldtime,:), temp_, n)
 
   ret=0
 end function
@@ -1160,6 +1213,7 @@ function set_element3d_salinity(i, j, k, salt_, n) result (ret)
   real*8, dimension(n), intent(in) :: salt_
 
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
+  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,oldtime,:), salt_, n)
 
   ret=0
 end function
@@ -1182,6 +1236,7 @@ function set_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   real*8, dimension(n), intent(in) :: uvel_
 
   call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
+  call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,oldtime,:), uvel_, n)
 
   ret=0
 end function
@@ -1203,6 +1258,7 @@ function set_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   real*8, dimension(n), intent(in) :: vvel_
 
   call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
+  call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,oldtime,:), vvel_, n)
 
   ret=0
 end function
@@ -1236,6 +1292,7 @@ function set_element3d_density(i, j, k, rho_, n) result (ret)
   real*8, dimension(n), intent(in) :: rho_
 
   call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho_, n)
 
   ret=0
 end function
@@ -1335,7 +1392,7 @@ function set_horiz_grid_option(option) result (ret)
   character (char_len), intent(in) :: option
   ret=0
 
-  if (option == 'file' .OR. option == 'internal') then
+  if (option == 'file' .OR. option == 'internal' .OR. option == 'amuse') then
     horiz_grid_opt = option
   else 
     ret=-1
@@ -1811,6 +1868,21 @@ function change_directory(pathname) result (ret)
   ret=0
 end function
 
+function set_shf_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: type_
+  ret=0
+  if (type_ == 'file')then
+    shf_data_type = type_
+  elseif(type_ == 'amuse' .or. type_ == 'analytic') then
+    shf_data_type = type_
+    shf_formulation = 'restoring' 
+    shf_interp_freq = 'every-timestep'
+    shf_interp_type = 'linear'
+  else
+    ret=-1
+  endif
+end function
 
 function get_shf_filename(filename) result (ret)
   integer :: ret
@@ -1834,6 +1906,21 @@ function set_shf_monthly_file(filename) result (ret)
   ret=0
 end function
 
+function set_sfwf_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: type_
+  ret=0
+  if (type_ == 'file')then
+    shf_data_type = type_
+  elseif(type_ == 'amuse' .or. type_ == 'analytic') then
+    sfwf_data_type = type_
+    sfwf_formulation = 'restoring' 
+    sfwf_interp_freq = 'every-timestep'
+    sfwf_interp_type = 'linear'
+  else
+    ret=-1
+  endif
+end function
 function get_sfwf_filename(filename) result (ret)
   integer :: ret
   character (char_len), intent(out) :: filename
@@ -1883,6 +1970,12 @@ function get_ws_data_type(type_) result (ret)
   type_ = ws_data_type
   ret=0
 end function
+function set_ws_data_type(type_) result (ret)
+  integer :: ret
+  character (char_len), intent(in) :: type_
+  ws_data_type=trim(type_)
+  ret=0
+end function
 function set_ws_monthly_file(filename) result (ret)
   integer :: ret
   character (char_len), intent(in) :: filename
@@ -1918,6 +2011,8 @@ subroutine initialize_global_grid
     select case (horiz_grid_opt)
     case ('internal')
       call horiz_grid_internal(.true.)
+    case ('amuse')
+      call horiz_grid_amuse(.true.)
     case ('file')
       call broadcast_scalar(horiz_grid_file, master_task)
       call read_horiz_grid(horiz_grid_file,.true.)
