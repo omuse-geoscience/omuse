@@ -5,9 +5,11 @@ ifeq ($(origin AMUSE_DIR), undefined)
 endif
 -include $(AMUSE_DIR)/config.mk
 
+ifneq ($(MAKECMDGOALS),download)
 -include src/opt/include/Config.mk
+endif
 
-.PHONY: all update clean distclean
+.PHONY: all download update clean distclean
 
 export PYTHONPATH := $(PYTHONPATH):$(AMUSE_DIR)/src:$(AMUSE_DIR)/test
 CODE_GENERATOR:=amusifier
@@ -30,6 +32,8 @@ export LDFLAGS
 endif
 
 all: iemic_worker
+
+download: update
 
 update: | src/jdqzpp/ src/i-emic/
 	cd src/jdqzpp; git pull
