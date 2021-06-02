@@ -37,6 +37,7 @@ setup(
     name=name,
     use_scm_version=use_scm_version,
     setup_requires=setup_requires,
+    version=version,
     classifiers=classifiers,
     url=url,
     author_email=author_email,
