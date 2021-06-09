@@ -362,6 +362,9 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('grid', 'get_u', names=["u_velocity"])
         handler.add_getter('grid', 'get_v', names=["v_velocity"])
         handler.add_getter('grid', 'get_w', names=["w_velocity"])
+        handler.add_getter('grid', 'get_t', names=["temperature"])
+        handler.add_getter('grid', 'get_s', names=["salinity"])
+        handler.add_getter('grid', 'get_p', names=["pressure"])
         handler.add_getter('grid', 'get_land_mask', names=["mask"])
         
 
@@ -373,6 +376,9 @@ class iemic(InCodeComponentImplementation):
         definition.add_getter( 'get_u_', names=["u_velocity"])
         definition.add_getter( 'get_v_', names=["v_velocity"])
         definition.add_getter( 'get_w_', names=["w_velocity"])
+        definition.add_getter('get_t_', names=["temperature"])
+        definition.add_getter('get_s_', names=["salinity"])
+        definition.add_getter('get_p_', names=["pressure"])
         definition.add_getter( 'get_land_mask', names=["mask"])
 
         definition.define_extra_keywords({'sindex':index})
