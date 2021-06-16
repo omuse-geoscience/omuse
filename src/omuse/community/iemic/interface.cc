@@ -512,6 +512,24 @@ int32_t get_t(int *i, int *j, int *k, double *var, int n)
 int32_t get_s(int *i, int *j, int *k, double *var, int n)
 { return get_param(ocean->state_, Parameter::s, i, j, k, var, n); }
 
+int32_t set_u(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::u, i, j, k, var, n); }
+
+int32_t set_v(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::v, i, j, k, var, n); }
+
+int32_t set_w(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::w, i, j, k, var, n); }
+
+int32_t set_p(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::p, i, j, k, var, n); }
+
+int32_t set_t(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_,Parameter::t, i, j, k, var, n); }
+
+int32_t set_s(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::s, i, j, k, var, n); }
+
 // variants for any state
 int32_t get_u_(int *i, int *j, int *k, int* sindex, double *var, int n)
 { return get_param(states[*sindex], Parameter::u, i, j, k, var, n); }

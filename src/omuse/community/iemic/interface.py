@@ -100,6 +100,30 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns (var=0.)
 
     @remote_function(must_handle_array=True)
+    def set_u(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_v(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_w(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_p(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_t(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_s(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
     def get_u_(i=0, j=0, k=0, sindex=0):
         returns (var=0.)
 
@@ -129,11 +153,11 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
 
     @remote_function
     def get_mrange():
-        returns(nmin=0,nmax=0)
+        returns(mmin=0,mmax=0)
 
     @remote_function
     def get_lrange():
-        returns(nmin=0,nmax=0)
+        returns(lmin=0,lmax=0)
 
     @remote_function
     def get_num_parameter_sets():
@@ -334,7 +358,8 @@ class iemic(InCodeComponentImplementation):
                                     'recommit_parameters')
 
         ocean_methods = [
-            "get_u", "get_v", "get_w", "get_p", "get_t", "get_s", "get_nrange",
+            "get_u", "get_v", "get_w", "get_p", "get_t", "get_s", "set_u",
+            "set_v", "set_w", "set_p", "set_t", "set_s", "get_nrange",
             "get_mrange", "get_lrange", "_new_state", "_get_rhs", "_solve",
             "_jacobian", "_jacobian_with_mass_matrix", "_apply_mass_matrix",
             "_set_model_state", "get_state_norm",
