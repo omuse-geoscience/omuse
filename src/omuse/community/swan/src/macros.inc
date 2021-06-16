@@ -1,7 +1,7 @@
 # template for amuse
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
-FCFLAGS += -fno-second-underscore
+FCFLAGS += -fno-second-underscore -std=legacy
 OMPFLAG = -fopenmp
 F90FLAGS = -ffree-line-length-none
 endif

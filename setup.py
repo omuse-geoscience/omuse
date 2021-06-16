@@ -6,7 +6,6 @@ import support
 support.use("system")
 support.set_package_name("omuse")
 from support.setup_codes import setup_commands
-from support.version import version
 from support.classifiers import classifiers
 
 name = 'omuse'
@@ -43,7 +42,10 @@ mapping_from_command_name_to_command_class=setup_commands()
 
 setup(
     name=name,
-    version=version,
+    use_scm_version={
+        "write_to": "src/omuse/version.py",
+    },
+    setup_requires=['setuptools_scm'],
     classifiers=classifiers,
     url=url,
     author_email=author_email,
