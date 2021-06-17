@@ -100,6 +100,30 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns (var=0.)
 
     @remote_function(must_handle_array=True)
+    def set_u(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_v(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_w(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_p(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_t(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_s(i=0, j=0, k=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
     def get_u_(i=0, j=0, k=0, sindex=0):
         returns (var=0.)
 
@@ -123,17 +147,41 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
     def get_s_(i=0, j=0, k=0,sindex=0):
         returns (var=0.)
 
+    @remote_function(must_handle_array=True)
+    def set_u_(i=0, j=0, k=0, sindex=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_v_(i=0, j=0, k=0, sindex=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_w_(i=0, j=0, k=0, sindex=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_p_(i=0, j=0, k=0, sindex=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_t_(i=0, j=0, k=0, sindex=0, val=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def set_s_(i=0, j=0, k=0, sindex=0, val=0.):
+        returns ()
+
     @remote_function
     def get_nrange():
         returns(nmin=0,nmax=0)
 
     @remote_function
     def get_mrange():
-        returns(nmin=0,nmax=0)
+        returns(mmin=0,mmax=0)
 
     @remote_function
     def get_lrange():
-        returns(nmin=0,nmax=0)
+        returns(lmin=0,lmax=0)
 
     @remote_function
     def get_num_parameter_sets():
@@ -334,7 +382,8 @@ class iemic(InCodeComponentImplementation):
                                     'recommit_parameters')
 
         ocean_methods = [
-            "get_u", "get_v", "get_w", "get_p", "get_t", "get_s", "get_nrange",
+            "get_u", "get_v", "get_w", "get_p", "get_t", "get_s", "set_u",
+            "set_v", "set_w", "set_p", "set_t", "set_s", "get_nrange",
             "get_mrange", "get_lrange", "_new_state", "_get_rhs", "_solve",
             "_jacobian", "_jacobian_with_mass_matrix", "_apply_mass_matrix",
             "_set_model_state", "get_state_norm",
@@ -365,8 +414,13 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('grid', 'get_t', names=["temperature"])
         handler.add_getter('grid', 'get_s', names=["salinity"])
         handler.add_getter('grid', 'get_p', names=["pressure"])
+        handler.add_setter('grid', 'set_u', names=["u_velocity"])
+        handler.add_setter('grid', 'set_v', names=["v_velocity"])
+        handler.add_setter('grid', 'set_w', names=["w_velocity"])
+        handler.add_setter('grid', 'set_t', names=["temperature"])
+        handler.add_setter('grid', 'set_s', names=["salinity"])
+        handler.add_setter('grid', 'set_p', names=["pressure"])
         handler.add_getter('grid', 'get_land_mask', names=["mask"])
-        
 
     def _specify_grid(self, definition, index=0):
         #~ handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
@@ -379,6 +433,12 @@ class iemic(InCodeComponentImplementation):
         definition.add_getter('get_t_', names=["temperature"])
         definition.add_getter('get_s_', names=["salinity"])
         definition.add_getter('get_p_', names=["pressure"])
+        definition.add_setter('grid', 'set_u_', names=["u_velocity"])
+        definition.add_setter('grid', 'set_v_', names=["v_velocity"])
+        definition.add_setter('grid', 'set_w_', names=["w_velocity"])
+        definition.add_setter('grid', 'set_t_', names=["temperature"])
+        definition.add_setter('grid', 'set_s_', names=["salinity"])
+        definition.add_setter('grid', 'set_p_', names=["pressure"])
         definition.add_getter( 'get_land_mask', names=["mask"])
 
         definition.define_extra_keywords({'sindex':index})

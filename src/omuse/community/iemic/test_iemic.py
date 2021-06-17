@@ -44,32 +44,58 @@ class iemicInterfaceTests(TestWithMPI):
         err = instance.commit_parameters()
         self.assertEqual(err,0)
 
-        err = instance._set_double_parameter("Continuation", "destination 0", 1.0)
-        self.assertEqual(err,0)
-
-        err = instance.commit_continuation_parameters()
-        self.assertEqual(err,0)
-
         err = instance.initialize_code()
         self.assertEqual(err,0)
 
-        val, err = instance.get_u([0],[0],[0])
-        self.assertEqual(err,0)
+        indices = list(zip(range(instance.get_nrange()['nmax']),
+                           range(instance.get_mrange()['mmax']),
+                           range(instance.get_lrange()['lmax'])))
 
-        val, err = instance.get_v([0],[0],[0])
-        self.assertEqual(err,0)
+        value_pairs = zip(indices, range(len(indices)))
 
-        val, err = instance.get_w([0],[0],[0])
-        self.assertEqual(err,0)
+        for idx, value in value_pairs:
+            err = instance.set_u([idx[0]], [idx[1]], [idx[2]], value)
+            self.assertEqual(err,0)
 
-        val, err = instance.get_p([0],[0],[0])
-        self.assertEqual(err,0)
+            err = instance.set_v([idx[0]], [idx[1]], [idx[2]], value)
+            self.assertEqual(err,0)
 
-        val, err = instance.get_t([0],[0],[0])
-        self.assertEqual(err,0)
+            err = instance.set_w([idx[0]], [idx[1]], [idx[2]], value)
+            self.assertEqual(err,0)
 
-        val, err = instance.get_s([0],[0],[0])
-        self.assertEqual(err,0)
+            err = instance.set_p([idx[0]], [idx[1]], [idx[2]], value)
+            self.assertEqual(err,0)
+
+            err = instance.set_t([idx[0]], [idx[1]], [idx[2]], value)
+            self.assertEqual(err,0)
+
+            err = instance.set_s([idx[0]], [idx[1]], [idx[2]], value)
+            self.assertEqual(err,0)
+
+        for idx, value in value_pairs:
+            val, err = instance.get_u([idx[0]], [idx[1]], [idx[2]])
+            self.assertEqual(val,value)
+            self.assertEqual(err,0)
+
+            val, err = instance.get_v([idx[0]], [idx[1]], [idx[2]])
+            self.assertEqual(val,value)
+            self.assertEqual(err,0)
+
+            val, err = instance.get_w([idx[0]], [idx[1]], [idx[2]])
+            self.assertEqual(val,value)
+            self.assertEqual(err,0)
+
+            val, err = instance.get_p([idx[0]], [idx[1]], [idx[2]])
+            self.assertEqual(val,value)
+            self.assertEqual(err,0)
+
+            val, err = instance.get_t([idx[0]], [idx[1]], [idx[2]])
+            self.assertEqual(val,value)
+            self.assertEqual(err,0)
+
+            val, err = instance.get_s([idx[0]], [idx[1]], [idx[2]])
+            self.assertEqual(val,value)
+            self.assertEqual(err,0)
 
         err = instance.test_grid("")
         self.assertEqual(err,0)
@@ -470,3 +496,4 @@ class iemicTests(TestWithMPI):
 
         instance.cleanup_code()
         instance.stop()
+

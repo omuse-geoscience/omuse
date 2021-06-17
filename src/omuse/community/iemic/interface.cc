@@ -2,6 +2,7 @@
 #ifdef HAVE_MPI
 #include "Epetra_MpiComm.h"
 #endif
+#include <Epetra_Import.h>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -65,6 +66,35 @@ int32_t get_param(RCP<Epetra_Vector> state, Parameter param, int *i, int *j, int
                 + (paramCount * N * M * k[x]);
         var[x] = vec->operator[](idx);
     }
+    return 0;
+}
+
+int32_t set_param(RCP<Epetra_Vector> state, Parameter param, int *i, int *j, int *k, double *var, int n)
+{
+    auto paramCount = static_cast<size_t>(Parameter::count);
+    auto N = ocean->getNdim();
+    auto M = ocean->getMdim();
+    auto L = ocean->getLdim();
+    auto paramOffset = static_cast<unsigned char>(param);
+
+    const Epetra_BlockMap& map_dist = state->Map();
+
+    Teuchos::RCP<Epetra_BlockMap> map = AllGather(map_dist);
+    Teuchos::RCP<Epetra_MultiVector> gvec = Teuchos::rcp(new Epetra_Vector(*map,state->NumVectors()));
+    Teuchos::RCP<Epetra_Import> import = Teuchos::rcp(new Epetra_Import(*map,map_dist) );
+    gvec->Import(*state,*import,Insert);
+    gvec->SetLabel(state->Label());
+
+    auto vec = gvec->operator()(0);
+    for (int x = 0; x < n; x++) {
+        int idx = paramOffset
+                + (paramCount * i[x])
+                + (paramCount * N * j[x])
+                + (paramCount * N * M * k[x]);
+        vec->operator[](idx) = var[x];
+    }
+
+    state->Export(*gvec,*import,Insert);
     return 0;
 }
 }
@@ -482,6 +512,24 @@ int32_t get_t(int *i, int *j, int *k, double *var, int n)
 int32_t get_s(int *i, int *j, int *k, double *var, int n)
 { return get_param(ocean->state_, Parameter::s, i, j, k, var, n); }
 
+int32_t set_u(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::u, i, j, k, var, n); }
+
+int32_t set_v(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::v, i, j, k, var, n); }
+
+int32_t set_w(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::w, i, j, k, var, n); }
+
+int32_t set_p(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::p, i, j, k, var, n); }
+
+int32_t set_t(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_,Parameter::t, i, j, k, var, n); }
+
+int32_t set_s(int *i, int *j, int *k, double *var, int n)
+{ return set_param(ocean->state_, Parameter::s, i, j, k, var, n); }
+
 // variants for any state
 int32_t get_u_(int *i, int *j, int *k, int* sindex, double *var, int n)
 { return get_param(states[*sindex], Parameter::u, i, j, k, var, n); }
@@ -500,6 +548,24 @@ int32_t get_t_( int *i, int *j, int *k, int* sindex, double *var, int n)
 
 int32_t get_s_( int *i, int *j, int *k, int* sindex, double *var, int n)
 { return get_param(states[*sindex], Parameter::s, i, j, k, var, n); }
+
+int32_t set_u_(int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::u, i, j, k, var, n); }
+
+int32_t set_v_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::v, i, j, k, var, n); }
+
+int32_t set_w_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::w, i, j, k, var, n); }
+
+int32_t set_p_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::p, i, j, k, var, n); }
+
+int32_t set_t_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex],Parameter::t, i, j, k, var, n); }
+
+int32_t set_s_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::s, i, j, k, var, n); }
 
 
 int32_t get_nrange(int *_min, int *_max)
