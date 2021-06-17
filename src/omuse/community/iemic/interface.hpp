@@ -35,6 +35,20 @@ int32_t set_p(int *i, int *j, int *k, double *var, int n);
 int32_t set_t(int *i, int *j, int *k, double *var, int n);
 int32_t set_s(int *i, int *j, int *k, double *var, int n);
 
+int32_t get_u_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t get_v_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t get_w_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t get_p_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t get_t_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t get_s_(int *i, int *j, int *k, int* sindex, double *var, int n);
+
+int32_t set_u_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t set_v_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t set_w_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t set_p_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t set_t_(int *i, int *j, int *k, int* sindex, double *var, int n);
+int32_t set_s_(int *i, int *j, int *k, int* sindex, double *var, int n);
+
 int32_t get_num_parameter_sets(int *_num);
 int32_t get_parameter_set_name(int i, char **name);
 int32_t get_num_parameters(char *param_set_name, char *param_name, int *_num);

@@ -549,6 +549,24 @@ int32_t get_t_( int *i, int *j, int *k, int* sindex, double *var, int n)
 int32_t get_s_( int *i, int *j, int *k, int* sindex, double *var, int n)
 { return get_param(states[*sindex], Parameter::s, i, j, k, var, n); }
 
+int32_t set_u_(int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::u, i, j, k, var, n); }
+
+int32_t set_v_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::v, i, j, k, var, n); }
+
+int32_t set_w_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::w, i, j, k, var, n); }
+
+int32_t set_p_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::p, i, j, k, var, n); }
+
+int32_t set_t_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex],Parameter::t, i, j, k, var, n); }
+
+int32_t set_s_( int *i, int *j, int *k, int* sindex, double *var, int n)
+{ return set_param(states[*sindex], Parameter::s, i, j, k, var, n); }
+
 
 int32_t get_nrange(int *_min, int *_max)
 {
