@@ -70,7 +70,7 @@ endif
 
 src/i-emic/build/: src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake | src/i-emic/
 	mkdir -p $@
-	cd $@; cmake ..  -DCMAKE_INSTALL_RPATH="$(realpath src)/opt/lib" -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/" \
+	cd $@; cmake ..  -DCMAKE_INSTALL_RPATH='$(WORKER_RPATH)' -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/" \
 	    -DJDQZPP_DIR="$(realpath src)/opt/lib/cmake/JDQZPP/"
 
 IEMICLIBS:=$(LIBS:%=src/opt/lib/lib%.$(LIBEXT))
