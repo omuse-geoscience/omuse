@@ -103,6 +103,7 @@ function initialize_code() result(ret)
   integer :: ret
 
   errorCode = POP_Success
+  nml_filename="amuse.nml"
 
   call POP_Initialize0(errorCode)
 
@@ -1991,13 +1992,13 @@ function get_namelist_filename(filename) result (ret)
   integer :: ret
   character (char_len), intent(out) :: filename
   filename = nml_filename
-  ret=0
+  ret=-1
 end function
 function set_namelist_filename(filename) result (ret)
   integer :: ret
   character (char_len), intent(in) :: filename
   nml_filename = filename
-  ret=0
+  ret=-1
 end function
 
 

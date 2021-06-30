@@ -5,6 +5,8 @@ from amuse.rfi.core import legacy_function,remote_function
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
+from amuse.support.parameter_tools import CodeWithNamelistParameters
+
 
 from amuse.datamodel import StructuredGrid
 from amuse.datamodel.staggeredgrid import StaggeredGrid
@@ -65,11 +67,11 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
             #~ self.change_directory(path)
 
         if mode in [self.MODE_TEST]:
-            self.set_namelist_filename('pop_in_lowres')
+            pass
         elif mode in [self.MODE_NORMAL,self.MODE_320x384x40]:
-            self.set_namelist_filename('pop_in_lowres')
+            pass
         elif mode in [self.MODE_HIGH,self.MODE_3600x2400x42]:
-            self.set_namelist_filename('pop_in_highres')
+            pass
         else:
             raise Exception('Unknown mode')
 
@@ -503,13 +505,22 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
 
 
-class POP(CommonCode):
+class POP(CommonCode, CodeWithNamelistParameters):
 
     nprocs = 0
 
-    def __init__(self, mode = POPInterface.MODE_NORMAL, **options):
+    def __init__(self, mode = POPInterface.MODE_NORMAL, namelist_file="pop_in", **options):
+        self._nml_file=namelist_file
         self.nprocs = options.setdefault('number_of_workers', 8)
+        CodeWithNamelistParameters.__init__(self, options.get("parameters", dict()) ) 
         CommonCode.__init__(self,  POPInterface(mode = mode, **options), **options)
+        self.parameters.namelist_file = self._nml_file
+        #~ self.parameters.namelist_filename = "amuse.nml"
+
+    def configuration_file_set(self):
+        self.read_namelist_parameters(self.parameters.namelist_file, add_missing_parameters=True)
+        handler=self.get_handler('PARAMETER')
+        CodeWithNamelistParameters.define_parameters(self,handler)
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -590,14 +601,14 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'set_dt_count')
 
         #you can only edit stuff in state EDIT
-        object.add_method('INITIALIZED','before_set_parameter')
+        #~ object.add_method('INITIALIZED','before_set_parameter')
         #you can only read stuff in states RUN and EDIT
-        object.add_method('EDIT','before_get_parameter')
-        object.add_method('RUN','before_get_parameter')
-        object.add_method('INITIALIZED','before_get_parameter')
+        #~ object.add_method('EDIT','before_get_parameter')
+        #~ object.add_method('RUN','before_get_parameter')
+        #~ object.add_method('INITIALIZED','before_get_parameter')
         #setting a parameter is the only way to endup in state EDIT from RUN
-        object.add_transition('RUN','EDIT','before_set_parameter')
-        object.add_transition('RUN','EDIT_FORCINGS','before_set_parameter')
+        #~ object.add_transition('RUN','EDIT','before_set_parameter')
+        #~ object.add_transition('RUN','EDIT_FORCINGS','before_set_parameter')
 
         for state in ["RUN","EDIT"]:
             object.add_method(state, 'get_dz')
@@ -648,9 +659,11 @@ class POP(CommonCode):
         object.add_method('EDIT_FORCINGS', 'get_model_time')
         object.add_method('EVOLVED', 'get_model_time')
 
+    def initialize_code(self):
+        self.write_namelist_parameters("amuse.nml", do_patch=True)
+        self.overridden().initialize_code()
 
-
-    def commit_parameters(self):
+    def commit_parameters(self):        
         self.set_nprocs(self.nprocs)
         if self.parameters.vert_grid_option=='amuse':
             kmax=self.get_number_of_vertical_levels()
@@ -756,6 +769,15 @@ class POP(CommonCode):
         handler.add_errorcode(-11, "evolve model aborted due to runaway kinetic energy, Ek>100")
 
     def define_parameters(self, object):
+        CodeWithNamelistParameters.define_parameters(self, object)
+      
+        object.add_interface_parameter(
+            "namelist_file",
+            "configuration (namelist) file with simulation setup",
+            self._nml_file,
+            state_guard="configuration_file_set"
+        )
+
         object.add_method_parameter(
             "get_horiz_grid_option",
             "set_horiz_grid_option",
@@ -1000,13 +1022,14 @@ class POP(CommonCode):
             default_value = 0.0 | units.Sv
         )
 
-        object.add_method_parameter(
-            "get_namelist_filename",
-            "set_namelist_filename",
-            "namelist_filename",
-            "Input filename for reading the default settings, should be either pop_in_lowres or pop_in_highres",
-            default_value = 'pop_in_lowres'
-        )
+        #~ object.add_method_parameter(
+            #~ "get_namelist_filename",
+            #~ "set_namelist_filename",
+            #~ "namelist_filename",
+            #~ "Input filename used by code for reading the settings",
+            #~ default_value = 'amuse.nml'
+        #~ )
+
         object.add_interface_parameter(
             "vertical_layer_thicknesses",
             "input layer thicknesses (in case topography_opt==amuse) ",
