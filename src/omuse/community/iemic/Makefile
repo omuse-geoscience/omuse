@@ -7,6 +7,8 @@ endif
 
 ifneq ($(MAKECMDGOALS),download)
 -include src/opt/include/Config.mk
+else
+DOWNLOAD_CODES:=true
 endif
 
 .PHONY: all download update clean distclean
