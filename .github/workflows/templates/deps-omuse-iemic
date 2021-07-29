@@ -1,0 +1,11 @@
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get install gfortran libopenblas-dev libhdf5-openmpi-dev libptscotch-dev trilinos-all-dev libslicot-dev
+
+    - name: Install dependencies (MacOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew tap nlesc/nlesc
+        brew install nlesc/nlesc/trilinos nlesc/nlesc/slicot
+

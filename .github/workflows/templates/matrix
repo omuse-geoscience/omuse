@@ -1,0 +1,7 @@
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest ]
+        python: [ 3.8 ]
+        java: [ 1.8 ]
+        gfortran: [ gfortran-9, gfortran-10 ]
+
