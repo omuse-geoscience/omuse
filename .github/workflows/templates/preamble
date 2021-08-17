@@ -1,0 +1,50 @@
+name: omuse-ci
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  package:
+    outputs:
+      version: ${{ steps.sdists.outputs.VERSION }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        # Need to correctly generate version number using setuptools_scm
+        # See: https://github.com/pypa/setuptools_scm/issues/480
+        fetch-depth: 0
+
+    - name: Validate CI setup
+      run: |
+        ./generate_ci.sh validate.yml
+        diff -u validate.yml .github/workflows/omuse-ci.yml
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel setuptools_scm
+
+    - name: Build sdists
+      id: sdists
+      run: |
+        cd src/omuse/community/iemic
+        make download
+        cd ../../../../packages
+        ./generate_packages.sh
+
+        cd omuse-framework
+        echo "::set-output name=VERSION::$(python setup.py --version)"
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: sdists-${{ steps.sdists.outputs.VERSION }}
+        path: packages/dist/*.tar.gz
+

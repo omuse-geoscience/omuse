@@ -1,0 +1,13 @@
+    - name: "Install OMUSE package: PKG_NAME"
+      run: |
+        pip install --no-clean --pre --find-links dist/ PKG_NAME
+        rm -rf "${TEMP_DIR}"/pip-*/
+      env:
+        TEMP_DIR: ${{ steps.get_temp.outputs.TMPDIR }}
+
+    - name: Archive pip failure output
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: build-logs
+        path: ${{ steps.get_temp.outputs.TMPDIR }}/pip-*/
