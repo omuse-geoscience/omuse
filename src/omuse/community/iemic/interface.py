@@ -148,27 +148,27 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns (var=0.)
 
     @remote_function(must_handle_array=True)
-    def set_u_(i=0, j=0, k=0, sindex=0, val=0.):
+    def set_u_(i=0, j=0, k=0, val=0., sindex=0):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_v_(i=0, j=0, k=0, sindex=0, val=0.):
+    def set_v_(i=0, j=0, k=0, val=0., sindex=0):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_w_(i=0, j=0, k=0, sindex=0, val=0.):
+    def set_w_(i=0, j=0, k=0, val=0., sindex=0):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_p_(i=0, j=0, k=0, sindex=0, val=0.):
+    def set_p_(i=0, j=0, k=0, val=0., sindex=0):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_t_(i=0, j=0, k=0, sindex=0, val=0.):
+    def set_t_(i=0, j=0, k=0, val=0., sindex=0):
         returns ()
 
     @remote_function(must_handle_array=True)
-    def set_s_(i=0, j=0, k=0, sindex=0, val=0.):
+    def set_s_(i=0, j=0, k=0, val=0., sindex=0):
         returns ()
 
     @remote_function
