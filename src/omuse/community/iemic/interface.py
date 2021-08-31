@@ -352,6 +352,10 @@ class iemic(InCodeComponentImplementation):
         handler.add_transition('INITIALIZED', 'OCEAN-PARAM-CONTINUATION-NOPARAM',
                                 'commit_parameters')
 
+        handler.add_transition('!UNINITIALIZED!STOPPED', 'END', 'cleanup_code')
+        handler.add_transition('END', 'STOPPED', 'stop', False)
+        handler.add_method('STOPPED', 'stop')
+
         handler.add_transition('INITIALIZED', 'INITIALIZED', 'set_ocean_transition')
         handler.add_transition('INITIALIZED', 'INITIALIZED', 'set_continuation_transition')
 
