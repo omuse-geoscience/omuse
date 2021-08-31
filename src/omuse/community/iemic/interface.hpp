@@ -49,6 +49,14 @@ int32_t set_p_(int *i, int *j, int *k, int* sindex, double *var, int n);
 int32_t set_t_(int *i, int *j, int *k, int* sindex, double *var, int n);
 int32_t set_s_(int *i, int *j, int *k, int* sindex, double *var, int n);
 
+// variants for forcings
+int32_t get_u_forcing(int *i, int *j, int *k, double *var, int n);
+int32_t get_v_forcing(int *i, int *j, int *k, double *var, int n);
+int32_t get_w_forcing(int *i, int *j, int *k, double *var, int n);
+int32_t get_p_forcing(int *i, int *j, int *k, double *var, int n);
+int32_t get_t_forcing(int *i, int *j, int *k, double *var, int n);
+int32_t get_s_forcing(int *i, int *j, int *k, double *var, int n);
+
 int32_t get_num_parameter_sets(int *_num);
 int32_t get_parameter_set_name(int i, char **name);
 int32_t get_num_parameters(char *param_set_name, char *param_name, int *_num);
