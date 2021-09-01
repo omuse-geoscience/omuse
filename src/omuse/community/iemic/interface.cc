@@ -1,3 +1,5 @@
+#include <regex> 
+
 #include <Epetra_Comm.h>
 #ifdef HAVE_MPI
 #include "Epetra_MpiComm.h"
@@ -33,6 +35,9 @@ std::map<std::string, ParamSet> parameter_sets = {
     { "Ocean", ParamSet("OMUSE Ocean Parameters", ParamSet::tag<Ocean>()) },
     { "Continuation", ParamSet("OMUSE Continuation Parameters", ParamSet::tag<Continuation<RCP<Ocean>>>()) }
 };
+
+std::string logFilePath="/dev/stdout";
+std::string outFilePath="/dev/stdout";
 
 RCP<Epetra_Comm> comm;
 RCP<Ocean> ocean;
@@ -101,9 +106,12 @@ int32_t set_param(RCP<Epetra_Vector> state, Parameter param, int *i, int *j, int
 
 int32_t set_log_file(char *filepath)
 {
+    logFilePath=filepath;
+    logFilePath=std::regex_replace(logFilePath, std::regex("%p"), std::to_string(comm->MyPID()));
     try {
-        std::ofstream logFile(filepath);
+        std::ofstream logFile(logFilePath);
         logStream.swap(logFile);
+        logStream << "Process " << comm->MyPID() << " direct log output to " << logFilePath << std::endl;
         return 0;
     } catch (...) {
         logStream << "Encountered unexpected C++ exception!" << std::endl;
@@ -114,9 +122,12 @@ int32_t set_log_file(char *filepath)
 
 int32_t set_output_file(char *filepath)
 {
+    outFilePath=filepath;
+    outFilePath=std::regex_replace(outFilePath, std::regex("%p"), std::to_string(comm->MyPID()));
     try {
-        std::ofstream newOutFile(filepath);
+        std::ofstream newOutFile(outFilePath);
         outStream.swap(newOutFile);
+        logStream << "Process " << comm->MyPID() << " direct output to " << outFilePath << std::endl;
         return 0;
     } catch (...) {
         logStream << "Encountered unexpected C++ exception!" << std::endl;
@@ -292,6 +303,15 @@ int32_t initialize()
 {
     try {
         comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
+        if(comm->MyPID() != comm->NumProc()-1) {
+          outFilePath="/dev/null";
+          logStream << "output from non-root process " << comm->MyPID() << " redirected to /dev/null" << std::endl;  
+        } else {
+          outFilePath="/dev/stdout";
+          logStream << "Initializing IEMIC with " << comm->NumProc() << " processes" << std::endl;
+        }
+        std::ofstream newOutFile(outFilePath);
+        outStream.swap(newOutFile);
         outFile = rcpFromRef(outStream);
         cdataFile = rcpFromRef(devNull);
         return 0;
