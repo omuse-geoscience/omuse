@@ -12,6 +12,7 @@ license_ = "Apache License 2.0"
 url = 'https://github.com/omuse-geoscience/omuse'
 install_requires = [
     'omuse-framework',
+    'fvm @ https://github.com/BIMAU/fvm/tarball/master',
 ]
 description = 'The Oceanographic Multi-purpose Software Environment - iemic'
 with open("README.md", "r") as fh:
