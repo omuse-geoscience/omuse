@@ -1,5 +1,6 @@
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.support.interface import InCodeComponentImplementation
+from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
 from amuse.datamodel import CartesianGrid
@@ -9,11 +10,21 @@ from omuse.units import units
 from remotestatevector import RemoteStateVector
 from implicit_utils import time_stepper
 
-class iemicInterface(CodeInterface,CommonCodeInterface):
+class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMixIn):
+    """
+    I-EMIC: an Implicit Earth system Model of Intermediate Complexity.
+
+    .. [#] Dijkstra, H. A., Oksuzoglu, H., Wubs, F. W., and Botta, E. F. F. (2001). A fully implicit model of the three-dimensional thermohaline ocean circulation. Journal of Computational Physics, 173(2):685–715.
+
+    .. [#] Mulder, T. E. Design and bifurcation analysis of implicit Earth System Models. Dissertation (June, 2019), Utrecht University, https://dspace.library.uu.nl/handle/1874/381139
+    
+    """
+
     include_headers = ['worker_code.h']
 
     def __init__(self, **keyword_arguments):
         CodeInterface.__init__(self, name_of_the_worker="iemic_worker", **keyword_arguments)
+        LiteratureReferencesMixIn.__init__(self)        
 
         self._model_time=0
 
@@ -365,8 +376,29 @@ class iemicInterface(CodeInterface,CommonCodeInterface):
         returns(psi_min=0.0, psi_max=0.0)
 
 class iemic(InCodeComponentImplementation):
+    """
+    I-EMIC: an Implicit Earth system Model of Intermediate Complexity.
+  
+    The I-EMIC is a parallel Earth system model that allows the use of 
+    large-scale dynamical systems techniques. The term 'implicit' refers to 
+    this model's main design feature: all model equations and constraints 
+    are solved simultaneously. A Jacobian matrix and preconditioning 
+    techniques are available for efficient Newton iterations that are 
+    involved in implicit time stepping and continuation strategies.
+
+    The I-EMIC contains a number of fully implicit submodels coupled 
+    through a modular framework. At the center of the coupled model is the 
+    implicit primitive equation ocean model THCM [1]. THCM is extended with 
+    models of modest complexity that describe varying aspects of the 
+    climate, including atmospheric heat and moisture transport, the 
+    formation of sea ice and the adjustment of albedo over snow and ice.
+    
+    At the moment the OMUSE interface exposes the ocean THCM model only.    
+    """
+
     def __init__(self, **options):
-        InCodeComponentImplementation.__init__(self, iemicInterface(**options), **options)
+        interface=iemicInterface(**options)      
+        InCodeComponentImplementation.__init__(self, interface, **options)
 
     def define_state(self, handler):
         ocean_sub_states = ["PARAM", "UPDATED"]
