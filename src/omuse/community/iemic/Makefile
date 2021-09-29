@@ -11,7 +11,7 @@ else
 DOWNLOAD_CODES:=true
 endif
 
-.PHONY: all download update clean distclean FORCE
+.PHONY: all download update clean distclean
 
 export PYTHONPATH := $(PYTHONPATH):$(AMUSE_DIR)/src:$(AMUSE_DIR)/test
 CODE_GENERATOR:=amusifier
