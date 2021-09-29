@@ -76,7 +76,9 @@ src/i-emic/build/: src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake | src/i-emic/
 	    -DJDQZPP_DIR="$(realpath src)/opt/lib/cmake/JDQZPP/"
 
 IEMICLIBS:=$(LIBS:%=src/opt/lib/lib%.$(LIBEXT))
-$(IEMICLIBS) src/opt/include/Config.mk: | src/i-emic/build/
+.PHONY: src/opt/include/Config.mk
+$(IEMICLIBS): src/opt/include/Config.mk
+src/opt/include/Config.mk: | src/i-emic/build/
 	cd $|; make install
 
 clean:
