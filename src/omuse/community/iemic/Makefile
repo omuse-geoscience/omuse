@@ -11,7 +11,7 @@ else
 DOWNLOAD_CODES:=true
 endif
 
-.PHONY: all download update clean distclean
+.PHONY: all download update clean distclean FORCE
 
 export PYTHONPATH := $(PYTHONPATH):$(AMUSE_DIR)/src:$(AMUSE_DIR)/test
 CODE_GENERATOR:=amusifier
@@ -76,9 +76,7 @@ src/i-emic/build/: src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake | src/i-emic/
 	    -DJDQZPP_DIR="$(realpath src)/opt/lib/cmake/JDQZPP/"
 
 IEMICLIBS:=$(LIBS:%=src/opt/lib/lib%.$(LIBEXT))
-.PHONY: src/opt/include/Config.mk
-$(IEMICLIBS): src/opt/include/Config.mk
-src/opt/include/Config.mk: | src/i-emic/build/
+$(IEMICLIBS) src/opt/include/Config.mk: FORCE | src/i-emic/build/
 	cd $|; make install
 
 clean:
@@ -107,3 +105,5 @@ data/lib%.$(LIBEXT): src/opt/lib/lib%.$(LIBEXT) | data/
 paramset.o: paramset.hpp
 worker_code.o: worker_code.h
 interface.o: interface.hpp paramset.hpp
+
+FORCE:
