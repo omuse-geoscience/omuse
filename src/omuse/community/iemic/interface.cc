@@ -74,6 +74,40 @@ int32_t get_param(RCP<Epetra_Vector> state, Parameter param, int *i, int *j, int
     return 0;
 }
 
+int32_t get_surface_value(RCP<Epetra_Vector> state, int *i, int *j, double *var, int n)
+{
+    auto N = ocean->getNdim();
+    auto gvec = AllGather(*state);
+    auto vec = gvec->operator()(0);
+    for (int x = 0; x < n; x++) {
+        int idx = i[x]+ N * j[x];
+        var[x] = vec->operator[](idx);
+    }
+    return 0;
+}
+
+int32_t insert_surface_value(RCP<Epetra_Vector> state, int *i, int *j, double *var, int n)
+{
+    auto N = ocean->getNdim();
+    const Epetra_BlockMap& map_dist = state->Map();
+
+    Teuchos::RCP<Epetra_BlockMap> map = AllGather(map_dist);
+    Teuchos::RCP<Epetra_MultiVector> gvec = Teuchos::rcp(new Epetra_Vector(*map,state->NumVectors()));
+    Teuchos::RCP<Epetra_Import> import = Teuchos::rcp(new Epetra_Import(*map,map_dist) );
+    gvec->Import(*state,*import,Insert);
+    gvec->SetLabel(state->Label());
+    
+    auto vec = gvec->operator()(0);
+    for (int x = 0; x < n; x++) {
+        int idx = i[x]+ N * j[x];
+        vec->operator[](idx)=var[x];
+    }
+    state->Export(*gvec,*import,Insert);
+
+    return 0;
+}
+
+
 int32_t set_param(RCP<Epetra_Vector> state, Parameter param, int *i, int *j, int *k, double *var, int n)
 {
     auto paramCount = static_cast<size_t>(Parameter::count);
@@ -605,6 +639,18 @@ int32_t get_t_forcing(int *i, int *j, int *k, double *var, int n)
 
 int32_t get_s_forcing(int *i, int *j, int *k, double *var, int n)
 { return get_param(ocean->getForcing('V'), Parameter::s, i, j, k, var, n); }
+
+int32_t get_surface_tatm(int *i, int *j, double *var, int n)
+{ return get_surface_value( ocean->getAtmosT(), i, j, var, n); }
+
+int32_t set_surface_tatm(int *i, int *j, double *var, int n)
+{ 
+  int ret=0;
+  RCP<Epetra_Vector> surface=ocean->getAtmosT(); // note this can be optimized by saving this surface?
+  ret=insert_surface_value( surface, i, j, var, n); 
+  ocean->setAtmosT( surface);
+  return ret;
+}
 
 
 int32_t get_nrange(int *_min, int *_max)
