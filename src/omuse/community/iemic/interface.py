@@ -214,6 +214,30 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
     def set_surface_tatm(i=0, j=0,var=0.):
         returns ()
 
+    @remote_function(must_handle_array=True)
+    def get_surface_emip(i=0, j=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def set_surface_emip(i=0, j=0,var=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def get_surface_taux(i=0, j=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def set_surface_taux(i=0, j=0,var=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def get_surface_tauy(i=0, j=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def set_surface_tauy(i=0, j=0,var=0.):
+        returns ()
+
     @remote_function
     def get_nrange():
         returns(nmin=0,nmax=0)
@@ -460,6 +484,9 @@ class iemic(InCodeComponentImplementation):
             "_get_model_state", "_get_psi_m", "get_real_pos",
             "get_land_mask", 
             "get_surface_tatm", "set_surface_tatm",
+            "get_surface_emip", "set_surface_emip",
+            "get_surface_taux", "set_surface_taux",
+            "get_surface_tauy", "set_surface_tauy",
         ]
 
         for sub_state in continuation_sub_states:
@@ -511,6 +538,12 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('surface_forcing', 'get_real_pos_surf', names=["lon", "lat"])
         handler.add_getter('surface_forcing', 'get_surface_tatm', names=["tatm"])
         handler.add_setter('surface_forcing', 'set_surface_tatm', names=["tatm"])
+        handler.add_getter('surface_forcing', 'get_surface_emip', names=["emip"])
+        handler.add_setter('surface_forcing', 'set_surface_emip', names=["emip"])
+        handler.add_getter('surface_forcing', 'get_surface_taux', names=["tau_x"])
+        handler.add_setter('surface_forcing', 'set_surface_taux', names=["tau_x"])
+        handler.add_getter('surface_forcing', 'get_surface_tauy', names=["tau_y"])
+        handler.add_setter('surface_forcing', 'set_surface_tauy', names=["tau_y"])
 
 
     def _specify_grid(self, definition, index=0):

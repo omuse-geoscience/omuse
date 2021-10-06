@@ -643,6 +643,15 @@ int32_t get_s_forcing(int *i, int *j, int *k, double *var, int n)
 int32_t get_surface_tatm(int *i, int *j, double *var, int n)
 { return get_surface_value( ocean->getAtmosT(), i, j, var, n); }
 
+int32_t get_surface_emip(int *i, int *j, double *var, int n)
+{ return get_surface_value( ocean->getEmip(), i, j, var, n); }
+
+int32_t get_surface_taux(int *i, int *j, double *var, int n)
+{ return get_surface_value( ocean->getTaux(), i, j, var, n); }
+
+int32_t get_surface_tauy(int *i, int *j, double *var, int n)
+{ return get_surface_value( ocean->getTauy(), i, j, var, n); }
+
 int32_t set_surface_tatm(int *i, int *j, double *var, int n)
 { 
   int ret=0;
@@ -652,6 +661,32 @@ int32_t set_surface_tatm(int *i, int *j, double *var, int n)
   return ret;
 }
 
+int32_t set_surface_emip(int *i, int *j, double *var, int n)
+{ 
+  int ret=0;
+  RCP<Epetra_Vector> surface=ocean->getEmip(); 
+  ret=insert_surface_value( surface, i, j, var, n); 
+  ocean->setEmip( surface);
+  return ret;
+}
+
+int32_t set_surface_taux(int *i, int *j, double *var, int n)
+{ 
+  int ret=0;
+  RCP<Epetra_Vector> surface=ocean->getTaux(); 
+  ret=insert_surface_value( surface, i, j, var, n); 
+  ocean->setTaux( surface);
+  return ret;
+}
+
+int32_t set_surface_tauy(int *i, int *j, double *var, int n)
+{ 
+  int ret=0;
+  RCP<Epetra_Vector> surface=ocean->getTauy(); 
+  ret=insert_surface_value( surface, i, j, var, n); 
+  ocean->setTauy( surface);
+  return ret;
+}
 
 int32_t get_nrange(int *_min, int *_max)
 {
