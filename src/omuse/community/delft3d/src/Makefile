@@ -21,6 +21,10 @@ clean:
 
 distclean: clean
 
+FCFLAGS+= -std=legacy
+FFLAGS=$(FCFLAGS)
+CFLAGS+=-Wno-error=implicit-function-declaration
+
 $(CODELIB): $(CODEOBJS)
 	$(RM) -f $@
 	$(AR) $@ $(CODEOBJS)
@@ -36,11 +40,15 @@ delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse: dflowfm_omuse/src/dflo
 	cp -r dflowfm_omuse delft3dfm/src/engines_gpl/dflowfm/packages/
 	-patch -p0 -N -ddelft3dfm/src < ./patches/configure.ac.patch
 	-patch -p0 -N -ddelft3dfm/src < ./patches/unstruc.F90.patch
+	-patch -p0 -N -ddelft3dfm/src < ./patches/Makefile.am.patch
+	-patch -p0 -N -ddelft3dfm/src < ./patches/server.cpp.patch
+	-patch -p0 -N -ddelft3dfm < ./patches/c_char.patch
+	-patch -p0 -N -ddelft3dfm < ./patches/meminfo.cpp.patch
 
 delft3dfm/src/Makefile:  | delft3dfm delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse
 	cd delft3dfm/src; ./autogen.sh
 	cd delft3dfm/src/third_party_open/kdtree2; ./autogen.sh
-	cd delft3dfm/src; ./configure --prefix=$(INSTALLDIR) --with-netcdf --with-mpi --with-metis --with-petsc
+	cd delft3dfm/src; ./configure --prefix=$(INSTALLDIR) --with-netcdf --with-mpi --with-metis --with-petsc FFLAGS="$(FCFLAGS)" FCFLAGS="$(FCFLAGS)" CFLAGS="$(CFLAGS)" 
 
 libdflowfm_omuse.a: delft3dfm/src/Makefile delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse/src/dflowfm_omuse_lib.F90
 	make -C delft3dfm/src/

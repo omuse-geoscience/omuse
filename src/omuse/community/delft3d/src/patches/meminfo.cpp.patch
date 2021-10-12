@@ -1,0 +1,21 @@
+Index: src/utils_lgpl/deltares_common/packages/deltares_common_c/src/meminfo.cpp
+===================================================================
+--- src/utils_lgpl/deltares_common/packages/deltares_common_c/src/meminfo.cpp	(revision 64866)
++++ src/utils_lgpl/deltares_common/packages/deltares_common_c/src/meminfo.cpp	(working copy)
+@@ -1,7 +1,4 @@
+ #include "meminfo.h"
+-#if HAVE_CONFIG_H
+-#include <sys/sysctl.h>
+-#endif
+ 
+ #ifdef WIN32
+ 
+@@ -30,7 +27,7 @@
+ mib[0] = CTL_HW;
+ mib[1] = HW_MEMSIZE; /* gives a 64 bit int */
+ len = sizeof(totalphys64);
+-sysctl(mib, 2, &totalphys64, &len, NULL, 0);
++//~ sysctl(mib, 2, &totalphys64, &len, NULL, 0);
+ return totalphys64;
+ }
+ #endif

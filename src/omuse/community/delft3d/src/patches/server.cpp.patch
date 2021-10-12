@@ -1,0 +1,13 @@
+Index: utils_lgpl/delftonline/src/delftonline/server.cpp
+===================================================================
+--- utils_lgpl/delftonline/src/delftonline/server.cpp	(revision 64866)
++++ utils_lgpl/delftonline/src/delftonline/server.cpp	(working copy)
+@@ -339,7 +339,7 @@
+     // The following print statement is added for debug purpose and will be removed again as soon as possible
+     // printf("GetThreadID called\n");
+     void * spec = pthread_getspecific (this->thread);
+-    if (spec < 0)
++    if (spec == NULL)
+         throw Error (true, "GetThreadID", "Invalid thread-specific key");
+ 
+     return (long) spec & 0xFFFFFFFF;

@@ -21,7 +21,7 @@ all: dflowfm_worker
 
 clean:
 	$(RM) -rf __pycache__ 
-	$(RM) -f *.so *.o *.pyc worker_code.cc worker_code.h 
+	$(RM) -f *.mod *.so *.o *.pyc worker_code.cc worker_code.h 
 	$(RM) *~ worker_code worker_code.f90
 	make -C src clean
 

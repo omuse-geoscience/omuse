@@ -1,0 +1,207 @@
+Index: src/utils_lgpl/io_hyd/packages/io_hyd/src/wrwaqgeomcl.f90
+===================================================================
+--- src/utils_lgpl/io_hyd/packages/io_hyd/src/wrwaqgeomcl.f90	(revision 64866)
++++ src/utils_lgpl/io_hyd/packages/io_hyd/src/wrwaqgeomcl.f90	(working copy)
+@@ -133,6 +133,8 @@
+     integer                             :: igeomfile             ! logical unit geomfile
+     integer                             :: ierr                  ! errorcode
+     logical                             :: success               ! success (true/false)
++
++    character(len=ug_strLenMeta)        :: dummy
+ !
+ !! executable statements -------------------------------------------------------
+ !
+@@ -463,7 +465,8 @@
+     !   
+     ! Write the boundary file
+     ! 
+-    bndfilename = trim(meta%modelname) // '.bnd'
++    forall(i=1:ug_strLenMeta) dummy(i:i)=meta%modelname(i)
++    bndfilename = trim(dummy) // '.bnd'
+     open(newunit = lunbnd, file= trim(bndfilename))
+ 
+     if (nto > 0) then
+@@ -485,7 +488,8 @@
+     !===============================================================================
+     !   
+     ierr = 0
+-    geomfilename = trim(meta%modelname) //'_waqgeom.nc' ! Should be equal to the name given in the hyd-file (that file is written in the routine wrwaqhyd)
++    forall(i=1:ug_strLenMeta) dummy(i:i)=meta%modelname(i)
++    geomfilename = trim(dummy) //'_waqgeom.nc' ! Should be equal to the name given in the hyd-file (that file is written in the routine wrwaqhyd)
+     !
+     ! create or open the file
+     !
+Index: src/utils_lgpl/io_netcdf/packages/io_netcdf/src/io_netcdf.f90
+===================================================================
+--- src/utils_lgpl/io_netcdf/packages/io_netcdf/src/io_netcdf.f90	(revision 64866)
++++ src/utils_lgpl/io_netcdf/packages/io_netcdf/src/io_netcdf.f90	(working copy)
+@@ -945,6 +945,8 @@
+    integer, intent(in)          :: ioncid    !< The IONC data set id.
+    type(t_ug_meta), intent(out) :: meta      !< The meta data of the dataset
+    integer                      :: ierr      !< Result status, ionc_noerr if successful.
++   character(len=ug_strLenMeta) :: dummy
++   integer                      :: i
+ 
+    ierr = IONC_NOERR
+    if (ioncid < 1 .or. ioncid > ndatasets) then
+@@ -958,26 +960,31 @@
+    meta%version     = ' '
+    meta%modelname   = ' '
+ 
+-   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'institution', meta%institution)
++   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'institution', dummy)
+    if (ierr /= nf90_noerr) then
+       goto 999
+    end if
+-   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'source',     meta%source)
++   forall(i=1:ug_strLenMeta) meta%institution(i)=dummy(i:i)
++   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'source',     dummy)
+    if (ierr /= nf90_noerr) then
+       goto 999
+    end if
+-   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'references', meta%references)
++   forall(i=1:ug_strLenMeta) meta%source(i)=dummy(i:i)
++   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'references', dummy)
+    if (ierr /= nf90_noerr) then
+       goto 999
+    end if
+-   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'version',    meta%version)
++  forall(i=1:ug_strLenMeta) meta%references(i)=dummy(i:i)
++   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'version',    dummy)
+    if (ierr /= nf90_noerr) then
+       goto 999
+    end if
+-   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'modelname',  meta%modelname)
++  forall(i=1:ug_strLenMeta) meta%version(i)=dummy(i:i)
++   ierr = nf90_get_att(datasets(ioncid)%ncid, nf90_global, 'modelname',  dummy)
+    if (ierr /= nf90_noerr) then
+       goto 999
+    end if
++   forall(i=1:ug_strLenMeta) meta%modelname(i)=dummy(i:i)
+ 
+    ! Successful
+    return
+@@ -2051,4 +2058,4 @@
+    ierr = ug_get_contact_name(datasets(ioncid)%ncid, datasets(ioncid)%ug_file%contactids(contactid), contactname)
+ end function ionc_get_contact_name
+ 
+-end module io_netcdf
+\ No newline at end of file
++end module io_netcdf
+Index: src/utils_lgpl/io_netcdf/packages/io_netcdf/src/io_ugrid.F90
+===================================================================
+--- src/utils_lgpl/io_netcdf/packages/io_netcdf/src/io_ugrid.F90	(revision 64866)
++++ src/utils_lgpl/io_netcdf/packages/io_netcdf/src/io_ugrid.F90	(working copy)
+@@ -58,17 +58,17 @@
+ 
+ !! Meta data
+ type, BIND(C) ::t_ug_meta
+-   character(len=ug_strLenMeta) :: institution
+-   character(len=ug_strLenMeta) :: source
+-   character(len=ug_strLenMeta) :: references
+-   character(len=ug_strLenMeta) :: version
+-   character(len=ug_strLenMeta) :: modelname
++   character(kind=c_char) :: institution(ug_strLenMeta)
++   character(kind=c_char) :: source(ug_strLenMeta)
++   character(kind=c_char) :: references(ug_strLenMeta)
++   character(kind=c_char) :: version(ug_strLenMeta)
++   character(kind=c_char) :: modelname(ug_strLenMeta)
+ end type t_ug_meta
+ 
+ !! Meta data for string info 
+ type, BIND(C) :: t_ug_charinfo  
+-    character(len=ug_idsLen)            :: ids
+-    character(len=ug_idsLongNamesLen)   :: longnames
++    character(kind=c_char)   :: ids(ug_idsLen)
++    character(kind=c_char)   :: longnames(ug_idsLongNamesLen)
+ end type t_ug_charinfo
+ !! Error codes
+ integer, parameter :: UG_NOERR                 = NF90_NOERR !< No error, success. It is convenient to have this identical to NF90_NOERR (==0).
+@@ -386,11 +386,13 @@
+ function ug_addglobalatts(ncid, meta) result(ierr)
+    integer, intent(in)           :: ncid              !< Already opened NetCDF id to put global attributes into.
+    type (t_ug_meta), intent (in)   :: meta
+-   integer          :: ierr     !< Result status (UG_NOERR==NF90_NOERR) if successful.
++   integer          :: i, ierr     !< Result status (UG_NOERR==NF90_NOERR) if successful.
+ 
+    character(len=8)  :: cdate
+    character(len=10) :: ctime
+    character(len=5)  :: czone
++   character(len=ug_strLenMeta) :: institution, references, source, version,modelname
++   
+    integer :: wasInDefine
+ 
+    ierr = UG_NOERR
+@@ -403,14 +405,19 @@
+       return
+    end if
+ 
+-   ierr = nf90_put_att(ncid, nf90_global,  'institution', trim(meta%institution))
+-   ierr = nf90_put_att(ncid, nf90_global,  'references',  trim(meta%references))
+-   ierr = nf90_put_att(ncid, nf90_global,  'source',      trim(meta%source)//' '//trim(meta%version)//'. Model: '//trim(meta%modelname))
++   forall(i=1:ug_strLenMeta) institution(i:i)=meta%institution(i)
++   ierr = nf90_put_att(ncid, nf90_global,  'institution', trim(institution))
++   forall(i=1:ug_strLenMeta) references(i:i)=meta%references(i)
++   ierr = nf90_put_att(ncid, nf90_global,  'references',  trim(references))
++   forall(i=1:ug_strLenMeta) source(i:i)=meta%source(i)
++   forall(i=1:ug_strLenMeta) version(i:i)=meta%version(i)
++   forall(i=1:ug_strLenMeta) modelname(i:i)=meta%modelname(i)
++   ierr = nf90_put_att(ncid, nf90_global,  'source',      trim(source)//' '//trim(version)//'. Model: '//trim(modelname))
+ 
+    call date_and_time(cdate, ctime, czone)
+    ierr = nf90_put_att(ncid, nf90_global,  'history', &
+       'Created on '//cdate(1:4)//'-'//cdate(5:6)//'-'//cdate(7:8)//'T'//ctime(1:2)//':'//ctime(3:4)//':'//ctime(5:6)//czone(1:5)// &
+-      ', '//trim(meta%source))
++      ', '//trim(source))
+ 
+    ierr = nf90_put_att(ncid, nf90_global,  'Conventions', trim(UG_CONV_CF)//' '//trim(UG_CONV_UGRID)//' '//trim(UG_CONV_DELTARES))
+ 
+Index: src/utils_lgpl/io_netcdf/packages/io_netcdf/src/meshdata.F90
+===================================================================
+--- src/utils_lgpl/io_netcdf/packages/io_netcdf/src/meshdata.F90	(revision 64866)
++++ src/utils_lgpl/io_netcdf/packages/io_netcdf/src/meshdata.F90	(working copy)
+@@ -110,7 +110,7 @@
+ 
+ type, bind(C) :: c_t_ug_meshgeomdim
+ 
+-   character(len=ug_nameLen)  :: meshname           !< Name of this mesh ! TODO: AvD: should this be in this data type?
++   character(kind=c_char,len=1)  :: meshname(ug_nameLen)           !< Name of this mesh ! TODO: AvD: should this be in this data type?
+    integer(kind=c_int)      :: dim                !< Dimensionality of the mesh (1/2/3)
+    integer(kind=c_int)      :: numnode            !< Number of mesh nodes.
+    integer(kind=c_int)      :: numedge            !< Number of mesh edges.
+@@ -177,7 +177,7 @@
+    type(t_ug_meshgeom), intent(in)         :: meshgeom
+    type(c_t_ug_meshgeom), intent(inout)    :: c_meshgeom
+    type(c_t_ug_meshgeomdim), intent(inout) :: c_meshgeomdim
+-   integer                                 :: ierr
++   integer                                 :: i, ierr
+    !support variables
+    integer,          pointer  :: edge_nodes(:,:) => null()!< Edge-to-node mapping array.
+    integer,          pointer  :: face_nodes(:,:) => null()!< Face-to-node mapping array.
+@@ -232,7 +232,7 @@
+    c_meshgeomdim%nbranches = meshgeom%nbranches       
+    c_meshgeomdim%ngeometry = meshgeom%ngeometry
+    c_meshgeomdim%epsg = meshgeom%epsg
+-   c_meshgeomdim%meshname = meshgeom%meshname
++   forall(i=1:ug_nameLen) c_meshgeomdim%meshname(i) = meshgeom%meshname(i:)
+    
+    !! array variables
+    if (associated(meshgeom%edge_nodes).and.c_associated(c_meshgeom%edge_nodes)) then
+@@ -406,7 +406,7 @@
+    type(c_t_ug_meshgeom), intent(in)      :: c_meshgeom
+    type(c_t_ug_meshgeomdim), intent(in)   :: c_meshgeomdim
+    type(t_ug_meshgeom), intent(inout)     :: meshgeom
+-   integer                                :: ierr
++   integer                                :: i,ierr
+    character(len=ug_nameLen), pointer     :: meshname
+    
+    ! get the dimensions
+@@ -425,7 +425,7 @@
+    meshgeom%nbranches = c_meshgeomdim%nbranches       
+    meshgeom%ngeometry = c_meshgeomdim%ngeometry
+    meshgeom%epsg = c_meshgeomdim%epsg
+-   meshgeom%meshname = c_meshgeomdim%meshname
++   forall(i=1:ug_nameLen) meshgeom%meshname(i:i) = c_meshgeomdim%meshname(i)
+    
+    meshgeom%start_index =  c_meshgeom%start_index
+    if(c_associated(c_meshgeom%edge_nodes)) call c_f_pointer(c_meshgeom%edge_nodes, meshgeom%edge_nodes, (/ 2, c_meshgeomdim%numedge /)) 
