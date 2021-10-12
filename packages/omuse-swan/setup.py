@@ -1,23 +1,17 @@
-import sys
-import os
-
+#!/usr/bin/env python3
+from support.classifiers import classifiers
 from setuptools import setup
-
 import support
 support.use("system")
 support.set_package_name("omuse")
 from support.setup_codes import setup_commands
-from support.version import version, main_version
-from support.classifiers import classifiers
-
-
 name = 'omuse-swan'
-author = 'The AMUSE/ OMUSE team'
+author = 'The AMUSE/OMUSE team'
 author_email = 'info@amusecode.org'
 license_ = "Apache License 2.0"
 url = 'https://github.com/omuse-geoscience/omuse'
 install_requires = [
-    'omuse-framework>=%s' % main_version,
+    'omuse-framework',
 ]
 description = 'The Oceanographic Multi-purpose Software Environment - SWAN'
 with open("README.md", "r") as fh:
@@ -28,15 +22,31 @@ extensions = []
 
 all_data_files = []
 
-packages = ['omuse.community.swan']
-
+packages = [
+    'omuse.community.swan',
+]
 package_data = {
 }
 
-mapping_from_command_name_to_command_class=setup_commands()
+mapping_from_command_name_to_command_class = setup_commands()
+
+try:
+    from src.omuse.community.swan.version import version
+    use_scm_version = False
+    setup_requires = []
+except ImportError:
+    version = False
+    setup_requires = ['setuptools_scm']
+    use_scm_version = {
+        "root": "../..",
+        "relative_to": __file__,
+        "write_to": "src/omuse/community/swan/version.py",
+    }
 
 setup(
     name=name,
+    use_scm_version=use_scm_version,
+    setup_requires=setup_requires,
     version=version,
     classifiers=classifiers,
     url=url,
@@ -50,7 +60,9 @@ setup(
     python_requires=">=3.5",
     cmdclass=mapping_from_command_name_to_command_class,
     ext_modules=extensions,
-    package_dir={'omuse.community.swan': 'src/omuse/community/swan'},
+    package_dir={
+        'omuse.community.swan': 'src/omuse/community/swan',
+    },
     packages=packages,
     package_data=package_data,
     data_files=all_data_files,

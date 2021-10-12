@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 __revision__ = "$Id:$"
 
@@ -7,6 +7,8 @@ import sys, os, re, subprocess
 import os.path
 import datetime
 import stat
+from copy import deepcopy
+from os.path import abspath
 
 from . import supportrc
 
@@ -15,12 +17,8 @@ try:
 except ImportError:
     warnings.warn( "numpy etc needed during build; operation may fail" )
 
-try:
-    import ConfigParser as configparser
-    from StringIO import StringIO
-except ImportError:
-    import configparser
-    from io import StringIO
+import configparser
+from io import StringIO
 
 from stat import ST_MODE
 from distutils import sysconfig
@@ -376,8 +374,9 @@ class CodeCommand(Command):
         
         if fcompiler:    
             compiler = fcompiler.new_fcompiler(requiref90=True)
-            fortran_executable = compiler.executables['compiler_f90'][0]
-            self.environment['FORTRAN'] = fortran_executable
+            if compiler is not None:
+                fortran_executable = compiler.executables['compiler_f90'][0]
+                self.environment['FORTRAN'] = fortran_executable
     
     
     
@@ -710,8 +709,7 @@ class CodeCommand(Command):
     def get_special_targets(self, name, directory, environment):
         process = Popen(['make','-qp', '-C', directory], env = environment, stdout = PIPE, stderr = PIPE)
         stdoutstring, stderrstring = process.communicate()
-        if sys.hexversion > 0x03000000:
-            stdoutstring = str(stdoutstring, 'utf-8')
+        stdoutstring = str(stdoutstring, 'utf-8')
         lines = stdoutstring.splitlines()
         result = []
         for line in lines:
@@ -756,11 +754,8 @@ class CodeCommand(Command):
             
             if not buildlogfile is None:
                 buildlogfile.write(line)
-            self.announce(line[:-1], log.DEBUG)
-            if sys.hexversion > 0x03000000:
-                stringio.write(str(line, 'utf-8'))
-            else:
-                stringio.write(line)
+            self.announce(line[:-1].decode("utf-8"), log.DEBUG)
+            stringio.write(str(line, 'utf-8'))
             
         result = process.wait()
         content = stringio.getvalue()
@@ -852,11 +847,17 @@ class BuildCodes(CodeCommand):
             output.write('\n')
             output.flush()
         
+        if environment.get('AMUSE_USE_CCACHE', 0) != "1" or "CCACHE_BASEDIR" in environment:
+            build_environment = environment
+        else:
+            build_environment = deepcopy(environment)
+            build_environment["CCACHE_BASEDIR"] = abspath(directory)
+
         with open(buildlog, "ab") as output:
             result, resultcontent = self.call(
                 ['make','-C', directory, target], 
                 output,
-                env = environment
+                env = build_environment
             )
         
         with open(buildlog, "a") as output:
@@ -1260,7 +1261,7 @@ def setup_commands():
         'develop' : Develop,
         'develop_build' : BuildCodes_inplace
     }
-        
+    
     build.sub_commands.append(('build_codes', None))
     Clean.sub_commands.append(('clean_codes', None))
     Clean.sub_commands.append(('clean_python', None))

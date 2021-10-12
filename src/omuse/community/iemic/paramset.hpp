@@ -13,12 +13,20 @@ class ParamSet
 
     template<class T>
     ParamSet(std::string name, tag<T>)
-    : parameters(name)
+    : committed(false)
+    , parameters(name)
+    , updatedParams(name)
     , defaultInitParams(T::getDefaultInitParameters())
+    , settableParams(T::getDefaultParameters())
     { parameters = defaultInitParams; }
 
-    Teuchos::ParameterList& get();
+    Teuchos::ParameterList& commit();
+    Teuchos::ParameterList& updates();
+    void update_committed_parameters(Teuchos::ParameterList params);
     void reset();
+
+    void load_from_file(const std::string&);
+    void save_to_file(const std::string&);
 
     int get_num_params(const std::string&);
     std::string get_param_name(const std::string& param_name, int i);
@@ -39,11 +47,22 @@ class ParamSet
     void
     set_param_value(const std::string& param_name, T result)
     {
-        auto& param = get_param_entry(param_name);
+        Teuchos::ParameterEntry param;
+
+        if (committed) {
+            try {
+                param = get_param_entry(param_name, settableParams);
+            } catch (const Teuchos::Exceptions::InvalidParameterName& exc) {
+                throw_param_unsettable(param_name);
+            }
+        } else {
+            param = get_param_entry(param_name, parameters);
+        }
 
         if (!param.isType<T>()) throw_param_mismatch(param_name);
 
         param.setValue(result);
+        set_param_entry(param_name, param);
     }
 
     template<typename T>
@@ -61,18 +80,25 @@ class ParamSet
     Teuchos::ParameterEntry&
     get_param_entry(const std::string& param_name);
 
+    void
+    set_param_entry(std::string param_name, Teuchos::ParameterEntry);
+
     static Teuchos::ParameterEntry&
     get_param_entry
-    (const std::string& param_name, Teuchos::ParameterList& list);
+    (std::string param_name, Teuchos::ParameterList& list);
 
     static const Teuchos::ParameterEntry&
     get_param_entry
-    (const std::string& param_name, const Teuchos::ParameterList& list);
+    (std::string param_name, const Teuchos::ParameterList& list);
 
     static void throw_param_mismatch(const std::string& param_name);
+    static void throw_param_unsettable(const std::string& param_name);
 
+    bool committed;
     Teuchos::ParameterList parameters;
+    Teuchos::ParameterList updatedParams;
     const Teuchos::ParameterList defaultInitParams;
+    const Teuchos::ParameterList settableParams;
 
     static const std::map<std::type_index, std::string> types;
 };

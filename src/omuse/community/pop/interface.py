@@ -5,6 +5,8 @@ from amuse.rfi.core import legacy_function,remote_function
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.community.interface.stopping_conditions import StoppingConditionInterface, StoppingConditions
+from amuse.support.parameter_tools import CodeWithNamelistParameters
+
 
 from amuse.datamodel import StructuredGrid
 from amuse.datamodel.staggeredgrid import StaggeredGrid
@@ -65,11 +67,11 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
             #~ self.change_directory(path)
 
         if mode in [self.MODE_TEST]:
-            self.set_namelist_filename('pop_in_lowres')
+            pass
         elif mode in [self.MODE_NORMAL,self.MODE_320x384x40]:
-            self.set_namelist_filename('pop_in_lowres')
+            pass
         elif mode in [self.MODE_HIGH,self.MODE_3600x2400x42]:
-            self.set_namelist_filename('pop_in_highres')
+            pass
         else:
             raise Exception('Unknown mode')
 
@@ -96,11 +98,22 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     ##getters for node and element state
     @remote_function(must_handle_array=True)
     def get_node_surface_state(i=0,j=0):
-        returns (ssh=0. | units.cm, vx=0. | units.cm / units.s, vy=0. | units.cm / units.s)
+        returns (ssh=0. | units.cm, vx=0. | units.cm / units.s,     \
+                 vy=0. | units.cm / units.s, gradx=0.  | units.s**-1, \
+                 grady=0. | units.s**-1)
+
+    @remote_function(must_handle_array=True)
+    def set_node_surface_state(i=0,j=0, ssh=0. | units.cm, \
+                               gradx=0.  | units.s**-1, grady=0. | units.s**-1):
+        returns ()
 
     @remote_function(must_handle_array=True)
     def get_node_barotropic_vel(i=0,j=0):
         returns (vx_barotropic=0. | units.cm / units.s, vy_barotropic=0. | units.cm / units.s)
+
+    @remote_function(must_handle_array=True)
+    def set_node_barotropic_vel(i=0,j=0,vx_barotropic=0. | units.cm / units.s, vy_barotropic=0. | units.cm / units.s):
+        returns ()
 
     @remote_function(must_handle_array=True)
     def get_element_surface_state(i=0,j=0):
@@ -433,6 +446,9 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     #forcing options
     @remote_function
+    def set_shf_data_type(option='s'):
+        returns ()
+    @remote_function
     def get_shf_filename():
         returns (filename='s')
     @remote_function
@@ -440,6 +456,9 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns (type='s')
     @remote_function
     def set_shf_monthly_file(filename='s'):
+        returns ()
+    @remote_function
+    def set_sfwf_data_type(option='s'):
         returns ()
     @remote_function
     def get_sfwf_filename():
@@ -455,7 +474,10 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns (filename='s')
     @remote_function
     def get_ws_data_type():
-        returns (type='s')
+        returns (type_='s')
+    @remote_function
+    def set_ws_data_type(type_='s'):
+        returns ()
     @remote_function
     def set_ws_monthly_file(filename='s'):
         returns ()
@@ -483,13 +505,22 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
 
 
-class POP(CommonCode):
+class POP(CommonCode, CodeWithNamelistParameters):
 
     nprocs = 0
 
-    def __init__(self, mode = POPInterface.MODE_NORMAL, **options):
+    def __init__(self, mode = POPInterface.MODE_NORMAL, namelist_file="pop_in", **options):
+        self._nml_file=namelist_file
         self.nprocs = options.setdefault('number_of_workers', 8)
+        CodeWithNamelistParameters.__init__(self, options.get("parameters", dict()) ) 
         CommonCode.__init__(self,  POPInterface(mode = mode, **options), **options)
+        self.parameters.namelist_file = self._nml_file
+        #~ self.parameters.namelist_filename = "amuse.nml"
+
+    def configuration_file_set(self):
+        self.read_namelist_parameters(self.parameters.namelist_file, add_missing_parameters=True)
+        handler=self.get_handler('PARAMETER')
+        CodeWithNamelistParameters.define_parameters(self,handler)
 
     def define_properties(self, object):
         object.add_property('get_model_time', public_name = "model_time")
@@ -520,7 +551,9 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'set_topography_option')
         object.add_method('INITIALIZED', 'set_topography_file')
 
+        object.add_method('INITIALIZED', 'set_shf_data_type')
         object.add_method('INITIALIZED', 'set_shf_monthly_file')
+        object.add_method('INITIALIZED', 'set_sfwf_data_type')
         object.add_method('INITIALIZED', 'set_sfwf_monthly_file')
         object.add_method('INITIALIZED', 'set_ws_monthly_file')
 
@@ -568,14 +601,14 @@ class POP(CommonCode):
         object.add_method('INITIALIZED', 'set_dt_count')
 
         #you can only edit stuff in state EDIT
-        object.add_method('INITIALIZED','before_set_parameter')
+        #~ object.add_method('INITIALIZED','before_set_parameter')
         #you can only read stuff in states RUN and EDIT
-        object.add_method('EDIT','before_get_parameter')
-        object.add_method('RUN','before_get_parameter')
-        object.add_method('INITIALIZED','before_get_parameter')
+        #~ object.add_method('EDIT','before_get_parameter')
+        #~ object.add_method('RUN','before_get_parameter')
+        #~ object.add_method('INITIALIZED','before_get_parameter')
         #setting a parameter is the only way to endup in state EDIT from RUN
-        object.add_transition('RUN','EDIT','before_set_parameter')
-        object.add_transition('RUN','EDIT_FORCINGS','before_set_parameter')
+        #~ object.add_transition('RUN','EDIT','before_set_parameter')
+        #~ object.add_transition('RUN','EDIT_FORCINGS','before_set_parameter')
 
         for state in ["RUN","EDIT"]:
             object.add_method(state, 'get_dz')
@@ -596,6 +629,8 @@ class POP(CommonCode):
             object.add_method(state, 'get_element3d_density')
 
         object.add_method('EDIT', 'set_node_coriolis_f')
+        object.add_method('EDIT', 'set_node_barotropic_vel')
+        object.add_method('EDIT', 'set_node_surface_state')
         object.add_method('EDIT', 'set_node3d_velocity_xvel')
         object.add_method('EDIT', 'set_node3d_velocity_yvel')
         object.add_method('EDIT', 'set_element3d_temperature')
@@ -624,9 +659,11 @@ class POP(CommonCode):
         object.add_method('EDIT_FORCINGS', 'get_model_time')
         object.add_method('EVOLVED', 'get_model_time')
 
+    def initialize_code(self):
+        self.write_namelist_parameters("amuse.nml", do_patch=True)
+        self.overridden().initialize_code()
 
-
-    def commit_parameters(self):
+    def commit_parameters(self):        
         self.set_nprocs(self.nprocs)
         if self.parameters.vert_grid_option=='amuse':
             kmax=self.get_number_of_vertical_levels()
@@ -683,8 +720,10 @@ class POP(CommonCode):
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
-        object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy'))
+        object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy','gradx','grady'))
         object.add_getter('nodes', 'get_node_barotropic_vel', names=('vx_barotropic','vy_barotropic'))
+        object.add_setter('nodes', 'set_node_surface_state', names=('ssh','gradx','grady'))
+        object.add_setter('nodes', 'set_node_barotropic_vel', names=('vx_barotropic','vy_barotropic'))
 
         object.define_grid('nodes3d')
         object.set_grid_range('nodes3d', 'get_firstlast_grid3d')
@@ -724,14 +763,26 @@ class POP(CommonCode):
         object.add_setter('elements3d', 'set_element3d_density', names = ('rho',))
 
 
-
+    def define_errorcodes(self, handler):
+        handler.add_errorcode(-1, "interface function returned -1, general error")
+        handler.add_errorcode(-2, "POP internal error")
+        handler.add_errorcode(-11, "evolve model aborted due to runaway kinetic energy, Ek>100")
 
     def define_parameters(self, object):
+        CodeWithNamelistParameters.define_parameters(self, object)
+      
+        object.add_interface_parameter(
+            "namelist_file",
+            "configuration (namelist) file with simulation setup",
+            self._nml_file,
+            state_guard="configuration_file_set"
+        )
+
         object.add_method_parameter(
             "get_horiz_grid_option",
             "set_horiz_grid_option",
             "horiz_grid_option",
-            "Option for horizontal grid should be either \'internal\' or \'file\'",
+            "Option for horizontal grid should be either \'internal\', \'amuse\' or \'file\'",
             default_value = 'internal'
         )
         object.add_method_parameter(
@@ -921,21 +972,23 @@ class POP(CommonCode):
 
         object.add_method_parameter(
             "get_shf_data_type",
-            "",
+            "set_shf_data_type",
             "surface_heat_flux_forcing",
-            "Setting for surface heat flux",
+            "Option for surface heat flux should be either \'analytic\', \'amuse\' or \'file\'",
+            ##"Setting for surface heat flux",
             default_value = 'none'
         )
         object.add_method_parameter(
             "get_sfwf_data_type",
-            "",
+            "set_sfwf_data_type",
             "surface_freshwater_flux_forcing",
-            "Setting for surface freshwater flux forcing",
+            "Options for surface salinity flux should be either \'analytic\', \'amuse\' or \'file\'",
+            #"Setting for surface freshwater flux forcing",
             default_value = 'none'
         )
         object.add_method_parameter(
             "get_ws_data_type",
-            "",
+            "set_ws_data_type",
             "windstress_forcing",
             "Setting for surface wind stress forcing",
             default_value = 'none'
@@ -969,13 +1022,14 @@ class POP(CommonCode):
             default_value = 0.0 | units.Sv
         )
 
-        object.add_method_parameter(
-            "get_namelist_filename",
-            "set_namelist_filename",
-            "namelist_filename",
-            "Input filename for reading the default settings, should be either pop_in_lowres or pop_in_highres",
-            default_value = 'pop_in_lowres'
-        )
+        #~ object.add_method_parameter(
+            #~ "get_namelist_filename",
+            #~ "set_namelist_filename",
+            #~ "namelist_filename",
+            #~ "Input filename used by code for reading the settings",
+            #~ default_value = 'amuse.nml'
+        #~ )
+
         object.add_interface_parameter(
             "vertical_layer_thicknesses",
             "input layer thicknesses (in case topography_opt==amuse) ",
