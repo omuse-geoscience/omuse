@@ -1,19 +1,29 @@
+import os
 from amuse.community.interface.common import CommonCodeInterface, CommonCode
 from amuse.rfi.core import CodeInterface
 from amuse.support.interface import InCodeComponentImplementation
 from amuse.support.parameter_tools import CodeWithIniFileParameters
 from amuse.rfi.core import legacy_function,remote_function,LegacyFunctionSpecification
 from amuse.rfi.tools.fortran_tools import FortranCodeGenerator
+from amuse.support.literature import LiteratureReferencesMixIn
+
 from amuse import datamodel
 
 from omuse.units import units
 
-class DFlowFMInterface(CodeInterface):
-
+class DFlowFMInterface(CodeInterface, LiteratureReferencesMixIn):
+    """
+    DFlowFM - D-Flow Flexible Mesh
+    
+    .. [#] https://www.deltares.nl/en/software/module/d-flow-flexible-mesh/
+    
+    """
+    
     use_modules=["dflowfm_omuse"]
 
     def __init__(self, **keyword_arguments):
         CodeInterface.__init__(self, name_of_the_worker="dflowfm_worker", **keyword_arguments)
+        LiteratureReferencesMixIn.__init__(self)
     
     @remote_function
     def initialize():
@@ -181,20 +191,24 @@ class DFlowFMInterface(CodeInterface):
 
     @remote_function(must_handle_array=True)
     def get_xbndz(index=0):
-        returns (xbndz=0. ) 
+        returns (xbndz=0. )  # units deg or m, set late in define_methods
 
     @remote_function(must_handle_array=True)
     def get_ybndz(index=0):
-        returns (ybndz=0. ) 
+        returns (ybndz=0. )  # units deg or m, set late in define_methods
 
 
 class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
 
     def __init__(self, **options):
-        self._ini_file=options.get("ini_file","")
+        self._workdir=options.get("workdir", ".")
+        self._ini_file=os.path.join(self._workdir, options.get("ini_file",""))
         CodeWithIniFileParameters.__init__(self, options.get("parameters", dict()) ) 
         self._coordinates=options.get("coordinates", "cartesian") # should be automatic
+        _cwd=os.getcwd()
+        os.chdir(self._workdir)
         InCodeComponentImplementation.__init__(self,  DFlowFMInterface(**options), **options)
+        os.chdir(_cwd)
         if self._ini_file:
             self.parameters.ini_file=self._ini_file
         
@@ -313,8 +327,8 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         handler.add_setter('boundary_links_forcing', 'set_zbndz', names=["water_level"])
 # adhoc attribute to know if a boundary point is waterlevel boundary
         handler.add_getter('boundary_links_forcing', 'get_is_waterlevel_bnd', names=["is_waterlevel_bnd"])
-        handler.add_getter('boundary_links_forcing', 'get_xbndz', names=["xbndz"])
-        handler.add_getter('boundary_links_forcing', 'get_ybndz', names=["ybndz"])
+        handler.add_getter('boundary_links_forcing', 'get_xbndz', names=[axes_names[0]+"_bndz"])
+        handler.add_getter('boundary_links_forcing', 'get_ybndz', names=[axes_names[1]+"_bndz"])
 
     def define_methods(self, handler):
         if self._coordinates=="spherical":
@@ -322,19 +336,23 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
           handler.add_method( "get_y_position", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
           handler.add_method( "get_x_position_flow_links", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
           handler.add_method( "get_y_position_flow_links", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
+          handler.add_method( "get_xbndz", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
+          handler.add_method( "get_ybndz", (handler.INDEX,), ( units.deg, handler.ERROR_CODE,) )
         elif self._coordinates=="cartesian":
           handler.add_method( "get_x_position", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
           handler.add_method( "get_y_position", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
           handler.add_method( "get_x_position_flow_links", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
           handler.add_method( "get_y_position_flow_links", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
+          handler.add_method( "get_xbndz", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
+          handler.add_method( "get_ybndz", (handler.INDEX,), ( units.m, handler.ERROR_CODE,) )
         else:
           raise Exception("unknown coordinates")
 
     def commit_parameters(self):
         if self.channel.number_of_workers==1:
-            self.write_inifile_parameters("omuse.mdu")
+            self.write_inifile_parameters(os.path.join(self._workdir, "omuse.mdu"))
         else:
-            self.write_multiple_inifile_parameters("omuse.mdu")
+            self.write_multiple_inifile_parameters(os.path.join(self._workdir, "omuse.mdu"))
         self.overridden().commit_parameters()
 
     # convenience function to write multiple mdu files for parallel runs
