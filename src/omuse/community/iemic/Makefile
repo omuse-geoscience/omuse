@@ -5,8 +5,15 @@ ifeq ($(origin AMUSE_DIR), undefined)
 endif
 -include $(AMUSE_DIR)/config.mk
 
+ifeq ($(origin IEMIC_PREFIX), undefined)
+IEMIC_PREFIX?=src/opt
+IEMIC_BUILD=true
+endif
+
+IEMIC_CONFIG_FILE=$(IEMIC_PREFIX)/include/Config.mk
+
 ifneq ($(MAKECMDGOALS),download)
--include src/opt/include/Config.mk
+-include $(IEMIC_CONFIG_FILE)
 else
 DOWNLOAD_CODES:=true
 endif
@@ -75,9 +82,27 @@ src/i-emic/build/: src/opt/lib/cmake/JDQZPP/JDQZPPConfig.cmake | src/i-emic/
 	cd $@; cmake ..  -DCMAKE_INSTALL_RPATH='$(WORKER_RPATH)' -DCMAKE_INSTALL_PREFIX:PATH="$(realpath src)/opt/" \
 	    -DJDQZPP_DIR="$(realpath src)/opt/lib/cmake/JDQZPP/"
 
-IEMICLIBS:=$(LIBS:%=src/opt/lib/lib%.$(LIBEXT))
-$(IEMICLIBS) src/opt/include/Config.mk: FORCE | src/i-emic/build/
+
+IEMICLIBS:=$(LIBS:%=$(IEMIC_PREFIX)/lib/lib%.$(LIBEXT))
+
+ifdef IEMIC_BUILD
+
+$(IEMICLIBS) $(IEMIC_CONFIG_FILE): FORCE | src/i-emic/build/
 	cd $|; make install
+
+iemic_worker: worker_code.o interface.o paramset.o $(LIBS:%=data/lib%.$(LIBEXT))
+	$(MPICXX) -Wl,-rpath,'$(WORKER_RPATH)/data/' $(filter %.o,$^) -o $@ $(LDFLAGS) -Ldata/ $(LIBS:%=-l%)
+
+else
+
+$(IEMICLIBS) $(IEMIC_CONFIG_FILE):
+	@echo "ERROR: iemic libs or config file not found at $(IEMIC_PREFIX)/.."
+	@exit -1
+
+iemic_worker: worker_code.o interface.o paramset.o
+	$(MPICXX) -Wl,-rpath,'$(IEMIC_PREFIX)/lib/' $(filter %.o,$^) -o $@ $(LDFLAGS) -L$(IEMIC_PREFIX)/lib $(LIBS:%=-l%)
+
+endif
 
 clean:
 	$(RM) -rf __pycache__ data
@@ -93,14 +118,11 @@ worker_code.cc: interface.py
 worker_code.h: interface.py
 	$(CODE_GENERATOR) --type=H interface.py iemicInterface -o $@
 
-iemic_worker: worker_code.o interface.o paramset.o $(LIBS:%=data/lib%.$(LIBEXT))
-	$(MPICXX) -Wl,-rpath,'$(WORKER_RPATH)/data/' $(filter %.o,$^) -o $@ $(LDFLAGS) -Ldata/ $(LIBS:%=-l%)
-
-data/lib%.$(LIBEXT): src/opt/lib/lib%.$(LIBEXT) | data/
+data/lib%.$(LIBEXT): $(IEMIC_PREFIX)/lib/lib%.$(LIBEXT) | data/
 	cp $< $@
 
-%.o: %.cc $(CODELIB) src/opt/include/Config.mk
-	$(MPICXX) $(CXXFLAGS) -std=c++11 -Isrc/opt/include/ -c -o $@ $<
+%.o: %.cc $(IEMIC_CONFIG_FILE)
+	$(MPICXX) $(CXXFLAGS) -std=c++11 -I$(IEMIC_PREFIX)/include -c -o $@ $<
 
 paramset.o: paramset.hpp
 worker_code.o: worker_code.h
