@@ -10,8 +10,8 @@ MPIFC ?= mpifort #/usr/local/bin/mpif90
 TARGETS := $(patsubst src_%, pop_worker_%, ${shell ls -d src_*})
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
-FCFLAGS+=-fconvert=swap -fallow-argument-mismatch
-POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -fallow-argument-mismatch -fconvert=swap -fimplicit-none -fbounds-check
+FCFLAGS+=-fconvert=swap -std=legacy -fmax-stack-var-size=1048576
+POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -std=legacy -fconvert=swap -fimplicit-none -fbounds-check  -fmax-stack-var-size=1048576
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FC))), ifort)

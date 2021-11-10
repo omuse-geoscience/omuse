@@ -23,10 +23,12 @@ module pop_interface
          tropic_distribution_type, ew_boundary_type, ns_boundary_type
   use forcing_fields, only: SMF, SMFT, lsmft_avail, STF
   use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, &
-                         shf_formulation, shf_interp_freq, shf_interp_type!, shf_restore_tau
+                         shf_formulation, shf_interp_freq, shf_interp_type, &!, shf_restore_tau
+                         SHF_DATA, shf_data_sst
   use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, ws_data_update, ws_interp_freq, ws_interp_type, &
       ws_interp_next, ws_interp_last, ws_interp_inc
-  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed
+  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed, &
+                          SFWF_DATA, sfwf_data_sss
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
@@ -924,6 +926,27 @@ function get_element_surface_heat_flux(g_i, g_j, shf_, n) result (ret)
   ret=0
 end function
 
+function get_element_surface_forcing_temp(g_i, g_j, stf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: stf_
+
+  call get_gridded_variable_vector(g_i, g_j, SHF_DATA(:,:,:,shf_data_sst,1), stf_, n)
+
+  ret=0
+end function
+
+function get_element_surface_forcing_salt(g_i, g_j, stf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: stf_
+
+  call get_gridded_variable_vector(g_i, g_j, SFWF_DATA(:,:,:,sfwf_data_sss,1), stf_, n)
+
+  ret=0
+end function
 
 !-----------------------------------------------------------------------
 !

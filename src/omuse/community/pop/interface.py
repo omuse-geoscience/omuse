@@ -123,6 +123,15 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     def get_element_surface_heat_flux(i=0,j=0):
         returns (surface_heat_flux=0. | units.W/units.m**2) #surface heat flux in W/m**2
 
+    @remote_function(must_handle_array=True)
+    def get_element_surface_forcing_temp(i=0,j=0):
+        returns (restoring_temp=0. | units.C)
+
+    @remote_function(must_handle_array=True)
+    def get_element_surface_forcing_salt(i=0,j=0):
+        returns (restoring_salt=0. | units.g/units.kg) # to be checked
+
+
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
     @remote_function(must_handle_array=True)
     def get_node_position(i=0,j=0):
@@ -619,6 +628,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, 'get_node_position')
             object.add_method(state, 'get_element_surface_state')
             object.add_method(state, 'get_element_surface_heat_flux')
+            object.add_method(state, 'get_element_surface_forcing_temp')
+            object.add_method(state, 'get_element_surface_forcing_salt')
             object.add_method(state, 'get_node_surface_state')
             object.add_method(state, 'get_node_barotropic_vel')
             object.add_method(state, 'get_node3d_velocity_xvel')
@@ -761,6 +772,14 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_setter('elements3d', 'set_element3d_temperature', names = ('temperature',))
         object.add_setter('elements3d', 'set_element3d_salinity', names = ('salinity',))
         object.add_setter('elements3d', 'set_element3d_density', names = ('rho',))
+
+        #these are all on the T-grid
+        object.define_grid('element_forcings', axes_names=axes_names, grid_class=StructuredGrid)
+        object.set_grid_range('element_forcings', 'get_firstlast_node')
+        object.add_getter('element_forcings', 'get_element_surface_forcing_temp', names=('restoring_temp',))
+        object.add_getter('element_forcings', 'get_element_surface_forcing_salt', names=('restoring_salt',))
+        object.add_getter('element_forcings', 'get_element_position', names=('lat','lon'))
+
 
 
     def define_errorcodes(self, handler):
