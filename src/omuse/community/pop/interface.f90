@@ -78,8 +78,10 @@ module pop_interface
      fstop_now           ! flag id for stop_now flag
 
   logical :: &
-     fupdate_coriolis,  &! flag for update coriolis force
-     fupdate_wind_stress ! flag for update wind stress
+     fupdate_coriolis,    &  ! flag for update coriolis force
+     fupdate_wind_stress, &  ! flag for update wind stress
+     fupdate_shf_data,    &  ! flag for update shf data (e.g. temp restoring)
+     fupdate_sfwf_data      ! flag for update sfwf data (e.g. salt restoring)
 
   logical :: initialized = .false.
 
@@ -146,6 +148,8 @@ function commit_parameters() result(ret)
   fstop_now = get_time_flag_id('stop_now')
   fupdate_coriolis = .false.
   fupdate_wind_stress = .false.
+  fupdate_shf_data = .false.
+  fupdate_sfwf_data = .false.
 
   !allocate space for gather of global field
   if (my_task == master_task) then
@@ -774,6 +778,60 @@ function set_coriolis_f() result(ret)
   endif
 end function
 
+function set_shf_data() result(ret)
+  integer :: ret
+  integer :: iblock,i
+
+  fupdate_shf_data = .false.
+
+  ret=-1
+
+  if(shf_data_type/="amuse") then 
+    return
+  endif
+ 
+! for now only amuse shf is supported, so num_fields=1 
+!~   do i=1,shf_data_num_fields 
+ 
+  call POP_HaloUpdate(SHF_DATA(:,:,:,shf_data_sst,1), POP_haloClinic,  &
+                      POP_gridHorzLocCenter,          &
+                      POP_fieldKindVector, errorCode, &
+                      fillValue = 0.0_r8)
+
+!~   enddo
+
+  if (errorCode == POP_Success) ret=0
+
+end function
+
+function set_sfwf_data() result(ret)
+  integer :: ret
+  integer :: iblock,i
+
+  fupdate_sfwf_data = .false.
+
+  ret=-1
+
+  if(sfwf_data_type/="amuse") then 
+    return
+  endif
+ 
+! for now only amuse sfwf is supported, so num_fields=1 
+!~   do i=1,sfwf_data_num_fields 
+ 
+  call POP_HaloUpdate(SFWF_DATA(:,:,:,sfwf_data_sss,1), POP_haloClinic,  &
+                      POP_gridHorzLocCenter,          &
+                      POP_fieldKindVector, errorCode, &
+                      fillValue = 0.0_r8)
+
+!~   enddo
+
+  if (errorCode == POP_Success) ret=0
+
+end function
+
+
+
 
 !-----------------------------------------------------------------------
 !
@@ -795,6 +853,19 @@ function recommit_forcings() result(ret)
   if (fupdate_coriolis) then
     ret = set_coriolis_f()
   endif
+  
+  if (ret /= 0) return
+  
+  if (fupdate_shf_data) then
+    ret = set_shf_data()
+  endif
+
+  if (ret /= 0) return
+  
+  if (fupdate_sfwf_data) then
+    ret = set_sfwf_data()
+  endif
+  
 end function
 
 
@@ -932,10 +1003,34 @@ function get_element_surface_forcing_temp(g_i, g_j, stf_, n) result (ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: stf_
 
+  if(shf_formulation/="restoring") then
+    ret=-1
+    return
+  endif
+
   call get_gridded_variable_vector(g_i, g_j, SHF_DATA(:,:,:,shf_data_sst,1), stf_, n)
+
+  ret=0 !to do: return error code in case shf forcing non-restoring 
+end function
+
+function set_element_surface_forcing_temp(g_i, g_j, stf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: stf_
+
+  if(shf_formulation/="restoring") then
+    ret=-1
+    return
+  endif
+
+  call set_gridded_variable_vector(g_i, g_j, SHF_DATA(:,:,:,shf_data_sst,1), stf_, n)
+
+  fupdate_shf_data=.true.
 
   ret=0
 end function
+
 
 function get_element_surface_forcing_salt(g_i, g_j, stf_, n) result (ret)
   integer :: ret
@@ -943,9 +1038,33 @@ function get_element_surface_forcing_salt(g_i, g_j, stf_, n) result (ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(out) :: stf_
 
+  if(sfwf_formulation/="restoring") then
+    ret=-1
+    return
+  endif
+
   call get_gridded_variable_vector(g_i, g_j, SFWF_DATA(:,:,:,sfwf_data_sss,1), stf_, n)
 
   ret=0
+end function
+
+function set_element_surface_forcing_salt(g_i, g_j, stf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: stf_
+
+  if(sfwf_formulation/="restoring") then
+    ret=-1
+    return
+  endif
+
+  call set_gridded_variable_vector(g_i, g_j, SFWF_DATA(:,:,:,sfwf_data_sss,1), stf_, n)
+
+  fupdate_sfwf_data=.true.
+
+  ret=0
+  
 end function
 
 !-----------------------------------------------------------------------
@@ -1338,7 +1457,7 @@ end function
 ! to be extended in the future
 !
 !-----------------------------------------------------------------------
-function recommit_parameters() result (ret)
+function recommit_forcings_() result (ret)
   integer :: ret
   ret=0
 
@@ -1935,7 +2054,7 @@ function set_sfwf_data_type(type_) result (ret)
   character (char_len), intent(in) :: type_
   ret=0
   if (type_ == 'file')then
-    shf_data_type = type_
+    sfwf_data_type = type_
   elseif(type_ == 'amuse' .or. type_ == 'analytic') then
     sfwf_data_type = type_
     sfwf_formulation = 'restoring' 

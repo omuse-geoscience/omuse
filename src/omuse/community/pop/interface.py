@@ -48,11 +48,11 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     include_headers = ['worker_code.h']
     use_modules = ['pop_interface']
     
-    MODE_TEST = 'test'
     MODE_NORMAL = '320x384x40'
     MODE_HIGH = '3600x2400x42'
     MODE_320x384x40='320x384x40'
     MODE_3600x2400x42='3600x2400x42'
+    OTHER_MODES= ["96x40x12", "test"]
 
     def __init__(self, mode = MODE_NORMAL, **keyword_arguments):
         self.mode = mode
@@ -66,7 +66,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
             #~ path = amuse_dir + '/src/omuse/community/pop/'
             #~ self.change_directory(path)
 
-        if mode in [self.MODE_TEST]:
+        if mode in self.OTHER_MODES:
             pass
         elif mode in [self.MODE_NORMAL,self.MODE_320x384x40]:
             pass
@@ -128,8 +128,16 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns (restoring_temp=0. | units.C)
 
     @remote_function(must_handle_array=True)
+    def set_element_surface_forcing_temp(i=0,j=0,restoring_temp=0. | units.C):
+        returns ()
+
+    @remote_function(must_handle_array=True)
     def get_element_surface_forcing_salt(i=0,j=0):
         returns (restoring_salt=0. | units.g/units.kg) # to be checked
+
+    @remote_function(must_handle_array=True)
+    def set_element_surface_forcing_salt(i=0,j=0,restoring_salt=0. | units.g/units.kg):
+        returns () 
 
 
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
@@ -272,13 +280,18 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     def commit_parameters():
         returns ()
     @remote_function
-    def recommit_parameters():
+    def recommit_forcings_():
         returns ()
 
-    def synchronize_model(self):
-        self.recommit_parameters()
-        self.prepare_parameters()
+    def prepare_forcings():
+        pass
+
+    def recommit_grids(self):
+        self.prepare_parameters() # update windstress and zvel 
         
+    def recommit_forcings(self):
+        self.recommit_forcings_()
+        self.prepare_parameters() # to update the windstress to the one just set
 
     @remote_function
     def get_horiz_grid_option():
@@ -608,6 +621,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_method('INITIALIZED', 'set_dt_option')
         #~ object.add_method('INITIALIZED', 'get_dt_count')
         object.add_method('INITIALIZED', 'set_dt_count')
+        
+        object.add_method('INITIALIZED', 'set_KMT')
 
         #you can only edit stuff in state EDIT
         #~ object.add_method('INITIALIZED','before_set_parameter')
@@ -634,12 +649,14 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, 'get_node_barotropic_vel')
             object.add_method(state, 'get_node3d_velocity_xvel')
             object.add_method(state, 'get_node3d_velocity_yvel')
-            object.add_method(state, 'get_node3d_velocity_zvel')
             object.add_method(state, 'get_element3d_temperature')
             object.add_method(state, 'get_element3d_salinity')
             object.add_method(state, 'get_element3d_density')
 
-        object.add_method('EDIT', 'set_node_coriolis_f')
+
+        object.add_method("RUN", 'get_node3d_velocity_zvel') # because depends on xvel, yvel; needs prepare first
+
+
         object.add_method('EDIT', 'set_node_barotropic_vel')
         object.add_method('EDIT', 'set_node_surface_state')
         object.add_method('EDIT', 'set_node3d_velocity_xvel')
@@ -649,10 +666,18 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_method('EDIT', 'set_element3d_density')
 
         object.add_method('EDIT_FORCINGS', 'set_node_wind_stress')
+        object.add_method('EDIT_FORCINGS', 'set_node_coriolis_f')
+        object.add_method('EDIT_FORCINGS', 'set_element_surface_forcing_temp')
+        object.add_method('EDIT_FORCINGS', 'set_element_surface_forcing_salt')
 
         #before we can run the model we need to recommit_parameters 
-        object.add_transition('EDIT', 'RUN', 'recommit_parameters')
-        object.add_transition('EDIT_FORCINGS', 'RUN', 'synchronize_model')
+        object.add_transition('EDIT', 'RUN', 'recommit_grids')
+        object.add_transition('EDIT_FORCINGS', 'RUN', 'recommit_forcings')
+        object.add_transition('EDIT_FORCINGS', 'EDIT', 'recommit_forcings')
+        object.add_transition('EDIT', 'EDIT_FORCINGS', 'prepare_forcings') # prepare_forcings is a dummy
+        object.add_transition('RUN', 'EDIT_FORCINGS', 'prepare_forcings')
+        object.add_transition('RUN', 'EDIT', 'prepare_forcings')
+        
 
         #can only evolve from run
         object.add_transition('RUN', 'EVOLVED', 'evolve_model', False)
@@ -676,12 +701,28 @@ class POP(CommonCode, CodeWithNamelistParameters):
 
     def commit_parameters(self):        
         self.set_nprocs(self.nprocs)
+
+        try:
+          if self.parameters_HMIX_ANISO_NML.var_viscosity_outfile:
+            dirname=os.path.dirname(self.parameters_HMIX_ANISO_NML.var_viscosity_outfile)
+            os.makedirs(dirname)
+        except:
+          pass
+        
         if self.parameters.vert_grid_option=='amuse':
             kmax=self.get_number_of_vertical_levels()
             if len(self.parameters.vertical_layer_thicknesses)==kmax:
               self.set_dz(range(1,kmax+1),self.parameters.vertical_layer_thicknesses)
             else:
                 raise Exception("length of parameter vertical_layer_thicknesses needs to be {0}".format(kmax))
+        if self.parameters.topography_option=="amuse":
+            d=numpy.zeros(self.get_domain_size())   
+            try:
+              d=self.parameters.depth_index
+              indices=numpy.indices(d.shape)
+              self.set_KMT(indices[0].flatten()+1,indices[1].flatten()+1, d.flat)
+            except:
+              raise Exception("invalid depth index")
         self.overridden().commit_parameters()
 
     def get_firstlast_node(self):
@@ -777,7 +818,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.define_grid('element_forcings', axes_names=axes_names, grid_class=StructuredGrid)
         object.set_grid_range('element_forcings', 'get_firstlast_node')
         object.add_getter('element_forcings', 'get_element_surface_forcing_temp', names=('restoring_temp',))
+        object.add_setter('element_forcings', 'set_element_surface_forcing_temp', names=('restoring_temp',))
         object.add_getter('element_forcings', 'get_element_surface_forcing_salt', names=('restoring_salt',))
+        object.add_setter('element_forcings', 'set_element_surface_forcing_salt', names=('restoring_salt',))
         object.add_getter('element_forcings', 'get_element_position', names=('lat','lon'))
 
 
@@ -834,6 +877,13 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "Option for topography should be either \'amuse\',\'internal\' or \'file\'",
             default_value = 'internal'
         )
+
+        object.add_interface_parameter(
+          "depth_index",
+          "single value or array of depth indices, determines bathymetry in case topography_option=amuse together with vertical_layer_thicknesses",
+          default_value = 0
+        )
+
         object.add_method_parameter(
             "get_topography_file",
             "set_topography_file",
