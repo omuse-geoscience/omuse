@@ -385,6 +385,36 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     def set_ns_boundary_type(option='s'):
         returns ()
 
+    @remote_function
+    def get_lonmin():
+        returns (lonmin=0. | units.deg)
+    @remote_function
+    def set_lonmin(lonmin=0. | units.deg):
+        returns ()
+
+    @remote_function
+    def get_lonmax():
+        returns (lonmax=0. | units.deg)
+    @remote_function
+    def set_lonmax(lonmax=0. | units.deg):
+        returns ()
+
+    @remote_function
+    def get_latmin():
+        returns (latmin=0. | units.deg)
+    @remote_function
+    def set_latmin(latmin=0. | units.deg):
+        returns ()
+
+    @remote_function
+    def get_latmax():
+        returns (latmax=0. | units.deg)
+    @remote_function
+    def set_latmax(latmax=0. | units.deg):
+        returns ()
+
+
+
 
     @remote_function
     def get_restart_option():
@@ -1103,4 +1133,36 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "vertical_layer_thicknesses",
             "input layer thicknesses (in case topography_opt==amuse) ",
             [] | units.cm
+        )
+
+        object.add_method_parameter(
+            "get_lonmin",
+            "set_lonmin",
+            "lonmin",
+            "west boundary of domain (deg) in case horiz_grid_option=amuse",
+            default_value = 10. | units.deg
+        )
+
+        object.add_method_parameter(
+            "get_lonmax",
+            "set_lonmax",
+            "lonmax",
+            "east boundary of domain (deg) in case horiz_grid_option=amuse",
+            default_value = 70. | units.deg
+        )
+        
+        object.add_method_parameter(
+            "get_latmin",
+            "set_latmin",
+            "latmin",
+            "south boundary of domain (deg) in case horiz_grid_option=amuse",
+            default_value = 10. | units.deg
+        )
+
+        object.add_method_parameter(
+            "get_latmax",
+            "set_latmax",
+            "latmax",
+            "north boundary of domain (deg) in case horiz_grid_option=amuse",
+            default_value = 70. | units.deg
         )

@@ -83,6 +83,8 @@ module pop_interface
      fupdate_shf_data,    &  ! flag for update shf data (e.g. temp restoring)
      fupdate_sfwf_data      ! flag for update sfwf data (e.g. salt restoring)
 
+  real (r8) :: lonmin=10.,lonmax=60.,latmin=10.,latmax=60.  ! parameters for horiz_grid_option="amuse" 
+
   logical :: initialized = .false.
 
   real (r8), dimension (nx_block, ny_block, max_blocks_clinic) :: &
@@ -139,9 +141,7 @@ function commit_parameters() result(ret)
   if(topography_opt.NE.'amuse') then
     deallocate(KMT_G) ! will be reallocated later
   endif
-  !if(horiz_grid_opt.EQ.'amuse') then
-  !  allocate (ULAT_G(nx_global, ny_global), &
-  !            ULON_G(nx_global, ny_global))
+  if(horiz_grid_opt.EQ.'amuse') call horiz_grid_amuse2(.true.)
 
   call POP_Initialize(errorCode)
 
@@ -325,6 +325,62 @@ function get_timestep_next(dtout) result(ret)
   ret=0
 end function
 
+
+function get_lonmin(x) result(ret)
+  integer :: ret
+  real(8), intent(out) :: x
+  x=lonmin
+  ret=0
+end function
+
+function get_lonmax(x) result(ret)
+  integer :: ret
+  real(8), intent(out) :: x
+  x=lonmax
+  ret=0
+end function
+
+function get_latmin(x) result(ret)
+  integer :: ret
+  real(8), intent(out) :: x
+  x=latmin
+  ret=0
+end function
+
+function get_latmax(x) result(ret)
+  integer :: ret
+  real(8), intent(out) :: x
+  x=latmax
+  ret=0
+end function
+
+function set_lonmin(x) result(ret)
+  integer :: ret
+  real(8), intent(in) :: x
+  lonmin=x
+  ret=0
+end function
+
+function set_lonmax(x) result(ret)
+  integer :: ret
+  real(8), intent(in) :: x
+  lonmax=x
+  ret=0
+end function
+
+function set_latmin(x) result(ret)
+  integer :: ret
+  real(8), intent(in) :: x
+  latmin=x
+  ret=0
+end function
+
+function set_latmax(x) result(ret)
+  integer :: ret
+  real(8), intent(in) :: x
+  latmax=x
+  ret=0
+end function
 
 
 
@@ -2155,7 +2211,7 @@ subroutine initialize_global_grid
     case ('internal')
       call horiz_grid_internal(.true.)
     case ('amuse')
-      call horiz_grid_amuse(.true.)
+      call horiz_grid_amuse2(.true.)
     case ('file')
       call broadcast_scalar(horiz_grid_file, master_task)
       call read_horiz_grid(horiz_grid_file,.true.)
@@ -2273,6 +2329,85 @@ subroutine calc_tpoints_global
     where (TLON_G(:,:) < c0 ) TLON_G(:,:) = TLON_G(:,:) + pi2
 
 end subroutine calc_tpoints_global
+
+! this function complements the internal horiz_grid_amuse call
+ subroutine horiz_grid_amuse2(latlon_only)
+
+! !DESCRIPTION:
+!  Creates a lat/lon grid with equal spacing in each direction
+!
+! !REVISION HISTORY:
+!  same as module
+
+! !INPUT PARAMETERS:
+
+   logical (POP_logical), intent(in) :: &
+      latlon_only       ! flag requesting only ULAT, ULON
+
+!EOP
+!BOC
+!-----------------------------------------------------------------------
+!
+!  local variables
+!
+!-----------------------------------------------------------------------
+
+   integer (POP_i4) :: &
+      i,j,ig,jg,jm1,n    ! dummy counters
+
+   real (POP_r8) :: &
+      dlat, dlon,       &! lat/lon spacing for idealized grid
+      lathalf,          &! lat at T points
+      xdeg               ! temporary longitude variable
+
+   type (block) :: &
+      this_block    ! block info for this block
+
+!-----------------------------------------------------------------------
+!
+!  calculate lat/lon coords of U points
+!  long range (-180,180)
+!
+!-----------------------------------------------------------------------
+
+   dlon = (lonmax-lonmin)/real(nx_global)
+   dlat = (latmax-latmin)/real(ny_global)
+
+   if (latlon_only) then
+
+      allocate (ULAT_G(nx_global, ny_global), &
+                ULON_G(nx_global, ny_global))
+
+      do i=1,nx_global
+        xdeg = lonmin + i*dlon
+        if (xdeg > 180.0_POP_r8) xdeg = xdeg - 360.0_POP_r8
+        ULON_G(i,:) = xdeg/radian
+      enddo
+
+      do j = 1,ny_global
+         ULAT_G(:,j)  = (latmin + j*dlat)/radian
+      enddo
+
+!-----------------------------------------------------------------------
+!
+!  calculate grid spacings and other quantities
+!  compute here to avoid bad ghost cell values due to dropped land 
+!  blocks
+!
+!-----------------------------------------------------------------------
+
+   else 
+       ! should never happen!
+      call exit_POP(sigAbort,'ERROR: interface error,  horiz_grid call not allowed')
+
+   endif
+
+!-----------------------------------------------------------------------
+!EOC
+
+ end subroutine horiz_grid_amuse2
+
+
 
 end module pop_interface
 
