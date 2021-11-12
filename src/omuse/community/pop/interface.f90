@@ -141,6 +141,9 @@ function commit_parameters() result(ret)
   if(topography_opt.NE.'amuse') then
     deallocate(KMT_G) ! will be reallocated later
   endif
+
+  call init_constants()
+
   if(horiz_grid_opt.EQ.'amuse') call horiz_grid_amuse2(.true.)
 
   call POP_Initialize(errorCode)
@@ -2230,9 +2233,36 @@ subroutine initialize_global_grid
         allocate (TLAT_G(nx_global,ny_global), &
               TLON_G(nx_global,ny_global))
 
-        call calc_tpoints_global
+!~         call calc_tpoints_global
     endif
+    call calc_tpoints_global2
+
 end subroutine initialize_global_grid
+
+subroutine calc_tpoints_global2
+   integer :: i,j,ii(nx_global),jj(nx_global)
+   real (r8) :: tmp(nx_global)
+
+    do j=1, ny_global
+      do i=1, nx_global
+        ii(i)=i
+        jj(i)=j
+      enddo
+      call get_gridded_variable_vector(ii,jj,TLON, tmp, nx_global)
+      if (my_task == master_task) TLON_G(:,j)=tmp
+  
+      call get_gridded_variable_vector(ii,jj,TLAT, tmp, nx_global)
+      if (my_task == master_task) TLAT_G(:,j)=tmp
+    
+    enddo  
+    
+    if (my_task == master_task) then
+      where (TLON_G(:,:) > pi2) TLON_G(:,:) = TLON_G(:,:) - pi2
+      where (TLON_G(:,:) < c0 ) TLON_G(:,:) = TLON_G(:,:) + pi2  
+    endif
+
+
+end subroutine calc_tpoints_global2
 
 ! copied and modified from grid.F90 to work for global grid
 subroutine calc_tpoints_global
@@ -2363,13 +2393,6 @@ end subroutine calc_tpoints_global
    type (block) :: &
       this_block    ! block info for this block
 
-!-----------------------------------------------------------------------
-!
-!  calculate lat/lon coords of U points
-!  long range (-180,180)
-!
-!-----------------------------------------------------------------------
-
    dlon = (lonmax-lonmin)/real(nx_global)
    dlat = (latmax-latmin)/real(ny_global)
 
@@ -2380,21 +2403,14 @@ end subroutine calc_tpoints_global
 
       do i=1,nx_global
         xdeg = lonmin + i*dlon
-        if (xdeg > 180.0_POP_r8) xdeg = xdeg - 360.0_POP_r8
+! comment out: TLON is going going to be 0-2pi, so make ULON match...
+!        if (xdeg > 180.0_POP_r8) xdeg = xdeg - 360.0_POP_r8
         ULON_G(i,:) = xdeg/radian
       enddo
 
       do j = 1,ny_global
          ULAT_G(:,j)  = (latmin + j*dlat)/radian
       enddo
-
-!-----------------------------------------------------------------------
-!
-!  calculate grid spacings and other quantities
-!  compute here to avoid bad ghost cell values due to dropped land 
-!  blocks
-!
-!-----------------------------------------------------------------------
 
    else 
        ! should never happen!
