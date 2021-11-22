@@ -7,7 +7,7 @@ endif
 export PYTHONPATH := $(PYTHONPATH):$(AMUSE_DIR)/src:$(AMUSE_DIR)/test
 MPIFC ?= mpifort #/usr/local/bin/mpif90
 
-TARGETS := $(patsubst src_%, pop_worker_%, ${shell ls -d src_*})
+TARGETS := $(patsubst src_%, pop_worker_%, ${wildcard src_*})
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
 FCFLAGS+=-fconvert=swap -std=legacy -fmax-stack-var-size=1048576
