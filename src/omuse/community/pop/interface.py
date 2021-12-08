@@ -283,11 +283,12 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     def recommit_forcings_():
         returns ()
 
-    def prepare_forcings():
+    def prepare_forcings(self):
         pass
 
-    def recommit_grids(self):
-        self.prepare_parameters() # update windstress and zvel 
+    @remote_function
+    def recommit_grids():
+        returns ()
         
     def recommit_forcings(self):
         self.recommit_forcings_()

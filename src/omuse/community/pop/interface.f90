@@ -28,7 +28,8 @@ module pop_interface
   use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, ws_data_update, ws_interp_freq, ws_interp_type, &
       ws_interp_next, ws_interp_last, ws_interp_inc
   use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed, &
-                          SFWF_DATA, sfwf_data_sss
+                          SFWF_DATA, sfwf_data_sss, lfw_as_salt_flx
+
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
@@ -47,6 +48,12 @@ module pop_interface
   use output, only: output_driver
   use exit_mod, only: sigAbort, sigExit
 ! use io, only:
+
+  use operators, only: div
+
+! still a lot tbd:
+  use ice, only: tlast_ice, liceform, AQICE, FW_FREEZE, QFLUX
+  use forcing_fields, only: FW_OLD
 
 
   implicit none
@@ -955,15 +962,10 @@ function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(in) :: uvel_, vvel_
 
-  if (n < nx_global*ny_global) then
     call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
     call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
     call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
     call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
-  else
-    !call get_gather(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
-    !call get_gather(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
-  endif
 
   ret=0
 end function
@@ -977,39 +979,39 @@ function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_,gradx_,grady_, n) r
     call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    ssh_ = ssh_ / grav
-    gradx_ = gradx_ / grav
-    grady_ = grady_ / grav
     call get_gridded_variable_vector(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gridded_variable_vector(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   else
     call get_gather(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
-    ssh_ = ssh_ / grav
+    call get_gather(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
+    call get_gather(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     call get_gather(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gather(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   endif
-
+  ssh_ = ssh_ / grav
+  gradx_ = gradx_ / grav
+  grady_ = grady_ / grav
   ret=0
 end function
+
 function set_node_surface_state(g_i, g_j, ssh_, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(in) :: ssh_, gradx_, grady_
 
-  if (n < nx_global*ny_global) then
     call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
+
     PSURF=PSURF*grav
     GRADPX=GRADPX*grav
     GRADPY=GRADPY*grav
 
-    PGUESS=PSURF(:,:,1,:)
-  endif
+    PGUESS=PSURF(:,:,curtime,:)
 
   ret=0
 end function
@@ -1523,6 +1525,24 @@ function recommit_forcings_() result (ret)
   ret = recommit_forcings()
 
 end function
+
+function recommit_grids() result (ret)
+  integer :: ret, errorCode
+
+  errorCode = POP_Success
+  
+  call recommit_prognostic_variables(errorCode)
+
+  if(errorCode.NE.POP_Success) then
+    ret=-2
+    return
+  endif
+
+  ret = prepare_parameters()
+
+end function
+
+
 function prepare_parameters() result (ret)
   integer :: ret
   ret=0
@@ -2422,6 +2442,224 @@ end subroutine calc_tpoints_global
 !EOC
 
  end subroutine horiz_grid_amuse2
+
+
+ subroutine recommit_prognostic_variables(errorCode)
+    integer :: errorCode
+    integer :: iblock, n, k 
+    logical :: pressure_correction=.TRUE.
+
+    real (POP_r8), dimension(nx_block,ny_block) :: &
+      WORK1,WORK2        ! work space for pressure correction
+
+    logical (POP_logical) ::   &
+      lcoupled_ts=.FALSE.   ! flag to check whether coupled time step
+
+    type (block) ::         &
+      this_block            ! block information for current block
+  
+   
+   
+   
+! verbatim from restart   
+    
+!-----------------------------------------------------------------------
+!
+!  zero prognostic variables at land points
+!
+!-----------------------------------------------------------------------
+
+   do iblock = 1,nblocks_clinic
+
+      this_block = get_block(blocks_clinic(iblock),iblock)
+
+      where (.not. CALCU(:,:,iblock))
+         UBTROP(:,:,curtime,iblock) = c0
+         VBTROP(:,:,curtime,iblock) = c0
+         GRADPX(:,:,curtime,iblock) = c0
+         GRADPY(:,:,curtime,iblock) = c0
+         UBTROP(:,:,oldtime,iblock) = c0
+         VBTROP(:,:,oldtime,iblock) = c0
+         GRADPX(:,:,oldtime,iblock) = c0
+         GRADPY(:,:,oldtime,iblock) = c0
+      endwhere
+
+      where (.not. CALCT(:,:,iblock))
+         PSURF(:,:,curtime,iblock) = c0
+         PSURF(:,:,oldtime,iblock) = c0
+         PGUESS(:,:,iblock) = c0
+      endwhere
+
+      if (liceform) then
+         if (lcoupled_ts) then
+         where (.not. CALCT(:,:,iblock))
+            QFLUX(:,:,iblock) = c0
+         endwhere
+         else
+         where (.not. CALCT(:,:,iblock))
+            AQICE(:,:,iblock) = c0
+         endwhere
+         endif
+      endif
+
+      if (sfc_layer_type == sfc_layer_varthick) then
+         where (.not. CALCT(:,:,iblock)) 
+            FW_OLD   (:,:,iblock) = c0
+!maltrud only need freeze for subset of cases but ok to zero land here without
+!  checking since it is allocated at compile time
+            FW_FREEZE(:,:,iblock) = c0
+         endwhere
+      endif
+
+      do k = 1,km
+         where (k > KMU(:,:,iblock))
+            UVEL(:,:,k,curtime,iblock) = c0
+            VVEL(:,:,k,curtime,iblock) = c0
+         endwhere
+      enddo
+
+      do n = 1,2
+         do k = 1,km
+            where (k > KMT(:,:,iblock))
+               TRACER(:,:,k,n,curtime,iblock) = c0
+               TRACER(:,:,k,n,oldtime,iblock) = c0
+            endwhere
+         enddo
+      enddo
+
+!-----------------------------------------------------------------------
+!
+!     reset PSURF(oldtime) to eliminate error in barotropic continuity
+!     eqn due to (possible) use of different timestep after restart
+!
+!     NOTE: use pressure_correction = .false. for exact restart
+!
+!-----------------------------------------------------------------------
+
+      if (pressure_correction) then
+
+         WORK1 = HU(:,:,iblock)*UBTROP(:,:,curtime,iblock)
+         WORK2 = HU(:,:,iblock)*VBTROP(:,:,curtime,iblock)
+
+         !*** use PSURF(oldtime) as temp
+         call div(1, PSURF(:,:,oldtime,iblock),WORK1,WORK2,this_block)
+
+         PSURF(:,:,oldtime,iblock) = PSURF(:,:,curtime,iblock) +  &
+                            grav*dtp*PSURF(:,:,oldtime,iblock)*   &
+                            TAREA_R(:,:,iblock)
+
+      endif
+   end do !block loop
+
+   if (pressure_correction) then
+      call POP_HaloUpdate(PSURF(:,:,oldtime,:), POP_haloClinic,       &
+                          POP_gridHorzLocCenter, POP_fieldKindScalar, &
+                          errorCode, fillValue = 0.0_POP_r8)
+
+      if (errorCode /= POP_Success) then
+         call POP_ErrorSet(errorCode, &
+            'read_restart: error updating sfc pressure halo')
+         return
+      endif
+   endif
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+   call POP_HaloUpdate(UBTROP,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(VBTROP,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(UVEL,                           &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(VVEL,                           &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(TRACER(:,:,:,:,curtime,:),      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(TRACER(:,:,:,:,newtime,:),      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(GRADPX,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(GRADPY,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(PSURF,                          &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(PGUESS,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   if (sfc_layer_type == sfc_layer_varthick) then
+   
+   call POP_HaloUpdate(FW_OLD,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+!maltrud only need freeze for subset of cases
+      if (.not. lfw_as_salt_flx .and. liceform ) then
+   call POP_HaloUpdate(FW_FREEZE,                      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+      endif
+   if (liceform) then
+      if (lcoupled_ts) then
+   call POP_HaloUpdate(QFLUX,                      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+      else
+   call POP_HaloUpdate(AQICE,                      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+      endif
+   endif
+   endif
+
+  end subroutine
 
 
 
