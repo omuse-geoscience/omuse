@@ -2590,6 +2590,12 @@ end subroutine calc_tpoints_global
                        POP_fieldKindVector, errorCode, &
                        fillValue = 0.0_POP_r8)
 
+   call POP_HaloUpdate(RHO,      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
    call POP_HaloUpdate(TRACER(:,:,:,:,curtime,:),      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
