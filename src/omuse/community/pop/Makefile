@@ -62,12 +62,23 @@ clean:
 distclean: clean
 	rm -rf eSalsa-POP
 
-src_%/libpop.a: src_%/POP_DomainSizeMod.F90 eSalsa-POP
+src_%/libpop.a: src_% src_%/POP_DomainSizeMod.F90 eSalsa-POP
 	make -j1 -C src_$* POPARCH=$(POPARCH) POPEXEDIR="$(CURDIR)/src_$*" POPDIR="$(POPDIR)" AMUSE_DIR="$(realpath $(AMUSE_DIR))" POPFFLAGS="$(POPFFLAGS)" MPIFC="$(MPIFC)"
+
+src_%:
+	mkdir src_$*
+
+src_%/POP_DomainSizeMod.F90: src_%
+	cp _src_template/GNUmakefile src_$*
+	cp _src_template/domain_size.F90 src_$*
+	cd src_$*; ${PYTHON} ../_src_template/POP_DomainSizeMod.py $*
 
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
 
-$(TARGETS): pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
+#~ $(TARGETS): pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
+pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
 	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) -c interface.f90 -o interface_$*.o 
 	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) $(FS_FLAGS) $< interface_$*.o src_$*/libpop.a $(FS_LIBS) -o $@
+
+.SECONDARY:
