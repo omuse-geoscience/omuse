@@ -81,4 +81,4 @@ pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
 	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) -c interface.f90 -o interface_$*.o 
 	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) $(FS_FLAGS) $< interface_$*.o src_$*/libpop.a $(FS_LIBS) -o $@
 
-.SECONDARY:
+.PRECIOUS: src_%

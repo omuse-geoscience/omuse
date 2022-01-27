@@ -452,6 +452,7 @@ function set_wind_stress() result(ret)
   !if we want to overwrite the wind stress, then we have to make sure that SMF is
   !not overwritten by some later interpolation routine, therefore, we have to
   !enforce the following settings
+  ! more proper might be to disallow this if ws_data_type!='amuse' (needs forcing_ws.F90 change)
   ws_data_type = 'none'
   ws_data_next = never
   ws_data_update = never
@@ -459,6 +460,10 @@ function set_wind_stress() result(ret)
   ws_interp_next = never
   ws_interp_last = never
   ws_interp_inc  = c0
+  ! also make sure SMFT is not used
+  lsmft_avail = .FALSE.
+  ! (in principle SMFT could also be set in rotate_wind_stress below (ugrid_to_tgrid)
+
 
   ! rotate_wind_stress applies tau_x and tau_y to the U-grid
   ! variable SMF (surface momentum fluxes (wind stress))
