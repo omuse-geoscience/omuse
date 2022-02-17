@@ -7,11 +7,11 @@ endif
 export PYTHONPATH := $(PYTHONPATH):$(AMUSE_DIR)/src:$(AMUSE_DIR)/test
 MPIFC ?= mpifort #/usr/local/bin/mpif90
 
-TARGETS := $(patsubst src_%, pop_worker_%, ${shell ls -d src_*})
+TARGETS := $(patsubst src_%, pop_worker_%, ${wildcard src_*})
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
-FCFLAGS+=-fconvert=swap -fallow-argument-mismatch
-POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -fallow-argument-mismatch -fconvert=swap -fimplicit-none -fbounds-check
+FCFLAGS+=-fconvert=swap -std=legacy -fmax-stack-var-size=1048576
+POPFFLAGS=-O2 -Wall -fdefault-double-8 -fdefault-real-8 -std=legacy -fconvert=swap -fimplicit-none -fbounds-check  -fmax-stack-var-size=1048576
 endif
 
 ifeq ($(findstring ifort, $(notdir $(FC))), ifort)
@@ -33,7 +33,7 @@ POPREPO=https://github.com/nlesc-smcm/eSalsa-POP
 POPREPOBRANCH=master
 
 
-.PHONY: all download src_%/lib
+.PHONY: all download src_%
 
 all: eSalsa-POP $(TARGETS)
 
@@ -65,9 +65,20 @@ distclean: clean
 src_%/libpop.a: src_%/POP_DomainSizeMod.F90 eSalsa-POP
 	make -j1 -C src_$* POPARCH=$(POPARCH) POPEXEDIR="$(CURDIR)/src_$*" POPDIR="$(POPDIR)" AMUSE_DIR="$(realpath $(AMUSE_DIR))" POPFFLAGS="$(POPFFLAGS)" MPIFC="$(MPIFC)"
 
+src_%:
+	mkdir src_$*
+
+src_%/POP_DomainSizeMod.F90: | src_%
+	cp _src_template/GNUmakefile src_$*
+	cp _src_template/domain_size.F90 src_$*
+	cd src_$*; ${PYTHON} ../_src_template/POP_DomainSizeMod.py $*
+
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
 
-$(TARGETS): pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
+#~ $(TARGETS): pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
+pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
 	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) -c interface.f90 -o interface_$*.o 
 	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) $(FS_FLAGS) $< interface_$*.o src_$*/libpop.a $(FS_LIBS) -o $@
+
+.PRECIOUS: src_% src_%/libpop.a src_%/POP_DomainSizeMod.F90
