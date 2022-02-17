@@ -20,6 +20,8 @@ clean:
 	$(RM) -f *.o *.a
 
 distclean: clean
+	cd delft3dfm; svn cleanup --remove-unversioned --remove-ignored
+	cd delft3dfm; svn -R revert .
 
 FCFLAGS+= -std=legacy
 FFLAGS=$(FCFLAGS)
@@ -42,8 +44,13 @@ delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse: dflowfm_omuse/src/dflo
 	-patch -p0 -N -ddelft3dfm/src < ./patches/unstruc.F90.patch
 	-patch -p0 -N -ddelft3dfm/src < ./patches/Makefile.am.patch
 	-patch -p0 -N -ddelft3dfm/src < ./patches/server.cpp.patch
-	-patch -p0 -N -ddelft3dfm < ./patches/c_char.patch
 	-patch -p0 -N -ddelft3dfm < ./patches/meminfo.cpp.patch
+# only apply if no rejects
+	-patch --dry-run -p0 -N -ddelft3dfm < ./patches/c_char.patch && patch -p0 -N -ddelft3dfm < ./patches/c_char.patch
+	-patch --dry-run -p0 -N -ddelft3dfm < ./patches/swan.patch && patch -p0 -N -ddelft3dfm < ./patches/swan.patch
+# we may have deleted some binary files
+	-patch --dry-run -p0 -N -ddelft3dfm < ./patches/third_party_open.patch && patch -p0 -N -ddelft3dfm < ./patches/third_party_open.patch
+
 
 delft3dfm/src/Makefile:  | delft3dfm delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse
 	cd delft3dfm/src; ./autogen.sh

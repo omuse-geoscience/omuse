@@ -1,0 +1,79 @@
+Index: src/third_party_open/Makefile.am
+===================================================================
+--- src/third_party_open/Makefile.am	(revision 140747)
++++ src/third_party_open/Makefile.am	(working copy)
+@@ -30,39 +30,39 @@
+     md5 \
+     $(MAYBE_FORTRANGIS)
+ 
+-nobase_dist_pkgdata_DATA = \
+-    esmf/lnx64/bin/libcilkrts.so.5 \
+-    esmf/lnx64/bin/libdl.so.2 \
+-    esmf/lnx64/bin/libesmf.so \
+-    esmf/lnx64/bin/libgcc_s.so.1 \
+-    esmf/lnx64/bin/libhdf5.so.8 \
+-    esmf/lnx64/bin/libhdf5_hl.so.8 \
+-    esmf/lnx64/bin/libifcore.so.5 \
+-    esmf/lnx64/bin/libifport.so.5 \
+-    esmf/lnx64/bin/libimf.so \
+-    esmf/lnx64/bin/libintlc.so.5 \
+-    esmf/lnx64/bin/libiomp5.so \
+-    esmf/lnx64/bin/libirc.so \
+-    esmf/lnx64/bin/libirng.so \
+-    esmf/lnx64/bin/libm.so.6 \
+-    esmf/lnx64/bin/libnetcdf.so.7 \
+-    esmf/lnx64/bin/libnetcdff.so.6 \
+-    esmf/lnx64/bin/librt.so.1 \
+-    esmf/lnx64/bin/libsvml.so \
+-    esmf/lnx64/bin/libz.so.1 \
+-    esmf/lnx64/bin_COS7/libcilkrts.so.5 \
+-    esmf/lnx64/bin_COS7/libesmf.so \
+-    esmf/lnx64/bin_COS7/libhdf5.so.200 \
+-    esmf/lnx64/bin_COS7/libhdf5_hl.so.200 \
+-    esmf/lnx64/bin_COS7/libifcoremt.so.5 \
+-    esmf/lnx64/bin_COS7/libifport.so.5 \
+-    esmf/lnx64/bin_COS7/libimf.so \
+-    esmf/lnx64/bin_COS7/libintlc.so.5 \
+-    esmf/lnx64/bin_COS7/libiomp5.so \
+-    esmf/lnx64/bin_COS7/libirc.so \
+-    esmf/lnx64/bin_COS7/libirng.so \
+-    esmf/lnx64/bin_COS7/libnetcdf.so.7 \
+-    esmf/lnx64/bin_COS7/libnetcdf.so.18 \
+-    esmf/lnx64/bin_COS7/libnetcdff.so.6 \
+-    esmf/lnx64/bin_COS7/libsvml.so
++#~ nobase_dist_pkgdata_DATA = \
++#~     esmf/lnx64/bin/libcilkrts.so.5 \
++#~     esmf/lnx64/bin/libdl.so.2 \
++#~     esmf/lnx64/bin/libesmf.so \
++#~     esmf/lnx64/bin/libgcc_s.so.1 \
++#~     esmf/lnx64/bin/libhdf5.so.8 \
++#~     esmf/lnx64/bin/libhdf5_hl.so.8 \
++#~     esmf/lnx64/bin/libifcore.so.5 \
++#~     esmf/lnx64/bin/libifport.so.5 \
++#~     esmf/lnx64/bin/libimf.so \
++#~     esmf/lnx64/bin/libintlc.so.5 \
++#~     esmf/lnx64/bin/libiomp5.so \
++#~     esmf/lnx64/bin/libirc.so \
++#~     esmf/lnx64/bin/libirng.so \
++#~     esmf/lnx64/bin/libm.so.6 \
++#~     esmf/lnx64/bin/libnetcdf.so.7 \
++#~     esmf/lnx64/bin/libnetcdff.so.6 \
++#~     esmf/lnx64/bin/librt.so.1 \
++#~     esmf/lnx64/bin/libsvml.so \
++#~     esmf/lnx64/bin/libz.so.1 \
++#~     esmf/lnx64/bin_COS7/libcilkrts.so.5 \
++#~     esmf/lnx64/bin_COS7/libesmf.so \
++#~     esmf/lnx64/bin_COS7/libhdf5.so.200 \
++#~     esmf/lnx64/bin_COS7/libhdf5_hl.so.200 \
++#~     esmf/lnx64/bin_COS7/libifcoremt.so.5 \
++#~     esmf/lnx64/bin_COS7/libifport.so.5 \
++#~     esmf/lnx64/bin_COS7/libimf.so \
++#~     esmf/lnx64/bin_COS7/libintlc.so.5 \
++#~     esmf/lnx64/bin_COS7/libiomp5.so \
++#~     esmf/lnx64/bin_COS7/libirc.so \
++#~     esmf/lnx64/bin_COS7/libirng.so \
++#~     esmf/lnx64/bin_COS7/libnetcdf.so.7 \
++#~     esmf/lnx64/bin_COS7/libnetcdf.so.18 \
++#~     esmf/lnx64/bin_COS7/libnetcdff.so.6 \
++#~     esmf/lnx64/bin_COS7/libsvml.so
+ 

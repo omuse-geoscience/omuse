@@ -87,10 +87,6 @@ contains
   function do_partition() result(ret)
     integer :: ret, istat
     
-    print*,"do partition"
-    print*, fnam, md_Ndomains, japartdomain, md_genpolygon
-    print*, jareinitialize
-
     call loadNetwork(fnam, istat,1)
     
     call partition_from_commandline(fnam, md_Ndomains, md_jacontiguous, md_icgsolver, &

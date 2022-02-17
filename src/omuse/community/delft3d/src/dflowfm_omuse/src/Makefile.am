@@ -167,7 +167,6 @@ EXTRALIBS+=\
         $(top_builddir)/engines_gpl/waq/packages/waq_process/src/waq_process/libwaq_process.la \
         $(top_builddir)/engines_gpl/waq/packages/waq_plugin_wasteload/src/libwaq_plugin_wasteload.la \
         $(top_builddir)/engines_gpl/waq/packages/waq_utils_c/src/libwaq_utils_c.la \
-        $(top_builddir)/engines_gpl/waq/packages/waq_utils_f/src/interact/libinteract.la \
         $(top_builddir)/engines_gpl/waq/packages/waq_utils_f/src/waq_utils/libwaq_utils.la \
         $(top_builddir)/engines_gpl/waq/packages/wq_processes/src/libwqprocesses.la \
         $(top_builddir)/utils_lgpl/nefis/packages/nefis/src/libNefis.la \
@@ -184,6 +183,9 @@ EXTRALIBS+=\
         $(top_builddir)/third_party_open/polypack/src/libpolypack.la \
         $(top_builddir)/third_party_open/libsigwatch/libsigwatch.la \
         $(CCLIBS) -luuid
+
+# removed $(top_builddir)/engines_gpl/waq/packages/waq_utils_f/src/interact/libinteract.la 
+
 
 # dflowfm_LDADD = \
 #         libdflowfm.la		#

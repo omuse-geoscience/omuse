@@ -1,0 +1,63 @@
+Index: src/third_party_open/swan/Makefile.am
+===================================================================
+--- src/third_party_open/swan/Makefile.am	(revision 140747)
++++ src/third_party_open/swan/Makefile.am	(working copy)
+@@ -3,5 +3,4 @@
+     swan_mpi \
+     swan_omp \
+     src \
+-    bin \
+     scripts
+Index: src/third_party_open/swan/src/Makefile.am
+===================================================================
+--- src/third_party_open/swan/src/Makefile.am	(revision 140747)
++++ src/third_party_open/swan/src/Makefile.am	(working copy)
+@@ -15,7 +15,7 @@
+ #-------------------------------------------------------------------------------
+ #Includes
+ AM_FCFLAGS = ${NETCDF_CFLAGS} ${NETCDF_FORTRAN_CFLAGS} -DUSE_MPI
+-FFLAGS  = ${SWAN_FFLAGS} -O2 ${NETCDF_CFLAGS} ${NETCDF_FORTRAN_CFLAGS} 
++FFLAGS  = $(FCFLAGS) ${SWAN_FFLAGS} -O2 ${NETCDF_CFLAGS} ${NETCDF_FORTRAN_CFLAGS} 
+ 
+ FINCLUDES += \
+ 	-I$(builddir)/../include
+Index: src/third_party_open/swan/swan_mpi/Makefile.am
+===================================================================
+--- src/third_party_open/swan/swan_mpi/Makefile.am	(revision 140747)
++++ src/third_party_open/swan/swan_mpi/Makefile.am	(working copy)
+@@ -11,12 +11,14 @@
+ 
+ include $(top_srcdir)/common.am
+ 
++VPATH=../src
++
+ bin_PROGRAMS = swan_mpi
+ 
+ #-------------------------------------------------------------------------------
+ #Includes
+ AM_FCFLAGS = 
+-FFLAGS  = ${SWAN_FFLAGS} -O2 -DSWANEXE
++FFLAGS  = $(FCFLAGS) ${SWAN_FFLAGS} -O2 -DSWANEXE
+ LIBS =
+ 
+ if USENETCDF
+Index: src/third_party_open/swan/swan_omp/Makefile.am
+===================================================================
+--- src/third_party_open/swan/swan_omp/Makefile.am	(revision 140747)
++++ src/third_party_open/swan/swan_omp/Makefile.am	(working copy)
+@@ -11,12 +11,14 @@
+ 
+ include $(top_srcdir)/common.am
+ 
++VPATH=../src
++
+ bin_PROGRAMS = swan_omp
+ 
+ #-------------------------------------------------------------------------------
+ #Includes
+ AM_FCFLAGS = -fopenmp $(OPENMP_FCFLAGS) 
+-FFLAGS  = -fopenmp $(OPENMP_FFLAGS) ${SWAN_FFLAGS} -O2 -DSWANEXE
++FFLAGS  = -fopenmp $(OPENMP_FFLAGS) $(FCFLAGS) ${SWAN_FFLAGS} -O2 -DSWANEXE
+ LIBS =
+ 
+ if USENETCDF

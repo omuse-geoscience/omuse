@@ -15,7 +15,10 @@ OBJS = interface.o
 
 CODELIB = src/libdflowfm_omuse.a src/libdflowfm.a
 
-LIBS = -ldl -lnetcdf -lnetcdff -lmetis -lpetsc -lstdc++
+# proper thing is to pull this from amuse config (tbd)
+PETSc_LIBS=$(shell pkg-config --libs "PETSc")
+
+LIBS = -ldl -lnetcdf -lnetcdff -lmetis $(PETSc_LIBS) -lstdc++
 
 all: dflowfm_worker 
 
