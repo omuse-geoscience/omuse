@@ -117,7 +117,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     @remote_function(must_handle_array=True)
     def get_element_surface_state(i=0,j=0):
-        returns (temp=0. | units.C, salt=0. | units.g/units.kg) #salinity in gram per kg 
+        returns (temp=0. | units.Celsius, salt=0. | units.g/units.kg) #salinity in gram per kg 
 
     @remote_function(must_handle_array=True)
     def get_element_surface_heat_flux(i=0,j=0):
@@ -125,10 +125,10 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     @remote_function(must_handle_array=True)
     def get_element_surface_forcing_temp(i=0,j=0):
-        returns (restoring_temp=0. | units.C)
+        returns (restoring_temp=0. | units.Celsius)
 
     @remote_function(must_handle_array=True)
-    def set_element_surface_forcing_temp(i=0,j=0,restoring_temp=0. | units.C):
+    def set_element_surface_forcing_temp(i=0,j=0,restoring_temp=0. | units.Celsius):
         returns ()
 
     @remote_function(must_handle_array=True)
@@ -222,9 +222,9 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     #returns temperature for 3D grid
     @remote_function(must_handle_array=True)
     def get_element3d_temperature(i=0,j=0,k=0):
-        returns (temp=0. | units.C)
+        returns (temp=0. | units.Celsius)
     @remote_function(must_handle_array=True)
-    def set_element3d_temperature(i=0,j=0,k=0,temp=0. | units.C):
+    def set_element3d_temperature(i=0,j=0,k=0,temp=0. | units.Celsius):
         returns ()
 
     #returns salinity for 3D grid
