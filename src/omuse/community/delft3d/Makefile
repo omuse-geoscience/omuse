@@ -16,7 +16,12 @@ OBJS = interface.o
 CODELIB = src/libdflowfm_omuse.a src/libdflowfm.a
 
 # proper thing is to pull this from amuse config (tbd)
-PETSc_LIBS=$(shell pkg-config --libs "PETSc")
+PETSc_LIBS=$(shell pkg-config --keep-system-libs --libs "PETSc")
+PETSc_CFLAGS=$(shell pkg-config --keep-system-cflags --cflags "PETSc")
+NETCDF_FORTRAN_CFLAGS=$(shell nc-config --fflags)
+
+export NETCDF_FORTRAN_CFLAGS
+export PETSc_CFLAGS
 
 LIBS = -ldl -lnetcdf -lnetcdff -lmetis $(PETSc_LIBS) -lstdc++
 
