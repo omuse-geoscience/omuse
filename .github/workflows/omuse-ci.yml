@@ -50,6 +50,7 @@ jobs:
 
   omuse-era5:
     strategy:
+        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
@@ -132,6 +133,7 @@ jobs:
 
   omuse-framework:
     strategy:
+        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
@@ -214,6 +216,7 @@ jobs:
 
   omuse-iemic:
     strategy:
+        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
@@ -307,6 +310,7 @@ jobs:
 
   omuse-qgmodel:
     strategy:
+        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
@@ -389,6 +393,7 @@ jobs:
 
   omuse-swan:
     strategy:
+        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
