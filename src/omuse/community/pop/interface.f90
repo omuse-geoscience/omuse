@@ -23,10 +23,13 @@ module pop_interface
          tropic_distribution_type, ew_boundary_type, ns_boundary_type
   use forcing_fields, only: SMF, SMFT, lsmft_avail, STF
   use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, &
-                         shf_formulation, shf_interp_freq, shf_interp_type!, shf_restore_tau
+                         shf_formulation, shf_interp_freq, shf_interp_type, &!, shf_restore_tau
+                         SHF_DATA, shf_data_sst
   use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, ws_data_update, ws_interp_freq, ws_interp_type, &
       ws_interp_next, ws_interp_last, ws_interp_inc
-  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed
+  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed, &
+                          SFWF_DATA, sfwf_data_sss, lfw_as_salt_flx
+
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
@@ -45,6 +48,12 @@ module pop_interface
   use output, only: output_driver
   use exit_mod, only: sigAbort, sigExit
 ! use io, only:
+
+  use operators, only: div
+
+! still a lot tbd:
+  use ice, only: tlast_ice, liceform, AQICE, FW_FREEZE, QFLUX
+  use forcing_fields, only: FW_OLD
 
 
   implicit none
@@ -76,8 +85,12 @@ module pop_interface
      fstop_now           ! flag id for stop_now flag
 
   logical :: &
-     fupdate_coriolis,  &! flag for update coriolis force
-     fupdate_wind_stress ! flag for update wind stress
+     fupdate_coriolis,    &  ! flag for update coriolis force
+     fupdate_wind_stress, &  ! flag for update wind stress
+     fupdate_shf_data,    &  ! flag for update shf data (e.g. temp restoring)
+     fupdate_sfwf_data      ! flag for update sfwf data (e.g. salt restoring)
+
+  real (r8) :: lonmin=10.,lonmax=60.,latmin=10.,latmax=60.  ! parameters for horiz_grid_option="amuse" 
 
   logical :: initialized = .false.
 
@@ -135,15 +148,18 @@ function commit_parameters() result(ret)
   if(topography_opt.NE.'amuse') then
     deallocate(KMT_G) ! will be reallocated later
   endif
-  !if(horiz_grid_opt.EQ.'amuse') then
-  !  allocate (ULAT_G(nx_global, ny_global), &
-  !            ULON_G(nx_global, ny_global))
+
+  call init_constants()
+
+  if(horiz_grid_opt.EQ.'amuse') call horiz_grid_amuse2(.true.)
 
   call POP_Initialize(errorCode)
 
   fstop_now = get_time_flag_id('stop_now')
   fupdate_coriolis = .false.
   fupdate_wind_stress = .false.
+  fupdate_shf_data = .false.
+  fupdate_sfwf_data = .false.
 
   !allocate space for gather of global field
   if (my_task == master_task) then
@@ -320,6 +336,62 @@ function get_timestep_next(dtout) result(ret)
 end function
 
 
+function get_lonmin(x) result(ret)
+  integer :: ret
+  real(8), intent(out) :: x
+  x=lonmin
+  ret=0
+end function
+
+function get_lonmax(x) result(ret)
+  integer :: ret
+  real(8), intent(out) :: x
+  x=lonmax
+  ret=0
+end function
+
+function get_latmin(x) result(ret)
+  integer :: ret
+  real(8), intent(out) :: x
+  x=latmin
+  ret=0
+end function
+
+function get_latmax(x) result(ret)
+  integer :: ret
+  real(8), intent(out) :: x
+  x=latmax
+  ret=0
+end function
+
+function set_lonmin(x) result(ret)
+  integer :: ret
+  real(8), intent(in) :: x
+  lonmin=x
+  ret=0
+end function
+
+function set_lonmax(x) result(ret)
+  integer :: ret
+  real(8), intent(in) :: x
+  lonmax=x
+  ret=0
+end function
+
+function set_latmin(x) result(ret)
+  integer :: ret
+  real(8), intent(in) :: x
+  latmin=x
+  ret=0
+end function
+
+function set_latmax(x) result(ret)
+  integer :: ret
+  real(8), intent(in) :: x
+  latmax=x
+  ret=0
+end function
+
 
 
 
@@ -380,6 +452,7 @@ function set_wind_stress() result(ret)
   !if we want to overwrite the wind stress, then we have to make sure that SMF is
   !not overwritten by some later interpolation routine, therefore, we have to
   !enforce the following settings
+  ! more proper might be to disallow this if ws_data_type!='amuse' (needs forcing_ws.F90 change)
   ws_data_type = 'none'
   ws_data_next = never
   ws_data_update = never
@@ -387,6 +460,10 @@ function set_wind_stress() result(ret)
   ws_interp_next = never
   ws_interp_last = never
   ws_interp_inc  = c0
+  ! also make sure SMFT is not used
+  lsmft_avail = .FALSE.
+  ! (in principle SMFT could also be set in rotate_wind_stress below (ugrid_to_tgrid)
+
 
   ! rotate_wind_stress applies tau_x and tau_y to the U-grid
   ! variable SMF (surface momentum fluxes (wind stress))
@@ -772,6 +849,60 @@ function set_coriolis_f() result(ret)
   endif
 end function
 
+function set_shf_data() result(ret)
+  integer :: ret
+  integer :: iblock,i
+
+  fupdate_shf_data = .false.
+
+  ret=-1
+
+  if(shf_data_type/="amuse") then 
+    return
+  endif
+ 
+! for now only amuse shf is supported, so num_fields=1 
+!~   do i=1,shf_data_num_fields 
+ 
+  call POP_HaloUpdate(SHF_DATA(:,:,:,shf_data_sst,1), POP_haloClinic,  &
+                      POP_gridHorzLocCenter,          &
+                      POP_fieldKindVector, errorCode, &
+                      fillValue = 0.0_r8)
+
+!~   enddo
+
+  if (errorCode == POP_Success) ret=0
+
+end function
+
+function set_sfwf_data() result(ret)
+  integer :: ret
+  integer :: iblock,i
+
+  fupdate_sfwf_data = .false.
+
+  ret=-1
+
+  if(sfwf_data_type/="amuse") then 
+    return
+  endif
+ 
+! for now only amuse sfwf is supported, so num_fields=1 
+!~   do i=1,sfwf_data_num_fields 
+ 
+  call POP_HaloUpdate(SFWF_DATA(:,:,:,sfwf_data_sss,1), POP_haloClinic,  &
+                      POP_gridHorzLocCenter,          &
+                      POP_fieldKindVector, errorCode, &
+                      fillValue = 0.0_r8)
+
+!~   enddo
+
+  if (errorCode == POP_Success) ret=0
+
+end function
+
+
+
 
 !-----------------------------------------------------------------------
 !
@@ -793,6 +924,19 @@ function recommit_forcings() result(ret)
   if (fupdate_coriolis) then
     ret = set_coriolis_f()
   endif
+  
+  if (ret /= 0) return
+  
+  if (fupdate_shf_data) then
+    ret = set_shf_data()
+  endif
+
+  if (ret /= 0) return
+  
+  if (fupdate_sfwf_data) then
+    ret = set_sfwf_data()
+  endif
+  
 end function
 
 
@@ -823,15 +967,10 @@ function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(in) :: uvel_, vvel_
 
-  if (n < nx_global*ny_global) then
     call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
     call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
     call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
     call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
-  else
-    !call get_gather(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
-    !call get_gather(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
-  endif
 
   ret=0
 end function
@@ -845,39 +984,39 @@ function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_,gradx_,grady_, n) r
     call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    ssh_ = ssh_ / grav
-    gradx_ = gradx_ / grav
-    grady_ = grady_ / grav
     call get_gridded_variable_vector(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gridded_variable_vector(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   else
     call get_gather(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
-    ssh_ = ssh_ / grav
+    call get_gather(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
+    call get_gather(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     call get_gather(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gather(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   endif
-
+  ssh_ = ssh_ / grav
+  gradx_ = gradx_ / grav
+  grady_ = grady_ / grav
   ret=0
 end function
+
 function set_node_surface_state(g_i, g_j, ssh_, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
   real*8, dimension(n), intent(in) :: ssh_, gradx_, grady_
 
-  if (n < nx_global*ny_global) then
     call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
+
     PSURF=PSURF*grav
     GRADPX=GRADPX*grav
     GRADPY=GRADPY*grav
 
-    PGUESS=PSURF(:,:,1,:)
-  endif
+    PGUESS=PSURF(:,:,curtime,:)
 
   ret=0
 end function
@@ -924,6 +1063,75 @@ function get_element_surface_heat_flux(g_i, g_j, shf_, n) result (ret)
   ret=0
 end function
 
+function get_element_surface_forcing_temp(g_i, g_j, stf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: stf_
+
+  if(shf_formulation/="restoring") then
+    ret=-1
+    return
+  endif
+
+  call get_gridded_variable_vector(g_i, g_j, SHF_DATA(:,:,:,shf_data_sst,1), stf_, n)
+
+  ret=0 !to do: return error code in case shf forcing non-restoring 
+end function
+
+function set_element_surface_forcing_temp(g_i, g_j, stf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: stf_
+
+  if(shf_formulation/="restoring") then
+    ret=-1
+    return
+  endif
+
+  call set_gridded_variable_vector(g_i, g_j, SHF_DATA(:,:,:,shf_data_sst,1), stf_, n)
+
+  fupdate_shf_data=.true.
+
+  ret=0
+end function
+
+
+function get_element_surface_forcing_salt(g_i, g_j, stf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: stf_
+
+  if(sfwf_formulation/="restoring") then
+    ret=-1
+    return
+  endif
+
+  call get_gridded_variable_vector(g_i, g_j, SFWF_DATA(:,:,:,sfwf_data_sss,1), stf_, n)
+
+  ret=0
+end function
+
+function set_element_surface_forcing_salt(g_i, g_j, stf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: stf_
+
+  if(sfwf_formulation/="restoring") then
+    ret=-1
+    return
+  endif
+
+  call set_gridded_variable_vector(g_i, g_j, SFWF_DATA(:,:,:,sfwf_data_sss,1), stf_, n)
+
+  fupdate_sfwf_data=.true.
+
+  ret=0
+  
+end function
 
 !-----------------------------------------------------------------------
 !
@@ -1315,13 +1523,31 @@ end function
 ! to be extended in the future
 !
 !-----------------------------------------------------------------------
-function recommit_parameters() result (ret)
+function recommit_forcings_() result (ret)
   integer :: ret
   ret=0
 
   ret = recommit_forcings()
 
 end function
+
+function recommit_grids() result (ret)
+  integer :: ret, errorCode
+
+  errorCode = POP_Success
+  
+  call recommit_prognostic_variables(errorCode)
+
+  if(errorCode.NE.POP_Success) then
+    ret=-2
+    return
+  endif
+
+  ret = prepare_parameters()
+
+end function
+
+
 function prepare_parameters() result (ret)
   integer :: ret
   ret=0
@@ -1912,7 +2138,7 @@ function set_sfwf_data_type(type_) result (ret)
   character (char_len), intent(in) :: type_
   ret=0
   if (type_ == 'file')then
-    shf_data_type = type_
+    sfwf_data_type = type_
   elseif(type_ == 'amuse' .or. type_ == 'analytic') then
     sfwf_data_type = type_
     sfwf_formulation = 'restoring' 
@@ -2013,7 +2239,7 @@ subroutine initialize_global_grid
     case ('internal')
       call horiz_grid_internal(.true.)
     case ('amuse')
-      call horiz_grid_amuse(.true.)
+      call horiz_grid_amuse2(.true.)
     case ('file')
       call broadcast_scalar(horiz_grid_file, master_task)
       call read_horiz_grid(horiz_grid_file,.true.)
@@ -2032,9 +2258,36 @@ subroutine initialize_global_grid
         allocate (TLAT_G(nx_global,ny_global), &
               TLON_G(nx_global,ny_global))
 
-        call calc_tpoints_global
+!~         call calc_tpoints_global
     endif
+    call calc_tpoints_global2
+
 end subroutine initialize_global_grid
+
+subroutine calc_tpoints_global2
+   integer :: i,j,ii(nx_global),jj(nx_global)
+   real (r8) :: tmp(nx_global)
+
+    do j=1, ny_global
+      do i=1, nx_global
+        ii(i)=i
+        jj(i)=j
+      enddo
+      call get_gridded_variable_vector(ii,jj,TLON, tmp, nx_global)
+      if (my_task == master_task) TLON_G(:,j)=tmp
+  
+      call get_gridded_variable_vector(ii,jj,TLAT, tmp, nx_global)
+      if (my_task == master_task) TLAT_G(:,j)=tmp
+    
+    enddo  
+    
+    if (my_task == master_task) then
+      where (TLON_G(:,:) > pi2) TLON_G(:,:) = TLON_G(:,:) - pi2
+      where (TLON_G(:,:) < c0 ) TLON_G(:,:) = TLON_G(:,:) + pi2  
+    endif
+
+
+end subroutine calc_tpoints_global2
 
 ! copied and modified from grid.F90 to work for global grid
 subroutine calc_tpoints_global
@@ -2131,6 +2384,295 @@ subroutine calc_tpoints_global
     where (TLON_G(:,:) < c0 ) TLON_G(:,:) = TLON_G(:,:) + pi2
 
 end subroutine calc_tpoints_global
+
+! this function complements the internal horiz_grid_amuse call
+ subroutine horiz_grid_amuse2(latlon_only)
+
+! !DESCRIPTION:
+!  Creates a lat/lon grid with equal spacing in each direction
+!
+! !REVISION HISTORY:
+!  same as module
+
+! !INPUT PARAMETERS:
+
+   logical (POP_logical), intent(in) :: &
+      latlon_only       ! flag requesting only ULAT, ULON
+
+!EOP
+!BOC
+!-----------------------------------------------------------------------
+!
+!  local variables
+!
+!-----------------------------------------------------------------------
+
+   integer (POP_i4) :: &
+      i,j,ig,jg,jm1,n    ! dummy counters
+
+   real (POP_r8) :: &
+      dlat, dlon,       &! lat/lon spacing for idealized grid
+      lathalf,          &! lat at T points
+      xdeg               ! temporary longitude variable
+
+   type (block) :: &
+      this_block    ! block info for this block
+
+   dlon = (lonmax-lonmin)/real(nx_global)
+   dlat = (latmax-latmin)/real(ny_global)
+
+   if (latlon_only) then
+
+      allocate (ULAT_G(nx_global, ny_global), &
+                ULON_G(nx_global, ny_global))
+
+      do i=1,nx_global
+        xdeg = lonmin + i*dlon
+! comment out: TLON is going going to be 0-2pi, so make ULON match...
+!        if (xdeg > 180.0_POP_r8) xdeg = xdeg - 360.0_POP_r8
+        ULON_G(i,:) = xdeg/radian
+      enddo
+
+      do j = 1,ny_global
+         ULAT_G(:,j)  = (latmin + j*dlat)/radian
+      enddo
+
+   else 
+       ! should never happen!
+      call exit_POP(sigAbort,'ERROR: interface error,  horiz_grid call not allowed')
+
+   endif
+
+!-----------------------------------------------------------------------
+!EOC
+
+ end subroutine horiz_grid_amuse2
+
+
+ subroutine recommit_prognostic_variables(errorCode)
+    integer :: errorCode
+    integer :: iblock, n, k 
+    logical :: pressure_correction=.TRUE.
+
+    real (POP_r8), dimension(nx_block,ny_block) :: &
+      WORK1,WORK2        ! work space for pressure correction
+
+    logical (POP_logical) ::   &
+      lcoupled_ts=.FALSE.   ! flag to check whether coupled time step
+
+    type (block) ::         &
+      this_block            ! block information for current block
+  
+   
+   
+   
+! verbatim from restart   
+    
+!-----------------------------------------------------------------------
+!
+!  zero prognostic variables at land points
+!
+!-----------------------------------------------------------------------
+
+   do iblock = 1,nblocks_clinic
+
+      this_block = get_block(blocks_clinic(iblock),iblock)
+
+      where (.not. CALCU(:,:,iblock))
+         UBTROP(:,:,curtime,iblock) = c0
+         VBTROP(:,:,curtime,iblock) = c0
+         GRADPX(:,:,curtime,iblock) = c0
+         GRADPY(:,:,curtime,iblock) = c0
+         UBTROP(:,:,oldtime,iblock) = c0
+         VBTROP(:,:,oldtime,iblock) = c0
+         GRADPX(:,:,oldtime,iblock) = c0
+         GRADPY(:,:,oldtime,iblock) = c0
+      endwhere
+
+      where (.not. CALCT(:,:,iblock))
+         PSURF(:,:,curtime,iblock) = c0
+         PSURF(:,:,oldtime,iblock) = c0
+         PGUESS(:,:,iblock) = c0
+      endwhere
+
+      if (liceform) then
+         if (lcoupled_ts) then
+         where (.not. CALCT(:,:,iblock))
+            QFLUX(:,:,iblock) = c0
+         endwhere
+         else
+         where (.not. CALCT(:,:,iblock))
+            AQICE(:,:,iblock) = c0
+         endwhere
+         endif
+      endif
+
+      if (sfc_layer_type == sfc_layer_varthick) then
+         where (.not. CALCT(:,:,iblock)) 
+            FW_OLD   (:,:,iblock) = c0
+!maltrud only need freeze for subset of cases but ok to zero land here without
+!  checking since it is allocated at compile time
+            FW_FREEZE(:,:,iblock) = c0
+         endwhere
+      endif
+
+      do k = 1,km
+         where (k > KMU(:,:,iblock))
+            UVEL(:,:,k,curtime,iblock) = c0
+            VVEL(:,:,k,curtime,iblock) = c0
+         endwhere
+      enddo
+
+      do n = 1,2
+         do k = 1,km
+            where (k > KMT(:,:,iblock))
+               TRACER(:,:,k,n,curtime,iblock) = c0
+               TRACER(:,:,k,n,oldtime,iblock) = c0
+            endwhere
+         enddo
+      enddo
+
+!-----------------------------------------------------------------------
+!
+!     reset PSURF(oldtime) to eliminate error in barotropic continuity
+!     eqn due to (possible) use of different timestep after restart
+!
+!     NOTE: use pressure_correction = .false. for exact restart
+!
+!-----------------------------------------------------------------------
+
+      if (pressure_correction) then
+
+         WORK1 = HU(:,:,iblock)*UBTROP(:,:,curtime,iblock)
+         WORK2 = HU(:,:,iblock)*VBTROP(:,:,curtime,iblock)
+
+         !*** use PSURF(oldtime) as temp
+         call div(1, PSURF(:,:,oldtime,iblock),WORK1,WORK2,this_block)
+
+         PSURF(:,:,oldtime,iblock) = PSURF(:,:,curtime,iblock) +  &
+                            grav*dtp*PSURF(:,:,oldtime,iblock)*   &
+                            TAREA_R(:,:,iblock)
+
+      endif
+   end do !block loop
+
+   if (pressure_correction) then
+      call POP_HaloUpdate(PSURF(:,:,oldtime,:), POP_haloClinic,       &
+                          POP_gridHorzLocCenter, POP_fieldKindScalar, &
+                          errorCode, fillValue = 0.0_POP_r8)
+
+      if (errorCode /= POP_Success) then
+         call POP_ErrorSet(errorCode, &
+            'read_restart: error updating sfc pressure halo')
+         return
+      endif
+   endif
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+   call POP_HaloUpdate(UBTROP,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(VBTROP,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(UVEL,                           &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(VVEL,                           &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(RHO,      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(TRACER(:,:,:,:,curtime,:),      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(TRACER(:,:,:,:,newtime,:),      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(GRADPX,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(GRADPY,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocNECorner,        &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(PSURF,                          &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   call POP_HaloUpdate(PGUESS,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+   if (sfc_layer_type == sfc_layer_varthick) then
+   
+   call POP_HaloUpdate(FW_OLD,                         &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+!maltrud only need freeze for subset of cases
+      if (.not. lfw_as_salt_flx .and. liceform ) then
+   call POP_HaloUpdate(FW_FREEZE,                      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+      endif
+   if (liceform) then
+      if (lcoupled_ts) then
+   call POP_HaloUpdate(QFLUX,                      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+      else
+   call POP_HaloUpdate(AQICE,                      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindScalar, errorCode, &
+                       fillValue = 0.0_POP_r8)
+      endif
+   endif
+   endif
+
+  end subroutine
+
+
 
 end module pop_interface
 
