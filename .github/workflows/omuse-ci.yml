@@ -50,12 +50,13 @@ jobs:
 
   omuse-era5:
     strategy:
-        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
         java: [ 1.8 ]
         gfortran: [ gfortran-9, gfortran-10 ]
+      fail-fast: false
+
 
     name: omuse-era5 - (${{ join(matrix.*, ', ') }})
     needs: package
@@ -133,12 +134,13 @@ jobs:
 
   omuse-framework:
     strategy:
-        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
         java: [ 1.8 ]
         gfortran: [ gfortran-9, gfortran-10 ]
+      fail-fast: false
+
 
     name: omuse-framework - (${{ join(matrix.*, ', ') }})
     needs: package
@@ -216,12 +218,13 @@ jobs:
 
   omuse-iemic:
     strategy:
-        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
         java: [ 1.8 ]
         gfortran: [ gfortran-9, gfortran-10 ]
+      fail-fast: false
+
 
     name: omuse-iemic - (${{ join(matrix.*, ', ') }})
     needs: package
@@ -310,12 +313,13 @@ jobs:
 
   omuse-qgmodel:
     strategy:
-        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
         java: [ 1.8 ]
         gfortran: [ gfortran-9, gfortran-10 ]
+      fail-fast: false
+
 
     name: omuse-qgmodel - (${{ join(matrix.*, ', ') }})
     needs: package
@@ -393,12 +397,13 @@ jobs:
 
   omuse-swan:
     strategy:
-        fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
         java: [ 1.8 ]
         gfortran: [ gfortran-9, gfortran-10 ]
+      fail-fast: false
+
 
     name: omuse-swan - (${{ join(matrix.*, ', ') }})
     needs: package
