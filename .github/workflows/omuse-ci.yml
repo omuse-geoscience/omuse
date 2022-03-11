@@ -292,6 +292,8 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew tap nlesc/nlesc
+        brew update
+        brew upgrade
         brew install nlesc/nlesc/trilinos nlesc/nlesc/slicot
 
     - name: "Install OMUSE package: omuse-iemic"
