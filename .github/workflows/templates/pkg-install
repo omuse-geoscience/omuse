@@ -1,5 +1,6 @@
     - name: "Install OMUSE package: PKG_NAME"
       run: |
+        pip install --no-clean --pre --find-links dist/ amuse-framework
         pip install --no-clean --pre --find-links dist/ PKG_NAME
         rm -rf "${TEMP_DIR}"/pip-*/
       env:

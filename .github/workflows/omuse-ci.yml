@@ -118,6 +118,7 @@ jobs:
 
     - name: "Install OMUSE package: omuse-era5"
       run: |
+        pip install --no-clean --pre --find-links dist/ amuse-framework
         pip install --no-clean --pre --find-links dist/ omuse-era5
         rm -rf "${TEMP_DIR}"/pip-*/
       env:
@@ -200,6 +201,7 @@ jobs:
 
     - name: "Install OMUSE package: omuse-framework"
       run: |
+        pip install --no-clean --pre --find-links dist/ amuse-framework
         pip install --no-clean --pre --find-links dist/ omuse-framework
         rm -rf "${TEMP_DIR}"/pip-*/
       env:
@@ -293,6 +295,7 @@ jobs:
 
     - name: "Install OMUSE package: omuse-iemic"
       run: |
+        pip install --no-clean --pre --find-links dist/ amuse-framework
         pip install --no-clean --pre --find-links dist/ omuse-iemic
         rm -rf "${TEMP_DIR}"/pip-*/
       env:
@@ -375,6 +378,7 @@ jobs:
 
     - name: "Install OMUSE package: omuse-qgmodel"
       run: |
+        pip install --no-clean --pre --find-links dist/ amuse-framework
         pip install --no-clean --pre --find-links dist/ omuse-qgmodel
         rm -rf "${TEMP_DIR}"/pip-*/
       env:
@@ -457,6 +461,7 @@ jobs:
 
     - name: "Install OMUSE package: omuse-swan"
       run: |
+        pip install --no-clean --pre --find-links dist/ amuse-framework
         pip install --no-clean --pre --find-links dist/ omuse-swan
         rm -rf "${TEMP_DIR}"/pip-*/
       env:
