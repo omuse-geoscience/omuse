@@ -21,10 +21,10 @@ While there are some packages available on [pipy](www.pypi.org), we recommend at
 to do a pip developer install:
 
 - setup a python environment, e.g. using virtualenv, and activate it.
-- clone the AMUSE [repository](https://github.com/amusecode/amuse): `git clone https://github.com/amusecode/amuse`
-- go into the amuse directory: `cd amuse`
+- in a suitable working directory clone the [AMUSE](https://github.com/amusecode/amuse) repository: `git clone https://github.com/amusecode/amuse`
+- go into the created directory: `cd amuse`
 - do the developer install from here: `pip install -e . [MPI]` The MPI is optional. 
-- clone the OMUSE repository: `git clone https://github.com/omuse-geoscience/omuse`,
+- Going back to the working directory (`cd ..`) also clone the OMUSE repository: `git clone https://github.com/omuse-geoscience/omuse`,
 - go into the source directory `cd omuse` and set the environment variable `DOWNLOAD_CODES`, e.g. `export DOWNLOAD_CODES=latest`.
 - now, do `pip install -e .` from the root of the package
 - type `python setup.py build_codes --inplace` to build the codes. 
