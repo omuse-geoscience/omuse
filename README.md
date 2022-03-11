@@ -8,7 +8,7 @@ sciences. Example OMUSE applications can be found in the examples
 ### For whom is OMUSE? ###
 
 OMUSE aims to be useable by any researcher or student with a basic knowledge of 
-PYTHON.
+the Python programming language.
 
 ### What is this repository for? ###
 
