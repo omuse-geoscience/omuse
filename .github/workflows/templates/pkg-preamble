@@ -32,6 +32,7 @@
       run: |
         brew install openmpi
         echo "OMPI_FC=${FC}" >> $GITHUB_ENV
+        echo "F77=${FC}" >> $GITHUB_ENV
       env:
         FC: ${{ matrix.gfortran }}
 
