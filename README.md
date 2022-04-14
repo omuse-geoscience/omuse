@@ -2,25 +2,36 @@
 
 OMUSE stands for Oceanographic MUltipurpose Software Environment. It is a 
 package to conduct numerical experiments in oceanography and other Earth 
-sciences.
+sciences. Example OMUSE applications can be found in the examples 
+[repository](https://github.com/omuse-geoscience/omuse-examples).
+
+### For whom is OMUSE? ###
+
+OMUSE aims to be useable by any researcher or student with a basic knowledge of 
+the Python programming language.
 
 ### What is this repository for? ###
 
-This repository contains the source tree for OMUSE. 
+This repository contains the source tree for OMUSE, including OMUSE specific framework
+components and community codes.
 
 ### How do I get set up? ###
 
-Easiest way is to use a pip developer install:
+While there are some packages available on [pipy](www.pypi.org), we recommend at the moment 
+to do a pip developer install:
 
 - setup a python environment, e.g. using virtualenv, and activate it.
-- optionally (see instructions [below](https://github.com/omuse-geoscience/omuse/blob/master/README.md#amuse-developer-install)) first do a develop install of [AMUSE](http://www.amusecode.org), 
-- clone the OMUSE repository: `git clone https://github.com/omuse-geoscience/omuse`,
+- in a suitable working directory clone the [AMUSE](https://github.com/amusecode/amuse) repository: `git clone https://github.com/amusecode/amuse`
+- go into the created directory: `cd amuse`
+- do the developer install from here: `pip install -e . [MPI]` The MPI is optional. 
+- Going back to the working directory (`cd ..`) also clone the OMUSE repository: `git clone https://github.com/omuse-geoscience/omuse`,
 - go into the source directory `cd omuse` and set the environment variable `DOWNLOAD_CODES`, e.g. `export DOWNLOAD_CODES=latest`.
 - now, do `pip install -e .` from the root of the package
 - type `python setup.py build_codes --inplace` to build the codes. 
 - the file `build.log` will report any errors in the build process.
 
-The community codes of OMUSE can be build manually by going into each directory:
+This installs amuse-devel and omuse-devel. The community codes of OMUSE can 
+be build manually by going into each directory:
 
  + src/omuse/community/adcirc
  + src/omuse/community/swan
@@ -38,15 +49,6 @@ packages:
  + netCDF and netCDF for fortran and the python bindings
  + GRIB_API
 
-#### AMUSE developer install ####
-
-OMUSE depends on the "amuse-framework" package, and the instructions above will install this automatically from pypi. 
-If you want to also have a developer install (from the repository source) for AMUSE you should take care that you install the amuse-framework package:
-
-- clone the AMUSE [repository](https://github.com/amusecode/amuse): `git clone https://github.com/amusecode/amuse`
-- go into the amuse-framework package directory: `cd amuse/packages/amuse-framework`
-- do the developer install from here: `pip install -e .` 
-
 ### Documentation ###
 
 Documentation can be found [here](https://omuse.readthedocs.io). In addition the base  [AMUSE documentation](https://amuse.readthedocs.io) can be consulted.
@@ -61,4 +63,4 @@ report them at the AMUSE [repository](https://github.com/amusecode/amuse).
 Contributions are welcome. Note that most framework development happens at 
 the AMUSE [repository](https://github.com/amusecode/amuse) A primer for 
 writing code interfaces and other documentation can be found on the amuse 
-website (www.amusecode.org).
+[website](www.amusecode.org).

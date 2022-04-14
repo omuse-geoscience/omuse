@@ -414,8 +414,12 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     def set_latmax(latmax=0. | units.deg):
         returns ()
 
-
-
+    @remote_function
+    def get_reinit_gradp():
+        returns (reinit_gradp=False)
+    @remote_function
+    def set_reinit_gradp(reinit_gradp=False):
+        returns ()
 
     @remote_function
     def get_restart_option():
@@ -1166,4 +1170,12 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "latmax",
             "north boundary of domain (deg) in case horiz_grid_option=amuse",
             default_value = 70. | units.deg
+        )
+
+        object.add_method_parameter(
+            "get_reinit_gradp",
+            "set_reinit_gradp",
+            "reinit_gradp",
+            "flag indicates whether gradp terms are calculated from input Psurf on recommit_grids",
+            default_value = False
         )

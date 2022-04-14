@@ -5,6 +5,7 @@ module pop_interface
 !
 
 ! !USES:
+  use mpi
   use POP_KindsMod
   use POP_ErrorMod
   use POP_FieldMod
@@ -49,7 +50,7 @@ module pop_interface
   use exit_mod, only: sigAbort, sigExit
 ! use io, only:
 
-  use operators, only: div
+  use operators, only: div, grad
 
 ! still a lot tbd:
   use ice, only: tlast_ice, liceform, AQICE, FW_FREEZE, QFLUX
@@ -91,6 +92,8 @@ module pop_interface
      fupdate_sfwf_data      ! flag for update sfwf data (e.g. salt restoring)
 
   real (r8) :: lonmin=10.,lonmax=60.,latmin=10.,latmax=60.  ! parameters for horiz_grid_option="amuse" 
+
+  logical :: reinit_gradp = .false. ! whether to reinit gradp vars on a recommit grid (restart)
 
   logical :: initialized = .false.
 
@@ -389,6 +392,20 @@ function set_latmax(x) result(ret)
   integer :: ret
   real(8), intent(in) :: x
   latmax=x
+  ret=0
+end function
+
+function get_reinit_gradp(x) result(ret)
+  integer :: ret
+  logical, intent(out) :: x
+  x=reinit_gradp
+  ret=0
+end function
+
+function set_reinit_gradp(x) result(ret)
+  integer :: ret
+  logical, intent(in) :: x
+  reinit_gradp=x
   ret=0
 end function
 
@@ -2462,12 +2479,7 @@ end subroutine calc_tpoints_global
 
     type (block) ::         &
       this_block            ! block information for current block
-  
-   
-   
-   
-! verbatim from restart   
-    
+        
 !-----------------------------------------------------------------------
 !
 !  zero prognostic variables at land points
@@ -2639,36 +2651,69 @@ end subroutine calc_tpoints_global
 
    if (sfc_layer_type == sfc_layer_varthick) then
    
-   call POP_HaloUpdate(FW_OLD,                         &
+     call POP_HaloUpdate(FW_OLD,                         &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
 
 !maltrud only need freeze for subset of cases
-      if (.not. lfw_as_salt_flx .and. liceform ) then
-   call POP_HaloUpdate(FW_FREEZE,                      &
+     if (.not. lfw_as_salt_flx .and. liceform ) then
+       call POP_HaloUpdate(FW_FREEZE,                      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
-      endif
-   if (liceform) then
-      if (lcoupled_ts) then
-   call POP_HaloUpdate(QFLUX,                      &
+     endif
+
+     if (liceform) then
+       if (lcoupled_ts) then
+         call POP_HaloUpdate(QFLUX,                      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
-      else
-   call POP_HaloUpdate(AQICE,                      &
+       else
+         call POP_HaloUpdate(AQICE,                      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
-      endif
+       endif
+     endif
    endif
-   endif
+
+    ! optionally refill gradp arrays
+    if(reinit_gradp) then
+
+      do iblock = 1,nblocks_clinic
+          this_block = get_block(blocks_clinic(iblock),iblock)  
+    
+    !     calculate gradient of PSURF(:,:,newtime)
+    
+          call grad(1,GRADPX(:,:,oldtime,iblock), &
+                      GRADPY(:,:,oldtime,iblock), &
+                       PSURF(:,:,oldtime,iblock),this_block)
+    
+          call grad(1,GRADPX(:,:,curtime,iblock), &
+                      GRADPY(:,:,curtime,iblock), &
+                       PSURF(:,:,curtime,iblock),this_block)
+      enddo
+  
+      call POP_HaloUpdate(GRADPX,                         &
+                         POP_haloClinic,                 &
+                         POP_gridHorzLocNECorner,        &
+                         POP_fieldKindVector, errorCode, &
+                         fillValue = 0.0_POP_r8)
+      
+      call POP_HaloUpdate(GRADPY,                         &
+                         POP_haloClinic,                 &
+                         POP_gridHorzLocNECorner,        &
+                         POP_fieldKindVector, errorCode, &
+                         fillValue = 0.0_POP_r8)
+          
+    endif
+
 
   end subroutine
 
