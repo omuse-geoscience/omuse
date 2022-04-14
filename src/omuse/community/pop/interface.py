@@ -420,6 +420,14 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     @remote_function
     def set_reinit_gradp(reinit_gradp=False):
         returns ()
+    @remote_function
+    def get_reinit_rho():
+        returns (reinit_rho=False)
+    @remote_function
+    def set_reinit_rho(reinit_rho=False):
+        returns ()
+
+
 
     @remote_function
     def get_restart_option():
@@ -1177,5 +1185,13 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "set_reinit_gradp",
             "reinit_gradp",
             "flag indicates whether gradp terms are calculated from input Psurf on recommit_grids",
+            default_value = False
+        )
+
+        object.add_method_parameter(
+            "get_reinit_rho",
+            "set_reinit_rho",
+            "reinit_rho",
+            "flag indicates whether rho are calculated from input salt and temperature on recommit_grids",
             default_value = False
         )
