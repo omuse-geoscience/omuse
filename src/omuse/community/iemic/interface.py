@@ -586,7 +586,7 @@ class iemic(InCodeComponentImplementation):
 
             self.define_parameter_set(handler,paramSet)
             
-        handler.add_interface_parameter( "timestepping_theta", "timestepping theta parameter [0-1]", 0.5)
+        handler.add_interface_parameter( "timestepping_theta", "timestepping theta parameter [0-1]", 1.)
         handler.add_interface_parameter( "timestepping_dt", "timestep for timestepper", 1.)
 
     def new_state(self):
