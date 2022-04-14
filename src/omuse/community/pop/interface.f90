@@ -44,7 +44,7 @@ module pop_interface
 !   use time_management, only: get_time_flag_id, check_time_flag, &
 !       nsteps_run, stdout, exit_pop, override_time_flag
   use step_mod, only: step
-  use state_mod, only: state
+  use state_mod, only: state, state_itype, state_type_polynomial, state_type_linear, sigo, rho_leos_ref
   use diagnostics, only: check_KE
   use output, only: output_driver
   use exit_mod, only: sigAbort, sigExit
@@ -94,6 +94,7 @@ module pop_interface
   real (r8) :: lonmin=10.,lonmax=60.,latmin=10.,latmax=60.  ! parameters for horiz_grid_option="amuse" 
 
   logical :: reinit_gradp = .false. ! whether to reinit gradp vars on a recommit grid (restart)
+  logical :: reinit_rho = .false. ! whether to reinit gradp vars on a recommit grid (restart)
 
   logical :: initialized = .false.
 
@@ -409,6 +410,19 @@ function set_reinit_gradp(x) result(ret)
   ret=0
 end function
 
+function get_reinit_rho(x) result(ret)
+  integer :: ret
+  logical, intent(out) :: x
+  x=reinit_rho
+  ret=0
+end function
+
+function set_reinit_rho(x) result(ret)
+  integer :: ret
+  logical, intent(in) :: x
+  reinit_rho=x
+  ret=0
+end function
 
 
 
@@ -1508,6 +1522,8 @@ function get_element3d_density(i, j, k, rho_, n) result (ret)
 
   call get_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
 !  call get_gather_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
+  if(state_itype.EQ.state_type_polynomial) rho_=rho_+sigo(k)*p001+1
+  if(state_itype.EQ.state_type_linear) rho_=rho_+rho_leos_ref
 
   ret=0
 end function
@@ -1516,9 +1532,14 @@ function set_element3d_density(i, j, k, rho_, n) result (ret)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(in) :: rho_
+  real*8, dimension(n) :: rho__
 
-  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
-  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho_, n)
+  rho__=rho_
+  if(state_itype.EQ.state_type_polynomial) rho__=rho_-sigo(k)*p001-1
+  if(state_itype.EQ.state_type_linear) rho__=rho_-rho_leos_ref
+
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho__, n)
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho__, n)
 
   ret=0
 end function
@@ -2613,13 +2634,15 @@ end subroutine calc_tpoints_global
                        POP_fieldKindVector, errorCode, &
                        fillValue = 0.0_POP_r8)
 
-   call POP_HaloUpdate(TRACER(:,:,:,:,curtime,:),      &
+   ! assumes only 2 tracers (salt+temp)
+   ! note the changed indexing
+   call POP_HaloUpdate(TRACER(:,:,:,1,:,:),      & 
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
 
-   call POP_HaloUpdate(TRACER(:,:,:,:,newtime,:),      &
+   call POP_HaloUpdate(TRACER(:,:,:,2,:,:),      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
@@ -2714,6 +2737,30 @@ end subroutine calc_tpoints_global
           
     endif
 
+    ! optionally initialize rho from tracers
+    if(reinit_rho) then
+      do iblock = 1,nblocks_clinic
+        this_block = get_block(blocks_clinic(iblock),iblock)  
+        do k = 1,km  ! recalculate densities from tracers
+            call state(k,k,TRACER(:,:,k,1,oldtime,iblock), &
+                           TRACER(:,:,k,2,oldtime,iblock), &
+                           this_block,                     &
+                         RHOOUT=RHO(:,:,k,oldtime,iblock))
+            call state(k,k,TRACER(:,:,k,1,curtime,iblock), &
+                           TRACER(:,:,k,2,curtime,iblock), &
+                           this_block,                     &
+                         RHOOUT=RHO(:,:,k,curtime,iblock))
+        enddo 
+      enddo
+
+      call POP_HaloUpdate(RHO,      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+
+    endif
 
   end subroutine
 
