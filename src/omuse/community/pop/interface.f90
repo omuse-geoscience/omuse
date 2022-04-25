@@ -1005,52 +1005,80 @@ function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
 
   ret=0
 end function
-function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_,gradx_,grady_, n) result (ret)
+function get_node_surface_state(g_i, g_j, uvel_, vvel_,gradx_,grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(out) :: ssh_, uvel_, vvel_, gradx_, grady_
+  real*8, dimension(n), intent(out) :: uvel_, vvel_, gradx_, grady_
 
   if (n < nx_global*ny_global) then
-    call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     call get_gridded_variable_vector(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gridded_variable_vector(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   else
-    call get_gather(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call get_gather(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gather(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     call get_gather(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gather(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   endif
-  ssh_ = ssh_ / grav
   gradx_ = gradx_ / grav
   grady_ = grady_ / grav
   ret=0
 end function
 
-function set_node_surface_state(g_i, g_j, ssh_, gradx_, grady_, n) result (ret)
+function set_node_surface_state(g_i, g_j, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(in) :: ssh_, gradx_, grady_
+  real*8, dimension(n), intent(in) :: gradx_, grady_
 
-    call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
 
-    PSURF=PSURF*grav
     GRADPX=GRADPX*grav
     GRADPY=GRADPY*grav
 
-    PGUESS=PSURF(:,:,curtime,:)
+  ret=0
+end function
+
+function get_element_ssh(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  else
+    call get_gather(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  endif
+
+  ssh_ = ssh_ / grav
 
   ret=0
 end function
+
+function set_element_ssh(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+
+  PSURF=PSURF*grav
+  PGUESS=PSURF(:,:,curtime,:)
+
+  ret=0
+end function
+
+
+
+
 function get_element_surface_state(g_i, g_j, temp_, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
