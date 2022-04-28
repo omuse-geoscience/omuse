@@ -98,12 +98,12 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     ##getters for node and element state
     @remote_function(must_handle_array=True)
     def get_node_surface_state(i=0,j=0):
-        returns (ssh=0. | units.cm, vx=0. | units.cm / units.s,     \
+        returns (vx=0. | units.cm / units.s,     \
                  vy=0. | units.cm / units.s, gradx=0.  | units.s**-1, \
                  grady=0. | units.s**-1)
 
     @remote_function(must_handle_array=True)
-    def set_node_surface_state(i=0,j=0, ssh=0. | units.cm, \
+    def set_node_surface_state(i=0,j=0, \
                                gradx=0.  | units.s**-1, grady=0. | units.s**-1):
         returns ()
 
@@ -139,6 +139,13 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     def set_element_surface_forcing_salt(i=0,j=0,restoring_salt=0. | units.g/units.g):
         returns () 
 
+    @remote_function(must_handle_array=True)
+    def get_element_ssh(i=0,j=0):
+        returns (ssh=0. | units.cm)
+
+    @remote_function(must_handle_array=True)
+    def set_element_ssh(i=0,j=0,ssh=0. | units.cm):
+        returns ()
 
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
     @remote_function(must_handle_array=True)
@@ -414,6 +421,18 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     def set_latmax(latmax=0. | units.deg):
         returns ()
 
+    @remote_function
+    def get_reinit_gradp():
+        returns (reinit_gradp=False)
+    @remote_function
+    def set_reinit_gradp(reinit_gradp=False):
+        returns ()
+    @remote_function
+    def get_reinit_rho():
+        returns (reinit_rho=False)
+    @remote_function
+    def set_reinit_rho(reinit_rho=False):
+        returns ()
 
 
 
@@ -803,9 +822,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.set_grid_range('nodes', 'get_firstlast_node')
         object.add_getter('nodes', 'get_node_position', names=('lat','lon'))
         object.add_getter('nodes', 'get_node_depth', names=('depth',))
-        object.add_getter('nodes', 'get_node_surface_state', names=('ssh','vx','vy','gradx','grady'))
+        object.add_getter('nodes', 'get_node_surface_state', names=('vx','vy','gradx','grady'))
         object.add_getter('nodes', 'get_node_barotropic_vel', names=('vx_barotropic','vy_barotropic'))
-        object.add_setter('nodes', 'set_node_surface_state', names=('ssh','gradx','grady'))
+        object.add_setter('nodes', 'set_node_surface_state', names=('gradx','grady'))
         object.add_setter('nodes', 'set_node_barotropic_vel', names=('vx_barotropic','vy_barotropic'))
 
         object.define_grid('nodes3d')
@@ -833,6 +852,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_getter('elements', 'get_element_depth', names=('depth',))
         object.add_getter('elements', 'get_element_surface_state', names=('temperature','salinity'))
         object.add_getter('elements', 'get_element_surface_heat_flux', names=('surface_heat_flux',))
+        object.add_getter('elements', 'get_element_ssh', names=('ssh',))
+        object.add_setter('elements', 'set_element_ssh', names=('ssh',))
 
         #elements are on the T-grid
         object.define_grid('elements3d')
@@ -854,7 +875,12 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_setter('element_forcings', 'set_element_surface_forcing_salt', names=('restoring_salt',))
         object.add_getter('element_forcings', 'get_element_position', names=('lat','lon'))
 
-
+    @property
+    def Tgrid(self):
+        return self.elements3d
+    @property
+    def Ugrid(self):
+        return self.nodes3d
 
     def define_errorcodes(self, handler):
         handler.add_errorcode(-1, "interface function returned -1, general error")
@@ -1166,4 +1192,20 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "latmax",
             "north boundary of domain (deg) in case horiz_grid_option=amuse",
             default_value = 70. | units.deg
+        )
+
+        object.add_method_parameter(
+            "get_reinit_gradp",
+            "set_reinit_gradp",
+            "reinit_gradp",
+            "flag indicates whether gradp terms are calculated from input Psurf on recommit_grids",
+            default_value = False
+        )
+
+        object.add_method_parameter(
+            "get_reinit_rho",
+            "set_reinit_rho",
+            "reinit_rho",
+            "flag indicates whether rho are calculated from input salt and temperature on recommit_grids",
+            default_value = False
         )

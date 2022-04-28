@@ -5,6 +5,7 @@ module pop_interface
 !
 
 ! !USES:
+  use mpi
   use POP_KindsMod
   use POP_ErrorMod
   use POP_FieldMod
@@ -43,13 +44,13 @@ module pop_interface
 !   use time_management, only: get_time_flag_id, check_time_flag, &
 !       nsteps_run, stdout, exit_pop, override_time_flag
   use step_mod, only: step
-  use state_mod, only: state
+  use state_mod, only: state, state_itype, state_type_polynomial, state_type_linear, sigo, rho_leos_ref
   use diagnostics, only: check_KE
   use output, only: output_driver
   use exit_mod, only: sigAbort, sigExit
 ! use io, only:
 
-  use operators, only: div
+  use operators, only: div, grad
 
 ! still a lot tbd:
   use ice, only: tlast_ice, liceform, AQICE, FW_FREEZE, QFLUX
@@ -91,6 +92,9 @@ module pop_interface
      fupdate_sfwf_data      ! flag for update sfwf data (e.g. salt restoring)
 
   real (r8) :: lonmin=10.,lonmax=60.,latmin=10.,latmax=60.  ! parameters for horiz_grid_option="amuse" 
+
+  logical :: reinit_gradp = .false. ! whether to reinit gradp vars on a recommit grid (restart)
+  logical :: reinit_rho = .false. ! whether to reinit gradp vars on a recommit grid (restart)
 
   logical :: initialized = .false.
 
@@ -392,6 +396,33 @@ function set_latmax(x) result(ret)
   ret=0
 end function
 
+function get_reinit_gradp(x) result(ret)
+  integer :: ret
+  logical, intent(out) :: x
+  x=reinit_gradp
+  ret=0
+end function
+
+function set_reinit_gradp(x) result(ret)
+  integer :: ret
+  logical, intent(in) :: x
+  reinit_gradp=x
+  ret=0
+end function
+
+function get_reinit_rho(x) result(ret)
+  integer :: ret
+  logical, intent(out) :: x
+  x=reinit_rho
+  ret=0
+end function
+
+function set_reinit_rho(x) result(ret)
+  integer :: ret
+  logical, intent(in) :: x
+  reinit_rho=x
+  ret=0
+end function
 
 
 
@@ -974,52 +1005,80 @@ function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
 
   ret=0
 end function
-function get_node_surface_state(g_i, g_j, ssh_, uvel_, vvel_,gradx_,grady_, n) result (ret)
+function get_node_surface_state(g_i, g_j, uvel_, vvel_,gradx_,grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(out) :: ssh_, uvel_, vvel_, gradx_, grady_
+  real*8, dimension(n), intent(out) :: uvel_, vvel_, gradx_, grady_
 
   if (n < nx_global*ny_global) then
-    call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     call get_gridded_variable_vector(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gridded_variable_vector(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   else
-    call get_gather(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call get_gather(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gather(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
     call get_gather(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
     call get_gather(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   endif
-  ssh_ = ssh_ / grav
   gradx_ = gradx_ / grav
   grady_ = grady_ / grav
   ret=0
 end function
 
-function set_node_surface_state(g_i, g_j, ssh_, gradx_, grady_, n) result (ret)
+function set_node_surface_state(g_i, g_j, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(in) :: ssh_, gradx_, grady_
+  real*8, dimension(n), intent(in) :: gradx_, grady_
 
-    call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
 
-    PSURF=PSURF*grav
     GRADPX=GRADPX*grav
     GRADPY=GRADPY*grav
 
-    PGUESS=PSURF(:,:,curtime,:)
+  ret=0
+end function
+
+function get_element_ssh(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  else
+    call get_gather(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  endif
+
+  ssh_ = ssh_ / grav
 
   ret=0
 end function
+
+function set_element_ssh(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+
+  PSURF=PSURF*grav
+  PGUESS=PSURF(:,:,curtime,:)
+
+  ret=0
+end function
+
+
+
+
 function get_element_surface_state(g_i, g_j, temp_, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1491,6 +1550,8 @@ function get_element3d_density(i, j, k, rho_, n) result (ret)
 
   call get_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
 !  call get_gather_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
+  if(state_itype.EQ.state_type_polynomial) rho_=rho_+sigo(k)*p001+1
+  if(state_itype.EQ.state_type_linear) rho_=rho_+rho_leos_ref
 
   ret=0
 end function
@@ -1499,9 +1560,14 @@ function set_element3d_density(i, j, k, rho_, n) result (ret)
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(in) :: rho_
+  real*8, dimension(n) :: rho__
 
-  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
-  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho_, n)
+  rho__=rho_
+  if(state_itype.EQ.state_type_polynomial) rho__=rho_-sigo(k)*p001-1
+  if(state_itype.EQ.state_type_linear) rho__=rho_-rho_leos_ref
+
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho__, n)
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho__, n)
 
   ret=0
 end function
@@ -2462,12 +2528,7 @@ end subroutine calc_tpoints_global
 
     type (block) ::         &
       this_block            ! block information for current block
-  
-   
-   
-   
-! verbatim from restart   
-    
+        
 !-----------------------------------------------------------------------
 !
 !  zero prognostic variables at land points
@@ -2601,13 +2662,15 @@ end subroutine calc_tpoints_global
                        POP_fieldKindVector, errorCode, &
                        fillValue = 0.0_POP_r8)
 
-   call POP_HaloUpdate(TRACER(:,:,:,:,curtime,:),      &
+   ! assumes only 2 tracers (salt+temp)
+   ! note the changed indexing
+   call POP_HaloUpdate(TRACER(:,:,:,1,:,:),      & 
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
 
-   call POP_HaloUpdate(TRACER(:,:,:,:,newtime,:),      &
+   call POP_HaloUpdate(TRACER(:,:,:,2,:,:),      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
@@ -2639,36 +2702,93 @@ end subroutine calc_tpoints_global
 
    if (sfc_layer_type == sfc_layer_varthick) then
    
-   call POP_HaloUpdate(FW_OLD,                         &
+     call POP_HaloUpdate(FW_OLD,                         &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
 
 !maltrud only need freeze for subset of cases
-      if (.not. lfw_as_salt_flx .and. liceform ) then
-   call POP_HaloUpdate(FW_FREEZE,                      &
+     if (.not. lfw_as_salt_flx .and. liceform ) then
+       call POP_HaloUpdate(FW_FREEZE,                      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
-      endif
-   if (liceform) then
-      if (lcoupled_ts) then
-   call POP_HaloUpdate(QFLUX,                      &
+     endif
+
+     if (liceform) then
+       if (lcoupled_ts) then
+         call POP_HaloUpdate(QFLUX,                      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
-      else
-   call POP_HaloUpdate(AQICE,                      &
+       else
+         call POP_HaloUpdate(AQICE,                      &
                        POP_haloClinic,                 &
                        POP_gridHorzLocCenter,          &
                        POP_fieldKindScalar, errorCode, &
                        fillValue = 0.0_POP_r8)
-      endif
+       endif
+     endif
    endif
-   endif
+
+    ! optionally refill gradp arrays
+    if(reinit_gradp) then
+
+      do iblock = 1,nblocks_clinic
+          this_block = get_block(blocks_clinic(iblock),iblock)  
+    
+    !     calculate gradient of PSURF(:,:,newtime)
+    
+          call grad(1,GRADPX(:,:,oldtime,iblock), &
+                      GRADPY(:,:,oldtime,iblock), &
+                       PSURF(:,:,oldtime,iblock),this_block)
+    
+          call grad(1,GRADPX(:,:,curtime,iblock), &
+                      GRADPY(:,:,curtime,iblock), &
+                       PSURF(:,:,curtime,iblock),this_block)
+      enddo
+  
+      call POP_HaloUpdate(GRADPX,                         &
+                         POP_haloClinic,                 &
+                         POP_gridHorzLocNECorner,        &
+                         POP_fieldKindVector, errorCode, &
+                         fillValue = 0.0_POP_r8)
+      
+      call POP_HaloUpdate(GRADPY,                         &
+                         POP_haloClinic,                 &
+                         POP_gridHorzLocNECorner,        &
+                         POP_fieldKindVector, errorCode, &
+                         fillValue = 0.0_POP_r8)
+          
+    endif
+
+    ! optionally initialize rho from tracers
+    if(reinit_rho) then
+      do iblock = 1,nblocks_clinic
+        this_block = get_block(blocks_clinic(iblock),iblock)  
+        do k = 1,km  ! recalculate densities from tracers
+            call state(k,k,TRACER(:,:,k,1,oldtime,iblock), &
+                           TRACER(:,:,k,2,oldtime,iblock), &
+                           this_block,                     &
+                         RHOOUT=RHO(:,:,k,oldtime,iblock))
+            call state(k,k,TRACER(:,:,k,1,curtime,iblock), &
+                           TRACER(:,:,k,2,curtime,iblock), &
+                           this_block,                     &
+                         RHOOUT=RHO(:,:,k,curtime,iblock))
+        enddo 
+      enddo
+
+      call POP_HaloUpdate(RHO,      &
+                       POP_haloClinic,                 &
+                       POP_gridHorzLocCenter,          &
+                       POP_fieldKindVector, errorCode, &
+                       fillValue = 0.0_POP_r8)
+
+
+    endif
 
   end subroutine
 

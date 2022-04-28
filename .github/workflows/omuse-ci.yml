@@ -91,6 +91,7 @@ jobs:
       run: |
         brew install openmpi
         echo "OMPI_FC=${FC}" >> $GITHUB_ENV
+        echo "F77=${FC}" >> $GITHUB_ENV
       env:
         FC: ${{ matrix.gfortran }}
 
@@ -173,6 +174,7 @@ jobs:
       run: |
         brew install openmpi
         echo "OMPI_FC=${FC}" >> $GITHUB_ENV
+        echo "F77=${FC}" >> $GITHUB_ENV
       env:
         FC: ${{ matrix.gfortran }}
 
@@ -255,6 +257,7 @@ jobs:
       run: |
         brew install openmpi
         echo "OMPI_FC=${FC}" >> $GITHUB_ENV
+        echo "F77=${FC}" >> $GITHUB_ENV
       env:
         FC: ${{ matrix.gfortran }}
 
@@ -289,6 +292,8 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew tap nlesc/nlesc
+        brew update
+        brew upgrade
         brew install nlesc/nlesc/trilinos nlesc/nlesc/slicot
 
     - name: "Install OMUSE package: omuse-iemic"
@@ -348,6 +353,7 @@ jobs:
       run: |
         brew install openmpi
         echo "OMPI_FC=${FC}" >> $GITHUB_ENV
+        echo "F77=${FC}" >> $GITHUB_ENV
       env:
         FC: ${{ matrix.gfortran }}
 
@@ -430,6 +436,7 @@ jobs:
       run: |
         brew install openmpi
         echo "OMPI_FC=${FC}" >> $GITHUB_ENV
+        echo "F77=${FC}" >> $GITHUB_ENV
       env:
         FC: ${{ matrix.gfortran }}
 

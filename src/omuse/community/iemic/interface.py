@@ -206,6 +206,37 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
     def get_s_forcing(i=0, j=0, k=0):
         returns (var=0.)
 
+    @remote_function(must_handle_array=True)
+    def get_surface_tatm(i=0, j=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def set_surface_tatm(i=0, j=0,var=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def get_surface_emip(i=0, j=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def set_surface_emip(i=0, j=0,var=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def get_surface_taux(i=0, j=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def set_surface_taux(i=0, j=0,var=0.):
+        returns ()
+
+    @remote_function(must_handle_array=True)
+    def get_surface_tauy(i=0, j=0):
+        returns (var=0.)
+
+    @remote_function(must_handle_array=True)
+    def set_surface_tauy(i=0, j=0,var=0.):
+        returns ()
 
     @remote_function
     def get_nrange():
@@ -451,7 +482,11 @@ class iemic(InCodeComponentImplementation):
             "_jacobian", "_jacobian_with_mass_matrix", "_apply_mass_matrix",
             "_set_model_state", "get_state_norm",
             "_get_model_state", "_get_psi_m", "get_real_pos",
-            "get_land_mask"
+            "get_land_mask", 
+            "get_surface_tatm", "set_surface_tatm",
+            "get_surface_emip", "set_surface_emip",
+            "get_surface_taux", "set_surface_taux",
+            "get_surface_tauy", "set_surface_tauy",
         ]
 
         for sub_state in continuation_sub_states:
@@ -463,6 +498,9 @@ class iemic(InCodeComponentImplementation):
 
     def _grid_range(self, **kwargs):
         return self.get_nrange()+self.get_mrange()+self.get_lrange()
+
+    def _surface_grid_range(self, **kwargs):
+        return self.get_nrange()+self.get_mrange()
 
     def define_grids(self, handler):
         #~ code_generator.generate_grid_definitions(object)
@@ -494,6 +532,19 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('grid_forcing', 'get_t_forcing', names=["temperature_forcing"])
         handler.add_getter('grid_forcing', 'get_s_forcing', names=["salinity_forcing"])
         handler.add_getter('grid_forcing', 'get_p_forcing', names=["pressure_forcing"])
+
+        handler.define_grid('surface_forcing',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
+        handler.set_grid_range('surface_forcing', '_surface_grid_range')
+        handler.add_getter('surface_forcing', 'get_real_pos_surf', names=["lon", "lat"])
+        handler.add_getter('surface_forcing', 'get_surface_tatm', names=["tatm"])
+        handler.add_setter('surface_forcing', 'set_surface_tatm', names=["tatm"])
+        handler.add_getter('surface_forcing', 'get_surface_emip', names=["emip"])
+        handler.add_setter('surface_forcing', 'set_surface_emip', names=["emip"])
+        handler.add_getter('surface_forcing', 'get_surface_taux', names=["tau_x"])
+        handler.add_setter('surface_forcing', 'set_surface_taux', names=["tau_x"])
+        handler.add_getter('surface_forcing', 'get_surface_tauy', names=["tau_y"])
+        handler.add_setter('surface_forcing', 'set_surface_tauy', names=["tau_y"])
+
 
     def _specify_grid(self, definition, index=0):
         #~ handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
@@ -586,7 +637,7 @@ class iemic(InCodeComponentImplementation):
 
             self.define_parameter_set(handler,paramSet)
             
-        handler.add_interface_parameter( "timestepping_theta", "timestepping theta parameter [0-1]", 0.5)
+        handler.add_interface_parameter( "timestepping_theta", "timestepping theta parameter [0-1]", 1.)
         handler.add_interface_parameter( "timestepping_dt", "timestep for timestepper", 1.)
 
     def new_state(self):
@@ -711,6 +762,10 @@ class iemic(InCodeComponentImplementation):
 
     def grid_pos_to_real_pos(self,coordinate):
         return self.get_real_pos(*coordinate)
+
+    def get_real_pos_surf(self, i,j):
+        _k,k=self.get_lrange()
+        return self.get_real_pos(i,j,k)
 
     def get_surface_mask(self):
         return self.grid[:,:,-1].mask
