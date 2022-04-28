@@ -371,7 +371,7 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
         netbase=orig_netfile.rsplit("_net.nc")[0]
         for i in range(self.channel.number_of_workers):
             n = "{:04d}".format(i)
-            filename=basename + '_' + n + ".mdu"
+            filename="omuse" + '_' + n + ".mdu"
 
             self.ini_geometry.NetFile=netbase + '_' + n + '_net.nc'
             self.ini_output.SnapshotDir='snapshots_' + n
