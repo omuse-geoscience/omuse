@@ -364,10 +364,14 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
                 raise Exception("please set ini_numerics.Icgsolver to 6 (PETSC) or 7 (GS)")
  
         orig_netfile=self.ini_geometry.NetFile
-        if hasattr(self.ini_output, "SnapshotDir"):
-            orig_snapshotdir=self.ini_output.SnapshotDir
-        if hasattr(self.ini_output, "RestartFile"):
-            orig_restartfile=self.ini_restart.RestartFile
+        try:
+          orig_snapshotdir=self.ini_output.SnapshotDir
+        except:
+          pass
+        try:
+          orig_restartfile=self.ini_restart.RestartFile
+        except:
+          pass
 
         basename=outputfile.split('.')[0]
         netbase=orig_netfile.rsplit("_net.nc")[0]
@@ -382,10 +386,8 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
             self.write_inifile_parameters(filename)
         
         self.ini_geometry.NetFile=orig_netfile
-        if hasattr(self.ini_output, "SnapshotDir"):
-            self.ini_output.SnapshotDir=orig_snapshotdir
-        if hasattr(self.ini_output, "RestartFile"):
-            self.ini_restart.RestartFile=orig_restartfile
+        self.ini_output.SnapshotDir=orig_snapshotdir
+        self.ini_restart.RestartFile=orig_restartfile
 
     def define_state(self, handler):
         handler.set_initial_state('UNINITIALIZED')
