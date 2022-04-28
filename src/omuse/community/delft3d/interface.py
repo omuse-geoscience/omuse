@@ -364,14 +364,8 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
                 raise Exception("please set ini_numerics.Icgsolver to 6 (PETSC) or 7 (GS)")
  
         orig_netfile=self.ini_geometry.NetFile
-        try:
-          orig_snapshotdir=self.ini_output.SnapshotDir
-        except:
-          pass
-        try:
-          orig_restartfile=self.ini_restart.RestartFile
-        except:
-          pass
+        orig_snapshotdir=self.ini_output.SnapshotDir
+        orig_restartfile=self.ini_restart.RestartFile
 
         basename=outputfile.split('.')[0]
         netbase=orig_netfile.rsplit("_net.nc")[0]
