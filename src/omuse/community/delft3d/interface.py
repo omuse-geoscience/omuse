@@ -231,6 +231,12 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
             state_guard="configuration_file_set"
         )
 
+        handler.add_interface_parameter(
+            "TStop",
+            "Maximum end time of simulation",
+            100. | units.yr
+        )
+
         handler.add_boolean_parameter(
             "get_use_wind", 
             "set_use_wind",
@@ -349,6 +355,10 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
           raise Exception("unknown coordinates")
 
     def commit_parameters(self):
+        Tunit_to_unit=dict(H=units.hour, M=units.minute, S=units.s)
+
+        self.ini_time.TStop=self.parameters.TStop.value_in(Tunit_to_unit[self.ini_time.Tunit])
+      
         if self.channel.number_of_workers==1:
             self.write_inifile_parameters(os.path.join(self._workdir, "omuse.mdu"))
         else:
@@ -394,6 +404,17 @@ class DFlowFM(InCodeComponentImplementation, CodeWithIniFileParameters):
                       ]:
             handler.add_method('PARAM', method)
 
+    def evolve_model(self, tend, **kwargs):
+        Tunit_to_unit=dict(H=units.hour, M=units.minute, S=units.s)
+
+        tend_value=tend.value_in(Tunit_to_unit[self.ini_time.Tunit])
+        tstop=float(self.ini_time.TStop)
+
+        if tend_value>tstop:
+          raise Exception("attempt to evolve beyond TStop detected; increase TStop parameter")
+
+        return self.overridden().evolve_model(tend, **kwargs)
+        
 
 
 partitioner_parameters={
