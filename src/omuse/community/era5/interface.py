@@ -112,7 +112,7 @@ class ERA5(LiteratureReferencesMixIn):
             self.shape=data[shortname][0,:,:].shape
             if self.extra_lon:
                 if self.nwse_boundingbox is None:
-                  dlon=360
+                  dlon=360 | units.deg
                 else:
                   dlon=self.nwse_boundingbox[3]-self.nwse_boundingbox[1]
                 assert dlon.value_in(units.deg) == dx*(self.shape[1])
