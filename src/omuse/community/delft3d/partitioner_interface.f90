@@ -40,13 +40,18 @@ contains
     fnam="omuse"
     md_Ndomains=3
     md_jacontiguous=0
-    md_icgsolver=6
-    md_pmethod=0
+    md_icgsolver=0
+    md_pmethod=1
     md_dryptsfile=""
     md_encfile=""
     md_genpolygon=1
+    md_partugrid=0
+    md_partseed=0    
     
     japartdomain=1
+
+    ! not important as long its not between 0 and 1 
+    Dcenterinside=1000. 
 
     ret=0
   end function
@@ -61,20 +66,21 @@ contains
 
     ret=initialize_dflowfm_core(.TRUE.)
 
-   JDEMO        = 0
-   JQN          = 2
+!~    JDEMO        = 0
+!~    JQN          = 2
 
-   MMAX   = 0
-   NMAX   = MMAX
-   KMAX   = MMAX*NMAX
-   KNX    = 8
-   MXB    = 10
-   LMAX   = (MMAX-1)*NMAX + (NMAX-1)*MMAX + 2*(MMAX-1)*(NMAX-1)
-   MAXLAN = 500
-   MAXPOL = MAXLAN
-   MAXBOAT = MAXLAN
+!~    MMAX   = 0
+!~    NMAX   = MMAX
+!~    KMAX   = MMAX*NMAX
+!~    KNX    = 8
+!~    MXB    = 10
+!~    LMAX   = (MMAX-1)*NMAX + (NMAX-1)*MMAX + 2*(MMAX-1)*(NMAX-1)
+!~    MAXLAN = 500
+!~    MAXPOL = MAXLAN
+!~    MAXBOAT = MAXLAN
 
-   call resetFullFlowModel()
+! this resets some of the md_.. parameters...
+!   call resetFullFlowModel()
 !~    call INIDAT()
 
   end function
@@ -88,9 +94,13 @@ contains
     integer :: ret, istat
     
     call loadNetwork(fnam, istat,1)
+
+    print*, "call partition_from_commandline with:"
+    print*,trim(fnam),md_ndomains,md_jacontiguous,md_icgsolver, md_pmethod, &
+     trim(md_dryptsfile), trim(md_encfile), md_genpolygon, md_partugrid, md_partseed
     
     call partition_from_commandline(fnam, md_Ndomains, md_jacontiguous, md_icgsolver, &
-        md_pmethod, md_dryptsfile, md_encfile, md_genpolygon)
+        md_pmethod, md_dryptsfile, md_encfile, md_genpolygon, md_partugrid, md_partseed)
 
     ret=0
   
