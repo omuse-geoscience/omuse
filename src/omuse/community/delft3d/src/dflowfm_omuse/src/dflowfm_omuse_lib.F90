@@ -5,6 +5,8 @@
 module dflowfm_omuse_lib
   use unstruc_api
   use unstruc_display, only: jaGUI ! this should be removed when jaGUI = 0 by default
+  use m_sferic, only : jsferic
+
 
   use m_partitioninfo
   use m_flow
@@ -271,7 +273,7 @@ contains
        call reduce_int_sum(lnxi_loc, lnxi_glob)
        call reduce_int_sum(lnx_loc, lnx_glob)
        
-       print*, my_rank, lnxi_loc, lnxi_glob,lnx_loc, lnx_glob
+       !print*, my_rank, lnxi_loc, lnxi_glob,lnx_loc, lnx_glob
 
        call get_global_numbering(lnxi, lgid)
        if(lnx_glob.GT.lnxi_glob) call get_global_numbering(lnx-lnxi, lgid(lnxi+1:lnx), lnxi_glob)
@@ -382,15 +384,15 @@ contains
   
      ! Just terminate if we get an error....
      if (inerr > 0) ret=-1
+
+! report on jsferic
+     print*, my_rank, "jsferic=", jsferic
   
-     print*, "info:"
-     print*, my_rank, numk, numL1D, numL
-     print*, my_rank, nump, ndx2d, ndxi, ndx1Db, ndx
-     print*, my_rank, lnx1D, lnxi, lnx1D, lnx
-
-     print*, "boundary:"
-     print*, my_rank, nbndz
-
+! and some random stuff  
+     print*, my_rank, "numk info:", numk, numL1D, numL
+     print*, my_rank, "nump info:", nump, ndx2d, ndxi, ndx1Db, ndx
+     print*, my_rank, "lnx info:",  lnx1D, lnxi, lnx1D, lnx
+     print*, my_rank, "boundary info: ", nbndz
 
 !~      print*, ndx2dr
 !~      print*, Nglobal_s, nump1d2d
