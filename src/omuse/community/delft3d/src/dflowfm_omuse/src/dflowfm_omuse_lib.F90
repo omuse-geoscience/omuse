@@ -7,7 +7,6 @@ module dflowfm_omuse_lib
   use unstruc_display, only: jaGUI ! this should be removed when jaGUI = 0 by default
   use m_sferic, only : jsferic
 
-
   use m_partitioninfo
   use m_flow
   use m_waves
@@ -387,6 +386,9 @@ contains
 
 ! report on jsferic
      print*, my_rank, "jsferic=", jsferic
+! some more debug
+     print*, my_rank, "jatidep=", jatidep
+     print*, my_rank, "md_ident=", md_ident
   
 ! and some random stuff  
      print*, my_rank, "numk info:", numk, numL1D, numL
