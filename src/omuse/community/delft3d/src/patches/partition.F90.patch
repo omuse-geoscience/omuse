@@ -1,0 +1,20 @@
+Index: engines_gpl/dflowfm/packages/dflowfm_kernel/src/partition.F90
+===================================================================
+--- engines_gpl/dflowfm/packages/dflowfm_kernel/src/partition.F90	(revision 140747)
++++ engines_gpl/dflowfm/packages/dflowfm_kernel/src/partition.F90	(working copy)
+@@ -5161,7 +5161,7 @@
+       call tpoly_to_pol(partition_pol)
+       
+ !     fix polygon for spheric, periodic coordinates
+-!!!      call fix_global_polygons(0,1)
++      if(.not.present(myrank)) call fix_global_polygons(0,1)
+       
+       ierror = 0
+       
+@@ -6349,4 +6349,4 @@
+          adjw  = val
+          vsize = val
+       end if
+-   end subroutine set_weights_for_METIS
+\ No newline at end of file
++   end subroutine set_weights_for_METIS
