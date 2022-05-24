@@ -48,7 +48,7 @@ delft3dfm/src/engines_gpl/dflowfm/packages/dflowfm_omuse: dflowfm_omuse/src/dflo
 # only apply if no rejects
 	-patch --dry-run -p0 -N -ddelft3dfm < ./patches/c_char.patch && patch -p0 -N -ddelft3dfm < ./patches/c_char.patch
 	-patch --dry-run -p0 -N -ddelft3dfm < ./patches/swan.patch && patch -p0 -N -ddelft3dfm < ./patches/swan.patch
-	-patch --dry-run -p0 -N -ddelft3dfm < ./patches/partition.F90.patch && patch -p0 -N -ddelft3dfm < ./patches/partition.F90.patch
+	-patch --dry-run -p0 -N -ddelft3dfm/src < ./patches/partition.F90.patch && patch -p0 -N -ddelft3dfm/src < ./patches/partition.F90.patch
 # we may have deleted some binary files
 	-patch --dry-run -p0 -N -ddelft3dfm < ./patches/third_party_open.patch && patch -p0 -N -ddelft3dfm < ./patches/third_party_open.patch
 
