@@ -3,7 +3,7 @@ from amuse.support.interface import InCodeComponentImplementation
 from amuse.support.literature import LiteratureReferencesMixIn
 from amuse.rfi.core import CodeInterface,LegacyFunctionSpecification
 from amuse.rfi.core import legacy_function,remote_function
-from amuse.datamodel import CartesianGrid
+from amuse.datamodel import CartesianGrid, StructuredGrid
 
 from omuse.units import units
 
@@ -506,7 +506,7 @@ class iemic(InCodeComponentImplementation):
         #~ code_generator.generate_grid_definitions(object)
 
         # ocean dynamic variables p-grid: po, dpo_dt, vorticity
-        handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
+        handler.define_grid('grid',axes_names = ["lon", "lat","z"], grid_class=StructuredGrid)
         handler.set_grid_range('grid', '_grid_range')
         handler.add_getter('grid', 'get_real_pos', names=["lon", "lat", "z"])
         handler.add_getter('grid', 'get_u', names=["u_velocity"])
