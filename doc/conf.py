@@ -14,13 +14,15 @@
 #
 import os
 import sys
+import datetime
+
 sys.path.insert(0, os.path.abspath('../src/'))
 
 
 # -- Project information -----------------------------------------------------
 
 project = u'OMUSE'
-copyright = u'2019, the OMUSE team'
+copyright = u'2019 - %i, the OMUSE team'%datetime.date.today().year
 author = u'the OMUSE team'
 
 # The short X.Y version
