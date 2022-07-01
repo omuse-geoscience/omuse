@@ -2,6 +2,7 @@ import os
 import hashlib
 import numpy
 import datetime
+import calendar
 
 from omuse.units import units
 from omuse.units import quantities
@@ -47,7 +48,25 @@ _era5_units_to_omuse={
                        }
 
 class ERA5(LiteratureReferencesMixIn):
-    """
+    """ERA5 interface
+    
+    Arguments
+    ---------
+    cachedir : str, optional
+        directory used for storing cache files, default: "./__era5_cache"
+    start_datetime: datetime object, optional
+        starting date of model. Must be datatime object, default: datetime.datetime(1979,1,2) 
+    variables: list of str, optional
+        variables to be retrieved. Must be list of valid strings. default: []
+    grid_resolution : 0.25, 0.5 or 1.0 | units.deg, optional
+        Resolution of the retrieved grid. default: 0.25 | units.deg
+    nwse_boundingbox : None or [North,West,South,East], optional 
+        Bounding box of grid, will be [90,-180,-90,180] | units.deg (whole globe) if None. default: None
+    invariate_variables : list of str, optional
+        invariate variables to retrieve. Will be included on the grid (but not updated). default: ["land_sea_mask"]
+    download_timespan: None, "day" or "month", optional
+        timespan of downloaded files. Longer timespans result in fewer but bigger downloads, default: "day"
+    
         .. [#] Copernicus Climate Change Service (C3S) (2017): ERA5: Fifth generation of ECMWF atmospheric reanalyses of the global climate . Copernicus Climate Change Service Climate Data Store (CDS)
         .. [#] Hersbach, H. et al., 2020: The ERA5 Reanalysis. Quart. J. Roy. Meteorol. Soc., doi: 10.1002/qj.3803
         .. [#] Pelupessy, F.I., Chertova, M., van den Oord, G., van Werkhoven, B., 2020, EGU General Assembly, doi: 10.5194/egusphere-egu2020-18011
@@ -56,12 +75,12 @@ class ERA5(LiteratureReferencesMixIn):
     def __init__(self, maxcache=None, cachedir="./__era5_cache", 
                  start_datetime=datetime.datetime(1979,1,2), variables=[], 
                  grid_resolution=None, nwse_boundingbox=None,
-                 invariate_variables=["land_sea_mask"]):
+                 invariate_variables=["land_sea_mask"], download_timespan="day"):
         self.maxcache=maxcache
         if not os.path.exists(cachedir):
             os.mkdir(cachedir)
         self.cachedir=cachedir
-        self.download_timespan="day"
+        self.download_timespan=download_timespan
 
         extra_lon=False
         if nwse_boundingbox is None or \
@@ -171,10 +190,13 @@ class ERA5(LiteratureReferencesMixIn):
 
         shortname=self._get_shortname(dataset, var)
       
-        if self.download_timespan=="day":
-            _value=dataset[shortname][time.hour, ...]
-        else:
-            _value=dataset[shortname][0, ...]
+        index=0
+        if self.download_timespan in ["day", "month"]:
+            index+=time.hour
+        if self.download_timespan in ["month"]:
+            index+=24*(time.day-1)
+
+        _value=dataset[shortname][index, ...]
 
         assert len(_value.shape)==len(self.shape)
 
@@ -202,13 +224,17 @@ class ERA5(LiteratureReferencesMixIn):
   
     def get_dataset(self, variable="land_sea_mask", time=datetime.datetime(1979,1,1), 
                     download_timespan=None, grid_resolution=None, nwse_boundingbox=None):        
-        if download_timespan=="day":
+        if download_timespan in ["day", "month"]:
             hour=["%2.2i:00"%i for i in range(24)]
         else:
             hour="%2.2i:00"%(time.hour+1)
         year="%4.4i"%time.year
         month="%2.2i"%time.month
-        day="%2.2i"%time.day
+        if download_timespan=="month":
+            length=calendar.monthrange(time.year,time.month)[1]
+            day=["%2.2i"%(i+1) for i in range(length)]
+        else:
+            day="%2.2i"%time.day
         
         if nwse_boundingbox is not None:
             area=quantities.value_in(nwse_boundingbox, units.deg)
@@ -231,10 +257,13 @@ class ERA5(LiteratureReferencesMixIn):
             self._append_history(name, request, datafile)
         result=Dataset(datafile)
         
-        if download_timespan=="day":
-            assert len(result["time"])==24 
-        else:
-            assert len(result["time"])==1
+        expected_length=1
+        if download_timespan in ["day", "month"]:
+            expected_length*=24 
+        if download_timespan=="month":
+            expected_length*=len(day)
+        
+        assert len(result["time"])==expected_length
             
         return result
         

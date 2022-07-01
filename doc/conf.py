@@ -43,7 +43,7 @@ release = u''
 extensions = ['sphinx.ext.autodoc','sphinx.ext.napoleon']
 
 # Mock omuse units due to broken imports
-autodoc_mock_imports = ["mpi4py", "netCDF4"]
+autodoc_mock_imports = ["mpi4py", "netCDF4", "cdsapi"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

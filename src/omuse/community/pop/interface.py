@@ -702,6 +702,7 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, 'get_element3d_temperature')
             object.add_method(state, 'get_element3d_salinity')
             object.add_method(state, 'get_element3d_density')
+            object.add_method(state, 'get_element_ssh')
 
 
         object.add_method("RUN", 'get_node3d_velocity_zvel') # because depends on xvel, yvel; needs prepare first
@@ -714,6 +715,7 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_method('EDIT', 'set_element3d_temperature')
         object.add_method('EDIT', 'set_element3d_salinity')
         object.add_method('EDIT', 'set_element3d_density')
+        object.add_method('EDIT', 'set_element_ssh')
 
         object.add_method('EDIT_FORCINGS', 'set_node_wind_stress')
         object.add_method('EDIT_FORCINGS', 'set_node_coriolis_f')
