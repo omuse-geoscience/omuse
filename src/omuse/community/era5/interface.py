@@ -50,22 +50,22 @@ _era5_units_to_omuse={
 class ERA5(LiteratureReferencesMixIn):
     """ERA5 interface
     
-    key word arguments
-    ------------------
-    cachedir : str ["./__era5_cache"]
-        directory used for storing cache files
-    start_datetime: datetime object [datetime.datetime(1979,1,2)]
-        starting date of model. Must be datatime object 
-    variables: list of str, [[]]
-        variables to be retrieved. Must be list of valid strings. 
-    grid_resolution : None or 0.25, 0.5 or 1.0 | units.deg [None]
-        Resolution of the retrieved grid.
-    nwse_boundingbox : None or [North,West,South,East] limits of bounding box [None]
-        Bounding box of grid, will be [90,-180,-90,180] (whole globe) if None.
-    invariate_variables : list of str [["land_sea_mask"]]
-        invariate variables to retrieve. Will be included on the grid (but not updated)
-    download_timespan: None, "day" or "month" ["day"]
-        timespan of downloaded files. Longer timespans result in fewer but bigger downloads
+    Arguments
+    ---------
+    cachedir : str, optional
+        directory used for storing cache files, default: "./__era5_cache"
+    start_datetime: datetime object, optional
+        starting date of model. Must be datatime object, default: datetime.datetime(1979,1,2) 
+    variables: list of str, optional
+        variables to be retrieved. Must be list of valid strings. default: []
+    grid_resolution : 0.25, 0.5 or 1.0 | units.deg, optional
+        Resolution of the retrieved grid. default: 0.25 | units.deg
+    nwse_boundingbox : None or [North,West,South,East], optional 
+        Bounding box of grid, will be [90,-180,-90,180] | units.deg (whole globe) if None. default: None
+    invariate_variables : list of str, optional
+        invariate variables to retrieve. Will be included on the grid (but not updated). default: ["land_sea_mask"]
+    download_timespan: None, "day" or "month", optional
+        timespan of downloaded files. Longer timespans result in fewer but bigger downloads, default: "day"
     
         .. [#] Copernicus Climate Change Service (C3S) (2017): ERA5: Fifth generation of ECMWF atmospheric reanalyses of the global climate . Copernicus Climate Change Service Climate Data Store (CDS)
         .. [#] Hersbach, H. et al., 2020: The ERA5 Reanalysis. Quart. J. Roy. Meteorol. Soc., doi: 10.1002/qj.3803
