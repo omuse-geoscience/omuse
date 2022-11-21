@@ -51,3 +51,6 @@ class RemoteStateVector(object):
     @property
     def size(self):
         return self.interface._length(self._id)
+    @property
+    def shape(self):
+        return [self.size]
