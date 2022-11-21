@@ -41,7 +41,8 @@ lookupNestedParameterList
 }
 
 Teuchos::ParameterList&
-lookupNestedParameterList(std::string& param, Teuchos::ParameterList& params)
+lookupNestedParameterList(std::string& param, Teuchos::ParameterList& params,
+    bool must_exist=false)
 {
     std::vector<std::string> name_parts = split_name(param);
     param = name_parts.back();
@@ -49,7 +50,7 @@ lookupNestedParameterList(std::string& param, Teuchos::ParameterList& params)
 
     ParameterList *list = &params;
     for (auto& key : name_parts) {
-        list = &list->sublist(key);
+        list = &list->sublist(key, must_exist);
     }
 
     return *list;
@@ -164,7 +165,7 @@ ParameterEntry&
 ParamSet::get_param_entry
 (std::string param_name, Teuchos::ParameterList& params)
 {
-    auto& result = lookupNestedParameterList(param_name, params);
+    auto& result = lookupNestedParameterList(param_name, params, true);
 
     return result.getEntry(param_name);
 }
