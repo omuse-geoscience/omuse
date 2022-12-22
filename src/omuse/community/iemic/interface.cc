@@ -622,24 +622,6 @@ int32_t set_s_( int *i, int *j, int *k, double *var, int* sindex, int n)
 { return set_param(states[*sindex], Parameter::s, i, j, k, var, n); }
 
 // variants for forcings
-int32_t get_u_forcing(int *i, int *j, int *k, double *var, int n)
-{ return get_param(ocean->getForcing('V'), Parameter::u, i, j, k, var, n); }
-
-int32_t get_v_forcing(int *i, int *j, int *k, double *var, int n)
-{ return get_param(ocean->getForcing('V'), Parameter::v, i, j, k, var, n); }
-
-int32_t get_w_forcing(int *i, int *j, int *k, double *var, int n)
-{ return get_param(ocean->getForcing('V'), Parameter::w, i, j, k, var, n); }
-
-int32_t get_p_forcing(int *i, int *j, int *k, double *var, int n)
-{ return get_param(ocean->getForcing('V'), Parameter::p, i, j, k, var, n); }
-
-int32_t get_t_forcing(int *i, int *j, int *k, double *var, int n)
-{ return get_param(ocean->getForcing('V'), Parameter::t, i, j, k, var, n); }
-
-int32_t get_s_forcing(int *i, int *j, int *k, double *var, int n)
-{ return get_param(ocean->getForcing('V'), Parameter::s, i, j, k, var, n); }
-
 int32_t get_surface_tatm(int *i, int *j, double *var, int n)
 { return get_surface_value( ocean->getAtmosT(), i, j, var, n); }
 

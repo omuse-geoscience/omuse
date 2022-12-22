@@ -183,30 +183,6 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
         returns ()
 
     @remote_function(must_handle_array=True)
-    def get_u_forcing(i=0, j=0, k=0):
-        returns (var=0.)
-
-    @remote_function(must_handle_array=True)
-    def get_v_forcing(i=0, j=0, k=0):
-        returns (var=0.)
-
-    @remote_function(must_handle_array=True)
-    def get_w_forcing(i=0, j=0, k=0):
-        returns (var=0.)
-
-    @remote_function(must_handle_array=True)
-    def get_p_forcing(i=0, j=0, k=0):
-        returns (var=0.)
-
-    @remote_function(must_handle_array=True)
-    def get_t_forcing(i=0, j=0, k=0):
-        returns (var=0.)
-
-    @remote_function(must_handle_array=True)
-    def get_s_forcing(i=0, j=0, k=0):
-        returns (var=0.)
-
-    @remote_function(must_handle_array=True)
     def get_surface_tatm(i=0, j=0):
         returns (var=0.)
 
@@ -475,9 +451,7 @@ class iemic(InCodeComponentImplementation):
 
         ocean_methods = [
             "get_u", "get_v", "get_w", "get_p", "get_t", "get_s", "set_u",
-            "set_v", "set_w", "set_p", "set_t", "set_s", "get_u_forcing",
-            "get_v_forcing", "get_w_forcing", "get_p_forcing", "get_t_forcing",
-            "get_s_forcing", "get_nrange",
+            "set_v", "set_w", "set_p", "set_t", "set_s", "get_nrange",
             "get_mrange", "get_lrange", "_new_state", "_get_rhs", "_solve",
             "_jacobian", "_jacobian_with_mass_matrix", "_apply_mass_matrix",
             "_set_model_state", "get_state_norm",
@@ -522,16 +496,6 @@ class iemic(InCodeComponentImplementation):
         handler.add_setter('grid', 'set_s', names=["salinity"])
         handler.add_setter('grid', 'set_p', names=["pressure"])
         handler.add_getter('grid', 'get_land_mask', names=["mask"])
-
-        handler.define_grid('grid_forcing',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
-        handler.set_grid_range('grid_forcing', '_grid_range')
-        handler.add_getter('grid_forcing', 'get_real_pos', names=["lon", "lat", "z"])
-        handler.add_getter('grid_forcing', 'get_u_forcing', names=["u_forcing"])
-        handler.add_getter('grid_forcing', 'get_v_forcing', names=["v_forcing"])
-        handler.add_getter('grid_forcing', 'get_w_forcing', names=["w_forcing"])
-        handler.add_getter('grid_forcing', 'get_t_forcing', names=["temperature_forcing"])
-        handler.add_getter('grid_forcing', 'get_s_forcing', names=["salinity_forcing"])
-        handler.add_getter('grid_forcing', 'get_p_forcing', names=["pressure_forcing"])
 
         handler.define_grid('surface_forcing',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
         handler.set_grid_range('surface_forcing', '_surface_grid_range')
