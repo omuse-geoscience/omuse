@@ -817,7 +817,6 @@ class iemic(InCodeComponentImplementation):
 
     def evolve_model(self, tend):
         x = self.get_state()
-        t = 0
         tmax = tend - self._model_time
         theta = self.parameters.timestepping_theta
         dt = self.parameters.timestepping_dt
