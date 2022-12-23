@@ -517,13 +517,13 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter('surface_v_grid', 'get_surface_tauy', names=["tau_y"])
         handler.add_setter('surface_v_grid', 'set_surface_tauy', names=["tau_y"])
 
-        handler.define_grid('surface_forcing',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
-        handler.set_grid_range('surface_forcing', '_surface_grid_range')
-        handler.add_getter('surface_forcing', 'get_real_pos_surf', names=["lon", "lat"])
-        handler.add_getter('surface_forcing', 'get_surface_tatm', names=["tatm"])
-        handler.add_setter('surface_forcing', 'set_surface_tatm', names=["tatm"])
-        handler.add_getter('surface_forcing', 'get_surface_emip', names=["emip"])
-        handler.add_setter('surface_forcing', 'set_surface_emip', names=["emip"])
+        handler.define_grid('surface_t_grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
+        handler.set_grid_range('surface_t_grid', '_surface_grid_range')
+        handler.add_getter('surface_t_grid', 'get_t_pos_surf', names=["lon", "lat"])
+        handler.add_getter('surface_t_grid', 'get_surface_tatm', names=["tatm"])
+        handler.add_setter('surface_t_grid', 'set_surface_tatm', names=["tatm"])
+        handler.add_getter('surface_t_grid', 'get_surface_emip', names=["emip"])
+        handler.add_setter('surface_t_grid', 'set_surface_emip', names=["emip"])
 
 
     def _specify_grid(self, definition, index=0):
@@ -750,6 +750,10 @@ class iemic(InCodeComponentImplementation):
     def get_v_pos_surf(self, i, j):
         _k, k = self.get_lrange()
         return self.get_v_pos(i, j, k)
+
+    def get_t_pos_surf(self, i, j):
+        _k, k = self.get_lrange()
+        return self.get_t_pos(i, j, k)
 
     def get_surface_mask(self):
         return self.t_grid[:,:,-1].mask
