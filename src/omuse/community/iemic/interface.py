@@ -243,10 +243,6 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
         returns(name="")
 
     @remote_function(must_handle_array=True)
-    def get_real_pos(xIn=0,yIn=0,zIn=0):
-        returns(xOut=0.0 | units.rad,yOut=0.0 | units.rad,zOut=0.0 | units.m)
-
-    @remote_function(must_handle_array=True)
     def get_t_pos(xIn=0,yIn=0,zIn=0):
         returns(xOut=0.0 | units.rad,yOut=0.0 | units.rad,zOut=0.0 | units.m)
 
@@ -463,7 +459,7 @@ class iemic(InCodeComponentImplementation):
             "get_mrange", "get_lrange", "_new_state", "_get_rhs", "_solve",
             "_jacobian", "_jacobian_with_mass_matrix", "_apply_mass_matrix",
             "_set_model_state", "get_state_norm",
-            "_get_model_state", "_get_psi_m", "get_real_pos",
+            "_get_model_state", "_get_psi_m",
             "get_land_mask", 
             "get_surface_tatm", "set_surface_tatm",
             "get_surface_emip", "set_surface_emip",
@@ -739,13 +735,6 @@ class iemic(InCodeComponentImplementation):
         result =  self._load_xml_parameters(set_name, path)
         getattr(self, "set_" + set_name.lower() + "_transition")()
         return result
-
-    def grid_pos_to_real_pos(self,coordinate):
-        return self.get_real_pos(*coordinate)
-
-    def get_real_pos_surf(self, i,j):
-        _k,k=self.get_lrange()
-        return self.get_real_pos(i,j,k)
 
     def get_v_pos_surf(self, i, j):
         _k, k = self.get_lrange()
