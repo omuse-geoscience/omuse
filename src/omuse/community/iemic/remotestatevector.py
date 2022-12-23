@@ -4,7 +4,7 @@ class RemoteStateVector(object):
     def __init__(self, interface):
         self.interface=interface
         self._id=interface._new_state()
-        self.grid=interface.get_grid(self)
+        self.grid=interface.get_state_grid(self)
     def copy_to(self, state):
         self.interface._copy_state(self._id, state._id)
     def copy(self):

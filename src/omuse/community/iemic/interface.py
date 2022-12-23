@@ -247,6 +247,10 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
         returns(xOut=0.0 | units.rad,yOut=0.0 | units.rad,zOut=0.0 | units.m)
 
     @remote_function(must_handle_array=True)
+    def get_t_pos(xIn=0,yIn=0,zIn=0):
+        returns(xOut=0.0 | units.rad,yOut=0.0 | units.rad,zOut=0.0 | units.m)
+
+    @remote_function(must_handle_array=True)
     def get_v_pos(xIn=0,yIn=0,zIn=0):
         returns(xOut=0.0 | units.rad,yOut=0.0 | units.rad,zOut=0.0 | units.m)
 
@@ -494,16 +498,16 @@ class iemic(InCodeComponentImplementation):
         handler.add_setter('v_grid', 'set_v', names=["v_velocity"])
         handler.add_setter('v_grid', 'set_w', names=["w_velocity"])
 
-        handler.define_grid('grid', axes_names=["lon", "lat", "z"], grid_class=StructuredGrid)
-        handler.set_grid_range('grid', '_grid_range')
-        handler.add_getter('grid', 'get_real_pos', names=["lon", "lat", "z"])
-        handler.add_getter('grid', 'get_t', names=["temperature"])
-        handler.add_getter('grid', 'get_s', names=["salinity"])
-        handler.add_getter('grid', 'get_p', names=["pressure"])
-        handler.add_setter('grid', 'set_t', names=["temperature"])
-        handler.add_setter('grid', 'set_s', names=["salinity"])
-        handler.add_setter('grid', 'set_p', names=["pressure"])
-        handler.add_getter('grid', 'get_land_mask', names=["mask"])
+        handler.define_grid('t_grid', axes_names=["lon", "lat", "z"], grid_class=StructuredGrid)
+        handler.set_grid_range('t_grid', '_grid_range')
+        handler.add_getter('t_grid', 'get_t_pos', names=["lon", "lat", "z"])
+        handler.add_getter('t_grid', 'get_t', names=["temperature"])
+        handler.add_getter('t_grid', 'get_s', names=["salinity"])
+        handler.add_getter('t_grid', 'get_p', names=["pressure"])
+        handler.add_setter('t_grid', 'set_t', names=["temperature"])
+        handler.add_setter('t_grid', 'set_s', names=["salinity"])
+        handler.add_setter('t_grid', 'set_p', names=["pressure"])
+        handler.add_getter('t_grid', 'get_land_mask', names=["mask"])
 
         handler.define_grid('surface_v_grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
         handler.set_grid_range('surface_v_grid', '_surface_grid_range')
@@ -524,9 +528,9 @@ class iemic(InCodeComponentImplementation):
 
     def _specify_grid(self, definition, index=0):
         #~ handler.define_grid('grid',axes_names = ["lon", "lat"], grid_class=CartesianGrid)
-        definition.axes_names=["lon", "lat"]
+        definition.axes_names=["lon", "lat", "z"]
         definition.set_grid_range('_grid_range')
-        definition.add_getter('get_real_pos', names=["lon", "lat", "z"])
+        definition.add_getter('get_v_pos', names=["lon", "lat", "z"])
         definition.add_getter('get_u_', names=["u_velocity"])
         definition.add_getter('get_v_', names=["v_velocity"])
         definition.add_getter('get_w_', names=["w_velocity"])
@@ -659,7 +663,7 @@ class iemic(InCodeComponentImplementation):
     def get_psi_m(self, state):
         return self._get_psi_m(state._id)
 
-    def get_grid(self, state):
+    def get_state_grid(self, state):
         return self._create_new_grid(self._specify_grid, index=state._id)
 
     def parameterset_parameters(self, paramSet, sublist=[]):
@@ -748,7 +752,7 @@ class iemic(InCodeComponentImplementation):
         return self.get_v_pos(i, j, k)
 
     def get_surface_mask(self):
-        return self.grid[:,:,-1].mask
+        return self.t_grid[:,:,-1].mask
 
     def evolve_model(self,tend):
         x=self.get_state()

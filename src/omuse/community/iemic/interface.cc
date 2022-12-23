@@ -1023,7 +1023,19 @@ int32_t get_state_norm(double *val)
 
 int32_t get_real_pos(int *xIn, int *yIn, int *zIn, double *xOut, double *yOut, double *zOut, int count)
 {
-    for(int i = 0; i < count; i++){
+    for (int i = 0; i < count; i++)
+    {
+        xOut[i] = ocean->getDomain()->GetGlobalGrid().getXposCenter(xIn[i]);
+        yOut[i] = ocean->getDomain()->GetGlobalGrid().getYposCenter(yIn[i]);
+        zOut[i] = ocean->getDomain()->GetGlobalGrid().getZposCenter(zIn[i]);
+    }
+    return 0;
+}
+
+int32_t get_t_pos(int *xIn, int *yIn, int *zIn, double *xOut, double *yOut, double *zOut, int count)
+{
+    for (int i = 0; i < count; i++)
+    {
         xOut[i] = ocean->getDomain()->GetGlobalGrid().getXposCenter(xIn[i]);
         yOut[i] = ocean->getDomain()->GetGlobalGrid().getYposCenter(yIn[i]);
         zOut[i] = ocean->getDomain()->GetGlobalGrid().getZposCenter(zIn[i]);
@@ -1033,7 +1045,8 @@ int32_t get_real_pos(int *xIn, int *yIn, int *zIn, double *xOut, double *yOut, d
 
 int32_t get_v_pos(int *xIn, int *yIn, int *zIn, double *xOut, double *yOut, double *zOut, int count)
 {
-    for(int i = 0; i < count; i++){
+    for (int i = 0; i < count; i++)
+    {
         xOut[i] = ocean->getDomain()->GetGlobalGrid().getXposEdge(xIn[i]);
         yOut[i] = ocean->getDomain()->GetGlobalGrid().getYposEdge(yIn[i]);
         zOut[i] = ocean->getDomain()->GetGlobalGrid().getZposCenter(zIn[i]);
