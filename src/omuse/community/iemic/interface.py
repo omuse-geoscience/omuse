@@ -246,6 +246,10 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
     def get_real_pos(xIn=0,yIn=0,zIn=0):
         returns(xOut=0.0 | units.rad,yOut=0.0 | units.rad,zOut=0.0 | units.m)
 
+    @remote_function(must_handle_array=True)
+    def get_v_pos(xIn=0,yIn=0,zIn=0):
+        returns(xOut=0.0 | units.rad,yOut=0.0 | units.rad,zOut=0.0 | units.m)
+
     @remote_function
     def _get_parameter_type(set_name="", param_name=""):
         returns(name="")
@@ -480,18 +484,22 @@ class iemic(InCodeComponentImplementation):
         #~ code_generator.generate_grid_definitions(object)
 
         # ocean dynamic variables p-grid: po, dpo_dt, vorticity
-        handler.define_grid('grid',axes_names = ["lon", "lat","z"], grid_class=StructuredGrid)
+        handler.define_grid('v_grid', axes_names=["lon", "lat", "z"], grid_class=StructuredGrid)
+        handler.set_grid_range('v_grid', '_grid_range')
+        handler.add_getter('v_grid', 'get_v_pos', names=["lon", "lat", "z"])
+        handler.add_getter('v_grid', 'get_u', names=["u_velocity"])
+        handler.add_getter('v_grid', 'get_v', names=["v_velocity"])
+        handler.add_getter('v_grid', 'get_w', names=["w_velocity"])
+        handler.add_setter('v_grid', 'set_u', names=["u_velocity"])
+        handler.add_setter('v_grid', 'set_v', names=["v_velocity"])
+        handler.add_setter('v_grid', 'set_w', names=["w_velocity"])
+
+        handler.define_grid('grid', axes_names=["lon", "lat", "z"], grid_class=StructuredGrid)
         handler.set_grid_range('grid', '_grid_range')
         handler.add_getter('grid', 'get_real_pos', names=["lon", "lat", "z"])
-        handler.add_getter('grid', 'get_u', names=["u_velocity"])
-        handler.add_getter('grid', 'get_v', names=["v_velocity"])
-        handler.add_getter('grid', 'get_w', names=["w_velocity"])
         handler.add_getter('grid', 'get_t', names=["temperature"])
         handler.add_getter('grid', 'get_s', names=["salinity"])
         handler.add_getter('grid', 'get_p', names=["pressure"])
-        handler.add_setter('grid', 'set_u', names=["u_velocity"])
-        handler.add_setter('grid', 'set_v', names=["v_velocity"])
-        handler.add_setter('grid', 'set_w', names=["w_velocity"])
         handler.add_setter('grid', 'set_t', names=["temperature"])
         handler.add_setter('grid', 'set_s', names=["salinity"])
         handler.add_setter('grid', 'set_p', names=["pressure"])
