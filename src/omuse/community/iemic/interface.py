@@ -843,6 +843,11 @@ class iemic(InCodeComponentImplementation):
         getattr(self, "set_" + set_name.lower() + "_transition")()
         return result
 
+    def load_xml_parameters(self, set_name="", path=""):
+        result = self._load_xml_parameters(set_name, path)
+        getattr(self, "set_" + set_name.lower() + "_transition")()
+        return result
+
     def get_v_pos_surf(self, i, j):
         _k, k = self.get_lrange()
         return self.get_v_pos(i, j, k)
