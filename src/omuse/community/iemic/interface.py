@@ -186,6 +186,30 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
         returns()
 
     @remote_function(must_handle_array=True)
+    def get_u_forcing(i=0, j=0, k=0):
+        returns(var=0.0)
+
+    @remote_function(must_handle_array=True)
+    def get_v_forcing(i=0, j=0, k=0):
+        returns(var=0.0)
+
+    @remote_function(must_handle_array=True)
+    def get_w_forcing(i=0, j=0, k=0):
+        returns(var=0.0)
+
+    @remote_function(must_handle_array=True)
+    def get_p_forcing(i=0, j=0, k=0):
+        returns(var=0.0)
+
+    @remote_function(must_handle_array=True)
+    def get_t_forcing(i=0, j=0, k=0):
+        returns(var=0.0)
+
+    @remote_function(must_handle_array=True)
+    def get_s_forcing(i=0, j=0, k=0):
+        returns(var=0.0)
+
+    @remote_function(must_handle_array=True)
     def get_surface_tatm(i=0, j=0):
         returns(var=0.0)
 
@@ -487,6 +511,12 @@ class iemic(InCodeComponentImplementation):
             "set_p",
             "set_t",
             "set_s",
+            "get_u_forcing",
+            "get_v_forcing",
+            "get_w_forcing",
+            "get_p_forcing",
+            "get_t_forcing",
+            "get_s_forcing",
             "get_nrange",
             "get_mrange",
             "get_lrange",
@@ -539,6 +569,10 @@ class iemic(InCodeComponentImplementation):
         handler.add_setter("v_grid", "set_v", names=["v_velocity"])
         handler.add_setter("v_grid", "set_w", names=["w_velocity"])
 
+        handler.add_getter("v_grid", "get_u_forcing", names=["u_forcing"])
+        handler.add_getter("v_grid", "get_v_forcing", names=["v_forcing"])
+        handler.add_getter("v_grid", "get_w_forcing", names=["w_forcing"])
+
         handler.define_grid(
             "t_grid", axes_names=["lon", "lat", "z"], grid_class=StructuredGrid
         )
@@ -550,6 +584,11 @@ class iemic(InCodeComponentImplementation):
         handler.add_setter("t_grid", "set_t", names=["temperature"])
         handler.add_setter("t_grid", "set_s", names=["salinity"])
         handler.add_setter("t_grid", "set_p", names=["pressure"])
+
+        handler.add_getter("t_grid", "get_t_forcing", names=["temperature_forcing"])
+        handler.add_getter("t_grid", "get_s_forcing", names=["salinity_forcing"])
+        handler.add_getter("t_grid", "get_p_forcing", names=["pressure_forcing"])
+
         handler.add_getter("t_grid", "get_land_mask", names=["mask"])
 
         handler.define_grid(
