@@ -254,8 +254,11 @@ function evolve_model(tend) result(ret)
     ! write restart dumps and archiving
     !
     !-----------------------------------------------------------------------
-    call output_driver(errorCode)
-
+    if (errorCode == POP_Success) then
+      call output_driver(errorCode)
+    else
+      call POP_ErrorPrint(errorCode, printTask=POP_masterTask)
+    endif
   enddo
 
   if (errorCode == POP_Success) then
