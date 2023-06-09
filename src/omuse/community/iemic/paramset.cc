@@ -61,7 +61,11 @@ ParamSet::load_from_file(const std::string& path)
 {
     auto loadedParams = getParametersFromXmlFile(path);
     loadedParams->validateParameters(defaultInitParams);
-    parameters.setParameters(*loadedParams);
+    if (committed) {
+        updatedParams.setParameters(*loadedParams);
+    } else {
+        parameters.setParameters(*loadedParams);
+    }
 }
 
 void
