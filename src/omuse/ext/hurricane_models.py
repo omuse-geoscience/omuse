@@ -354,14 +354,17 @@ class STORM_format_reader(object):
 
 class HollandHurricane(object):
     """
-    this class implements the Holland 1980 analytic wind and pressure
+    This class implements the Holland 1980 analytic wind and pressure
     profile. It can be initialized from a file in ATCF or STORM database
     format or from a track, which is to be provided as list of dicts with
     the time, lon, lat, rrp (radius to last closed pressure contour),
     vmax (maximum wind speed), mslp (maximum sea level pressure),
-    mrd (radius to max wind), example:
+    mrd (radius to max wind). The optional tstart argument takes a
+    datetime object which sets the start time for the simulation. If not
+    provided, the first line in the track file equals simulation time = 0.
+    Example:
 
-    h=HollandHurricane(nodes, "fort.22", )
+    h=HollandHurricane(nodes, "fort.22")
     """
 
     u10_boundary_layer_conversion_factor = 0.7
@@ -401,8 +404,9 @@ class HollandHurricane(object):
         self.add_translation_velocity(track)
         self.track = track
         if self.tstart is not None:
-            t0 = tstart
-        t0 = track[0]["time"]
+            t0 = self.tstart
+        else:
+            t0 = track[0]["time"]
         self.ndata = len(track)
         self.times = [(x["time"] - t0).total_seconds() for x in track] | units.s
 
