@@ -17,60 +17,14 @@ except ImportError:
 # Best Track/Objective Aid/Wind Radii Format
 # http://www.nrlmry.navy.mil/atcf_web/docs/database/new/abrdeck.html
 
-fields_ATCF = [
-    "BASIN",
-    "CY",
-    "YYYYMMDDHH",
-    "TECHNUM/MIN",
-    "TECH",
-    "TAU",
-    "LatN/S",
-    "LonE/W",
-    "VMAX",
-    "MSLP",
-    "TY",
-    "RAD",
-    "WINDCODE",
-    "RAD1",
-    "RAD2",
-    "RAD3",
-    "RAD4",
-    "RADP",
-    "RRP",
-    "MRD",
-    "GUSTS",
-    "EYE",
-    "SUBREGION",
-    "MAXSEAS",
-    "INITIALS",
-    "DIR",
-    "SPEED",
-    "STORMNAME",
-    "DEPTH",
-    "SEAS",
-    "SEASCODE",
-    "SEAS1",
-    "SEAS2",
-    "SEAS3",
-    "SEAS4",
-    "USERDEFINED",
-    "userdata",
-]
-fields_STORM = [
-    "YY",
-    "MM",
-    "INDEX",
-    "HH",
-    "BASIN",
-    "LatN/S",
-    "LonE/W",
-    "MSLP",
-    "VMAX",
-    "MRD",
-    "CAT",
-    "LNDF",
-    "DIST",
-]
+fields_ATCF=["BASIN","CY","YYYYMMDDHH","TECHNUM/MIN","TECH","TAU","LatN/S","LonE/W", 
+        "VMAX","MSLP","TY","RAD","WINDCODE","RAD1","RAD2","RAD3","RAD4","RADP",
+        "RRP","MRD","GUSTS","EYE","SUBREGION","MAXSEAS","INITIALS","DIR","SPEED",
+        "STORMNAME","DEPTH","SEAS","SEASCODE","SEAS1","SEAS2","SEAS3","SEAS4",
+        "USERDEFINED","userdata"]
+
+fields_STORM=["YY","MM","INDEX","HH","BASIN","LatN/S","LonE/W","MSLP","VMAX",
+        "MRD","CAT","LNDF","DIST"]
 
 fields_ATCF_description = {
     "BASIN": "basin, e.g. WP, IO, SH, CP, EP, AL, SL",
