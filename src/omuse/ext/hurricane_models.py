@@ -331,6 +331,9 @@ class HollandHurricane(object):
             self.nodes = nodes.copy()
         else:
             self.nodes = None
+
+        self.tstart = tstart
+
         if actf_file is not None:
             self.initialize_from_actf(actf_file)
         elif storm_file is not None:
@@ -339,7 +342,6 @@ class HollandHurricane(object):
             self.initialize_from_track(track)
         else:
             raise Exception("provide filename or storm track")
-        self.tstart = tstart
         self.evolve_model(0.0 | units.s)
 
     def initialize_from_actf(self, filename):
