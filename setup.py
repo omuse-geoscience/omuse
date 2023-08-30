@@ -23,7 +23,7 @@ install_requires = [
     'amuse-devel>=13.1.0', # omuse-devel implies amuse-devel:
     'netCDF4>=1.4.0',
     'f90nml>=1.0.0',
-    'fvm @ https://github.com/BIMAU/fvm/tarball/master'
+    'transiflow @ https://github.com/BIMAU/transiflow/tarball/master'
 ]
 description = 'The Oceanographic Multi-purpose Software Environment: a package for multi-physics and multi-scale earth science simulations.'
 with open("README.md", "r") as fh:
