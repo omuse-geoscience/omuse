@@ -7,7 +7,7 @@ version_full = get_version(
     relative_to=__file__,
 )
 
-version = '.'.join(version_full.split('.')[:2]
+version = '.'.join(version_full.split('.')[:2])
 
 name = 'omuse'
 author = 'The AMUSE/ OMUSE team'
