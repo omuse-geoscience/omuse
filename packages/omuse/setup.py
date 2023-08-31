@@ -2,10 +2,12 @@ from setuptools import setup
 from support.classifiers import classifiers
 from setuptools_scm import get_version
 
-version = get_version(
+version_full = get_version(
     root='../..',
     relative_to=__file__,
 )
+
+version = '.'.join(version_full.split('.')[:2]
 
 name = 'omuse'
 author = 'The AMUSE/ OMUSE team'
