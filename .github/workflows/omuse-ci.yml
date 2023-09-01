@@ -71,6 +71,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v3.9.0
       with:
+        distribution: 'zulu' # See 'Supported distributions' for available options
         java-version: ${{ matrix.java }}
 
     - name: Set up Python
