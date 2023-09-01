@@ -54,7 +54,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         python: [ 3.8 ]
-        java: [ 1.8 ]
+        java: [ 17 ]
         gfortran: [ gfortran-10 ]
 
     name: omuse-framework - (${{ join(matrix.*, ', ') }})
