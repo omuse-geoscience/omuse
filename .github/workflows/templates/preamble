@@ -26,7 +26,10 @@ jobs:
         diff -u validate.yml .github/workflows/omuse-ci.yml
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
+        with:
+          cache: 'pip' # caching pip dependencies
+          cache-dependency-path: **/setup.py
 
     - name: Install Python dependencies
       run: |
