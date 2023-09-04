@@ -55,7 +55,7 @@ jobs:
   omuse-framework:
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, macos-latest ]
         python: [ 3.8 ]
         java: [ 17 ]
         gfortran: [ gfortran-10 ]
