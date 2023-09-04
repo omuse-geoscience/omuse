@@ -42,7 +42,6 @@ mapping_from_command_name_to_command_class=setup_commands()
 
 setup(
     name=name,
-    version=version,
     classifiers=classifiers,
     url=url,
     author_email=author_email,
