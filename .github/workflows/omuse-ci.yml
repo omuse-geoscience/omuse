@@ -45,11 +45,7 @@ jobs:
 
         cd omuse-framework
         omuse_version=$(python setup.py --version | head -n1 | awk '{print $1;}')
-        echo "Omuse version is: "
-        echo $omuse_version
-        echo "=================="
         echo "VERSION=$omuse_version" >> $GITHUB_OUTPUT
-        echo $GITHUB_OUTPUT
 
     - uses: actions/upload-artifact@v3
       with:
