@@ -1,5 +1,5 @@
 [build-system]
-requires = [ "setuptools>=61.0.0", "wheel", "setuptools_scm" ]
+requires = [ "setuptools>=65.0.0", "wheel", "setuptools_scm" ]
 
 [project]
 name = "omuse-framework"
@@ -7,8 +7,5 @@ dynamic = ["version"]
 
 [tool.setuptools_scm]
 write_to = "src/omuse/version.py"
-relative_to = "__file__",
+relative_to = "__file__"
 root = "../.."
-
-[tool.setuptools.dynamic]
-version = {attr = "omuse-framework.VERSION"}
