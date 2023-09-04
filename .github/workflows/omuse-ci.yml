@@ -69,7 +69,7 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: sdists-${{ needs.package.outputs.version }}
-        path: dist/
+        path: packages/dist/
 
     - name: Set up JDK
       uses: actions/setup-java@v3.9.0
@@ -130,7 +130,7 @@ jobs:
 
     - name: "Install OMUSE package: omuse-framework"
       run: |
-        pip install --no-clean --pre --find-links dist/ omuse-framework
+        pip install --no-clean --pre --find-links packages/dist/ omuse-framework
         rm -rf "${TEMP_DIR}"/pip-*/
       env:
         TEMP_DIR: ${{ steps.get_temp.outputs.TMPDIR }}
