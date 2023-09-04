@@ -58,7 +58,6 @@ jobs:
         os: [ ubuntu-latest, macos-latest ]
         python: [ 3.8 ]
         java: [ 17 ]
-        gfortran: [ gfortran-10 ]
 
     name: omuse-framework - (${{ join(matrix.*, ', ') }})
     needs: package
@@ -95,12 +94,8 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew update
-        brew install ${{ matrix.gfortran }} || true
+        brew install gcc || true
         brew install openmpi || true
-        echo "OMPI_FC=${FC}" >> $GITHUB_ENV
-        echo "F77=${FC}" >> $GITHUB_ENV
-      env:
-        FC: ${{ matrix.gfortran }}
 
     - name: Install amuse-devel
       run: |
@@ -116,7 +111,7 @@ jobs:
     - name: Compiler cache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: omuse-framework-${{ matrix.os }}-${{ matrix.gfortran }}
+        key: omuse-framework-${{ matrix.os }}
         max-size: 5000M
 
     - name: Point compilers at ccache
