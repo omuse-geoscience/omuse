@@ -180,7 +180,6 @@ jobs:
     - name: Install OMUSE dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-      run: |
         brew update
         brew install gcc || true
         brew install openmpi || true
