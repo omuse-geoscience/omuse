@@ -94,7 +94,9 @@ jobs:
     - name: Install OMUSE dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install openmpi
+        brew update
+        brew install ${{ matrix.gfortran }} || true
+        brew install openmpi || true
         echo "OMPI_FC=${FC}" >> $GITHUB_ENV
         echo "F77=${FC}" >> $GITHUB_ENV
       env:
@@ -105,7 +107,6 @@ jobs:
         git clone https://github.com/amusecode/amuse
         cd amuse
         pip install -e .
-
 
     - name: Determine temp directory
       id: get_temp
