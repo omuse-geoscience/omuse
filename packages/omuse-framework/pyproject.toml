@@ -1,2 +1,7 @@
 [build-system]
-requires = [ "setuptools>=42.0.0", "wheel" ]
+requires = [ "setuptools>=42.0.0", "wheel", "setuptools_scm" ]
+
+[tool.setuptools_scm]
+write_to = "src/omuse/version.py"
+relative_to = "__file__",
+root = "../.."
