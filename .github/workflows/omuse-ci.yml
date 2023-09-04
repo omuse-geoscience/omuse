@@ -44,7 +44,7 @@ jobs:
         ./generate_packages.sh
 
         cd omuse-framework
-        omuse_version=$(python setup.py --version)
+        omuse_version=$(python setup.py --version | head -n1 | awk '{print $1;}')
         echo "Omuse version is: "
         echo $omuse_version
         echo "=================="
