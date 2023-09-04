@@ -22,6 +22,7 @@ jobs:
 
     - name: Set up Python
       uses: actions/setup-python@v4
+        python-version: '3.8'
 
     - name: Install Python dependencies
       run: |
@@ -42,9 +43,9 @@ jobs:
         ./generate_packages.sh
 
         cd omuse-framework
-        echo "::set-output name=VERSION::$(python setup.py --version)"
+        echo "VERSION=$(python setup.py --version) >> $GITHUB_OUTPUT"
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: sdists-${{ steps.sdists.outputs.VERSION }}
         path: packages/dist/*.tar.gz
@@ -63,7 +64,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: sdists-${{ needs.package.outputs.version }}
         path: dist/
@@ -106,7 +107,7 @@ jobs:
     - name: Determine temp directory
       id: get_temp
       run: |
-        echo "::set-output name=TMPDIR::${TMPDIR:-/tmp/}"
+        echo "TMPDIR=${TMPDIR:-/tmp/}" >> $GITHUB_OUTPUT
 
     - name: Compiler cache
       uses: hendrikmuhs/ccache-action@v1
@@ -133,7 +134,7 @@ jobs:
         TEMP_DIR: ${{ steps.get_temp.outputs.TMPDIR }}
 
     - name: Archive pip failure output
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: build-logs

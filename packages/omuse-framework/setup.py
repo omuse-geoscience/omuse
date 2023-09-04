@@ -48,7 +48,7 @@ except ImportError:
     version = False
     setup_requires = ['setuptools_scm']
     use_scm_version = {
-        "root": "../..",
+        "root": "./",
         "relative_to": __file__,
         "write_to": "src/omuse/version.py",
     }
