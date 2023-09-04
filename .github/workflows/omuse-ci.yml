@@ -86,12 +86,6 @@ jobs:
       run: |
         pip install --upgrade pip wheel
 
-    - name: Install amuse-devel
-      run: |
-        git clone https://github.com/amusecode/amuse
-        cd amuse
-        pip install -e .
-
     - name: Install OMUSE dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -105,6 +99,13 @@ jobs:
         echo "F77=${FC}" >> $GITHUB_ENV
       env:
         FC: ${{ matrix.gfortran }}
+
+    - name: Install amuse-devel
+      run: |
+        git clone https://github.com/amusecode/amuse
+        cd amuse
+        pip install -e .
+
 
     - name: Determine temp directory
       id: get_temp
