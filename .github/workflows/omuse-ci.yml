@@ -45,6 +45,9 @@ jobs:
 
         cd omuse-framework
         omuse_version=$(python setup.py --version)
+        echo "Omuse version is: "
+        echo $omuse_version
+        echo "=================="
         echo "VERSION=$omuse_version" >> $GITHUB_OUTPUT
         echo $GITHUB_OUTPUT
 
