@@ -44,7 +44,7 @@ jobs:
         ./generate_packages.sh
 
         cd omuse-framework
-        echo "VERSION=$(python setup.py --version) >> $GITHUB_OUTPUT"
+        echo "VERSION=$(python setup.py --version)" >> "$GITHUB_OUTPUT"
 
     - uses: actions/upload-artifact@v3
       with:
@@ -108,7 +108,7 @@ jobs:
     - name: Determine temp directory
       id: get_temp
       run: |
-        echo "TMPDIR=${TMPDIR:-/tmp/}" >> $GITHUB_OUTPUT
+        echo "TMPDIR=${TMPDIR:-/tmp/}" >> "$GITHUB_OUTPUT"
 
     - name: Compiler cache
       uses: hendrikmuhs/ccache-action@v1
