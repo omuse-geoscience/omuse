@@ -44,8 +44,9 @@ jobs:
         ./generate_packages.sh
 
         cd omuse-framework
-        python setup.py --version
-        echo "VERSION=$(python setup.py --version)" >> $GITHUB_OUTPUT
+        omuse_version=$(python setup.py --version)
+        echo "VERSION=$omuse_version" >> $GITHUB_OUTPUT
+        echo $GITHUB_OUTPUT
 
     - uses: actions/upload-artifact@v3
       with:
