@@ -12,9 +12,8 @@ license_ = "Apache License 2.0"
 url = 'https://github.com/omuse-geoscience/omuse'
 install_requires = [
     'omuse-framework',
-    'cdsapi'
 ]
-description = 'The Oceanographic Multi-purpose Software Environment - ERA5 interface'
+description = 'The Oceanographic Multi-purpose Software Environment - era5'
 with open("README.md", "r") as fh:
     long_description = fh.read()
 long_description_content_type = "text/markdown"
@@ -31,24 +30,8 @@ package_data = {
 
 mapping_from_command_name_to_command_class = setup_commands()
 
-try:
-    from src.omuse.community.era5.version import version
-    use_scm_version = False
-    setup_requires = []
-except ImportError:
-    version = False
-    setup_requires = ['setuptools_scm']
-    use_scm_version = {
-        "root": "../..",
-        "relative_to": __file__,
-        "write_to": "src/omuse/community/era5/version.py",
-    }
-
 setup(
     name=name,
-    use_scm_version=use_scm_version,
-    setup_requires=setup_requires,
-    version=version,
     classifiers=classifiers,
     url=url,
     author_email=author_email,
