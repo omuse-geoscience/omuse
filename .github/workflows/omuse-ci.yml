@@ -349,7 +349,7 @@ jobs:
     - name: Install OMUSE dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt-get install libopenmpi-de
+        sudo apt-get install libopenmpi-dev
 
     - name: Install OMUSE dependencies (macOS)
       if: runner.os == 'macOS'
