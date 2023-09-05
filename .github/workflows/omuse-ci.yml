@@ -358,6 +358,12 @@ jobs:
         brew install gcc || true
         brew install openmpi || true
 
+    - name: Install amuse-devel
+      run: |
+        git clone https://github.com/amusecode/amuse
+        cd amuse
+        pip install -e .
+
     - name: Determine temp directory
       id: get_temp
       run: |
