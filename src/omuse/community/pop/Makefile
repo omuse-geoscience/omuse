@@ -24,12 +24,6 @@ LDFLAGS  += -lm $(MUSE_LD_FLAGS)
 POPARCH=amuse
 POPDIR=$(CURDIR)/eSalsa-POP
 
-NETCDF_FLAGS = -I$(NETCDF_HOME)/include
-NETCDFF_FLAGS = -I$(NETCDFF_HOME)/include
-
-NETCDF_LIBS = -L$(NETCDF_HOME)/lib -lnetcdf
-NETCDFF_LIBS = -L$(NETCDFF_HOME)/lib -lnetcdff
-
 POPFFLAGS := $(POPFFLAGS) $(NETCDF_FLAGS) $(NETCDFF_FLAGS) $(NETCDF_LIBS) $(NETCDFF_LIBS)
 FS_LIBS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
 
@@ -38,20 +32,9 @@ CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 POPREPO=https://github.com/nlesc-smcm/eSalsa-POP
 POPREPOBRANCH=master
 
-
 .PHONY: all download src_%
 
-all: eSalsa-POP checkNETCDF $(TARGETS)
-
-ifneq ($(and $(NETCDF_HOME),$(NETCDFF_HOME)),)
-checkNETCDF:
-	@echo "Using NetCDF home: $(NETCDF_HOME)"
-	@echo "Using NetCDF-Fortran home: $(NETCDFF_HOME)"
-else
-checkNETCDF:
-	@echo "ERROR: NetCDF needed but NETCDF_HOME and/or NETCDFF_HOME not defined"
-	@false
-endif
+all: eSalsa-POP $(TARGETS)
 
 update: eSalsa-POP
 	cd eSalsa-POP; git pull
