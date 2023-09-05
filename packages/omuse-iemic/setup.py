@@ -12,7 +12,6 @@ license_ = "Apache License 2.0"
 url = 'https://github.com/omuse-geoscience/omuse'
 install_requires = [
     'omuse-framework',
-    'transiflow @ https://github.com/BIMAU/transiflow/tarball/master',
 ]
 description = 'The Oceanographic Multi-purpose Software Environment - iemic'
 with open("README.md", "r") as fh:
@@ -31,24 +30,8 @@ package_data = {
 
 mapping_from_command_name_to_command_class = setup_commands()
 
-try:
-    from src.omuse.community.iemic.version import version
-    use_scm_version = False
-    setup_requires = []
-except ImportError:
-    version = False
-    setup_requires = ['setuptools_scm']
-    use_scm_version = {
-        "root": "../..",
-        "relative_to": __file__,
-        "write_to": "src/omuse/community/iemic/version.py",
-    }
-
 setup(
     name=name,
-    use_scm_version=use_scm_version,
-    setup_requires=setup_requires,
-    version=version,
     classifiers=classifiers,
     url=url,
     author_email=author_email,
