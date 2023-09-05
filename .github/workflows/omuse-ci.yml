@@ -313,14 +313,14 @@ jobs:
         name: build-logs
         path: ${{ steps.get_temp.outputs.TMPDIR }}/pip-*/
 
-  omuse-iemic:
+  omuse-swan:
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest ]
         python: [ 3.8 ]
         java: [ 17 ]
 
-    name: omuse-iemic - (${{ join(matrix.*, ', ') }})
+    name: omuse-swan - (${{ join(matrix.*, ', ') }})
     needs: package
 
     runs-on: ${{ matrix.os }}
@@ -349,7 +349,7 @@ jobs:
     - name: Install OMUSE dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt-get install libopenmpi-dev # gfortran libopenblas-dev libhdf5-openmpi-dev libgsl0-dev cmake libfftw3-3 libfftw3-dev libmpfr6 libmpfr-dev libnetcdf-dev libnetcdff-dev
+        sudo apt-get install libopenmpi-de
 
     - name: Install OMUSE dependencies (macOS)
       if: runner.os == 'macOS'
@@ -372,7 +372,7 @@ jobs:
     - name: Compiler cache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: omuse-iemic-${{ matrix.os }}
+        key: omuse-swan-${{ matrix.os }}
         max-size: 5000M
 
     - name: Point compilers at ccache
@@ -386,22 +386,9 @@ jobs:
         echo "CCACHE_COMPILERCHECK=content" >> $GITHUB_ENV
         echo "CCACHE_NOHASHDIR=true" >> $GITHUB_ENV
 
-    - name: Install dependencies (Linux)
-      if: runner.os == 'Linux'
+    - name: "Install OMUSE package: omuse-swan"
       run: |
-        sudo apt-get install gfortran libopenblas-dev libhdf5-openmpi-dev libptscotch-dev trilinos-all-dev libslicot-dev
-
-    - name: Install dependencies (MacOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew tap nlesc/nlesc
-        brew update
-        brew upgrade
-        brew install nlesc/nlesc/trilinos nlesc/nlesc/slicot
-
-    - name: "Install OMUSE package: omuse-iemic"
-      run: |
-        pip install --no-clean --pre --find-links dist/ omuse-iemic
+        pip install --no-clean --pre --find-links dist/ omuse-swan
         rm -rf "${TEMP_DIR}"/pip-*/
       env:
         TEMP_DIR: ${{ steps.get_temp.outputs.TMPDIR }}
