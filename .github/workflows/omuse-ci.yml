@@ -312,3 +312,98 @@ jobs:
       with:
         name: build-logs
         path: ${{ steps.get_temp.outputs.TMPDIR }}/pip-*/
+
+  omuse-iemic:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest ]
+        python: [ 3.8 ]
+        java: [ 17 ]
+
+    name: omuse-iemic - (${{ join(matrix.*, ', ') }})
+    needs: package
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: sdists-${{ needs.package.outputs.version }}
+        path: dist/
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3.9.0
+      with:
+        distribution: 'zulu' # See 'Supported distributions' for available options
+        java-version: ${{ matrix.java }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Install Python wheel
+      run: |
+        pip install --upgrade pip wheel
+
+    - name: Install OMUSE dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get install libopenmpi-dev # gfortran libopenblas-dev libhdf5-openmpi-dev libgsl0-dev cmake libfftw3-3 libfftw3-dev libmpfr6 libmpfr-dev libnetcdf-dev libnetcdff-dev
+
+    - name: Install OMUSE dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew update
+        brew install gcc || true
+        brew install openmpi || true
+
+    - name: Determine temp directory
+      id: get_temp
+      run: |
+        echo "TMPDIR=${TMPDIR:-/tmp/}" >> $GITHUB_OUTPUT
+
+    - name: Compiler cache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: omuse-iemic-${{ matrix.os }}
+        max-size: 5000M
+
+    - name: Point compilers at ccache
+      run: |
+        echo "/usr/lib/ccache" >> $GITHUB_PATH
+        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
+        echo "AMUSE_USE_CCACHE=1" >> $GITHUB_ENV
+        echo "CMAKE_C_COMPILER_LAUNCHER=ccache" >> $GITHUB_ENV
+        echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache" >> $GITHUB_ENV
+        echo "CMAKE_Fortran_COMPILER_LAUNCHER=ccache" >> $GITHUB_ENV
+        echo "CCACHE_COMPILERCHECK=content" >> $GITHUB_ENV
+        echo "CCACHE_NOHASHDIR=true" >> $GITHUB_ENV
+
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get install gfortran libopenblas-dev libhdf5-openmpi-dev libptscotch-dev trilinos-all-dev libslicot-dev
+
+    - name: Install dependencies (MacOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew tap nlesc/nlesc
+        brew update
+        brew upgrade
+        brew install nlesc/nlesc/trilinos nlesc/nlesc/slicot
+
+    - name: "Install OMUSE package: omuse-iemic"
+      run: |
+        pip install --no-clean --pre --find-links dist/ omuse-iemic
+        rm -rf "${TEMP_DIR}"/pip-*/
+      env:
+        TEMP_DIR: ${{ steps.get_temp.outputs.TMPDIR }}
+
+    - name: Archive pip failure output
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: build-logs
+        path: ${{ steps.get_temp.outputs.TMPDIR }}/pip-*/
+
