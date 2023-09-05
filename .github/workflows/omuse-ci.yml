@@ -1,8 +1,9 @@
 name: omuse-ci
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ '*' ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
