@@ -20,7 +20,7 @@ install_requires = [
     'nose>=0.11.1',
     'mpi4py>=1.1.0',
     'h5py>=1.1.0',
-    'amuse-devel>=2021.3.1',
+    'amuse-framework>=2021.3.1',
     'netCDF4>=1.4.0',
     'f90nml>=1.0.0'
 ]
