@@ -80,6 +80,10 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
+    - name: Install Python wheel
+      run: |
+        pip install --upgrade pip wheel
+
     - name: Install OMUSE dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
@@ -92,9 +96,11 @@ jobs:
         brew install gcc || true
         brew install openmpi || true
 
-    - name: Install Python wheel
+    - name: Install amuse-devel
       run: |
-        pip install --upgrade pip wheel amuse-framework
+        git clone https://github.com/amusecode/amuse
+        cd amuse
+        pip install -e .
 
     - name: Determine temp directory
       id: get_temp
