@@ -7,9 +7,9 @@ on:
   pull_request:
     branches: [ master ]
 
-  concurrency:
-    group: ${{ github.ref }}-${{ github.head_ref }}-omuse-ci
-    cancel-in-progress: true
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-omuse-ci
+  cancel-in-progress: true
 
 jobs:
   package:
