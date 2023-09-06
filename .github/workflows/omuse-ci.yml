@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [ master ]
 
+  concurrency:
+    group: ${{ github.ref }}-${{ github.head_ref }}-omuse-ci
+    cancel-in-progress: true
+
 jobs:
   package:
     outputs:
@@ -78,7 +82,7 @@ jobs:
 
     - name: Install Python wheel
       run: |
-        pip install --upgrade pip wheel
+        pip install --upgrade pip wheel amuse-framework
 
     - name: Install OMUSE dependencies (Linux)
       if: runner.os == 'Linux'
@@ -91,12 +95,6 @@ jobs:
         brew update
         brew install gcc || true
         brew install openmpi || true
-
-    - name: Install amuse-devel
-      run: |
-        git clone https://github.com/amusecode/amuse
-        cd amuse
-        pip install -e .
 
     - name: Determine temp directory
       id: get_temp
