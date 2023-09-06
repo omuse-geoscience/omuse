@@ -28,13 +28,7 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip setuptools wheel setuptools_scm
-
-    - name: Install amuse-devel
-      run: |
-        git clone https://github.com/amusecode/amuse
-        cd amuse
-        pip install -e .
+        python -m pip install --upgrade pip setuptools wheel setuptools_scm amuse-framework
 
     - name: Build sdists
       id: sdists
