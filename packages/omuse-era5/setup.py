@@ -12,8 +12,9 @@ license_ = "Apache License 2.0"
 url = 'https://github.com/omuse-geoscience/omuse'
 install_requires = [
     'omuse-framework',
+    'cdsapi'
 ]
-description = 'The Oceanographic Multi-purpose Software Environment - era5'
+description = 'The Oceanographic Multi-purpose Software Environment - ERA5 interface'
 with open("README.md", "r") as fh:
     long_description = fh.read()
 long_description_content_type = "text/markdown"
