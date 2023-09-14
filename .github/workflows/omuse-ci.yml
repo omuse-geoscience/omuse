@@ -93,8 +93,9 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew update
-        brew install gcc || true
         brew install openmpi || true
+        ln -s /usr/local/bin/gfortran-13 /usr/local/bin/gfortran
+        echo "FC=gfortran" >> $GITHUB_ENV
 
     - name: Install amuse-devel
       run: |
@@ -180,8 +181,9 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew update
-        brew install gcc || true
         brew install openmpi || true
+        ln -s /usr/local/bin/gfortran-13 /usr/local/bin/gfortran
+        echo "FC=gfortran" >> $GITHUB_ENV
 
     - name: Install amuse-devel
       run: |
@@ -267,8 +269,9 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew update
-        brew install gcc || true
         brew install openmpi || true
+        ln -s /usr/local/bin/gfortran-13 /usr/local/bin/gfortran
+        echo "FC=gfortran" >> $GITHUB_ENV
 
     - name: Install amuse-devel
       run: |
@@ -354,8 +357,9 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew update
-        brew install gcc || true
         brew install openmpi || true
+        ln -s /usr/local/bin/gfortran-13 /usr/local/bin/gfortran
+        echo "FC=gfortran" >> $GITHUB_ENV
 
     - name: Install amuse-devel
       run: |
