@@ -32,7 +32,6 @@ CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
 POPREPO=https://github.com/nlesc-smcm/eSalsa-POP
 POPREPOBRANCH=master
 
-
 .PHONY: all download src_%
 
 all: eSalsa-POP $(TARGETS)
