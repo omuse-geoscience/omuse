@@ -18,9 +18,7 @@ def partition_forcing_file(forcing_file_path, num_parts, output_dir):
             lon_range = longitudes[lon_start:]
 
         output_path = Path(output_dir) / f"{forcing_file_path.stem}_part{i}.nc"
-        print(ds.sel(longitude=lon_range))
-        print(output_path)
-        ds.to_netcdf(output_path)
+        # ds.to_netcdf(output_path)
 
 
 def add_forcing_to_ext_file(partitioned_file_paths, operators, ext_file_path):
