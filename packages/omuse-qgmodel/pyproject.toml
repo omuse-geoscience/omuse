@@ -1,2 +1,10 @@
 [build-system]
-requires = [ "setuptools>=42.0.0", "wheel", "omuse-framework" ]
+requires = [ "setuptools>=65.0.0", "wheel", "omuse-framework", "setuptools_scm", "numpy" ]
+
+[project]
+name = "omuse-qgmodel"
+dynamic = ["version"]
+
+[tool.setuptools_scm]
+write_to = "src/omuse/version.py"
+root = "../.."

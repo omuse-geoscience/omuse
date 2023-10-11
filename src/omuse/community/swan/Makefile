@@ -3,8 +3,6 @@ ifeq ($(origin AMUSE_DIR), undefined)
 endif
 -include ${AMUSE_DIR}/config.mk
 
-CODE_GENERATOR = $(AMUSE_DIR)/build.py
-
 CLASSNAME=SwanInterface
 
 FCFLAGS+= -O2
@@ -22,7 +20,7 @@ src/amuse_swan.o: src/libamuse_swan.a src/amuse_swan.ftn90
 	make -C src/ amuse_swan.o MPIFC="$(MPIFC)"
 
 worker_code.f90: interface.py
-	$(CODE_GENERATOR) --type=f90 $< $(CLASSNAME) -o $@
+	amusifier --type=f90 $< $(CLASSNAME) -o $@
 
 swan_worker: worker_code.f90 interface.o src/amuse_swan.o src/libamuse_swan.a 
 	$(MPIFC) $(FCFLAGS) $(FCINCS) $(SC_FLAGS) $(FS_FLAGS) $^ -o $@  $(LIBS) $(SC_FCLIBS) $(FS_LIBS)

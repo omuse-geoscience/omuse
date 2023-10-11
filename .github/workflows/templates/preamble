@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         # Need to correctly generate version number using setuptools_scm
         # See: https://github.com/pypa/setuptools_scm/issues/480
@@ -26,11 +26,21 @@ jobs:
         diff -u validate.yml .github/workflows/omuse-ci.yml
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        cache: 'pip'
+        cache-dependency-path: '**/setup.py'
 
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel setuptools_scm
+
+    - name: Install amuse-devel
+      run: |
+        git clone https://github.com/amusecode/amuse
+        cd amuse
+        pip install -e .
 
     - name: Build sdists
       id: sdists
