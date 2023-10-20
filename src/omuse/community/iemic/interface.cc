@@ -337,7 +337,7 @@ int32_t initialize()
 {
     try {
         comm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
-        if(comm->MyPID() != comm->NumProc()-1) {
+        if(comm->MyPID() != 0) {
           outFilePath="/dev/null";
           logStream << "output from non-root process " << comm->MyPID() << " redirected to /dev/null" << std::endl;  
         } else {
