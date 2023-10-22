@@ -505,7 +505,10 @@ class iemicTests(TestWithMPI):
         instance.set_parameter("Ocean->THCM->Global Grid-Size m", 8)
         instance.set_parameter("Ocean->THCM->Global Grid-Size l", 4)
         instance.set_parameter("Ocean->THCM->Read Land Mask", True)
-        instance.set_parameter("Ocean->THCM->Land Mask", "mask_natl8")
+        instance.set_parameter("Ocean->THCM->Land Mask", "mask_test")
+        instance.set_parameter("Ocean->THCM->Topography", 0)
+        instance.set_parameter("Ocean->THCM->Periodic", True)
+        instance.set_parameter("Ocean->THCM->Rho Mixing", False)
 
         instance.commit_parameters()
 

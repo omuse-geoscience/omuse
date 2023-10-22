@@ -647,16 +647,18 @@ int32_t set_land_mask(int *n, int *m, int *l, int *var, int count)
             (*mask.global)[i + N_g * j + N_g * M_g * k] = var[idx];
         }
 
-        // // Periodic boundaries
-        // for (int k = 0; k < L; k++) {
-        //     for (int j = 0; j < M; j++) {
-        //         int idx = N_g * (j + 1) + N_g * M_g * (k + 1);
-        //         if ((*mask.global)[idx + 1] == 0 && (*mask.global)[idx + N_g - 2] == 0) {
-        //             (*mask.global)[idx] = 3;
-        //             (*mask.global)[idx + N_g - 1] = 3;
-        //         }
-        //     }
-        // }
+        // Periodic boundaries
+        if (ocean->getDomain()->IsPeriodic()) {
+            for (int k = 0; k < L; k++) {
+                for (int j = 0; j < M; j++) {
+                    int idx = N_g * (j + 1) + N_g * M_g * (k + 1);
+                    if ((*mask.global)[idx + 1] == 0 && (*mask.global)[idx + N_g - 2] == 0) {
+                        (*mask.global)[idx] = 3;
+                        (*mask.global)[idx + N_g - 1] = 3;
+                    }
+                }
+            }
+        }
 
         ocean->setLandMask(mask, true);
 
