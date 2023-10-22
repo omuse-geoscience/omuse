@@ -466,6 +466,72 @@ int32_t test_grid(char *fileName)
     return result;
 }
 
+int32_t test_landmask(int *n, int *m, int *l, int *var, int count)
+{
+    int32_t result = 0;
+
+    auto N = ocean->getNdim();
+    auto M = ocean->getMdim();
+    auto L = ocean->getLdim();
+
+    auto N_g = N + 2;
+    auto M_g = M + 2;
+    auto L_g = L + 2;
+
+    Utils::MaskStruct mask = ocean->getLandMask();
+
+    if ((result = get_land_mask(n, m, l, var, count))) return result;
+
+    // length of landmask array
+    int dim = N_g * M_g * L_g;
+
+    std::vector<int> var2(dim, 1);
+    if ((result = set_land_mask(n, m, l, &var2[0], count))) return result;
+
+    Utils::MaskStruct new_mask = ocean->getLandMask();
+    if (new_mask.global == mask.global) return -1;
+
+    int idx = 0;
+    for (int i = 0; i < N_g; i++) {
+        for (int j = 0; j < M_g; j++) {
+            for (int k = 0; k < L_g; k++) {
+                idx++;
+                if (new_mask.global->operator[](idx) != mask.global->operator[](idx))
+                    result++;
+            }
+        }
+    }
+
+    if (idx != dim) return -1;
+    if (!result) return -1;
+
+    if ((result = set_land_mask(n, m, l, var, count))) return result;
+
+    new_mask = ocean->getLandMask();
+    if (new_mask.global == mask.global) return -1;
+
+    idx = 0;
+    for (int i = 0; i < N_g; i++) {
+        for (int j = 0; j < M_g; j++) {
+            for (int k = 0; k < L_g; k++) {
+                idx++;
+                if (new_mask.global->operator[](idx) != mask.global->operator[](idx))
+                {
+                    logStream << "Wrong node at index " << i << ", " << j << ", " << k
+                              << ": " << new_mask.global->operator[](idx)
+                              << " should be " << mask.global->operator[](idx) << std::endl;
+                    result++;
+                }
+            }
+        }
+    }
+
+    if (idx != dim) return -1;
+    if (result) return -result;
+
+    return result;
+}
+
 int32_t step_continuation()
 {
     try {
@@ -537,6 +603,62 @@ int32_t get_land_mask(int *n, int *m, int *l, int *var, int count)
 
             var[i] = mask.global_borderless->operator[](idx);
         }
+
+        return 0;
+    } catch (const std::exception& exc) {
+        logStream << exc.what() << std::endl;
+    } catch (...) {
+        logStream << "Encountered unexpected C++ exception!" << std::endl;
+    }
+
+    return -1;
+}
+
+int32_t set_land_mask(int *n, int *m, int *l, int *var, int count)
+{
+    try {
+        Utils::MaskStruct mask;
+
+        auto N = ocean->getNdim();
+        auto M = ocean->getMdim();
+        auto L = ocean->getLdim();
+
+        if (count != N * M * L) {
+            logStream << "Got a land mask of size " << count << ", exptected " << N * M * L << "\n";
+            logStream << "We don't support setting partial land masks!" << std::endl;
+            return -1;
+        }
+
+        auto N_g = N + 2;
+        auto M_g = M + 2;
+        auto L_g = L + 2;
+
+        // length of landmask array
+        int dim = N_g * M_g * L_g;
+
+        // Create landmask array, initializing with all land
+        mask.global = std::make_shared<std::vector<int> >(dim, 1);
+
+        for (int idx = 0; idx < count; idx++) {
+            int i = n[idx] + 1;
+            int j = m[idx] + 1;
+            int k = l[idx] + 1;
+
+            (*mask.global)[i + N_g * j + N_g * M_g * k] = var[idx];
+        }
+
+        // // Periodic boundaries
+        // for (int k = 0; k < L; k++) {
+        //     for (int j = 0; j < M; j++) {
+        //         int idx = N_g * (j + 1) + N_g * M_g * (k + 1);
+        //         if ((*mask.global)[idx + 1] == 0 && (*mask.global)[idx + N_g - 2] == 0) {
+        //             (*mask.global)[idx] = 3;
+        //             (*mask.global)[idx + N_g - 1] = 3;
+        //         }
+        //     }
+        // }
+
+        ocean->setLandMask(mask, true);
 
         return 0;
     } catch (const std::exception& exc) {
