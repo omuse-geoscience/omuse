@@ -14,72 +14,34 @@ from . import era5
 
 from netCDF4 import Dataset
 
-_era5_units_to_omuse={ 
-                       "~" : units.none, 
-                       "dimensionless" : units.none, 
-                       "(0-1)" : units.none, 
-                       "unknown" : units.none, 
-                       "none" : units.none, 
-                       "Proportion" : units.none, 
-                       "code table (4.201)": units.none,
-                       "s" : units.s, 
-                       "K" : units.K, 
-                       "m" : units.m, 
-                       "m s**-1" : units.m/units.s,
-                       "W m**-2" : units.W/units.m**2,
-                       "W m**-1" : units.W/units.m**1,
-                       "J m**-2" : units.J/units.m**2,
-                       "J m**-1" : units.J/units.m**1,
-                       "m of water equivalent": units.m, # make named unit
-                       "Pa" : units.Pa,
-                       "kg m**-2 s**-1" : units.kg/units.m**2/units.s,
-                       "kg m**-2" : units.kg/units.m**2,
-                       "kg m**-3" : units.kg/units.m**3,
-                       "K kg m**-2" : units.K*units.kg/units.m**2,
-                       "kg m**-1 s**-1" : units.kg/units.m/units.s,
-                       "m**2 m**-2" : units.m**2/units.m**2,
-                       "m**3 m**-3" : units.m**3/units.m**3,
-                       "degrees" : units.deg,
-                       "radians" : units.rad,
-                       "N m**-2" : units.N/units.m**2,
-                       "N m**-2 s" : units.N*units.s/units.m**2,
-                       "m**-1" : units.m**-1,
-                       "J kg**-1" : units.J/units.kg,
-                       }
-
-class ERA5(LiteratureReferencesMixIn):
+class Data(LiteratureReferencesMixIn):
     """ERA5 interface
     
     Arguments
     ---------
-    cachedir : str, optional
-        directory used for storing cache files, default: "./__era5_cache"
+    source : str
+        path to the data source file
     start_datetime: datetime object, optional
-        starting date of model. Must be datatime object, default: datetime.datetime(1979,1,2) 
+        starting date of model. Must be datatime object, default: datetime.datetime(1979,1,2)
     variables: list of str, optional
         variables to be retrieved. Must be list of valid strings. default: []
     grid_resolution : 0.25, 0.5 or 1.0 | units.deg, optional
         Resolution of the retrieved grid. default: 0.25 | units.deg
-    nwse_boundingbox : None or [North,West,South,East], optional 
+    nwse_boundingbox : None or [North,West,South,East], optional
         Bounding box of grid, will be [90,-180,-90,180] | units.deg (whole globe) if None. default: None
     invariate_variables : list of str, optional
         invariate variables to retrieve. Will be included on the grid (but not updated). default: ["land_sea_mask"]
     download_timespan: None, "day" or "month", optional
         timespan of downloaded files. Longer timespans result in fewer but bigger downloads, default: "day"
-    
-        .. [#] Copernicus Climate Change Service (C3S) (2017): ERA5: Fifth generation of ECMWF atmospheric reanalyses of the global climate . Copernicus Climate Change Service Climate Data Store (CDS)
-        .. [#] Hersbach, H. et al., 2020: The ERA5 Reanalysis. Quart. J. Roy. Meteorol. Soc., doi: 10.1002/qj.3803
-        .. [#] Pelupessy, F.I., Chertova, M., van den Oord, G., van Werkhoven, B., 2020, EGU General Assembly, doi: 10.5194/egusphere-egu2020-18011
     """
 
-    def __init__(self, maxcache=None, cachedir="./__era5_cache", 
-                 start_datetime=datetime.datetime(1979,1,2), variables=[], 
+    def __init__(self, sourcepath,
+                 start_datetime=datetime.datetime(1979, 1, 2), variables=[],
                  grid_resolution=None, nwse_boundingbox=None,
                  invariate_variables=["land_sea_mask"], download_timespan="day"):
-        self.maxcache=maxcache
-        if not os.path.exists(cachedir):
-            os.mkdir(cachedir)
-        self.cachedir=cachedir
+        if not os.path.exists(source):
+            raise Exception("This path does not exist, choose a different file.")
+        self.sourcepath=sourcepath
         self.download_timespan=download_timespan
 
         extra_lon=False
