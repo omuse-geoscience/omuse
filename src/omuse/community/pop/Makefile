@@ -1,5 +1,5 @@
 ifeq ($(origin AMUSE_DIR), undefined)
-  AMUSE_DIR := $(shell amusifier --get-amuse-dir)
+  AMUSE_DIR := /Users/lucasesclapez/Documents/NLeSC/eTAOC/CODES/amuse
 endif
 -include ${AMUSE_DIR}/config.mk
 .NOTPARALLEL:
@@ -7,7 +7,7 @@ endif
 export PYTHONPATH := $(PYTHONPATH):$(AMUSE_DIR)/src:$(AMUSE_DIR)/test
 MPIFC ?= mpifort #/usr/local/bin/mpif90
 
-TARGETS := $(patsubst src_%, pop_worker_%, ${wildcard src_*})
+POP_TARGETS ?= $(patsubst src_%, pop_worker_%, ${wildcard src_*})
 
 ifeq ($(findstring gfortran, $(notdir $(FC))), gfortran)
 FCFLAGS+=-fconvert=swap -std=legacy -fmax-stack-var-size=1048576
@@ -27,14 +27,14 @@ POPDIR=$(CURDIR)/eSalsa-POP
 POPFFLAGS := $(POPFFLAGS) $(NETCDF_FLAGS) $(NETCDFF_FLAGS) $(NETCDF_LIBS) $(NETCDFF_LIBS)
 FS_LIBS += $(NETCDF_LIBS) $(NETCDFF_LIBS)
 
-CODE_GENERATOR ?= $(AMUSE_DIR)/build.py
+CODE_GENERATOR ?= $(AMUSE_DIR)/bin/amusifier
 
 POPREPO=https://github.com/nlesc-smcm/eSalsa-POP
 POPREPOBRANCH=master
 
 .PHONY: all download src_%
 
-all: eSalsa-POP $(TARGETS)
+all: eSalsa-POP $(POP_TARGETS)
 
 update: eSalsa-POP
 	cd eSalsa-POP; git pull
@@ -56,7 +56,7 @@ clean:
 	$(RM) *~ worker_code worker_code.f90 
 	$(RM) -rf src_*/compile
 	$(RM) -f src_*/libpop.a
-	rm -f pop_worker_*
+	rm -rf pop_worker_*
 
 distclean: clean
 	rm -rf eSalsa-POP
@@ -75,9 +75,20 @@ src_%/POP_DomainSizeMod.F90: | src_%
 worker_code.f90: interface.py
 	$(CODE_GENERATOR) --type=f90 interface.py POPInterface -o $@
 
-#~ $(TARGETS): pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
 pop_worker_%: worker_code.f90 src_%/libpop.a interface.f90
 	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) -c interface.f90 -o interface_$*.o 
 	$(MPIFC) -Isrc_$*/compile/ $(FCFLAGS) $(FS_FLAGS) $< interface_$*.o src_$*/libpop.a $(FS_LIBS) -o $@
 
 .PRECIOUS: src_% src_%/libpop.a src_%/POP_DomainSizeMod.F90
+
+help:
+	@echo "\n========================================="
+	@echo "POP build setup:"
+	@echo "=========================================\n"
+	@echo "AMUSE dir: ${AMUSE_DIR}"
+	@echo "CODE_GENERATOR : ${CODE_GENERATOR}"
+	@echo "POP flags: ${POPFFLAGS}"
+	@echo "NetCDF         include: $(NETCDF_FLAGS)"
+	@echo "NetCDF-Fortran include: $(NETCDFF_FLAGS)"
+	@echo "NetCDF         libs: $(NETCDF_LIBS)"
+	@echo "NetCDF-Fortran libs: $(NETCDFF_LIBS)"
