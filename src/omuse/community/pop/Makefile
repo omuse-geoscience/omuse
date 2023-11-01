@@ -1,5 +1,5 @@
 ifeq ($(origin AMUSE_DIR), undefined)
-  AMUSE_DIR := /Users/lucasesclapez/Documents/NLeSC/eTAOC/CODES/amuse
+  AMUSE_DIR := $(shell amusifier --get-amuse-dir)
 endif
 -include ${AMUSE_DIR}/config.mk
 .NOTPARALLEL:
