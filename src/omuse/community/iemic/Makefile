@@ -25,7 +25,7 @@ CODE_GENERATOR:=amusifier
 MPICXX   ?= mpicxx
 
 CFLAGS   += -Wall -g
-LIBS:=iemic coupledmodel globaldefs utils ifpack_mrilu mrilucpp
+LIBS:=iemic coupledmodel globaldefs utils
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME),Darwin)
