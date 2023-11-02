@@ -35,7 +35,18 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
-    - name: Install dependencies
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get install libopenmpi-dev
+
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install openmpi || true
+        ln -s /usr/local/bin/gfortran-13 /usr/local/bin/gfortran
+
+    - name: Install python dependencies
       run: |
         pip install --upgrade pip setuptools wheel setuptools_scm amuse-framework
 
