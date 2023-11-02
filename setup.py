@@ -20,7 +20,7 @@ install_requires = [
     'nose>=0.11.1',
     'mpi4py>=1.1.0',
     'h5py>=1.1.0',
-    'amuse-devel>=13.1.0', # omuse-devel implies amuse-devel:
+    'amuse-framework>=23.5.0',
     'netCDF4>=1.4.0',
     'f90nml>=1.0.0',
     'transiflow @ https://github.com/BIMAU/transiflow/tarball/master'
