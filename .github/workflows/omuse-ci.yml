@@ -13,15 +13,15 @@ concurrency:
 
 jobs:
   build:
-  strategy:
-    matrix:
-      os: [ macos-latest, ubuntu-latest ]
-      python-version: ['3.8']
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest ]
+        python-version: ['3.8']
 
-  runs-on: ${{ matrix.os }}
-  name: build-${{ matrix.os }}-Python${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    name: build-${{ matrix.os }}-Python${{ matrix.python-version }}
 
-  steps:
+    steps:
     - uses: actions/checkout@v4
       with:
         # Need to correctly generate version number using setuptools_scm
