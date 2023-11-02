@@ -48,8 +48,9 @@ jobs:
 
     - name: Install python dependencies
       run: |
-        pip install --upgrade pip setuptools wheel setuptools_scm amuse-framework
+        pip install --upgrade pip setuptools wheel setuptools_scm amuse-framework numpy
 
     - name: Install development
       run: |
+        pip list
         pip install -e .
