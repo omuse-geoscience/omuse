@@ -52,7 +52,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
     MODE_HIGH = '3600x2400x42'
     MODE_320x384x40='320x384x40'
     MODE_3600x2400x42='3600x2400x42'
-    OTHER_MODES= ["96x40x12", "96x120x12", "120x56x12", "test"]
+    OTHER_MODES= ["96x40x12", "96x120x12", "120x56x12", "240x110x12", "test"]
 
     def __init__(self, mode = MODE_NORMAL, **keyword_arguments):
         self.mode = mode
