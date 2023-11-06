@@ -397,6 +397,7 @@ int32_t recommit_parameters()
     try {
         ocean->setParameters(ocean_params.updates());
         ocean_params.update_committed_parameters(ocean->getParameters());
+        ocean->preProcess();
 
         return 0;
     } catch (const std::exception& exc) {
