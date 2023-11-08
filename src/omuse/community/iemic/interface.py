@@ -69,6 +69,10 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
     def test_grid(logFile="s"):
         returns()
 
+    @remote_function(must_handle_array=True)
+    def test_landmask(n=0, m=0, l=0):
+        returns(mask=0)
+
     @remote_function
     def step_continuation():
         returns()
@@ -88,6 +92,10 @@ class iemicInterface(CodeInterface, CommonCodeInterface, LiteratureReferencesMix
     @remote_function(must_handle_array=True)
     def get_land_mask(n=0, m=0, l=0):
         returns(mask=0)
+
+    @remote_function(must_handle_array=True)
+    def set_land_mask(n=0, m=0, l=0, val=0):
+        returns()
 
     @remote_function(must_handle_array=True)
     def get_u(i=0, j=0, k=0):
@@ -531,6 +539,7 @@ class iemic(InCodeComponentImplementation):
             "_get_model_state",
             "_get_psi_m",
             "get_land_mask",
+            "set_land_mask",
             "get_surface_tatm",
             "set_surface_tatm",
             "get_surface_emip",
@@ -590,6 +599,7 @@ class iemic(InCodeComponentImplementation):
         handler.add_getter("t_grid", "get_p_forcing", names=["pressure_forcing"])
 
         handler.add_getter("t_grid", "get_land_mask", names=["mask"])
+        handler.add_setter("t_grid", "set_land_mask", names=["mask"])
 
         handler.define_grid(
             "surface_v_grid", axes_names=["lon", "lat"], grid_class=CartesianGrid
@@ -629,6 +639,7 @@ class iemic(InCodeComponentImplementation):
         definition.add_setter("set_s_", names=["salinity"])
         definition.add_setter("set_p_", names=["pressure"])
         definition.add_getter("get_land_mask", names=["mask"])
+        definition.add_setter("set_land_mask", names=["mask"])
 
         definition.define_extra_keywords({"sindex": index})
 

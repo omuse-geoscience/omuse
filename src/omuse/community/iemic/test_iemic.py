@@ -497,3 +497,32 @@ class iemicTests(TestWithMPI):
         instance.cleanup_code()
         instance.stop()
 
+    def test_landmask2(self):
+        "Test landmask setter and getter"
+        instance = iemic()
+
+        instance.set_parameter("Ocean->THCM->Global Grid-Size n", 8)
+        instance.set_parameter("Ocean->THCM->Global Grid-Size m", 8)
+        instance.set_parameter("Ocean->THCM->Global Grid-Size l", 4)
+        instance.set_parameter("Ocean->THCM->Read Land Mask", True)
+        instance.set_parameter("Ocean->THCM->Land Mask", "mask_test")
+        instance.set_parameter("Ocean->THCM->Topography", 0)
+        instance.set_parameter("Ocean->THCM->Periodic", True)
+        instance.set_parameter("Ocean->THCM->Rho Mixing", False)
+
+        instance.commit_parameters()
+
+        instance.initialize_code()
+
+        n_min, n_max = instance.get_nrange()
+        m_min, m_max = instance.get_mrange()
+        l_min, l_max = instance.get_lrange()
+        grid = numpy.mgrid[tuple([slice(n_min, n_max + 1),
+                                  slice(m_min, m_max + 1),
+                                  slice(l_min, l_max + 1)])]
+        grid = [x.reshape(-1) for x in grid]
+
+        instance.test_landmask(*grid)
+
+        instance.cleanup_code()
+        instance.stop()
