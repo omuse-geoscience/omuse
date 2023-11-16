@@ -6,9 +6,9 @@ from matplotlib import pyplot
 
 from omuse.units import units
 
-from omuse.community.era5.interface import ERA5
+from omuse.community.data.interface import Data
 
-e=ERA5(variables=["2m_temperature", "total_precipitation"], 
+e=Data(sourcepath="/home/jaro/NLeSC/MOSAIC/tests/input/ERA5_4GTSM_Irma_v3.nc", variables=["2m_temperature", "total_precipitation"], 
        nwse_boundingbox=[70, -15, 40, 15]| units.deg)
 
 print("starting date:", e.start_datetime)

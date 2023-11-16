@@ -6,69 +6,61 @@ import calendar
 
 from omuse.units import units
 from omuse.units import quantities
+from omuse.community.era5 import era5
+
 from amuse.datamodel import new_cartesian_grid
 
 from amuse.support.literature import LiteratureReferencesMixIn
 
-from . import era5
+from era5 import era5
 
 from netCDF4 import Dataset
 
 class Data(LiteratureReferencesMixIn):
-    """ERA5 interface
+    """Data interface
     
     Arguments
     ---------
-    source : str
+    source_file: str
         path to the data source file
+    source_dir: str
+        path to the data source directory
     start_datetime: datetime object, optional
-        starting date of model. Must be datatime object, default: datetime.datetime(1979,1,2)
+        starting date from which to load the data. Must be datatime object, 
+        default: datetime.datetime(1979,1,2)
     variables: list of str, optional
-        variables to be retrieved. Must be list of valid strings. default: []
-    grid_resolution : 0.25, 0.5 or 1.0 | units.deg, optional
-        Resolution of the retrieved grid. default: 0.25 | units.deg
-    nwse_boundingbox : None or [North,West,South,East], optional
-        Bounding box of grid, will be [90,-180,-90,180] | units.deg (whole globe) if None. default: None
+        variables to be loaded. Must be list of valid strings. default: []
     invariate_variables : list of str, optional
-        invariate variables to retrieve. Will be included on the grid (but not updated). default: ["land_sea_mask"]
-    download_timespan: None, "day" or "month", optional
-        timespan of downloaded files. Longer timespans result in fewer but bigger downloads, default: "day"
+        invariate variables to load. Will be included on the grid (but not updated). default: ["land_sea_mask"]
+    nwse_crop: None or [North,West,South,East], optional
+        Bounding box of grid to which to crop the original dataset, 
+        will be [90,-180,-90,180] | units.deg (whole globe) if None. default: None
+    era5_metadata: bool, optional
+        Whether the data uses the era5 metadata format
     """
 
-    def __init__(self, sourcepath,
+    def __init__(self, sourcefile, source_dir,
                  start_datetime=datetime.datetime(1979, 1, 2), variables=[],
-                 grid_resolution=None, nwse_boundingbox=None,
-                 invariate_variables=["land_sea_mask"], download_timespan="day"):
-        if not os.path.exists(source):
-            raise Exception("This path does not exist, choose a different file.")
-        self.sourcepath=sourcepath
-        self.download_timespan=download_timespan
+                 grid_resolution=None, nwse_crop=None):
 
-        extra_lon=False
-        if nwse_boundingbox is None or \
-           nwse_boundingbox[3]-nwse_boundingbox[1]==360 | units.deg:
-             extra_lon=True
+        self.source_path = os.path.join(directory, filename)
 
-        self.nwse_boundingbox=nwse_boundingbox
-        self.extra_lon=extra_lon
- 
+        self.nwse_crop=nwse_crop
 
         self.variables=variables
         self.start_datetime=start_datetime
         self.tnow=0. | units.day
 
-        if grid_resolution is None:
-          self.grid_resolution=0.25 | units.deg
-
-        self.grid_resolution=grid_resolution
-        
         self.invariate_variables=invariate_variables
-        
+
+        self.dataset = self.get_dataset()
+
         self.grid=self.generate_initial_grid()
 
         self.update_grid()
         
         super(ERA5, self).__init__()
+
 
     def generate_initial_grid(self):
         grid=None
@@ -145,6 +137,7 @@ class Data(LiteratureReferencesMixIn):
     def update_variable(self, var):
       
         time=self.start_datetime+datetime.timedelta(days=self.tnow.value_in(units.day))
+        print(time)
       
         dataset=self.get_dataset(var, time=time, download_timespan=self.download_timespan,
                                   nwse_boundingbox=self.nwse_boundingbox,
@@ -152,11 +145,7 @@ class Data(LiteratureReferencesMixIn):
 
         shortname=self._get_shortname(dataset, var)
       
-        index=0
-        if self.download_timespan in ["day", "month"]:
-            index+=time.hour
-        if self.download_timespan in ["month"]:
-            index+=24*(time.day-1)
+        index+=1
 
         _value=dataset[shortname][index, ...]
 
@@ -181,66 +170,13 @@ class Data(LiteratureReferencesMixIn):
         filename="_era5_cache_"+hashlib.sha1((name+repr(request)).encode()).hexdigest() + ".nc"
         return os.path.join(directory, filename)
   
-    def maintain_cache(self, datafile):
-        pass
-  
-    def get_dataset(self, variable="land_sea_mask", time=datetime.datetime(1979,1,1), 
-                    download_timespan=None, grid_resolution=None, nwse_boundingbox=None):        
-        if download_timespan in ["day", "month"]:
-            hour=["%2.2i:00"%i for i in range(24)]
-        else:
-            hour="%2.2i:00"%(time.hour+1)
-        year="%4.4i"%time.year
-        month="%2.2i"%time.month
-        if download_timespan=="month":
-            length=calendar.monthrange(time.year,time.month)[1]
-            day=["%2.2i"%(i+1) for i in range(length)]
-        else:
-            day="%2.2i"%time.day
-        
-        if nwse_boundingbox is not None:
-            area=quantities.value_in(nwse_boundingbox, units.deg)
-        else:
-            area=None
-                
-        if grid_resolution is None:
-            g=0.25
-        else:
-            g=grid_resolution.value_in(units.deg)
-        if g not in [0.25,0.5,1.0]:
-            raise Exception("unsupported grid resolution %s"%str(g))
-            
-        name,request=era5.build_request(variable=variable, year=year, month=month, 
-                            day=day, hour=hour, area=area, grid=[g, g])
-        datafile=self.generate_outputfile(name,request, self.cachedir)
-        if not os.path.isfile(datafile):
-            era5.fetch(name,request, datafile)
-            self.maintain_cache(datafile)
-            self._append_history(name, request, datafile)
-        result=Dataset(datafile)
-        
-        expected_length=1
-        if download_timespan in ["day", "month"]:
-            expected_length*=24 
-        if download_timespan=="month":
-            expected_length*=len(day)
-        
-        assert len(result["time"])==expected_length
-            
-        return result
+    def get_dataset(self):
+        if not os.path.isfile(self.source_path):
+            raise Exception("this file does not exist")
+
+        dataset = Dataset(self.source_path, mode="r")
+
+        return dataset
         
 
-    def _append_history(self, name, request, filename):
-        """Append download information. """
-        dtime = datetime.datetime.utcnow().strftime(
-              "%Y-%m-%d %H:%M:%S %Z")
-        appendtxt = "ERA5 OMUSE time: {}, name: {} request: {}".format(dtime, name, request)
-        _, extension = os.path.splitext(filename)
-        d = Dataset(filename, 'r+')
-        try:
-            d.history = "{} ;; {}".format(appendtxt, d.history)
-        except AttributeError:
-            d.history = appendtxt
-        d.close()
-
-era5cached=ERA5
+datacached=Data
