@@ -37,8 +37,6 @@ class Data(LiteratureReferencesMixIn):
 
         self.source_path = os.path.join(source_dir, source_file)
 
-        self.nwse_crop=nwse_crop
-        self.era5_metadata = era5_metadata
         self.variables=variables
         self.start_datetime=start_datetime
         self.tnow=0. | units.day
