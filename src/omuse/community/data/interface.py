@@ -28,20 +28,23 @@ class Data(LiteratureReferencesMixIn):
         default: datetime.datetime(1979,1,2)
     variables: list of str, optional
         variables to be loaded. Must be list of valid strings. default: []
+    units: list of omuse units or None, optional
+        units to asociate with each variable. default: []
     invariate_variables : list of str, optional
         invariate variables to load. Will be included on the grid (but not updated). default: ["land_sea_mask"]
     """
 
     def __init__(self, source_dir, source_file, start_datetime=datetime.datetime(1979, 1, 2), 
-        variables=[], invariate_variables = []):
+        variables=[], var_units = [], invariate_variables = []):
 
         self.source_path = os.path.join(source_dir, source_file)
 
-        self.variables=variables
-        self.start_datetime=start_datetime
+        self.variables = variables
+        self.units = {variables[i]: var_units[i] for i in range(len(variables))}
+        self.start_datetime = start_datetime
         self.tnow=0. | units.day
 
-        self.invariate_variables=invariate_variables
+        self.invariate_variables = invariate_variables
 
         self.dataset = self.get_dataset()
 
@@ -51,16 +54,13 @@ class Data(LiteratureReferencesMixIn):
         
         super(Data, self).__init__()
 
-
     def generate_initial_grid(self):
         grid=None
         data = self.dataset
         for variable in self.variables:
 
             shortname = variable
-            print("dataset = ", data)    
 
-            print("shortname = ", shortname)
 
             lat=data["latitude"][:]
             lon=data["longitude"][:]
@@ -72,9 +72,7 @@ class Data(LiteratureReferencesMixIn):
             assert lat[1]<lat[0]                
             assert dx==-dy
             self.shape=data[shortname][0,:,:].shape
-            print("shape = ", self.shape)
-            print("dx = ", dx)
-            print("dy = ", dy|units.deg)    
+   
             if grid is None:
                 grid=new_cartesian_grid(self.shape, 
                                         dx|units.deg,
@@ -83,7 +81,7 @@ class Data(LiteratureReferencesMixIn):
  
             value=numpy.zeros(self.shape)
             
-            setattr(grid, variable, value)
+            setattr(grid, variable, value | self.units[variable])
 
         return grid
 
@@ -109,7 +107,7 @@ class Data(LiteratureReferencesMixIn):
 
         value=numpy.zeros(self.shape)    
             
-        setattr(self.grid, "_"+var, value)
+        setattr(self.grid, "_"+var, value | self.units[var])
 
     @property
     def model_time(self):
