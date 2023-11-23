@@ -94,13 +94,13 @@ class Data(LiteratureReferencesMixIn):
             self.update_variable(v)
 
     def update_variable(self, var):
-        time=self.start_datetime+datetime.timedelta(days=self.tnow.value_in(units.day))
-        print(time)
+        time_now=self.start_datetime+datetime.timedelta(days=self.tnow.value_in(units.day))
+        print(time_now)
         shortname = var
         dataset=self.dataset
         print("Dataset = \n", dataset)
         index = 15
-        _value=dataset[shortname][index, ...]
+        _value=dataset[shortname].sel(time=time_now).values
         print("_value = \n", _value)
         print("self = \n", self)
         assert len(_value.shape)==len(self.shape)
