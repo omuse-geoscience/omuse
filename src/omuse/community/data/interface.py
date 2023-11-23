@@ -104,9 +104,9 @@ class Data(LiteratureReferencesMixIn):
         # print("self = \n", self)
         assert len(_value.shape)==len(self.shape)
 
-        value=numpy.zeros(self.shape)    
+        # value=numpy.zeros(self.shape)    
             
-        setattr(self.grid, "_"+var, value | self.units[var])
+        setattr(self.grid, var, _value | self.units[var])
 
     @property
     def model_time(self):
