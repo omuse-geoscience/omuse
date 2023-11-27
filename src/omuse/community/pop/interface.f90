@@ -1293,6 +1293,28 @@ function get_element_surface_heat_flux(g_i, g_j, shf_, n) result (ret)
   ret=0
 end function
 
+function get_element_surface_fresh_water_flux(g_i, g_j, sfwf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: sfwf_
+
+  real*8, dimension(nx_block, ny_block, max_blocks_clinic) :: WORK1
+  integer :: iblock
+
+  do iblock=1, nblocks_clinic
+    where (KMT(:,:,iblock) > 0)
+      WORK1(:,:,iblock) = STF(:,:,2,iblock)/salinity_factor ! kg/m^2/s
+    elsewhere
+      WORK1(:,:,iblock) = c0
+    end where
+  end do
+
+  call get_gridded_variable_vector(g_i, g_j, WORK1, sfwf_, n)
+
+  ret=0
+end function
+
 function get_element_surface_forcing_temp(g_i, g_j, stf_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n

@@ -185,6 +185,12 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         )  # surface heat flux in W/m**2
 
     @remote_function(must_handle_array=True)
+    def get_element_surface_fresh_water_flux(i=0, j=0):
+        returns(
+            surface_fresh_water_flux=0.0 | units.kg / units.s / units.m**2
+        )  # surface_fresh_water_flux in kg/m**2/s
+
+    @remote_function(must_handle_array=True)
     def get_element_surface_forcing_temp(i=0, j=0):
         returns(restoring_temp=0.0 | units.Celsius)
 
@@ -910,6 +916,7 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, "get_node_position")
             object.add_method(state, "get_element_surface_state")
             object.add_method(state, "get_element_surface_heat_flux")
+            object.add_method(state, "get_element_surface_fresh_water_flux")
             object.add_method(state, "get_element_surface_forcing_temp")
             object.add_method(state, "get_element_surface_forcing_salt")
             object.add_method(state, "get_node_surface_state_curtime")
@@ -1184,6 +1191,11 @@ class POP(CommonCode, CodeWithNamelistParameters):
         )
         object.add_getter(
             "elements", "get_element_surface_heat_flux", names=("surface_heat_flux",)
+        )
+        object.add_getter(
+            "elements",
+            "get_element_surface_fresh_water_flux",
+            names=("surface_fresh_water_flux",),
         )
         object.add_getter("elements", "get_element_ssh_curtime", names=("ssh_all",))
         object.add_getter("elements", "get_element_ssh_curtime", names=("ssh_cur",))
