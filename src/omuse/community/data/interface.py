@@ -109,11 +109,15 @@ class Data(LiteratureReferencesMixIn):
         return self.tnow
 
     def shift_coordinates(self, ds):
-        # Shift longitude values from (0, 360) to (-180, 180)
+        # Shift longitude values to enforce (-180, 180) versus eg. (0, 360) 
         # which corresponds to default model representations
         ds["_lon_temp"] = xr.where(
             ds["longitude"] > 180,
             ds["longitude"] - 360,
+            ds["longitude"])
+        ds["_lon_temp"] = xr.where(
+            ds["longitude"] < -180,
+            ds["longitude"] + 360,
             ds["longitude"])
 
         ds = (
