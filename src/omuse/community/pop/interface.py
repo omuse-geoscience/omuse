@@ -1,21 +1,17 @@
 import os
 
-from amuse.rfi.core import CodeInterface
-from amuse.rfi.core import legacy_function, remote_function
-from amuse.community.interface.common import CommonCodeInterface, CommonCode
-from amuse.support.literature import LiteratureReferencesMixIn
+import numpy
+from amuse.community.interface.common import CommonCode, CommonCodeInterface
 from amuse.community.interface.stopping_conditions import (
     StoppingConditionInterface,
     StoppingConditions,
 )
-from amuse.support.parameter_tools import CodeWithNamelistParameters
-
-
 from amuse.datamodel import StructuredGrid
 from amuse.datamodel.staggeredgrid import StaggeredGrid
-
+from amuse.rfi.core import CodeInterface, legacy_function, remote_function
+from amuse.support.literature import LiteratureReferencesMixIn
+from amuse.support.parameter_tools import CodeWithNamelistParameters
 from omuse.units import units
-import numpy
 
 
 def compute_cell_corners(nodes=None, u_lon=None, u_lat=None):
