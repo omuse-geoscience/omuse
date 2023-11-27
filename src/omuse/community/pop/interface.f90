@@ -2136,7 +2136,6 @@ function set_bottom_cell_file(option) result (ret)
   bottom_cell_file = option
 end function
 
-
 function get_ts_option(option) result (ret)
   integer :: ret
   character (char_len), intent(out) :: option
@@ -2145,17 +2144,19 @@ function get_ts_option(option) result (ret)
 
   ret=0
 end function
+
 function set_ts_option(option) result (ret)
   integer :: ret
   character (char_len), intent(in) :: option
   ret=0
 
-  if (option == 'restart' .OR. option == 'internal') then
+  if (option == 'restart' .OR. option == 'internal'.OR. option == 'amuse') then
     init_ts_option = option
   else 
     ret=-1
   endif
 end function
+
 function get_ts_file(option) result (ret)
   integer :: ret
   character (char_len), intent(out) :: option
