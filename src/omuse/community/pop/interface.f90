@@ -1064,6 +1064,58 @@ function get_element_ssh(g_i, g_j, ssh_, n) result (ret)
   ret=0
 end function
 
+! Duplicate of get_element_ssh, but implemented for clarify of the interface
+function get_element_ssh_curtime(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  else
+    call get_gather(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  endif
+
+  ssh_ = ssh_ / grav
+
+  ret=0
+end function
+
+function get_element_ssh_oldtime(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+  else
+    call get_gather(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+  endif
+
+  ssh_ = ssh_ / grav
+
+  ret=0
+end function
+
+function get_element_ssh_guess(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, PGUESS(:,:,:), ssh_, n)
+  else
+    call get_gather(g_i, g_j, PGUESS(:,:,:), ssh_, n)
+  endif
+
+  ssh_ = ssh_ / grav
+
+  ret=0
+end function
+
 function set_element_ssh(g_i, g_j, ssh_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1079,8 +1131,41 @@ function set_element_ssh(g_i, g_j, ssh_, n) result (ret)
   ret=0
 end function
 
+function set_element_ssh_curtime(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
 
+  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
+  PSURF(:,:,curtime,:)=PSURF(:,:,curtime,:)*grav
 
+  ret=0
+end function
+
+function set_element_ssh_oldtime(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+  PSURF(:,:,oldtime,:)=PSURF(:,:,oldtime,:)*grav
+
+  ret=0
+end function
+
+function set_element_ssh_guess(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  call set_gridded_variable_vector(g_i, g_j, PGUESS(:,:,:), ssh_, n)
+  PGUESS(:,:,:)=PGUESS(:,:,:)*grav
+
+  ret=0
+end function
 
 function get_element_surface_state(g_i, g_j, temp_, salt_, n) result (ret)
   integer :: ret

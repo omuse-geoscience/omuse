@@ -161,11 +161,31 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns()
 
     @remote_function(must_handle_array=True)
-    def get_element_ssh(i=0, j=0):
+    def get_element_ssh_curtime(i=0, j=0):
         returns(ssh=0.0 | units.cm)
 
     @remote_function(must_handle_array=True)
-    def set_element_ssh(i=0, j=0, ssh=0.0 | units.cm):
+    def get_element_ssh_oldtime(i=0, j=0):
+        returns(ssh=0.0 | units.cm)
+
+    @remote_function(must_handle_array=True)
+    def get_element_ssh_guess(i=0, j=0):
+        returns(ssh=0.0 | units.cm)
+
+    @remote_function(must_handle_array=True)
+    def set_element_ssh_alltime(i=0, j=0, ssh=0.0 | units.cm):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_element_ssh_curtime(i=0, j=0, ssh=0.0 | units.cm):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_element_ssh_oldtime(i=0, j=0, ssh=0.0 | units.cm):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_element_ssh_guess(i=0, j=0, ssh=0.0 | units.cm):
         returns()
 
     ##these two return in units.m in adcirc but here they return latitude longitude in degrees
@@ -790,6 +810,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, "get_element3d_salinity")
             object.add_method(state, "get_element3d_density")
             object.add_method(state, "get_element_ssh")
+            object.add_method(state, "get_element_ssh_curtime")
+            object.add_method(state, "get_element_ssh_oldtime")
+            object.add_method(state, "get_element_ssh_guess")
 
         object.add_method(
             "RUN", "get_node3d_velocity_zvel"
@@ -803,6 +826,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_method("EDIT", "set_element3d_salinity")
         object.add_method("EDIT", "set_element3d_density")
         object.add_method("EDIT", "set_element_ssh")
+        object.add_method("EDIT", "set_element_ssh_curtime")
+        object.add_method("EDIT", "set_element_ssh_oldtime")
+        object.add_method("EDIT", "set_element_ssh_guess")
 
         object.add_method("EDIT_FORCINGS", "set_node_wind_stress")
         object.add_method("EDIT_FORCINGS", "set_node_coriolis_f")
@@ -960,7 +986,13 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "elements", "get_element_surface_heat_flux", names=("surface_heat_flux",)
         )
         object.add_getter("elements", "get_element_ssh", names=("ssh",))
+        object.add_getter("elements", "get_element_ssh_curtime", names=("cur_ssh",))
+        object.add_getter("elements", "get_element_ssh_oldtime", names=("old_ssh",))
+        object.add_getter("elements", "get_element_ssh_guess", names=("guess_ssh",))
         object.add_setter("elements", "set_element_ssh", names=("ssh",))
+        object.add_setter("elements", "set_element_ssh_curtime", names=("cur_ssh",))
+        object.add_setter("elements", "set_element_ssh_oldtime", names=("old_ssh",))
+        object.add_setter("elements", "set_element_ssh_guess", names=("guess_ssh",))
 
         # elements are on the T-grid
         object.define_grid("elements3d")
