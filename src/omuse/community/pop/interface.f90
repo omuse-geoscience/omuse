@@ -1576,24 +1576,58 @@ function set_element3d_temperature(i, j, k, temp_, n) result (ret)
 
   ret=0
 end function
-function get_element3d_salinity(i, j, k, salt_, n) result (ret)
+
+function get_element3d_salinity_curtime(i, j, k, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(out) :: salt_
 
   call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
-!  call get_gather_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
 
   ret=0
 end function
-function set_element3d_salinity(i, j, k, salt_, n) result (ret)
+
+function get_element3d_salinity_oldtime(i, j, k, salt_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: salt_
+
+  call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,oldtime,:), salt_, n)
+
+  ret=0
+end function
+
+function set_element3d_salinity_alltime(i, j, k, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(in) :: salt_
 
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
+  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,oldtime,:), salt_, n)
+
+  ret=0
+end function
+
+function set_element3d_salinity_curtime(i, j, k, salt_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: salt_
+
+  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
+
+  ret=0
+end function
+
+function set_element3d_salinity_oldtime(i, j, k, salt_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: salt_
+
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,oldtime,:), salt_, n)
 
   ret=0

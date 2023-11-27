@@ -335,11 +335,23 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     # returns salinity for 3D grid
     @remote_function(must_handle_array=True)
-    def get_element3d_salinity(i=0, j=0, k=0):
+    def get_element3d_salinity_curtime(i=0, j=0, k=0):
         returns(salt=0.0 | units.g / units.g)
 
     @remote_function(must_handle_array=True)
-    def set_element3d_salinity(i=0, j=0, k=0, salt=0.0 | units.g / units.g):
+    def get_element3d_salinity_oldtime(i=0, j=0, k=0):
+        returns(salt=0.0 | units.g / units.g)
+
+    @remote_function(must_handle_array=True)
+    def set_element3d_salinity_alltime(i=0, j=0, k=0, salt=0.0 | units.g / units.g):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_element3d_salinity_curtime(i=0, j=0, k=0, salt=0.0 | units.g / units.g):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_element3d_salinity_oldtime(i=0, j=0, k=0, salt=0.0 | units.g / units.g):
         returns()
 
     # returns densiity for 3D grid
@@ -872,7 +884,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, "get_node3d_velocity_yvel_curtime")
             object.add_method(state, "get_node3d_velocity_yvel_oldtime")
             object.add_method(state, "get_element3d_temperature")
-            object.add_method(state, "get_element3d_salinity")
+            object.add_method(state, "get_element3d_salinity_curtime")
+            object.add_method(state, "get_element3d_salinity_oldtime")
             object.add_method(state, "get_element3d_density_curtime")
             object.add_method(state, "get_element3d_density_oldtime")
             object.add_method(state, "get_element_ssh_curtime")
@@ -894,7 +907,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_method("EDIT", "set_node3d_velocity_yvel_curtime")
         object.add_method("EDIT", "set_node3d_velocity_yvel_oldtime")
         object.add_method("EDIT", "set_element3d_temperature")
-        object.add_method("EDIT", "set_element3d_salinity")
+        object.add_method("EDIT", "set_element3d_salinity_alltime")
+        object.add_method("EDIT", "set_element3d_salinity_curtime")
+        object.add_method("EDIT", "set_element3d_salinity_oldtime")
         object.add_method("EDIT", "set_element3d_density_alltime")
         object.add_method("EDIT", "set_element3d_density_curtime")
         object.add_method("EDIT", "set_element3d_density_oldtime")
@@ -1096,14 +1111,18 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_getter(
             "elements3d", "get_element3d_temperature", names=("temperature",)
         )
-        object.add_getter("elements3d", "get_element3d_salinity", names=("salinity",))
+        object.add_getter("elements3d", "get_element3d_salinity_curtime", names=("salinity_all",))
+        object.add_getter("elements3d", "get_element3d_salinity_curtime", names=("salinity_cur",))
+        object.add_getter("elements3d", "get_element3d_salinity_oldtime", names=("salinity_old",))
         object.add_getter("elements3d", "get_element3d_density_curtime", names=("rho_all",))
         object.add_getter("elements3d", "get_element3d_density_curtime", names=("rho_cur",))
         object.add_getter("elements3d", "get_element3d_density_oldtime", names=("rho_old",))
         object.add_setter(
             "elements3d", "set_element3d_temperature", names=("temperature",)
         )
-        object.add_setter("elements3d", "set_element3d_salinity", names=("salinity",))
+        object.add_setter("elements3d", "set_element3d_salinity_alltime", names=("salinity_all",))
+        object.add_setter("elements3d", "set_element3d_salinity_curtime", names=("salinity_cur",))
+        object.add_setter("elements3d", "set_element3d_salinity_oldtime", names=("salinity_old",))
         object.add_setter("elements3d", "set_element3d_density_alltime", names=("rho_all",))
         object.add_setter("elements3d", "set_element3d_density_curtime", names=("rho_cur",))
         object.add_setter("elements3d", "set_element3d_density_oldtime", names=("rho_old",))
