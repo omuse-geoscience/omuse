@@ -1517,16 +1517,13 @@ function get_zt(k, zt_, n) result(ret)
 end function
 
 
-
-
-
 !-----------------------------------------------------------------------
 !
 ! Getters and setters for individual 3D fields
 ! this code was written optimistically and probably needs adjustment later
 !
 !-----------------------------------------------------------------------
-function get_element3d_temperature(i, j, k, temp_, n) result (ret)
+function get_element3d_temperature_curtime(i, j, k, temp_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1535,9 +1532,9 @@ function get_element3d_temperature(i, j, k, temp_, n) result (ret)
 !  real*4 :: time
   integer :: ierr
 
-  if (my_task == master_task) then
-    write (*,*) 'get_element3d_temperature() called with n=', n
-  endif
+!  if (my_task == master_task) then
+!    write (*,*) 'get_element3d_temperature() called with n=', n
+!  endif
 
 !  time = 0.0
 !  call MPI_Barrier(MPI_COMM_OCN, ierr)
@@ -1565,13 +1562,47 @@ function get_element3d_temperature(i, j, k, temp_, n) result (ret)
 
   ret=0
 end function
-function set_element3d_temperature(i, j, k, temp_, n) result (ret)
+
+function get_element3d_temperature_oldtime(i, j, k, temp_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: temp_
+
+  call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,oldtime,:), temp_, n)
+
+  ret=0
+end function
+
+function set_element3d_temperature_alltime(i, j, k, temp_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(in) :: temp_
 
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
+  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,oldtime,:), temp_, n)
+
+  ret=0
+end function
+
+function set_element3d_temperature_curtime(i, j, k, temp_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: temp_
+
+  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
+
+  ret=0
+end function
+
+function set_element3d_temperature_oldtime(i, j, k, temp_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: temp_
+
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,oldtime,:), temp_, n)
 
   ret=0

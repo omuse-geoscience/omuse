@@ -326,11 +326,23 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     # returns temperature for 3D grid
     @remote_function(must_handle_array=True)
-    def get_element3d_temperature(i=0, j=0, k=0):
+    def get_element3d_temperature_curtime(i=0, j=0, k=0):
         returns(temp=0.0 | units.Celsius)
 
     @remote_function(must_handle_array=True)
-    def set_element3d_temperature(i=0, j=0, k=0, temp=0.0 | units.Celsius):
+    def get_element3d_temperature_oldtime(i=0, j=0, k=0):
+        returns(temp=0.0 | units.Celsius)
+
+    @remote_function(must_handle_array=True)
+    def set_element3d_temperature_alltime(i=0, j=0, k=0, temp=0.0 | units.Celsius):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_element3d_temperature_curtime(i=0, j=0, k=0, temp=0.0 | units.Celsius):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_element3d_temperature_oldtime(i=0, j=0, k=0, temp=0.0 | units.Celsius):
         returns()
 
     # returns salinity for 3D grid
@@ -883,7 +895,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, "get_node3d_velocity_xvel_oldtime")
             object.add_method(state, "get_node3d_velocity_yvel_curtime")
             object.add_method(state, "get_node3d_velocity_yvel_oldtime")
-            object.add_method(state, "get_element3d_temperature")
+            object.add_method(state, "get_element3d_temperature_curtime")
+            object.add_method(state, "get_element3d_temperature_oldtime")
             object.add_method(state, "get_element3d_salinity_curtime")
             object.add_method(state, "get_element3d_salinity_oldtime")
             object.add_method(state, "get_element3d_density_curtime")
@@ -906,7 +919,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_method("EDIT", "set_node3d_velocity_yvel_alltime")
         object.add_method("EDIT", "set_node3d_velocity_yvel_curtime")
         object.add_method("EDIT", "set_node3d_velocity_yvel_oldtime")
-        object.add_method("EDIT", "set_element3d_temperature")
+        object.add_method("EDIT", "set_element3d_temperature_alltime")
+        object.add_method("EDIT", "set_element3d_temperature_curtime")
+        object.add_method("EDIT", "set_element3d_temperature_oldtime")
         object.add_method("EDIT", "set_element3d_salinity_alltime")
         object.add_method("EDIT", "set_element3d_salinity_curtime")
         object.add_method("EDIT", "set_element3d_salinity_oldtime")
@@ -1109,7 +1124,13 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "elements3d", "get_element3d_position", names=("lat", "lon", "z")
         )
         object.add_getter(
-            "elements3d", "get_element3d_temperature", names=("temperature",)
+            "elements3d", "get_element3d_temperature_curtime", names=("temperature_all",)
+        )
+        object.add_getter(
+            "elements3d", "get_element3d_temperature_curtime", names=("temperature_cur",)
+        )
+        object.add_getter(
+            "elements3d", "get_element3d_temperature_oldtime", names=("temperature_old",)
         )
         object.add_getter("elements3d", "get_element3d_salinity_curtime", names=("salinity_all",))
         object.add_getter("elements3d", "get_element3d_salinity_curtime", names=("salinity_cur",))
@@ -1117,8 +1138,15 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_getter("elements3d", "get_element3d_density_curtime", names=("rho_all",))
         object.add_getter("elements3d", "get_element3d_density_curtime", names=("rho_cur",))
         object.add_getter("elements3d", "get_element3d_density_oldtime", names=("rho_old",))
+
         object.add_setter(
-            "elements3d", "set_element3d_temperature", names=("temperature",)
+            "elements3d", "set_element3d_temperature_alltime", names=("temperature_all",)
+        )
+        object.add_setter(
+            "elements3d", "set_element3d_temperature_curtime", names=("temperature_cur",)
+        )
+        object.add_setter(
+            "elements3d", "set_element3d_temperature_oldtime", names=("temperature_old",)
         )
         object.add_setter("elements3d", "set_element3d_salinity_alltime", names=("salinity_all",))
         object.add_setter("elements3d", "set_element3d_salinity_curtime", names=("salinity_cur",))
