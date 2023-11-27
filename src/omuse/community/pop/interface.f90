@@ -95,6 +95,7 @@ module pop_interface
 
   logical :: reinit_gradp = .false. ! whether to reinit gradp vars on a recommit grid (restart)
   logical :: reinit_rho = .false. ! whether to reinit gradp vars on a recommit grid (restart)
+  logical :: pressure_correction = .true. ! whether recompute oldtime psurf on a recommit grid (restart)
 
   logical :: initialized = .false.
 
@@ -427,6 +428,19 @@ function set_reinit_rho(x) result(ret)
   ret=0
 end function
 
+function get_init_press_corr(x) result(ret)
+  integer :: ret
+  logical, intent(out) :: x
+  x=pressure_correction
+  ret=0
+end function
+
+function set_init_press_corr(x) result(ret)
+  integer :: ret
+  logical, intent(in) :: x
+  pressure_correction=x
+  ret=0
+end function
 
 
 !-----------------------------------------------------------------------
@@ -2843,7 +2857,6 @@ end subroutine calc_tpoints_global
  subroutine recommit_prognostic_variables(errorCode)
     integer :: errorCode
     integer :: iblock, n, k 
-    logical :: pressure_correction=.TRUE.
 
     real (POP_r8), dimension(nx_block,ny_block) :: &
       WORK1,WORK2        ! work space for pressure correction

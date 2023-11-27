@@ -616,6 +616,14 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns()
 
     @remote_function
+    def get_init_press_corr():
+        returns(pressure_correction=True)
+
+    @remote_function
+    def set_init_press_corr(pressure_correction=True):
+        returns()
+
+    @remote_function
     def get_restart_option():
         returns(option="s")
 
@@ -1624,4 +1632,12 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "reinit_rho",
             "flag indicates whether rho are calculated from input salt and temperature on recommit_grids",
             default_value=False,
+        )
+
+        object.add_method_parameter(
+            "get_init_press_corr",
+            "set_init_press_corr",
+            "pressure_correction",
+            "flag indicates whether psurf(oldtime) is recomputed from curtime data on recommit_grids",
+            default_value=True,
         )
