@@ -115,14 +115,40 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns()
 
     @remote_function(must_handle_array=True)
-    def get_node_barotropic_vel(i=0, j=0):
+    def get_node_barotropic_vel_curtime(i=0, j=0):
         returns(
             vx_barotropic=0.0 | units.cm / units.s,
             vy_barotropic=0.0 | units.cm / units.s,
         )
 
     @remote_function(must_handle_array=True)
-    def set_node_barotropic_vel(
+    def get_node_barotropic_vel_oldtime(i=0, j=0):
+        returns(
+            vx_barotropic=0.0 | units.cm / units.s,
+            vy_barotropic=0.0 | units.cm / units.s,
+        )
+
+
+    @remote_function(must_handle_array=True)
+    def set_node_barotropic_vel_alltime(
+        i=0,
+        j=0,
+        vx_barotropic=0.0 | units.cm / units.s,
+        vy_barotropic=0.0 | units.cm / units.s,
+    ):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_node_barotropic_vel_curtime(
+        i=0,
+        j=0,
+        vx_barotropic=0.0 | units.cm / units.s,
+        vy_barotropic=0.0 | units.cm / units.s,
+    ):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_node_barotropic_vel_oldtime(
         i=0,
         j=0,
         vx_barotropic=0.0 | units.cm / units.s,
@@ -803,7 +829,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, "get_element_surface_forcing_temp")
             object.add_method(state, "get_element_surface_forcing_salt")
             object.add_method(state, "get_node_surface_state")
-            object.add_method(state, "get_node_barotropic_vel")
+            object.add_method(state, "get_node_barotropic_vel_curtime")
+            object.add_method(state, "get_node_barotropic_vel_oldtime")
             object.add_method(state, "get_node3d_velocity_xvel")
             object.add_method(state, "get_node3d_velocity_yvel")
             object.add_method(state, "get_element3d_temperature")
@@ -818,7 +845,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "RUN", "get_node3d_velocity_zvel"
         )  # because depends on xvel, yvel; needs prepare first
 
-        object.add_method("EDIT", "set_node_barotropic_vel")
+        object.add_method("EDIT", "set_node_barotropic_vel_alltime")
+        object.add_method("EDIT", "set_node_barotropic_vel_curtime")
+        object.add_method("EDIT", "set_node_barotropic_vel_oldtime")
         object.add_method("EDIT", "set_node_surface_state")
         object.add_method("EDIT", "set_node3d_velocity_xvel")
         object.add_method("EDIT", "set_node3d_velocity_yvel")
@@ -949,11 +978,23 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "nodes", "get_node_surface_state", names=("vx", "vy", "gradx", "grady")
         )
         object.add_getter(
-            "nodes", "get_node_barotropic_vel", names=("vx_barotropic", "vy_barotropic")
+            "nodes", "get_node_barotropic_vel_curtime", names=("vx_barotropic_all", "vy_barotropic_all")
+        )
+        object.add_getter(
+            "nodes", "get_node_barotropic_vel_curtime", names=("vx_barotropic_cur", "vy_barotropic_cur")
+        )
+        object.add_getter(
+            "nodes", "get_node_barotropic_vel_oldtime", names=("vx_barotropic_old", "vy_barotropic_old")
         )
         object.add_setter("nodes", "set_node_surface_state", names=("gradx", "grady"))
         object.add_setter(
-            "nodes", "set_node_barotropic_vel", names=("vx_barotropic", "vy_barotropic")
+            "nodes", "set_node_barotropic_vel_alltime", names=("vx_barotropic_all", "vy_barotropic_all")
+        )
+        object.add_setter(
+            "nodes", "set_node_barotropic_vel_curtime", names=("vx_barotropic_cur", "vy_barotropic_cur")
+        )
+        object.add_setter(
+            "nodes", "set_node_barotropic_vel_oldtime", names=("vx_barotropic_old", "vy_barotropic_old")
         )
 
         object.define_grid("nodes3d")

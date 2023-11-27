@@ -979,7 +979,7 @@ end function
 !  Getters for node and element surface state
 !
 !-----------------------------------------------------------------------
-function get_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
+function get_node_barotropic_vel_curtime(g_i, g_j, uvel_, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -995,7 +995,25 @@ function get_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
 
   ret=0
 end function
-function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
+
+function get_node_barotropic_vel_oldtime(g_i, g_j, uvel_, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: uvel_, vvel_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
+    call get_gridded_variable_vector(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
+  else
+    call get_gather(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
+    call get_gather(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
+  endif
+
+  ret=0
+end function
+
+function set_node_barotropic_vel_alltime(g_i, g_j, uvel_, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1008,6 +1026,31 @@ function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
 
   ret=0
 end function
+
+function set_node_barotropic_vel_curtime(g_i, g_j, uvel_, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(in) :: uvel_, vvel_
+
+    call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
+    call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
+
+  ret=0
+end function
+
+function set_node_barotropic_vel_oldtime(g_i, g_j, uvel_, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(in) :: uvel_, vvel_
+
+    call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
+    call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
+
+  ret=0
+end function
+
 function get_node_surface_state(g_i, g_j, uvel_, vvel_,gradx_,grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
