@@ -145,7 +145,6 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
             vy_barotropic=0.0 | units.cm / units.s,
         )
 
-
     @remote_function(must_handle_array=True)
     def set_node_barotropic_vel_alltime(
         i=0,
@@ -1078,43 +1077,85 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "nodes", "get_node_surface_state_oldtime", names=("gradx_old", "grady_old")
         )
         object.add_getter(
-            "nodes", "get_node_barotropic_vel_curtime", names=("vx_barotropic_all", "vy_barotropic_all")
+            "nodes",
+            "get_node_barotropic_vel_curtime",
+            names=("vx_barotropic_all", "vy_barotropic_all"),
         )
         object.add_getter(
-            "nodes", "get_node_barotropic_vel_curtime", names=("vx_barotropic_cur", "vy_barotropic_cur")
+            "nodes",
+            "get_node_barotropic_vel_curtime",
+            names=("vx_barotropic_cur", "vy_barotropic_cur"),
         )
         object.add_getter(
-            "nodes", "get_node_barotropic_vel_oldtime", names=("vx_barotropic_old", "vy_barotropic_old")
-        )
-        object.add_setter("nodes", "set_node_surface_state_alltime", names=("gradx_all", "grady_all"))
-        object.add_setter("nodes", "set_node_surface_state_curtime", names=("gradx_cur", "grady_cur"))
-        object.add_setter("nodes", "set_node_surface_state_oldtime", names=("gradx_old", "grady_old"))
-        object.add_setter(
-            "nodes", "set_node_barotropic_vel_alltime", names=("vx_barotropic_all", "vy_barotropic_all")
+            "nodes",
+            "get_node_barotropic_vel_oldtime",
+            names=("vx_barotropic_old", "vy_barotropic_old"),
         )
         object.add_setter(
-            "nodes", "set_node_barotropic_vel_curtime", names=("vx_barotropic_cur", "vy_barotropic_cur")
+            "nodes", "set_node_surface_state_alltime", names=("gradx_all", "grady_all")
         )
         object.add_setter(
-            "nodes", "set_node_barotropic_vel_oldtime", names=("vx_barotropic_old", "vy_barotropic_old")
+            "nodes", "set_node_surface_state_curtime", names=("gradx_cur", "grady_cur")
+        )
+        object.add_setter(
+            "nodes", "set_node_surface_state_oldtime", names=("gradx_old", "grady_old")
+        )
+        object.add_setter(
+            "nodes",
+            "set_node_barotropic_vel_alltime",
+            names=("vx_barotropic_all", "vy_barotropic_all"),
+        )
+        object.add_setter(
+            "nodes",
+            "set_node_barotropic_vel_curtime",
+            names=("vx_barotropic_cur", "vy_barotropic_cur"),
+        )
+        object.add_setter(
+            "nodes",
+            "set_node_barotropic_vel_oldtime",
+            names=("vx_barotropic_old", "vy_barotropic_old"),
         )
 
         object.define_grid("nodes3d")
         object.set_grid_range("nodes3d", "get_firstlast_grid3d")
         object.add_getter("nodes3d", "get_node3d_position", names=("lat", "lon", "z"))
-        object.add_getter("nodes3d", "get_node3d_velocity_xvel_curtime", names=("xvel_all",))
-        object.add_getter("nodes3d", "get_node3d_velocity_xvel_curtime", names=("xvel_cur",))
-        object.add_getter("nodes3d", "get_node3d_velocity_xvel_oldtime", names=("xvel_old",))
-        object.add_getter("nodes3d", "get_node3d_velocity_yvel_curtime", names=("yvel_all",))
-        object.add_getter("nodes3d", "get_node3d_velocity_yvel_curtime", names=("yvel_cur",))
-        object.add_getter("nodes3d", "get_node3d_velocity_yvel_oldtime", names=("yvel_old",))
+        object.add_getter(
+            "nodes3d", "get_node3d_velocity_xvel_curtime", names=("xvel_all",)
+        )
+        object.add_getter(
+            "nodes3d", "get_node3d_velocity_xvel_curtime", names=("xvel_cur",)
+        )
+        object.add_getter(
+            "nodes3d", "get_node3d_velocity_xvel_oldtime", names=("xvel_old",)
+        )
+        object.add_getter(
+            "nodes3d", "get_node3d_velocity_yvel_curtime", names=("yvel_all",)
+        )
+        object.add_getter(
+            "nodes3d", "get_node3d_velocity_yvel_curtime", names=("yvel_cur",)
+        )
+        object.add_getter(
+            "nodes3d", "get_node3d_velocity_yvel_oldtime", names=("yvel_old",)
+        )
         object.add_getter("nodes3d", "get_node3d_velocity_zvel", names=("zvel",))
-        object.add_setter("nodes3d", "set_node3d_velocity_xvel_alltime", names=("xvel_all",))
-        object.add_setter("nodes3d", "set_node3d_velocity_xvel_curtime", names=("xvel_cur",))
-        object.add_setter("nodes3d", "set_node3d_velocity_xvel_oldtime", names=("xvel_old",))
-        object.add_setter("nodes3d", "set_node3d_velocity_yvel_alltime", names=("yvel_all",))
-        object.add_setter("nodes3d", "set_node3d_velocity_yvel_curtime", names=("yvel_cur",))
-        object.add_setter("nodes3d", "set_node3d_velocity_yvel_oldtime", names=("yvel_old",))
+        object.add_setter(
+            "nodes3d", "set_node3d_velocity_xvel_alltime", names=("xvel_all",)
+        )
+        object.add_setter(
+            "nodes3d", "set_node3d_velocity_xvel_curtime", names=("xvel_cur",)
+        )
+        object.add_setter(
+            "nodes3d", "set_node3d_velocity_xvel_oldtime", names=("xvel_old",)
+        )
+        object.add_setter(
+            "nodes3d", "set_node3d_velocity_yvel_alltime", names=("yvel_all",)
+        )
+        object.add_setter(
+            "nodes3d", "set_node3d_velocity_yvel_curtime", names=("yvel_cur",)
+        )
+        object.add_setter(
+            "nodes3d", "set_node3d_velocity_yvel_oldtime", names=("yvel_old",)
+        )
 
         # these are all on the U-grid
         object.define_grid("forcings", axes_names=axes_names, grid_class=StructuredGrid)
@@ -1152,36 +1193,72 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "elements3d", "get_element3d_position", names=("lat", "lon", "z")
         )
         object.add_getter(
-            "elements3d", "get_element3d_temperature_curtime", names=("temperature_all",)
+            "elements3d",
+            "get_element3d_temperature_curtime",
+            names=("temperature_all",),
         )
         object.add_getter(
-            "elements3d", "get_element3d_temperature_curtime", names=("temperature_cur",)
+            "elements3d",
+            "get_element3d_temperature_curtime",
+            names=("temperature_cur",),
         )
         object.add_getter(
-            "elements3d", "get_element3d_temperature_oldtime", names=("temperature_old",)
+            "elements3d",
+            "get_element3d_temperature_oldtime",
+            names=("temperature_old",),
         )
-        object.add_getter("elements3d", "get_element3d_salinity_curtime", names=("salinity_all",))
-        object.add_getter("elements3d", "get_element3d_salinity_curtime", names=("salinity_cur",))
-        object.add_getter("elements3d", "get_element3d_salinity_oldtime", names=("salinity_old",))
-        object.add_getter("elements3d", "get_element3d_density_curtime", names=("rho_all",))
-        object.add_getter("elements3d", "get_element3d_density_curtime", names=("rho_cur",))
-        object.add_getter("elements3d", "get_element3d_density_oldtime", names=("rho_old",))
+        object.add_getter(
+            "elements3d", "get_element3d_salinity_curtime", names=("salinity_all",)
+        )
+        object.add_getter(
+            "elements3d", "get_element3d_salinity_curtime", names=("salinity_cur",)
+        )
+        object.add_getter(
+            "elements3d", "get_element3d_salinity_oldtime", names=("salinity_old",)
+        )
+        object.add_getter(
+            "elements3d", "get_element3d_density_curtime", names=("rho_all",)
+        )
+        object.add_getter(
+            "elements3d", "get_element3d_density_curtime", names=("rho_cur",)
+        )
+        object.add_getter(
+            "elements3d", "get_element3d_density_oldtime", names=("rho_old",)
+        )
 
         object.add_setter(
-            "elements3d", "set_element3d_temperature_alltime", names=("temperature_all",)
+            "elements3d",
+            "set_element3d_temperature_alltime",
+            names=("temperature_all",),
         )
         object.add_setter(
-            "elements3d", "set_element3d_temperature_curtime", names=("temperature_cur",)
+            "elements3d",
+            "set_element3d_temperature_curtime",
+            names=("temperature_cur",),
         )
         object.add_setter(
-            "elements3d", "set_element3d_temperature_oldtime", names=("temperature_old",)
+            "elements3d",
+            "set_element3d_temperature_oldtime",
+            names=("temperature_old",),
         )
-        object.add_setter("elements3d", "set_element3d_salinity_alltime", names=("salinity_all",))
-        object.add_setter("elements3d", "set_element3d_salinity_curtime", names=("salinity_cur",))
-        object.add_setter("elements3d", "set_element3d_salinity_oldtime", names=("salinity_old",))
-        object.add_setter("elements3d", "set_element3d_density_alltime", names=("rho_all",))
-        object.add_setter("elements3d", "set_element3d_density_curtime", names=("rho_cur",))
-        object.add_setter("elements3d", "set_element3d_density_oldtime", names=("rho_old",))
+        object.add_setter(
+            "elements3d", "set_element3d_salinity_alltime", names=("salinity_all",)
+        )
+        object.add_setter(
+            "elements3d", "set_element3d_salinity_curtime", names=("salinity_cur",)
+        )
+        object.add_setter(
+            "elements3d", "set_element3d_salinity_oldtime", names=("salinity_old",)
+        )
+        object.add_setter(
+            "elements3d", "set_element3d_density_alltime", names=("rho_all",)
+        )
+        object.add_setter(
+            "elements3d", "set_element3d_density_curtime", names=("rho_cur",)
+        )
+        object.add_setter(
+            "elements3d", "set_element3d_density_oldtime", names=("rho_old",)
+        )
 
         # these are all on the T-grid
         object.define_grid(
