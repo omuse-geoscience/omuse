@@ -1617,18 +1617,29 @@ function set_element3d_salinity(i, j, k, salt_, n) result (ret)
   ret=0
 end function
 
-function get_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
+function get_node3d_velocity_xvel_curtime(i, j, k, uvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(out) :: uvel_
 
   call get_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
-!  call get_gather_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
 
   ret=0
 end function
-function set_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
+
+function get_node3d_velocity_xvel_oldtime(i, j, k, uvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: uvel_
+
+  call get_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,oldtime,:), uvel_, n)
+
+  ret=0
+end function
+
+function set_node3d_velocity_xvel_alltime(i, j, k, uvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1639,24 +1650,80 @@ function set_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
 
   ret=0
 end function
-function get_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
+
+function set_node3d_velocity_xvel_curtime(i, j, k, uvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: uvel_
+
+  call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
+
+  ret=0
+end function
+
+function set_node3d_velocity_xvel_oldtime(i, j, k, uvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: uvel_
+
+  call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,oldtime,:), uvel_, n)
+
+  ret=0
+end function
+
+function get_node3d_velocity_yvel_curtime(i, j, k, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(out) :: vvel_
 
   call get_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
-!  call get_gather_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
 
   ret=0
 end function
-function set_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
+
+function get_node3d_velocity_yvel_oldtime(i, j, k, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: vvel_
+
+  call get_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,oldtime,:), vvel_, n)
+
+  ret=0
+end function
+
+function set_node3d_velocity_yvel_alltime(i, j, k, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(in) :: vvel_
 
   call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
+  call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,oldtime,:), vvel_, n)
+
+  ret=0
+end function
+
+function set_node3d_velocity_yvel_curtime(i, j, k, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: vvel_
+
+  call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
+
+  ret=0
+end function
+
+function set_node3d_velocity_yvel_oldtime(i, j, k, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: vvel_
+
   call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,oldtime,:), vvel_, n)
 
   ret=0

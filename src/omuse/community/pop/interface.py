@@ -279,20 +279,44 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     # returns x velocity for 3D grid
     @remote_function(must_handle_array=True)
-    def get_node3d_velocity_xvel(i=0, j=0, k=0):
+    def get_node3d_velocity_xvel_curtime(i=0, j=0, k=0):
         returns(xvel=0.0 | units.cm / units.s)
 
     @remote_function(must_handle_array=True)
-    def set_node3d_velocity_xvel(i=0, j=0, k=0, xvel=0.0 | units.cm / units.s):
+    def get_node3d_velocity_xvel_oldtime(i=0, j=0, k=0):
+        returns(xvel=0.0 | units.cm / units.s)
+
+    @remote_function(must_handle_array=True)
+    def set_node3d_velocity_xvel_alltime(i=0, j=0, k=0, xvel=0.0 | units.cm / units.s):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_node3d_velocity_xvel_curtime(i=0, j=0, k=0, xvel=0.0 | units.cm / units.s):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_node3d_velocity_xvel_oldtime(i=0, j=0, k=0, xvel=0.0 | units.cm / units.s):
         returns()
 
     # returns y velocity for 3D grid
     @remote_function(must_handle_array=True)
-    def get_node3d_velocity_yvel(i=0, j=0, k=0):
+    def get_node3d_velocity_yvel_curtime(i=0, j=0, k=0):
         returns(yvel=0.0 | units.cm / units.s)
 
     @remote_function(must_handle_array=True)
-    def set_node3d_velocity_yvel(i=0, j=0, k=0, yvel=0.0 | units.cm / units.s):
+    def get_node3d_velocity_yvel_oldtime(i=0, j=0, k=0):
+        returns(yvel=0.0 | units.cm / units.s)
+
+    @remote_function(must_handle_array=True)
+    def set_node3d_velocity_yvel_alltime(i=0, j=0, k=0, yvel=0.0 | units.cm / units.s):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_node3d_velocity_yvel_curtime(i=0, j=0, k=0, yvel=0.0 | units.cm / units.s):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_node3d_velocity_yvel_oldtime(i=0, j=0, k=0, yvel=0.0 | units.cm / units.s):
         returns()
 
     # returns z velocity for 3D grid
@@ -831,8 +855,10 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, "get_node_surface_state")
             object.add_method(state, "get_node_barotropic_vel_curtime")
             object.add_method(state, "get_node_barotropic_vel_oldtime")
-            object.add_method(state, "get_node3d_velocity_xvel")
-            object.add_method(state, "get_node3d_velocity_yvel")
+            object.add_method(state, "get_node3d_velocity_xvel_curtime")
+            object.add_method(state, "get_node3d_velocity_xvel_oldtime")
+            object.add_method(state, "get_node3d_velocity_yvel_curtime")
+            object.add_method(state, "get_node3d_velocity_yvel_oldtime")
             object.add_method(state, "get_element3d_temperature")
             object.add_method(state, "get_element3d_salinity")
             object.add_method(state, "get_element3d_density")
@@ -849,8 +875,12 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_method("EDIT", "set_node_barotropic_vel_curtime")
         object.add_method("EDIT", "set_node_barotropic_vel_oldtime")
         object.add_method("EDIT", "set_node_surface_state")
-        object.add_method("EDIT", "set_node3d_velocity_xvel")
-        object.add_method("EDIT", "set_node3d_velocity_yvel")
+        object.add_method("EDIT", "set_node3d_velocity_xvel_alltime")
+        object.add_method("EDIT", "set_node3d_velocity_xvel_curtime")
+        object.add_method("EDIT", "set_node3d_velocity_xvel_oldtime")
+        object.add_method("EDIT", "set_node3d_velocity_yvel_alltime")
+        object.add_method("EDIT", "set_node3d_velocity_yvel_curtime")
+        object.add_method("EDIT", "set_node3d_velocity_yvel_oldtime")
         object.add_method("EDIT", "set_element3d_temperature")
         object.add_method("EDIT", "set_element3d_salinity")
         object.add_method("EDIT", "set_element3d_density")
@@ -1000,11 +1030,19 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.define_grid("nodes3d")
         object.set_grid_range("nodes3d", "get_firstlast_grid3d")
         object.add_getter("nodes3d", "get_node3d_position", names=("lat", "lon", "z"))
-        object.add_getter("nodes3d", "get_node3d_velocity_xvel", names=("xvel",))
-        object.add_getter("nodes3d", "get_node3d_velocity_yvel", names=("yvel",))
+        object.add_getter("nodes3d", "get_node3d_velocity_xvel_curtime", names=("xvel_all",))
+        object.add_getter("nodes3d", "get_node3d_velocity_xvel_curtime", names=("xvel_cur",))
+        object.add_getter("nodes3d", "get_node3d_velocity_xvel_oldtime", names=("xvel_old",))
+        object.add_getter("nodes3d", "get_node3d_velocity_yvel_curtime", names=("yvel_all",))
+        object.add_getter("nodes3d", "get_node3d_velocity_yvel_curtime", names=("yvel_cur",))
+        object.add_getter("nodes3d", "get_node3d_velocity_yvel_oldtime", names=("yvel_old",))
         object.add_getter("nodes3d", "get_node3d_velocity_zvel", names=("zvel",))
-        object.add_setter("nodes3d", "set_node3d_velocity_xvel", names=("xvel",))
-        object.add_setter("nodes3d", "set_node3d_velocity_yvel", names=("yvel",))
+        object.add_setter("nodes3d", "set_node3d_velocity_xvel_alltime", names=("xvel_all",))
+        object.add_setter("nodes3d", "set_node3d_velocity_xvel_curtime", names=("xvel_cur",))
+        object.add_setter("nodes3d", "set_node3d_velocity_xvel_oldtime", names=("xvel_old",))
+        object.add_setter("nodes3d", "set_node3d_velocity_yvel_alltime", names=("yvel_all",))
+        object.add_setter("nodes3d", "set_node3d_velocity_yvel_curtime", names=("yvel_cur",))
+        object.add_setter("nodes3d", "set_node3d_velocity_yvel_oldtime", names=("yvel_old",))
 
         # these are all on the U-grid
         object.define_grid("forcings", axes_names=axes_names, grid_class=StructuredGrid)
