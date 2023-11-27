@@ -1740,20 +1740,33 @@ function get_node3d_velocity_zvel(i, j, k, wvel_, n) result (ret)
   ret=0
 end function
 
-function get_element3d_density(i, j, k, rho_, n) result (ret)
+function get_element3d_density_curtime(i, j, k, rho_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
   real*8, dimension(n), intent(out) :: rho_
 
   call get_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
-!  call get_gather_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
   if(state_itype.EQ.state_type_polynomial) rho_=rho_+sigo(k)*p001+1
   if(state_itype.EQ.state_type_linear) rho_=rho_+rho_leos_ref
 
   ret=0
 end function
-function set_element3d_density(i, j, k, rho_, n) result (ret)
+
+function get_element3d_density_oldtime(i, j, k, rho_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: rho_
+
+  call get_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho_, n)
+  if(state_itype.EQ.state_type_polynomial) rho_=rho_+sigo(k)*p001+1
+  if(state_itype.EQ.state_type_linear) rho_=rho_+rho_leos_ref
+
+  ret=0
+end function
+
+function set_element3d_density_alltime(i, j, k, rho_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1770,14 +1783,37 @@ function set_element3d_density(i, j, k, rho_, n) result (ret)
   ret=0
 end function
 
+function set_element3d_density_curtime(i, j, k, rho_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: rho_
+  real*8, dimension(n) :: rho__
 
+  rho__=rho_
+  if(state_itype.EQ.state_type_polynomial) rho__=rho_-sigo(k)*p001-1
+  if(state_itype.EQ.state_type_linear) rho__=rho_-rho_leos_ref
 
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho__, n)
 
+  ret=0
+end function
 
+function set_element3d_density_oldtime(i, j, k, rho_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: rho_
+  real*8, dimension(n) :: rho__
 
+  rho__=rho_
+  if(state_itype.EQ.state_type_polynomial) rho__=rho_-sigo(k)*p001-1
+  if(state_itype.EQ.state_type_linear) rho__=rho_-rho_leos_ref
 
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho__, n)
 
-
+  ret=0
+end function
 
 !-----------------------------------------------------------------------
 !
