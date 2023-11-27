@@ -32,10 +32,12 @@ class Data(LiteratureReferencesMixIn):
         units to asociate with each variable. default: []
     invariate_variables : list of str, optional
         invariate variables to load. Will be included on the grid (but not updated). default: ["land_sea_mask"]
+    center_meridian: bool, optional
+        whether or not to shift the dataset by 180 degrees to center the meridian. default: True
     """
 
     def __init__(self, source_dir, source_file, start_datetime=datetime.datetime(1979, 1, 2), 
-        variables=[], var_units = [], invariate_variables = []):
+        variables=[], var_units = [], invariate_variables = [], center_meridian = True):
 
         self.source_path = os.path.join(source_dir, source_file)
 
@@ -45,7 +47,7 @@ class Data(LiteratureReferencesMixIn):
         self.tnow=0. | units.day
 
         self.invariate_variables = invariate_variables
-
+        self.center_meridian = center_meridian
         self.dataset = self.get_dataset()
 
         self.grid=self.generate_initial_grid()
@@ -95,28 +97,42 @@ class Data(LiteratureReferencesMixIn):
 
     def update_variable(self, var):
         time_now=self.start_datetime+datetime.timedelta(days=self.tnow.value_in(units.day))
-        # print(time_now)
         shortname = var
         dataset=self.dataset
-        # print("Dataset = \n", dataset)
         _value=dataset[shortname].sel(time=time_now).values
-        # print("_value = \n", _value)
-        # print("self = \n", self)
         assert len(_value.shape)==len(self.shape)
-
-        # value=numpy.zeros(self.shape)    
             
         setattr(self.grid, var, _value | self.units[var])
 
     @property
     def model_time(self):
         return self.tnow
-  
+
+    def shift_coordinates(self, ds):
+        # Shift longitude values from (0, 360) to (-180, 180)
+        # which corresponds to default model representations
+        ds["_lon_temp"] = xr.where(
+            ds["longitude"] > 180,
+            ds["longitude"] - 360,
+            ds["longitude"])
+
+        ds = (
+            ds
+            .swap_dims({"longitude": "_lon_temp"})
+            .sel(**{"_lon_temp": sorted(ds._lon_temp)})
+            .drop("longitude"))
+
+        ds = ds.rename({"_lon_temp": "longitude"}) 
+        return ds  
+
     def get_dataset(self):
         if not os.path.isfile(self.source_path):
             raise Exception("this file does not exist")
 
         dataset = xr.open_dataset(self.source_path)
+        if self.center_meridian:
+            dataset = self.shift_coordinates(dataset)
+
         return dataset
         
 
