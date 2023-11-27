@@ -71,14 +71,14 @@ class Data(LiteratureReferencesMixIn):
             dy=float(lat[1]-lat[0])
             
             assert lon[1]>lon[0]                
-            assert lat[1]<lat[0]                
-            assert dx==-dy
+            assert lat[1]>lat[0]                
+            assert dx==dy
             self.shape=data[shortname][0,:,:].shape
    
             if grid is None:
                 grid=new_cartesian_grid(self.shape, 
                                         dx|units.deg,
-                                        offset=([lat[-1]-dx/2,lon[0]-dx/2]|units.deg),
+                                        offset=([lat[0]-dx/2,lon[0]-dx/2]|units.deg),
                                         axes_names=["lat","lon"])
  
             value=numpy.zeros(self.shape)
@@ -129,6 +129,10 @@ class Data(LiteratureReferencesMixIn):
         ds = ds.rename({"_lon_temp": "longitude"}) 
         return ds  
 
+    def flip_latitude(self, ds):
+        ds = ds.sortby("latitude")
+        return ds
+
     def get_dataset(self):
         if not os.path.isfile(self.source_path):
             raise Exception("this file does not exist")
@@ -136,7 +140,7 @@ class Data(LiteratureReferencesMixIn):
         dataset = xr.open_dataset(self.source_path)
         if self.center_meridian:
             dataset = self.shift_coordinates(dataset)
-
+        dataset = self.flip_latitude(dataset)
         return dataset
         
 
