@@ -1051,29 +1051,43 @@ function set_node_barotropic_vel_oldtime(g_i, g_j, uvel_, vvel_, n) result (ret)
   ret=0
 end function
 
-function get_node_surface_state(g_i, g_j, uvel_, vvel_,gradx_,grady_, n) result (ret)
+function get_node_surface_state_curtime(g_i, g_j, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(out) :: uvel_, vvel_, gradx_, grady_
+  real*8, dimension(n), intent(out) :: gradx_, grady_
 
   if (n < nx_global*ny_global) then
     call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    call get_gridded_variable_vector(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
-    call get_gridded_variable_vector(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   else
     call get_gather(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gather(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    call get_gather(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
-    call get_gather(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   endif
   gradx_ = gradx_ / grav
   grady_ = grady_ / grav
   ret=0
 end function
 
-function set_node_surface_state(g_i, g_j, gradx_, grady_, n) result (ret)
+function get_node_surface_state_oldtime(g_i, g_j, gradx_, grady_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: gradx_, grady_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
+    call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
+  else
+    call get_gather(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
+    call get_gather(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
+  endif
+  gradx_ = gradx_ / grav
+  grady_ = grady_ / grav
+  ret=0
+end function
+
+function set_node_surface_state_alltime(g_i, g_j, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1086,6 +1100,36 @@ function set_node_surface_state(g_i, g_j, gradx_, grady_, n) result (ret)
 
     GRADPX=GRADPX*grav
     GRADPY=GRADPY*grav
+
+  ret=0
+end function
+
+function set_node_surface_state_curtime(g_i, g_j, gradx_, grady_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(in) :: gradx_, grady_
+
+    call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
+    call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
+
+    GRADPX(:,:,curtime,:)=GRADPX(:,:,curtime,:)*grav
+    GRADPY(:,:,curtime,:)=GRADPY(:,:,curtime,:)*grav
+
+  ret=0
+end function
+
+function set_node_surface_state_oldtime(g_i, g_j, gradx_, grady_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(in) :: gradx_, grady_
+
+    call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
+    call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
+
+    GRADPX(:,:,oldtime,:)=GRADPX(:,:,oldtime,:)*grav
+    GRADPY(:,:,oldtime,:)=GRADPY(:,:,oldtime,:)*grav
 
   ret=0
 end function

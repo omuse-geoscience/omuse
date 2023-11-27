@@ -100,17 +100,34 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     ##getters for node and element state
     @remote_function(must_handle_array=True)
-    def get_node_surface_state(i=0, j=0):
+    def get_node_surface_state_curtime(i=0, j=0):
         returns(
-            vx=0.0 | units.cm / units.s,
-            vy=0.0 | units.cm / units.s,
-            gradx=0.0 | units.s**-1,
-            grady=0.0 | units.s**-1,
+            gradx=0.0 | units.no_unit,
+            grady=0.0 | units.no_unit,
         )
 
     @remote_function(must_handle_array=True)
-    def set_node_surface_state(
-        i=0, j=0, gradx=0.0 | units.s**-1, grady=0.0 | units.s**-1
+    def get_node_surface_state_oldtime(i=0, j=0):
+        returns(
+            gradx=0.0 | units.no_unit,
+            grady=0.0 | units.no_unit,
+        )
+
+    @remote_function(must_handle_array=True)
+    def set_node_surface_state_alltime(
+        i=0, j=0, gradx=0.0 | units.no_unit, grady=0.0 | units.no_unit
+    ):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_node_surface_state_curtime(
+        i=0, j=0, gradx=0.0 | units.no_unit, grady=0.0 | units.no_unit
+    ):
+        returns()
+
+    @remote_function(must_handle_array=True)
+    def set_node_surface_state_oldtime(
+        i=0, j=0, gradx=0.0 | units.no_unit, grady=0.0 | units.no_unit
     ):
         returns()
 
@@ -888,7 +905,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, "get_element_surface_heat_flux")
             object.add_method(state, "get_element_surface_forcing_temp")
             object.add_method(state, "get_element_surface_forcing_salt")
-            object.add_method(state, "get_node_surface_state")
+            object.add_method(state, "get_node_surface_state_curtime")
+            object.add_method(state, "get_node_surface_state_oldtime")
             object.add_method(state, "get_node_barotropic_vel_curtime")
             object.add_method(state, "get_node_barotropic_vel_oldtime")
             object.add_method(state, "get_node3d_velocity_xvel_curtime")
@@ -912,7 +930,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_method("EDIT", "set_node_barotropic_vel_alltime")
         object.add_method("EDIT", "set_node_barotropic_vel_curtime")
         object.add_method("EDIT", "set_node_barotropic_vel_oldtime")
-        object.add_method("EDIT", "set_node_surface_state")
+        object.add_method("EDIT", "set_node_surface_state_alltime")
+        object.add_method("EDIT", "set_node_surface_state_curtime")
+        object.add_method("EDIT", "set_node_surface_state_oldtime")
         object.add_method("EDIT", "set_node3d_velocity_xvel_alltime")
         object.add_method("EDIT", "set_node3d_velocity_xvel_curtime")
         object.add_method("EDIT", "set_node3d_velocity_xvel_oldtime")
@@ -1049,7 +1069,13 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_getter("nodes", "get_node_position", names=("lat", "lon"))
         object.add_getter("nodes", "get_node_depth", names=("depth",))
         object.add_getter(
-            "nodes", "get_node_surface_state", names=("vx", "vy", "gradx", "grady")
+            "nodes", "get_node_surface_state_curtime", names=("gradx_all", "grady_all")
+        )
+        object.add_getter(
+            "nodes", "get_node_surface_state_curtime", names=("gradx_cur", "grady_cur")
+        )
+        object.add_getter(
+            "nodes", "get_node_surface_state_oldtime", names=("gradx_old", "grady_old")
         )
         object.add_getter(
             "nodes", "get_node_barotropic_vel_curtime", names=("vx_barotropic_all", "vy_barotropic_all")
@@ -1060,7 +1086,9 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_getter(
             "nodes", "get_node_barotropic_vel_oldtime", names=("vx_barotropic_old", "vy_barotropic_old")
         )
-        object.add_setter("nodes", "set_node_surface_state", names=("gradx", "grady"))
+        object.add_setter("nodes", "set_node_surface_state_alltime", names=("gradx_all", "grady_all"))
+        object.add_setter("nodes", "set_node_surface_state_curtime", names=("gradx_cur", "grady_cur"))
+        object.add_setter("nodes", "set_node_surface_state_oldtime", names=("gradx_old", "grady_old"))
         object.add_setter(
             "nodes", "set_node_barotropic_vel_alltime", names=("vx_barotropic_all", "vy_barotropic_all")
         )
