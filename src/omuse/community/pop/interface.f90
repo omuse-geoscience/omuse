@@ -22,20 +22,22 @@ module pop_interface
   use constants, only: grav
   use domain, only: distrb_clinic, nprocs_clinic, nprocs_tropic, clinic_distribution_type, &
          tropic_distribution_type, ew_boundary_type, ns_boundary_type
-  use forcing_fields, only: SMF, SMFT, lsmft_avail, STF
+  use forcing_fields, only: SMF, SMFT, lsmft_avail, STF, FW, TFW
   use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, &
                          shf_formulation, shf_interp_freq, shf_interp_type, &!, shf_restore_tau
                          SHF_DATA, shf_data_sst
-  use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, ws_data_update, ws_interp_freq, ws_interp_type, &
-      ws_interp_next, ws_interp_last, ws_interp_inc
-  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed, &
+  use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, &
+                        ws_data_update, ws_interp_freq, ws_interp_type, &
+                        ws_interp_next, ws_interp_last, ws_interp_inc
+  use forcing_sfwf, only: set_sfwf, sfwf_filename, sfwf_data_type, sfwf_formulation, &
+                          sfwf_interp_freq, sfwf_interp_type, fwf_imposed, &
                           SFWF_DATA, sfwf_data_sss, lfw_as_salt_flx
-
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
   use operators, only: wcalc
-  use prognostic, only: TRACER, PSURF, PGUESS, GRADPX, GRADPY, UVEL, VVEL, UBTROP, VBTROP, RHO, curtime, oldtime, newtime
+  use prognostic, only: TRACER, PSURF, PGUESS, GRADPX, GRADPY, UVEL, VVEL, &
+                        UBTROP, VBTROP, RHO, curtime, oldtime, newtime
   use restart, only: restart_freq_opt, restart_freq, restart_outfile
   use tavg, only: tavg_freq_opt, tavg_freq, tavg_outfile
   use movie, only: movie_freq_opt, movie_freq, movie_outfile
@@ -200,6 +202,7 @@ function commit_parameters() result(ret)
   !
   !-----------------------------------------------------------------------
   call set_shf(STF)
+  call set_sfwf(STF,FW,TFW)
 
 
   initialized = .true.
@@ -214,9 +217,6 @@ function commit_parameters() result(ret)
     ret=-2
   endif
 end function
-
-
-
 
 !-----------------------------------------------------------------------
 !
