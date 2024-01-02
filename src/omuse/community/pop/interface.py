@@ -1040,9 +1040,7 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.set_grid_range("nodes", "get_firstlast_node")
         object.add_getter("nodes", "get_node_position", names=("lat", "lon"))
         object.add_getter("nodes", "get_node_depth", names=("depth",))
-        object.add_getter(
-            "nodes", "get_node_surface_state", names=("gradx", "grady")
-        )
+        object.add_getter("nodes", "get_node_surface_state", names=("gradx", "grady"))
         object.add_getter(
             "nodes", "get_node_surface_state_oldtime", names=("gradx_old", "grady_old")
         )
@@ -1056,9 +1054,7 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "get_node_barotropic_vel_oldtime",
             names=("vx_barotropic_old", "vy_barotropic_old"),
         )
-        object.add_setter(
-            "nodes", "set_node_surface_state", names=("gradx", "grady")
-        )
+        object.add_setter("nodes", "set_node_surface_state", names=("gradx", "grady"))
         object.add_setter(
             "nodes", "set_node_surface_state_oldtime", names=("gradx_old", "grady_old")
         )
@@ -1076,28 +1072,20 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.define_grid("nodes3d")
         object.set_grid_range("nodes3d", "get_firstlast_grid3d")
         object.add_getter("nodes3d", "get_node3d_position", names=("lat", "lon", "z"))
-        object.add_getter(
-            "nodes3d", "get_node3d_velocity_xvel", names=("xvel",)
-        )
+        object.add_getter("nodes3d", "get_node3d_velocity_xvel", names=("xvel",))
         object.add_getter(
             "nodes3d", "get_node3d_velocity_xvel_oldtime", names=("xvel_old",)
         )
-        object.add_getter(
-            "nodes3d", "get_node3d_velocity_yvel", names=("yvel",)
-        )
+        object.add_getter("nodes3d", "get_node3d_velocity_yvel", names=("yvel",))
         object.add_getter(
             "nodes3d", "get_node3d_velocity_yvel_oldtime", names=("yvel_old",)
         )
         object.add_getter("nodes3d", "get_node3d_velocity_zvel", names=("zvel",))
-        object.add_setter(
-            "nodes3d", "set_node3d_velocity_xvel", names=("xvel",)
-        )
+        object.add_setter("nodes3d", "set_node3d_velocity_xvel", names=("xvel",))
         object.add_setter(
             "nodes3d", "set_node3d_velocity_xvel_oldtime", names=("xvel_old",)
         )
-        object.add_setter(
-            "nodes3d", "set_node3d_velocity_yvel", names=("yvel",)
-        )
+        object.add_setter("nodes3d", "set_node3d_velocity_yvel", names=("yvel",))
         object.add_setter(
             "nodes3d", "set_node3d_velocity_yvel_oldtime", names=("yvel_old",)
         )
@@ -1150,15 +1138,11 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "get_element3d_temperature_oldtime",
             names=("temperature_old",),
         )
-        object.add_getter(
-            "elements3d", "get_element3d_salinity", names=("salinity",)
-        )
+        object.add_getter("elements3d", "get_element3d_salinity", names=("salinity",))
         object.add_getter(
             "elements3d", "get_element3d_salinity_oldtime", names=("salinity_old",)
         )
-        object.add_getter(
-            "elements3d", "get_element3d_density", names=("rho",)
-        )
+        object.add_getter("elements3d", "get_element3d_density", names=("rho",))
         object.add_getter(
             "elements3d", "get_element3d_density_oldtime", names=("rho_old",)
         )
@@ -1173,15 +1157,11 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "set_element3d_temperature_oldtime",
             names=("temperature_old",),
         )
-        object.add_setter(
-            "elements3d", "set_element3d_salinity", names=("salinity",)
-        )
+        object.add_setter("elements3d", "set_element3d_salinity", names=("salinity",))
         object.add_setter(
             "elements3d", "set_element3d_salinity_oldtime", names=("salinity_old",)
         )
-        object.add_setter(
-            "elements3d", "set_element3d_density", names=("rho",)
-        )
+        object.add_setter("elements3d", "set_element3d_density", names=("rho",))
         object.add_setter(
             "elements3d", "set_element3d_density_oldtime", names=("rho_old",)
         )
