@@ -100,7 +100,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     ##getters for node and element state
     @remote_function(must_handle_array=True)
-    def get_node_surface_state_curtime(i=0, j=0):
+    def get_node_surface_state(i=0, j=0):
         returns(
             gradx=0.0 | units.no_unit,
             grady=0.0 | units.no_unit,
@@ -114,13 +114,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         )
 
     @remote_function(must_handle_array=True)
-    def set_node_surface_state_alltime(
-        i=0, j=0, gradx=0.0 | units.no_unit, grady=0.0 | units.no_unit
-    ):
-        returns()
-
-    @remote_function(must_handle_array=True)
-    def set_node_surface_state_curtime(
+    def set_node_surface_state(
         i=0, j=0, gradx=0.0 | units.no_unit, grady=0.0 | units.no_unit
     ):
         returns()
@@ -132,7 +126,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns()
 
     @remote_function(must_handle_array=True)
-    def get_node_barotropic_vel_curtime(i=0, j=0):
+    def get_node_barotropic_vel(i=0, j=0):
         returns(
             vx_barotropic=0.0 | units.cm / units.s,
             vy_barotropic=0.0 | units.cm / units.s,
@@ -146,16 +140,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         )
 
     @remote_function(must_handle_array=True)
-    def set_node_barotropic_vel_alltime(
-        i=0,
-        j=0,
-        vx_barotropic=0.0 | units.cm / units.s,
-        vy_barotropic=0.0 | units.cm / units.s,
-    ):
-        returns()
-
-    @remote_function(must_handle_array=True)
-    def set_node_barotropic_vel_curtime(
+    def set_node_barotropic_vel(
         i=0,
         j=0,
         vx_barotropic=0.0 | units.cm / units.s,
@@ -209,7 +194,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns()
 
     @remote_function(must_handle_array=True)
-    def get_element_ssh_curtime(i=0, j=0):
+    def get_element_ssh(i=0, j=0):
         returns(ssh=0.0 | units.cm)
 
     @remote_function(must_handle_array=True)
@@ -221,11 +206,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns(ssh=0.0 | units.cm)
 
     @remote_function(must_handle_array=True)
-    def set_element_ssh_alltime(i=0, j=0, ssh=0.0 | units.cm):
-        returns()
-
-    @remote_function(must_handle_array=True)
-    def set_element_ssh_curtime(i=0, j=0, ssh=0.0 | units.cm):
+    def set_element_ssh(i=0, j=0, ssh=0.0 | units.cm):
         returns()
 
     @remote_function(must_handle_array=True)
@@ -301,7 +282,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     # returns x velocity for 3D grid
     @remote_function(must_handle_array=True)
-    def get_node3d_velocity_xvel_curtime(i=0, j=0, k=0):
+    def get_node3d_velocity_xvel(i=0, j=0, k=0):
         returns(xvel=0.0 | units.cm / units.s)
 
     @remote_function(must_handle_array=True)
@@ -309,11 +290,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns(xvel=0.0 | units.cm / units.s)
 
     @remote_function(must_handle_array=True)
-    def set_node3d_velocity_xvel_alltime(i=0, j=0, k=0, xvel=0.0 | units.cm / units.s):
-        returns()
-
-    @remote_function(must_handle_array=True)
-    def set_node3d_velocity_xvel_curtime(i=0, j=0, k=0, xvel=0.0 | units.cm / units.s):
+    def set_node3d_velocity_xvel(i=0, j=0, k=0, xvel=0.0 | units.cm / units.s):
         returns()
 
     @remote_function(must_handle_array=True)
@@ -322,7 +299,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     # returns y velocity for 3D grid
     @remote_function(must_handle_array=True)
-    def get_node3d_velocity_yvel_curtime(i=0, j=0, k=0):
+    def get_node3d_velocity_yvel(i=0, j=0, k=0):
         returns(yvel=0.0 | units.cm / units.s)
 
     @remote_function(must_handle_array=True)
@@ -330,11 +307,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns(yvel=0.0 | units.cm / units.s)
 
     @remote_function(must_handle_array=True)
-    def set_node3d_velocity_yvel_alltime(i=0, j=0, k=0, yvel=0.0 | units.cm / units.s):
-        returns()
-
-    @remote_function(must_handle_array=True)
-    def set_node3d_velocity_yvel_curtime(i=0, j=0, k=0, yvel=0.0 | units.cm / units.s):
+    def set_node3d_velocity_yvel(i=0, j=0, k=0, yvel=0.0 | units.cm / units.s):
         returns()
 
     @remote_function(must_handle_array=True)
@@ -348,7 +321,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     # returns temperature for 3D grid
     @remote_function(must_handle_array=True)
-    def get_element3d_temperature_curtime(i=0, j=0, k=0):
+    def get_element3d_temperature(i=0, j=0, k=0):
         returns(temp=0.0 | units.Celsius)
 
     @remote_function(must_handle_array=True)
@@ -356,11 +329,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns(temp=0.0 | units.Celsius)
 
     @remote_function(must_handle_array=True)
-    def set_element3d_temperature_alltime(i=0, j=0, k=0, temp=0.0 | units.Celsius):
-        returns()
-
-    @remote_function(must_handle_array=True)
-    def set_element3d_temperature_curtime(i=0, j=0, k=0, temp=0.0 | units.Celsius):
+    def set_element3d_temperature(i=0, j=0, k=0, temp=0.0 | units.Celsius):
         returns()
 
     @remote_function(must_handle_array=True)
@@ -369,7 +338,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     # returns salinity for 3D grid
     @remote_function(must_handle_array=True)
-    def get_element3d_salinity_curtime(i=0, j=0, k=0):
+    def get_element3d_salinity(i=0, j=0, k=0):
         returns(salt=0.0 | units.g / units.g)
 
     @remote_function(must_handle_array=True)
@@ -377,11 +346,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns(salt=0.0 | units.g / units.g)
 
     @remote_function(must_handle_array=True)
-    def set_element3d_salinity_alltime(i=0, j=0, k=0, salt=0.0 | units.g / units.g):
-        returns()
-
-    @remote_function(must_handle_array=True)
-    def set_element3d_salinity_curtime(i=0, j=0, k=0, salt=0.0 | units.g / units.g):
+    def set_element3d_salinity(i=0, j=0, k=0, salt=0.0 | units.g / units.g):
         returns()
 
     @remote_function(must_handle_array=True)
@@ -390,7 +355,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
 
     # returns densiity for 3D grid
     @remote_function(must_handle_array=True)
-    def get_element3d_density_curtime(i=0, j=0, k=0):
+    def get_element3d_density(i=0, j=0, k=0):
         returns(rho=0.0 | units.g / units.cm**3)
 
     @remote_function(must_handle_array=True)
@@ -398,11 +363,7 @@ class POPInterface(CodeInterface, LiteratureReferencesMixIn):
         returns(rho=0.0 | units.g / units.cm**3)
 
     @remote_function(must_handle_array=True)
-    def set_element3d_density_alltime(i=0, j=0, k=0, rho=0.0 | units.g / units.cm**3):
-        returns()
-
-    @remote_function(must_handle_array=True)
-    def set_element3d_density_curtime(i=0, j=0, k=0, rho=0.0 | units.g / units.cm**3):
+    def set_element3d_density(i=0, j=0, k=0, rho=0.0 | units.g / units.cm**3):
         returns()
 
     @remote_function(must_handle_array=True)
@@ -907,6 +868,11 @@ class POP(CommonCode, CodeWithNamelistParameters):
         # ~ object.add_transition('RUN','EDIT','before_set_parameter')
         # ~ object.add_transition('RUN','EDIT_FORCINGS','before_set_parameter')
 
+        # add initial solution control in EDIT state
+        object.add_method("EDIT", "set_ts_option")
+        object.add_method("EDIT", "set_ts_file")
+        object.add_method("EDIT", "set_ts_file_format")
+
         for state in ["RUN", "EDIT"]:
             object.add_method(state, "get_dz")
             object.add_method(state, "get_node_coriolis_f")
@@ -919,21 +885,21 @@ class POP(CommonCode, CodeWithNamelistParameters):
             object.add_method(state, "get_element_surface_fresh_water_flux")
             object.add_method(state, "get_element_surface_forcing_temp")
             object.add_method(state, "get_element_surface_forcing_salt")
-            object.add_method(state, "get_node_surface_state_curtime")
+            object.add_method(state, "get_node_surface_state")
             object.add_method(state, "get_node_surface_state_oldtime")
-            object.add_method(state, "get_node_barotropic_vel_curtime")
+            object.add_method(state, "get_node_barotropic_vel")
             object.add_method(state, "get_node_barotropic_vel_oldtime")
-            object.add_method(state, "get_node3d_velocity_xvel_curtime")
+            object.add_method(state, "get_node3d_velocity_xvel")
             object.add_method(state, "get_node3d_velocity_xvel_oldtime")
-            object.add_method(state, "get_node3d_velocity_yvel_curtime")
+            object.add_method(state, "get_node3d_velocity_yvel")
             object.add_method(state, "get_node3d_velocity_yvel_oldtime")
-            object.add_method(state, "get_element3d_temperature_curtime")
+            object.add_method(state, "get_element3d_temperature")
             object.add_method(state, "get_element3d_temperature_oldtime")
-            object.add_method(state, "get_element3d_salinity_curtime")
+            object.add_method(state, "get_element3d_salinity")
             object.add_method(state, "get_element3d_salinity_oldtime")
-            object.add_method(state, "get_element3d_density_curtime")
+            object.add_method(state, "get_element3d_density")
             object.add_method(state, "get_element3d_density_oldtime")
-            object.add_method(state, "get_element_ssh_curtime")
+            object.add_method(state, "get_element_ssh")
             object.add_method(state, "get_element_ssh_oldtime")
             object.add_method(state, "get_element_ssh_guess")
 
@@ -941,29 +907,21 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "RUN", "get_node3d_velocity_zvel"
         )  # because depends on xvel, yvel; needs prepare first
 
-        object.add_method("EDIT", "set_node_barotropic_vel_alltime")
-        object.add_method("EDIT", "set_node_barotropic_vel_curtime")
+        object.add_method("EDIT", "set_node_barotropic_vel")
         object.add_method("EDIT", "set_node_barotropic_vel_oldtime")
-        object.add_method("EDIT", "set_node_surface_state_alltime")
-        object.add_method("EDIT", "set_node_surface_state_curtime")
+        object.add_method("EDIT", "set_node_surface_state")
         object.add_method("EDIT", "set_node_surface_state_oldtime")
-        object.add_method("EDIT", "set_node3d_velocity_xvel_alltime")
-        object.add_method("EDIT", "set_node3d_velocity_xvel_curtime")
+        object.add_method("EDIT", "set_node3d_velocity_xvel")
         object.add_method("EDIT", "set_node3d_velocity_xvel_oldtime")
-        object.add_method("EDIT", "set_node3d_velocity_yvel_alltime")
-        object.add_method("EDIT", "set_node3d_velocity_yvel_curtime")
+        object.add_method("EDIT", "set_node3d_velocity_yvel")
         object.add_method("EDIT", "set_node3d_velocity_yvel_oldtime")
-        object.add_method("EDIT", "set_element3d_temperature_alltime")
-        object.add_method("EDIT", "set_element3d_temperature_curtime")
+        object.add_method("EDIT", "set_element3d_temperature")
         object.add_method("EDIT", "set_element3d_temperature_oldtime")
-        object.add_method("EDIT", "set_element3d_salinity_alltime")
-        object.add_method("EDIT", "set_element3d_salinity_curtime")
+        object.add_method("EDIT", "set_element3d_salinity")
         object.add_method("EDIT", "set_element3d_salinity_oldtime")
-        object.add_method("EDIT", "set_element3d_density_alltime")
-        object.add_method("EDIT", "set_element3d_density_curtime")
+        object.add_method("EDIT", "set_element3d_density")
         object.add_method("EDIT", "set_element3d_density_oldtime")
-        object.add_method("EDIT", "set_element_ssh_alltime")
-        object.add_method("EDIT", "set_element_ssh_curtime")
+        object.add_method("EDIT", "set_element_ssh")
         object.add_method("EDIT", "set_element_ssh_oldtime")
         object.add_method("EDIT", "set_element_ssh_guess")
 
@@ -1083,23 +1041,15 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.add_getter("nodes", "get_node_position", names=("lat", "lon"))
         object.add_getter("nodes", "get_node_depth", names=("depth",))
         object.add_getter(
-            "nodes", "get_node_surface_state_curtime", names=("gradx_all", "grady_all")
-        )
-        object.add_getter(
-            "nodes", "get_node_surface_state_curtime", names=("gradx_cur", "grady_cur")
+            "nodes", "get_node_surface_state", names=("gradx", "grady")
         )
         object.add_getter(
             "nodes", "get_node_surface_state_oldtime", names=("gradx_old", "grady_old")
         )
         object.add_getter(
             "nodes",
-            "get_node_barotropic_vel_curtime",
-            names=("vx_barotropic_all", "vy_barotropic_all"),
-        )
-        object.add_getter(
-            "nodes",
-            "get_node_barotropic_vel_curtime",
-            names=("vx_barotropic_cur", "vy_barotropic_cur"),
+            "get_node_barotropic_vel",
+            names=("vx_barotropic", "vy_barotropic"),
         )
         object.add_getter(
             "nodes",
@@ -1107,23 +1057,15 @@ class POP(CommonCode, CodeWithNamelistParameters):
             names=("vx_barotropic_old", "vy_barotropic_old"),
         )
         object.add_setter(
-            "nodes", "set_node_surface_state_alltime", names=("gradx_all", "grady_all")
-        )
-        object.add_setter(
-            "nodes", "set_node_surface_state_curtime", names=("gradx_cur", "grady_cur")
+            "nodes", "set_node_surface_state", names=("gradx", "grady")
         )
         object.add_setter(
             "nodes", "set_node_surface_state_oldtime", names=("gradx_old", "grady_old")
         )
         object.add_setter(
             "nodes",
-            "set_node_barotropic_vel_alltime",
-            names=("vx_barotropic_all", "vy_barotropic_all"),
-        )
-        object.add_setter(
-            "nodes",
-            "set_node_barotropic_vel_curtime",
-            names=("vx_barotropic_cur", "vy_barotropic_cur"),
+            "set_node_barotropic_vel",
+            names=("vx_barotropic", "vy_barotropic"),
         )
         object.add_setter(
             "nodes",
@@ -1135,38 +1077,26 @@ class POP(CommonCode, CodeWithNamelistParameters):
         object.set_grid_range("nodes3d", "get_firstlast_grid3d")
         object.add_getter("nodes3d", "get_node3d_position", names=("lat", "lon", "z"))
         object.add_getter(
-            "nodes3d", "get_node3d_velocity_xvel_curtime", names=("xvel_all",)
-        )
-        object.add_getter(
-            "nodes3d", "get_node3d_velocity_xvel_curtime", names=("xvel_cur",)
+            "nodes3d", "get_node3d_velocity_xvel", names=("xvel",)
         )
         object.add_getter(
             "nodes3d", "get_node3d_velocity_xvel_oldtime", names=("xvel_old",)
         )
         object.add_getter(
-            "nodes3d", "get_node3d_velocity_yvel_curtime", names=("yvel_all",)
-        )
-        object.add_getter(
-            "nodes3d", "get_node3d_velocity_yvel_curtime", names=("yvel_cur",)
+            "nodes3d", "get_node3d_velocity_yvel", names=("yvel",)
         )
         object.add_getter(
             "nodes3d", "get_node3d_velocity_yvel_oldtime", names=("yvel_old",)
         )
         object.add_getter("nodes3d", "get_node3d_velocity_zvel", names=("zvel",))
         object.add_setter(
-            "nodes3d", "set_node3d_velocity_xvel_alltime", names=("xvel_all",)
-        )
-        object.add_setter(
-            "nodes3d", "set_node3d_velocity_xvel_curtime", names=("xvel_cur",)
+            "nodes3d", "set_node3d_velocity_xvel", names=("xvel",)
         )
         object.add_setter(
             "nodes3d", "set_node3d_velocity_xvel_oldtime", names=("xvel_old",)
         )
         object.add_setter(
-            "nodes3d", "set_node3d_velocity_yvel_alltime", names=("yvel_all",)
-        )
-        object.add_setter(
-            "nodes3d", "set_node3d_velocity_yvel_curtime", names=("yvel_cur",)
+            "nodes3d", "set_node3d_velocity_yvel", names=("yvel",)
         )
         object.add_setter(
             "nodes3d", "set_node3d_velocity_yvel_oldtime", names=("yvel_old",)
@@ -1197,12 +1127,10 @@ class POP(CommonCode, CodeWithNamelistParameters):
             "get_element_surface_fresh_water_flux",
             names=("surface_fresh_water_flux",),
         )
-        object.add_getter("elements", "get_element_ssh_curtime", names=("ssh_all",))
-        object.add_getter("elements", "get_element_ssh_curtime", names=("ssh_cur",))
+        object.add_getter("elements", "get_element_ssh", names=("ssh",))
         object.add_getter("elements", "get_element_ssh_oldtime", names=("ssh_old",))
         object.add_getter("elements", "get_element_ssh_guess", names=("ssh_guess",))
-        object.add_setter("elements", "set_element_ssh_alltime", names=("ssh_all",))
-        object.add_setter("elements", "set_element_ssh_curtime", names=("ssh_cur",))
+        object.add_setter("elements", "set_element_ssh", names=("ssh",))
         object.add_setter("elements", "set_element_ssh_oldtime", names=("ssh_old",))
         object.add_setter("elements", "set_element_ssh_guess", names=("ssh_guess",))
 
@@ -1214,13 +1142,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
         )
         object.add_getter(
             "elements3d",
-            "get_element3d_temperature_curtime",
-            names=("temperature_all",),
-        )
-        object.add_getter(
-            "elements3d",
-            "get_element3d_temperature_curtime",
-            names=("temperature_cur",),
+            "get_element3d_temperature",
+            names=("temperature",),
         )
         object.add_getter(
             "elements3d",
@@ -1228,19 +1151,13 @@ class POP(CommonCode, CodeWithNamelistParameters):
             names=("temperature_old",),
         )
         object.add_getter(
-            "elements3d", "get_element3d_salinity_curtime", names=("salinity_all",)
-        )
-        object.add_getter(
-            "elements3d", "get_element3d_salinity_curtime", names=("salinity_cur",)
+            "elements3d", "get_element3d_salinity", names=("salinity",)
         )
         object.add_getter(
             "elements3d", "get_element3d_salinity_oldtime", names=("salinity_old",)
         )
         object.add_getter(
-            "elements3d", "get_element3d_density_curtime", names=("rho_all",)
-        )
-        object.add_getter(
-            "elements3d", "get_element3d_density_curtime", names=("rho_cur",)
+            "elements3d", "get_element3d_density", names=("rho",)
         )
         object.add_getter(
             "elements3d", "get_element3d_density_oldtime", names=("rho_old",)
@@ -1248,13 +1165,8 @@ class POP(CommonCode, CodeWithNamelistParameters):
 
         object.add_setter(
             "elements3d",
-            "set_element3d_temperature_alltime",
-            names=("temperature_all",),
-        )
-        object.add_setter(
-            "elements3d",
-            "set_element3d_temperature_curtime",
-            names=("temperature_cur",),
+            "set_element3d_temperature",
+            names=("temperature",),
         )
         object.add_setter(
             "elements3d",
@@ -1262,19 +1174,13 @@ class POP(CommonCode, CodeWithNamelistParameters):
             names=("temperature_old",),
         )
         object.add_setter(
-            "elements3d", "set_element3d_salinity_alltime", names=("salinity_all",)
-        )
-        object.add_setter(
-            "elements3d", "set_element3d_salinity_curtime", names=("salinity_cur",)
+            "elements3d", "set_element3d_salinity", names=("salinity",)
         )
         object.add_setter(
             "elements3d", "set_element3d_salinity_oldtime", names=("salinity_old",)
         )
         object.add_setter(
-            "elements3d", "set_element3d_density_alltime", names=("rho_all",)
-        )
-        object.add_setter(
-            "elements3d", "set_element3d_density_curtime", names=("rho_cur",)
+            "elements3d", "set_element3d_density", names=("rho",)
         )
         object.add_setter(
             "elements3d", "set_element3d_density_oldtime", names=("rho_old",)

@@ -993,7 +993,7 @@ end function
 !  Getters for node and element surface state
 !
 !-----------------------------------------------------------------------
-function get_node_barotropic_vel_curtime(g_i, g_j, uvel_, vvel_, n) result (ret)
+function get_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1027,21 +1027,7 @@ function get_node_barotropic_vel_oldtime(g_i, g_j, uvel_, vvel_, n) result (ret)
   ret=0
 end function
 
-function set_node_barotropic_vel_alltime(g_i, g_j, uvel_, vvel_, n) result (ret)
-  integer :: ret
-  integer, intent(in) :: n
-  integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(in) :: uvel_, vvel_
-
-    call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
-    call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
-    call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
-    call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
-
-  ret=0
-end function
-
-function set_node_barotropic_vel_curtime(g_i, g_j, uvel_, vvel_, n) result (ret)
+function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1065,7 +1051,7 @@ function set_node_barotropic_vel_oldtime(g_i, g_j, uvel_, vvel_, n) result (ret)
   ret=0
 end function
 
-function get_node_surface_state_curtime(g_i, g_j, gradx_, grady_, n) result (ret)
+function get_node_surface_state(g_i, g_j, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1101,24 +1087,7 @@ function get_node_surface_state_oldtime(g_i, g_j, gradx_, grady_, n) result (ret
   ret=0
 end function
 
-function set_node_surface_state_alltime(g_i, g_j, gradx_, grady_, n) result (ret)
-  integer :: ret
-  integer, intent(in) :: n
-  integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(in) :: gradx_, grady_
-
-    call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
-    call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
-    call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
-
-    GRADPX=GRADPX*grav
-    GRADPY=GRADPY*grav
-
-  ret=0
-end function
-
-function set_node_surface_state_curtime(g_i, g_j, gradx_, grady_, n) result (ret)
+function set_node_surface_state(g_i, g_j, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1148,7 +1117,7 @@ function set_node_surface_state_oldtime(g_i, g_j, gradx_, grady_, n) result (ret
   ret=0
 end function
 
-function get_element_ssh_curtime(g_i, g_j, ssh_, n) result (ret)
+function get_element_ssh(g_i, g_j, ssh_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1199,22 +1168,7 @@ function get_element_ssh_guess(g_i, g_j, ssh_, n) result (ret)
   ret=0
 end function
 
-function set_element_ssh_alltime(g_i, g_j, ssh_, n) result (ret)
-  integer :: ret
-  integer, intent(in) :: n
-  integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(out) :: ssh_
-
-  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
-  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
-
-  PSURF=PSURF*grav
-  PGUESS=PSURF(:,:,curtime,:)
-
-  ret=0
-end function
-
-function set_element_ssh_curtime(g_i, g_j, ssh_, n) result (ret)
+function set_element_ssh(g_i, g_j, ssh_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
@@ -1603,7 +1557,7 @@ end function
 ! this code was written optimistically and probably needs adjustment later
 !
 !-----------------------------------------------------------------------
-function get_element3d_temperature_curtime(i, j, k, temp_, n) result (ret)
+function get_element3d_temperature(i, j, k, temp_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1654,19 +1608,7 @@ function get_element3d_temperature_oldtime(i, j, k, temp_, n) result (ret)
   ret=0
 end function
 
-function set_element3d_temperature_alltime(i, j, k, temp_, n) result (ret)
-  integer :: ret
-  integer, intent(in) :: n
-  integer, dimension(n), intent(in) :: i, j, k
-  real*8, dimension(n), intent(in) :: temp_
-
-  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
-  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,oldtime,:), temp_, n)
-
-  ret=0
-end function
-
-function set_element3d_temperature_curtime(i, j, k, temp_, n) result (ret)
+function set_element3d_temperature(i, j, k, temp_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1688,7 +1630,7 @@ function set_element3d_temperature_oldtime(i, j, k, temp_, n) result (ret)
   ret=0
 end function
 
-function get_element3d_salinity_curtime(i, j, k, salt_, n) result (ret)
+function get_element3d_salinity(i, j, k, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1710,19 +1652,7 @@ function get_element3d_salinity_oldtime(i, j, k, salt_, n) result (ret)
   ret=0
 end function
 
-function set_element3d_salinity_alltime(i, j, k, salt_, n) result (ret)
-  integer :: ret
-  integer, intent(in) :: n
-  integer, dimension(n), intent(in) :: i, j, k
-  real*8, dimension(n), intent(in) :: salt_
-
-  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
-  call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,oldtime,:), salt_, n)
-
-  ret=0
-end function
-
-function set_element3d_salinity_curtime(i, j, k, salt_, n) result (ret)
+function set_element3d_salinity(i, j, k, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1744,7 +1674,7 @@ function set_element3d_salinity_oldtime(i, j, k, salt_, n) result (ret)
   ret=0
 end function
 
-function get_node3d_velocity_xvel_curtime(i, j, k, uvel_, n) result (ret)
+function get_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1766,19 +1696,7 @@ function get_node3d_velocity_xvel_oldtime(i, j, k, uvel_, n) result (ret)
   ret=0
 end function
 
-function set_node3d_velocity_xvel_alltime(i, j, k, uvel_, n) result (ret)
-  integer :: ret
-  integer, intent(in) :: n
-  integer, dimension(n), intent(in) :: i, j, k
-  real*8, dimension(n), intent(in) :: uvel_
-
-  call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
-  call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,oldtime,:), uvel_, n)
-
-  ret=0
-end function
-
-function set_node3d_velocity_xvel_curtime(i, j, k, uvel_, n) result (ret)
+function set_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1800,7 +1718,7 @@ function set_node3d_velocity_xvel_oldtime(i, j, k, uvel_, n) result (ret)
   ret=0
 end function
 
-function get_node3d_velocity_yvel_curtime(i, j, k, vvel_, n) result (ret)
+function get_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1822,19 +1740,7 @@ function get_node3d_velocity_yvel_oldtime(i, j, k, vvel_, n) result (ret)
   ret=0
 end function
 
-function set_node3d_velocity_yvel_alltime(i, j, k, vvel_, n) result (ret)
-  integer :: ret
-  integer, intent(in) :: n
-  integer, dimension(n), intent(in) :: i, j, k
-  real*8, dimension(n), intent(in) :: vvel_
-
-  call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
-  call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,oldtime,:), vvel_, n)
-
-  ret=0
-end function
-
-function set_node3d_velocity_yvel_curtime(i, j, k, vvel_, n) result (ret)
+function set_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1867,7 +1773,7 @@ function get_node3d_velocity_zvel(i, j, k, wvel_, n) result (ret)
   ret=0
 end function
 
-function get_element3d_density_curtime(i, j, k, rho_, n) result (ret)
+function get_element3d_density(i, j, k, rho_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
@@ -1893,24 +1799,7 @@ function get_element3d_density_oldtime(i, j, k, rho_, n) result (ret)
   ret=0
 end function
 
-function set_element3d_density_alltime(i, j, k, rho_, n) result (ret)
-  integer :: ret
-  integer, intent(in) :: n
-  integer, dimension(n), intent(in) :: i, j, k
-  real*8, dimension(n), intent(in) :: rho_
-  real*8, dimension(n) :: rho__
-
-  rho__=rho_
-  if(state_itype.EQ.state_type_polynomial) rho__=rho_-sigo(k)*p001-1
-  if(state_itype.EQ.state_type_linear) rho__=rho_-rho_leos_ref
-
-  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho__, n)
-  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho__, n)
-
-  ret=0
-end function
-
-function set_element3d_density_curtime(i, j, k, rho_, n) result (ret)
+function set_element3d_density(i, j, k, rho_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: i, j, k
