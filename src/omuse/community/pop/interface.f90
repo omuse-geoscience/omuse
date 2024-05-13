@@ -2061,7 +2061,10 @@ function set_ts_option(option) result (ret)
   character (char_len), intent(in) :: option
   ret=0
 
-  if (option == 'restart' .OR. option == 'internal'.OR. option == 'amuse') then
+  if (option == 'restart' .OR. &
+      option == 'internal'.OR. &
+      option == 'amuse'.OR. &
+      option == 'amuse_restart') then
     init_ts_option = option
   else 
     ret=-1
