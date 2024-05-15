@@ -22,20 +22,22 @@ module pop_interface
   use constants, only: grav
   use domain, only: distrb_clinic, nprocs_clinic, nprocs_tropic, clinic_distribution_type, &
          tropic_distribution_type, ew_boundary_type, ns_boundary_type
-  use forcing_fields, only: SMF, SMFT, lsmft_avail, STF
+  use forcing_fields, only: SMF, SMFT, lsmft_avail, STF, FW, TFW
   use forcing_shf, only: set_shf, SHF_QSW, shf_filename, shf_data_type, &
                          shf_formulation, shf_interp_freq, shf_interp_type, &!, shf_restore_tau
                          SHF_DATA, shf_data_sst
-  use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, ws_data_update, ws_interp_freq, ws_interp_type, &
-      ws_interp_next, ws_interp_last, ws_interp_inc
-  use forcing_sfwf, only: sfwf_filename, sfwf_data_type, sfwf_formulation, sfwf_interp_freq, sfwf_interp_type, fwf_imposed, &
+  use forcing_ws, only: set_ws, ws_filename, ws_data_type, ws_data_next, &
+                        ws_data_update, ws_interp_freq, ws_interp_type, &
+                        ws_interp_next, ws_interp_last, ws_interp_inc
+  use forcing_sfwf, only: set_sfwf, sfwf_filename, sfwf_data_type, sfwf_formulation, &
+                          sfwf_interp_freq, sfwf_interp_type, fwf_imposed, &
                           SFWF_DATA, sfwf_data_sss, lfw_as_salt_flx
-
   use forcing_tools, only: never
   use initial, only: init_ts_option, init_ts_file, init_ts_file_fmt
   use io_types, only: nml_filename
   use operators, only: wcalc
-  use prognostic, only: TRACER, PSURF, PGUESS, GRADPX, GRADPY, UVEL, VVEL, UBTROP, VBTROP, RHO, curtime, oldtime, newtime
+  use prognostic, only: TRACER, PSURF, PGUESS, GRADPX, GRADPY, UVEL, VVEL, &
+                        UBTROP, VBTROP, RHO, curtime, oldtime, newtime
   use restart, only: restart_freq_opt, restart_freq, restart_outfile
   use tavg, only: tavg_freq_opt, tavg_freq, tavg_outfile
   use movie, only: movie_freq_opt, movie_freq, movie_outfile
@@ -95,6 +97,7 @@ module pop_interface
 
   logical :: reinit_gradp = .false. ! whether to reinit gradp vars on a recommit grid (restart)
   logical :: reinit_rho = .false. ! whether to reinit gradp vars on a recommit grid (restart)
+  logical :: pressure_correction = .true. ! whether recompute oldtime psurf on a recommit grid (restart)
 
   logical :: initialized = .false.
 
@@ -199,6 +202,7 @@ function commit_parameters() result(ret)
   !
   !-----------------------------------------------------------------------
   call set_shf(STF)
+  call set_sfwf(STF,FW,TFW)
 
 
   initialized = .true.
@@ -213,9 +217,6 @@ function commit_parameters() result(ret)
     ret=-2
   endif
 end function
-
-
-
 
 !-----------------------------------------------------------------------
 !
@@ -427,6 +428,19 @@ function set_reinit_rho(x) result(ret)
   ret=0
 end function
 
+function get_init_press_corr(x) result(ret)
+  integer :: ret
+  logical, intent(out) :: x
+  x=pressure_correction
+  ret=0
+end function
+
+function set_init_press_corr(x) result(ret)
+  integer :: ret
+  logical, intent(in) :: x
+  pressure_correction=x
+  ret=0
+end function
 
 
 !-----------------------------------------------------------------------
@@ -995,6 +1009,24 @@ function get_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
 
   ret=0
 end function
+
+function get_node_barotropic_vel_oldtime(g_i, g_j, uvel_, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: uvel_, vvel_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
+    call get_gridded_variable_vector(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
+  else
+    call get_gather(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
+    call get_gather(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
+  endif
+
+  ret=0
+end function
+
 function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1003,27 +1035,52 @@ function set_node_barotropic_vel(g_i, g_j, uvel_, vvel_, n) result (ret)
 
     call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,curtime,:), uvel_, n)
     call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,curtime,:), vvel_, n)
+
+  ret=0
+end function
+
+function set_node_barotropic_vel_oldtime(g_i, g_j, uvel_, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(in) :: uvel_, vvel_
+
     call set_gridded_variable_vector(g_i, g_j, UBTROP(:,:,oldtime,:), uvel_, n)
     call set_gridded_variable_vector(g_i, g_j, VBTROP(:,:,oldtime,:), vvel_, n)
 
   ret=0
 end function
-function get_node_surface_state(g_i, g_j, uvel_, vvel_,gradx_,grady_, n) result (ret)
+
+function get_node_surface_state(g_i, g_j, gradx_, grady_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
   integer, dimension(n), intent(in) :: g_i, g_j
-  real*8, dimension(n), intent(out) :: uvel_, vvel_, gradx_, grady_
+  real*8, dimension(n), intent(out) :: gradx_, grady_
 
   if (n < nx_global*ny_global) then
     call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    call get_gridded_variable_vector(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
-    call get_gridded_variable_vector(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
   else
     call get_gather(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call get_gather(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
-    call get_gather(g_i, g_j, UVEL(:,:,1,curtime,:), uvel_, n)
-    call get_gather(g_i, g_j, VVEL(:,:,1,curtime,:), vvel_, n)
+  endif
+  gradx_ = gradx_ / grav
+  grady_ = grady_ / grav
+  ret=0
+end function
+
+function get_node_surface_state_oldtime(g_i, g_j, gradx_, grady_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: gradx_, grady_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
+    call get_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
+  else
+    call get_gather(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
+    call get_gather(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
   endif
   gradx_ = gradx_ / grav
   grady_ = grady_ / grav
@@ -1038,11 +1095,24 @@ function set_node_surface_state(g_i, g_j, gradx_, grady_, n) result (ret)
 
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,curtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,curtime,:), grady_, n)
+
+    GRADPX(:,:,curtime,:)=GRADPX(:,:,curtime,:)*grav
+    GRADPY(:,:,curtime,:)=GRADPY(:,:,curtime,:)*grav
+
+  ret=0
+end function
+
+function set_node_surface_state_oldtime(g_i, g_j, gradx_, grady_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(in) :: gradx_, grady_
+
     call set_gridded_variable_vector(g_i, g_j, GRADPX(:,:,oldtime,:), gradx_, n)
     call set_gridded_variable_vector(g_i, g_j, GRADPY(:,:,oldtime,:), grady_, n)
 
-    GRADPX=GRADPX*grav
-    GRADPY=GRADPY*grav
+    GRADPX(:,:,oldtime,:)=GRADPX(:,:,oldtime,:)*grav
+    GRADPY(:,:,oldtime,:)=GRADPY(:,:,oldtime,:)*grav
 
   ret=0
 end function
@@ -1064,6 +1134,40 @@ function get_element_ssh(g_i, g_j, ssh_, n) result (ret)
   ret=0
 end function
 
+function get_element_ssh_oldtime(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+  else
+    call get_gather(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+  endif
+
+  ssh_ = ssh_ / grav
+
+  ret=0
+end function
+
+function get_element_ssh_guess(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  if (n < nx_global*ny_global) then
+    call get_gridded_variable_vector(g_i, g_j, PGUESS(:,:,:), ssh_, n)
+  else
+    call get_gather(g_i, g_j, PGUESS(:,:,:), ssh_, n)
+  endif
+
+  ssh_ = ssh_ / grav
+
+  ret=0
+end function
+
 function set_element_ssh(g_i, g_j, ssh_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1071,16 +1175,34 @@ function set_element_ssh(g_i, g_j, ssh_, n) result (ret)
   real*8, dimension(n), intent(out) :: ssh_
 
   call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,curtime,:), ssh_, n)
-  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
-
-  PSURF=PSURF*grav
-  PGUESS=PSURF(:,:,curtime,:)
+  PSURF(:,:,curtime,:)=PSURF(:,:,curtime,:)*grav
 
   ret=0
 end function
 
+function set_element_ssh_oldtime(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
 
+  call set_gridded_variable_vector(g_i, g_j, PSURF(:,:,oldtime,:), ssh_, n)
+  PSURF(:,:,oldtime,:)=PSURF(:,:,oldtime,:)*grav
 
+  ret=0
+end function
+
+function set_element_ssh_guess(g_i, g_j, ssh_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: ssh_
+
+  call set_gridded_variable_vector(g_i, g_j, PGUESS(:,:,:), ssh_, n)
+  PGUESS(:,:,:)=PGUESS(:,:,:)*grav
+
+  ret=0
+end function
 
 function get_element_surface_state(g_i, g_j, temp_, salt_, n) result (ret)
   integer :: ret
@@ -1121,6 +1243,28 @@ function get_element_surface_heat_flux(g_i, g_j, shf_, n) result (ret)
   end do
 
   call get_gridded_variable_vector(g_i, g_j, WORK1, shf_, n)
+
+  ret=0
+end function
+
+function get_element_surface_fresh_water_flux(g_i, g_j, sfwf_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: g_i, g_j
+  real*8, dimension(n), intent(out) :: sfwf_
+
+  real*8, dimension(nx_block, ny_block, max_blocks_clinic) :: WORK1
+  integer :: iblock
+
+  do iblock=1, nblocks_clinic
+    where (KMT(:,:,iblock) > 0)
+      WORK1(:,:,iblock) = STF(:,:,2,iblock)/salinity_factor ! kg/m^2/s
+    elsewhere
+      WORK1(:,:,iblock) = c0
+    end where
+  end do
+
+  call get_gridded_variable_vector(g_i, g_j, WORK1, sfwf_, n)
 
   ret=0
 end function
@@ -1407,9 +1551,6 @@ function get_zt(k, zt_, n) result(ret)
 end function
 
 
-
-
-
 !-----------------------------------------------------------------------
 !
 ! Getters and setters for individual 3D fields
@@ -1425,9 +1566,9 @@ function get_element3d_temperature(i, j, k, temp_, n) result (ret)
 !  real*4 :: time
   integer :: ierr
 
-  if (my_task == master_task) then
-    write (*,*) 'get_element3d_temperature() called with n=', n
-  endif
+!  if (my_task == master_task) then
+!    write (*,*) 'get_element3d_temperature() called with n=', n
+!  endif
 
 !  time = 0.0
 !  call MPI_Barrier(MPI_COMM_OCN, ierr)
@@ -1455,6 +1596,18 @@ function get_element3d_temperature(i, j, k, temp_, n) result (ret)
 
   ret=0
 end function
+
+function get_element3d_temperature_oldtime(i, j, k, temp_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: temp_
+
+  call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,oldtime,:), temp_, n)
+
+  ret=0
+end function
+
 function set_element3d_temperature(i, j, k, temp_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1462,10 +1615,21 @@ function set_element3d_temperature(i, j, k, temp_, n) result (ret)
   real*8, dimension(n), intent(in) :: temp_
 
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,curtime,:), temp_, n)
+
+  ret=0
+end function
+
+function set_element3d_temperature_oldtime(i, j, k, temp_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: temp_
+
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,1,oldtime,:), temp_, n)
 
   ret=0
 end function
+
 function get_element3d_salinity(i, j, k, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1473,10 +1637,21 @@ function get_element3d_salinity(i, j, k, salt_, n) result (ret)
   real*8, dimension(n), intent(out) :: salt_
 
   call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
-!  call get_gather_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
 
   ret=0
 end function
+
+function get_element3d_salinity_oldtime(i, j, k, salt_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: salt_
+
+  call get_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,oldtime,:), salt_, n)
+
+  ret=0
+end function
+
 function set_element3d_salinity(i, j, k, salt_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1484,6 +1659,16 @@ function set_element3d_salinity(i, j, k, salt_, n) result (ret)
   real*8, dimension(n), intent(in) :: salt_
 
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,curtime,:), salt_, n)
+
+  ret=0
+end function
+
+function set_element3d_salinity_oldtime(i, j, k, salt_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: salt_
+
   call set_gridded_variable_vector_3D(i, j, k, TRACER(:,:,:,2,oldtime,:), salt_, n)
 
   ret=0
@@ -1496,10 +1681,21 @@ function get_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   real*8, dimension(n), intent(out) :: uvel_
 
   call get_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
-!  call get_gather_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
 
   ret=0
 end function
+
+function get_node3d_velocity_xvel_oldtime(i, j, k, uvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: uvel_
+
+  call get_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,oldtime,:), uvel_, n)
+
+  ret=0
+end function
+
 function set_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1507,10 +1703,21 @@ function set_node3d_velocity_xvel(i, j, k, uvel_, n) result (ret)
   real*8, dimension(n), intent(in) :: uvel_
 
   call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,curtime,:), uvel_, n)
+
+  ret=0
+end function
+
+function set_node3d_velocity_xvel_oldtime(i, j, k, uvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: uvel_
+
   call set_gridded_variable_vector_3D(i, j, k, UVEL(:,:,:,oldtime,:), uvel_, n)
 
   ret=0
 end function
+
 function get_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1518,10 +1725,21 @@ function get_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   real*8, dimension(n), intent(out) :: vvel_
 
   call get_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
-!  call get_gather_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
 
   ret=0
 end function
+
+function get_node3d_velocity_yvel_oldtime(i, j, k, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: vvel_
+
+  call get_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,oldtime,:), vvel_, n)
+
+  ret=0
+end function
+
 function set_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1529,6 +1747,16 @@ function set_node3d_velocity_yvel(i, j, k, vvel_, n) result (ret)
   real*8, dimension(n), intent(in) :: vvel_
 
   call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,curtime,:), vvel_, n)
+
+  ret=0
+end function
+
+function set_node3d_velocity_yvel_oldtime(i, j, k, vvel_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: vvel_
+
   call set_gridded_variable_vector_3D(i, j, k, VVEL(:,:,:,oldtime,:), vvel_, n)
 
   ret=0
@@ -1552,12 +1780,25 @@ function get_element3d_density(i, j, k, rho_, n) result (ret)
   real*8, dimension(n), intent(out) :: rho_
 
   call get_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
-!  call get_gather_3D(i, j, k, RHO(:,:,:,curtime,:), rho_, n)
   if(state_itype.EQ.state_type_polynomial) rho_=rho_+sigo(k)*p001+1
   if(state_itype.EQ.state_type_linear) rho_=rho_+rho_leos_ref
 
   ret=0
 end function
+
+function get_element3d_density_oldtime(i, j, k, rho_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(out) :: rho_
+
+  call get_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho_, n)
+  if(state_itype.EQ.state_type_polynomial) rho_=rho_+sigo(k)*p001+1
+  if(state_itype.EQ.state_type_linear) rho_=rho_+rho_leos_ref
+
+  ret=0
+end function
+
 function set_element3d_density(i, j, k, rho_, n) result (ret)
   integer :: ret
   integer, intent(in) :: n
@@ -1570,19 +1811,25 @@ function set_element3d_density(i, j, k, rho_, n) result (ret)
   if(state_itype.EQ.state_type_linear) rho__=rho_-rho_leos_ref
 
   call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,curtime,:), rho__, n)
-  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho__, n)
 
   ret=0
 end function
 
+function set_element3d_density_oldtime(i, j, k, rho_, n) result (ret)
+  integer :: ret
+  integer, intent(in) :: n
+  integer, dimension(n), intent(in) :: i, j, k
+  real*8, dimension(n), intent(in) :: rho_
+  real*8, dimension(n) :: rho__
 
+  rho__=rho_
+  if(state_itype.EQ.state_type_polynomial) rho__=rho_-sigo(k)*p001-1
+  if(state_itype.EQ.state_type_linear) rho__=rho_-rho_leos_ref
 
+  call set_gridded_variable_vector_3D(i, j, k, RHO(:,:,:,oldtime,:), rho__, n)
 
-
-
-
-
-
+  ret=0
+end function
 
 !-----------------------------------------------------------------------
 !
@@ -1800,7 +2047,6 @@ function set_bottom_cell_file(option) result (ret)
   bottom_cell_file = option
 end function
 
-
 function get_ts_option(option) result (ret)
   integer :: ret
   character (char_len), intent(out) :: option
@@ -1809,17 +2055,22 @@ function get_ts_option(option) result (ret)
 
   ret=0
 end function
+
 function set_ts_option(option) result (ret)
   integer :: ret
   character (char_len), intent(in) :: option
   ret=0
 
-  if (option == 'restart' .OR. option == 'internal') then
+  if (option == 'restart' .OR. &
+      option == 'internal'.OR. &
+      option == 'amuse'.OR. &
+      option == 'amuse_restart') then
     init_ts_option = option
   else 
     ret=-1
   endif
 end function
+
 function get_ts_file(option) result (ret)
   integer :: ret
   character (char_len), intent(out) :: option
@@ -2521,7 +2772,6 @@ end subroutine calc_tpoints_global
  subroutine recommit_prognostic_variables(errorCode)
     integer :: errorCode
     integer :: iblock, n, k 
-    logical :: pressure_correction=.TRUE.
 
     real (POP_r8), dimension(nx_block,ny_block) :: &
       WORK1,WORK2        ! work space for pressure correction
